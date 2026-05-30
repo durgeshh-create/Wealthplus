@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wealth++ Algo Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ v }}">
+    <style>
+        /* Intraday alert flash animations */
+        @keyframes intradayFlashSuccess {
+            0%   { box-shadow: 0 0 0 0 rgba(16,185,129,0.0)  inset; background-color: transparent; }
+            20%  { box-shadow: 0 0 0 6px rgba(16,185,129,0.55) inset; background-color: rgba(16,185,129,0.10); }
+            100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.0)  inset; background-color: transparent; }
+        }
+        @keyframes intradayFlashWarn {
+            0%   { box-shadow: 0 0 0 0 rgba(234,179,8,0.0)   inset; background-color: transparent; }
+            20%  { box-shadow: 0 0 0 6px rgba(234,179,8,0.60)  inset; background-color: rgba(234,179,8,0.10); }
+            100% { box-shadow: 0 0 0 0 rgba(234,179,8,0.0)   inset; background-color: transparent; }
+        }
+        @keyframes intradayFlashLoss {
+            0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.0)   inset; background-color: transparent; }
+            20%  { box-shadow: 0 0 0 6px rgba(239,68,68,0.55)  inset; background-color: rgba(239,68,68,0.10); }
+            100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.0)   inset; background-color: transparent; }
+        }
+        .intraday-flash-success { animation: intradayFlashSuccess 1.8s ease-out; border-radius: 8px; }
+        .intraday-flash-warn    { animation: intradayFlashWarn    1.8s ease-out; border-radius: 8px; }
+        .intraday-flash-loss    { animation: intradayFlashLoss    1.8s ease-out; border-radius: 8px; }
+
+        /* Custom identity block styling */
+        .header-identity-block {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 3px 9px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            white-space: nowrap;
+        }
+        .user-id-display {
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #10b981;
+            letter-spacing: 0.5px;
+        }
+        .user-id-sep {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.85rem;
+        }
+        .mode-badge {
+            /* colour comes from style.css — only add text-shadow here */
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+
+            /* ── Symbol card grid ─────────────────────────────────────── */
+            .sym-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 0.45rem;
+            }
+            .sym-card {
+                display: flex; align-items: center; justify-content: space-between;
+                gap: 0.35rem;
+                background: var(--color-background-primary);
+                border: 0.5px solid var(--color-border-secondary);
+                border-radius: var(--border-radius-md);
+                padding: 0.45rem 0.6rem;
+                transition: border-color 0.13s;
+            }
+            .sym-card:hover { border-color: var(--color-border-primary); }
+            .sym-card-name {
+                font-family: var(--font-mono, monospace);
+                font-size: 0.78rem; font-weight: 600;
+                color: var(--color-text-primary);
+                letter-spacing: 0.02em; flex: 1;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            }
+            .sym-card-del {
+                flex-shrink: 0; width: 20px; height: 20px;
+                border-radius: 50%; border: none; cursor: pointer;
+                background: transparent; color: var(--color-text-tertiary);
+                font-size: 0.68rem; font-weight: 700;
+                display: flex; align-items: center; justify-content: center;
+                transition: background 0.12s, color 0.12s; padding: 0;
+            }
+            .sym-card-del:hover { background: #fee2e2; color: #dc2626; }
+
+            /* ── Symbol searchable dropdown ─────────────────────────────── */
+            .sym-dropdown {
+                position: fixed; /* set top/left/width dynamically in JS */
+                background: var(--color-background-primary, #fff);
+                border: 1px solid var(--color-border-primary, #e5e7eb);
+                border-radius: var(--border-radius-md, 6px);
+                box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+                max-height: 280px; overflow-y: auto;
+                z-index: 99999; font-size: 0.8rem;
+                display: none;
+            }
+            .sym-dd-item {
+                padding: 0.42rem 0.7rem; cursor: pointer;
+                display: flex; align-items: center; gap: 0.4rem;
+                color: var(--color-text-primary);
+                transition: background 0.1s;
+                border-bottom: 0.5px solid var(--color-border-secondary);
+            }
+            .sym-dd-item:last-child { border-bottom: none; }
+            .sym-dd-item:hover { background: var(--color-background-secondary); }
+            .sym-dd-used { opacity: 0.45; pointer-events: none; }
+            .sym-dd-other { opacity: 0.6; }
+            .sym-dd-other:hover { background: #fef3c7; }
+            .sym-dd-badge {
+                font-size: 0.62rem; font-weight: 700; padding: 1px 5px;
+                border-radius: 3px; flex-shrink: 0; letter-spacing: 0.03em;
+            }
+            .sym-dd-badge.etf { background: #dbeafe; color: #1d4ed8; }
+            .sym-dd-badge.stk { background: #dcfce7; color: #166534; } /* Stock */
+            .sym-dd-tag {
+                font-size: 0.63rem; color: var(--color-text-tertiary);
+                margin-left: auto; flex-shrink: 0;
+            }
+            .sym-dd-tag.warn { color: #d97706; }
+            .sym-dd-empty { padding: 0.6rem 0.7rem; color: var(--color-text-tertiary); font-style: italic; }
+            .sym-dd-name { flex: 1; font-family: var(--font-mono, monospace); font-weight: 600; font-size: 0.8rem; }
+            .sym-dd-footer {
+                padding: 0.4rem 0.7rem; font-size: 0.65rem;
+                color: var(--color-text-tertiary); text-align: center;
+                border-top: 1px solid var(--color-border-secondary);
+                font-style: italic; background: var(--color-background-secondary);
+            }
+            .ctrl-universe-chips { display: inline-flex; flex-wrap: wrap; gap: 0.3rem; vertical-align: middle; }
+            .ctrl-universe-chip {
+                font-family: var(--font-mono, monospace);
+                font-size: 0.68rem; font-weight: 600;
+                background: var(--color-background-secondary);
+                border: 0.5px solid var(--color-border-tertiary);
+                border-radius: 4px; padding: 1px 6px;
+                color: var(--color-text-secondary);
+            }
+            .ctrl-universe-note { font-size: 0.7rem; color: var(--color-text-tertiary); }
+
+            /* ── W%R SCANNER ───────────────────────────────────────────── */
+            .scanner-panel {
+                margin-top: 0;
+                border: 1.5px solid var(--border-medium);
+                border-radius: var(--radius);
+                background: var(--bg-card);
+                box-shadow: var(--shadow-card);
+                padding: 1.1rem 1.25rem 1rem;
+            }
+            .scanner-header { display:flex; align-items:flex-start; gap:1.5rem; flex-wrap:wrap; margin-bottom:0.85rem; }
+            .scanner-title-block { flex:0 0 auto; }
+            .scanner-title { margin:0 0 0.15rem; font-size:1rem; font-weight:700; }
+            .scanner-subtitle { margin:0; font-size:0.7rem; color:var(--text-muted); }
+            .scanner-controls { display:flex; align-items:flex-end; gap:0.75rem; flex-wrap:wrap; flex:1; }
+            .scanner-filter-group { display:flex; flex-direction:column; gap:0.2rem; }
+            .scanner-filter-label { font-size:0.6rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); }
+            .scn-universe-checks { display:flex; flex-direction:column; gap:0.25rem; }
+            .scn-univ-label {
+                display:flex; align-items:center; gap:0.4rem;
+                font-size:0.7rem; font-weight:600; color:var(--text-secondary); cursor:pointer;
+            }
+            .scn-univ-label input[type=checkbox] { accent-color:var(--accent); width:13px; height:13px; cursor:pointer; }
+            .sym-multi-dropdowns { display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-start; }
+            .sym-dropdown-group { display:flex; flex-direction:column; gap:0.3rem; flex:1; min-width:200px; position:relative; }
+            .sym-dd-group-lbl { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:0.1rem; }
+            .sym-dd-input-row { display:flex; gap:0.4rem; align-items:center; }
+            .sym-dd-input-row .sym-input { flex:1; max-width:none; width:100%; box-sizing:border-box; }
+            .sym-dd-group-header { padding:0.28rem 0.55rem; font-size:0.59rem; font-weight:800; text-transform:uppercase;
+                letter-spacing:0.6px; color:var(--accent); background:var(--bg-subtle); border-bottom:1px solid var(--border-light);
+                position:sticky; top:0; }
+            .sym-fdd { position:absolute; top:100%; left:0; right:0; z-index:9999;
+                background:var(--bg-card); border:1px solid var(--border-medium);
+                border-radius:0 0 var(--radius-sm) var(--radius-sm);
+                max-height:220px; overflow-y:auto; box-shadow:0 4px 16px rgba(0,0,0,0.18); }
+            .sym-fdd-item { padding:0.3rem 0.6rem; font-size:0.74rem; font-family:var(--font-mono);
+                cursor:pointer; color:var(--text-primary); transition:background 0.1s; }
+            .sym-fdd-item:hover { background:var(--accent-subtle, rgba(66,133,244,0.08)); }
+            .sym-fdd-item.already-in { opacity:0.45; cursor:default; }
+            .sym-fdd-item.in-other { color:var(--text-muted); }
+            .sym-fdd-item .sym-dd-in-use { font-size:0.6rem; color:var(--accent); margin-left:0.35rem; opacity:0.8; }
+            .sym-fdd-empty { padding:0.4rem 0.6rem; font-size:0.7rem; color:var(--text-muted); font-style:italic; }
+            .sym-fdd-footer { padding:0.25rem 0.6rem; font-size:0.62rem; color:var(--text-muted); border-top:1px solid var(--border-light); }
+            .scn-thresh-input {
+                width:70px; padding:0.28rem 0.4rem; font-size:0.75rem; font-family:var(--font-mono);
+                border:1px solid var(--border-medium); border-radius:var(--radius-sm);
+                background:var(--bg-input,var(--bg-card)); color:var(--text-primary);
+            }
+            .scn-show-label { font-size:0.68rem; color:var(--text-secondary); display:flex; align-items:center; gap:0.35rem; cursor:pointer; }
+            .scn-run-btn {
+                padding:0.38rem 1.1rem; font-size:0.78rem; font-weight:700; cursor:pointer;
+                background:var(--accent); color:#fff; border:none; border-radius:var(--radius-sm);
+                transition:background 0.15s; white-space:nowrap; align-self:flex-end;
+            }
+            .scn-run-btn:hover { background:var(--accent-hover,#3b5bdb); }
+            .scn-run-btn:disabled { opacity:0.5; cursor:not-allowed; }
+            .scn-seed-btn {
+                padding:0.38rem 0.9rem; font-size:0.78rem; font-weight:700; cursor:pointer;
+                background:transparent; color:var(--accent); border:1.5px solid var(--accent);
+                border-radius:var(--radius-sm); transition:background 0.15s,color 0.15s;
+                white-space:nowrap; align-self:flex-end;
+            }
+            .scn-seed-btn:hover { background:var(--accent); color:#fff; }
+            .scn-seed-btn:disabled { opacity:0.5; cursor:not-allowed; }
+            /* Seed modal */
+            .seed-modal-overlay {
+                display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55);
+                z-index:10000; align-items:center; justify-content:center;
+            }
+            .seed-modal-overlay.open { display:flex; }
+            .seed-modal {
+                background:var(--bg-card); border:1px solid var(--border-medium);
+                border-radius:var(--radius-md,8px); padding:1.4rem 1.6rem;
+                width:min(520px,92vw); max-height:80vh; display:flex; flex-direction:column; gap:0.8rem;
+                box-shadow:0 8px 32px rgba(0,0,0,0.28);
+            }
+            .seed-modal-title { font-size:0.95rem; font-weight:700; margin:0; }
+            .seed-modal-sub   { font-size:0.72rem; color:var(--text-muted); margin:0; }
+            .seed-prog-bar    { height:6px; background:var(--border-light); border-radius:3px; overflow:hidden; }
+            .seed-prog-fill   { height:100%; background:var(--accent); border-radius:3px; width:0; transition:width 0.3s; }
+            .seed-prog-label  { font-size:0.72rem; color:var(--text-secondary); }
+            .seed-log {
+                font-size:0.68rem; font-family:var(--font-mono); color:var(--text-secondary);
+                background:var(--bg-subtle); border:1px solid var(--border-light);
+                border-radius:var(--radius-sm); padding:0.5rem 0.6rem;
+                overflow-y:auto; max-height:240px; flex:1;
+                white-space:pre-wrap; word-break:break-all;
+            }
+            .seed-modal-footer { display:flex; gap:0.6rem; justify-content:flex-end; }
+            .seed-close-btn {
+                padding:0.32rem 0.9rem; font-size:0.75rem; font-weight:600; cursor:pointer;
+                background:var(--bg-subtle); color:var(--text-primary);
+                border:1px solid var(--border-medium); border-radius:var(--radius-sm);
+            }
+            .scn-progress-wrap { display:flex; align-items:center; gap:0.75rem; margin-bottom:0.6rem; }
+            .scn-progress-bar  { flex:1; height:6px; background:var(--border-light); border-radius:3px; overflow:hidden; }
+            .scn-progress-fill { height:100%; background:var(--accent); border-radius:3px; transition:width 0.4s; width:0%; }
+            .scn-progress-label { font-size:0.68rem; color:var(--text-muted); white-space:nowrap; }
+            .scn-summary { display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.65rem; }
+            .scn-chip { font-size:0.66rem; font-weight:700; padding:0.18rem 0.55rem; border-radius:10px; }
+            .scn-chip-both   { background:#d1fae5; color:#065f46; }
+            .scn-chip-daily  { background:#dbeafe; color:#1e40af; }
+            .scn-chip-weekly { background:#fef3c7; color:#92400e; }
+            .scn-chip-none   { background:var(--border-light); color:var(--text-muted); }
+            .scn-scanned     { font-size:0.65rem; color:var(--text-muted); margin-left:auto; }
+            .scn-add-bar {
+                display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;
+                padding:0.5rem 0.75rem; margin-bottom:0.65rem;
+                background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-sm);
+            }
+            .scn-sel-count { font-size:0.72rem; font-weight:700; color:var(--text-primary); }
+            .scn-add-to-btn {
+                padding:0.28rem 0.75rem; font-size:0.68rem; font-weight:700; cursor:pointer;
+                border:none; border-radius:var(--radius-sm); transition:background 0.15s;
+            }
+            .scn-add-active { background:#3b82f6; color:#fff; }
+            .scn-add-active:hover { background:#2563eb; }
+            .scn-add-bnh    { background:#f59e0b; color:#fff; }
+            .scn-add-bnh:hover { background:#d97706; }
+            .scn-clear-btn  { background:var(--border-medium); color:var(--text-secondary); }
+            .scn-table .scn-th-check { width:36px; text-align:center; }
+            .scn-table td:first-child { text-align:center; }
+            .scn-wr-both   { color:#065f46; font-weight:700; }
+            .scn-wr-daily  { color:#1d4ed8; font-weight:700; }
+            .scn-wr-weekly { color:#92400e; font-weight:700; }
+            .scn-wr-neutral { color:var(--text-muted); }
+            .scn-sig-both   { background:#d1fae5; color:#065f46; font-size:0.62rem; padding:1px 6px; border-radius:8px; font-weight:700; }
+            .scn-sig-daily  { background:#dbeafe; color:#1e40af; font-size:0.62rem; padding:1px 6px; border-radius:8px; font-weight:700; }
+            .scn-sig-weekly { background:#fef3c7; color:#92400e; font-size:0.62rem; padding:1px 6px; border-radius:8px; font-weight:700; }
+            .scn-sig-none   { color:var(--text-muted); font-size:0.62rem; }
+            .scn-in-strat   { font-size:0.62rem; padding:1px 5px; border-radius:4px; }
+            .scn-in-active  { background:#dbeafe; color:#1e40af; }
+            .scn-in-bnh     { background:#fef3c7; color:#92400e; }
+            .scn-empty { padding:1.5rem; text-align:center; color:var(--text-muted); font-size:0.75rem; font-style:italic; }
+            .scn-row-both   { background:rgba(16,185,129,0.04); }
+            .scn-row-daily  { background:rgba(59,130,246,0.04); }
+            .scn-dma-below  { color:#dc2626; font-weight:700; }
+            .scn-dma-above  { color:var(--text-muted); }
+            .scn-dma-neutral { color:var(--text-muted); }
+            .scn-th-sort { cursor:pointer; user-select:none; white-space:nowrap; }
+            .scn-th-sort:hover { color:var(--accent-blue, #3b82f6); }
+            .scn-sort-arrow { font-size:0.65rem; opacity:0.45; margin-left:2px; }
+            .scn-sort-arrow.active { opacity:1; color:var(--accent-blue, #3b82f6); }
+    </style>
+</head>
+<body>
+    <div id="toast-container"></div>
+
+    <header class="header">
+        <div class="header-content">
+            <div class="brand">
+                <div class="brand-logo"><span class="brand-icon">⚡</span></div>
+                <div class="brand-text">
+                    <h1>Wealth<span class="brand-plus">++</span> <span class="brand-algo">Algo Dashboard</span></h1>
+                </div>
+            </div>
+            <div class="brand-divider"></div>
+            <div class="header-info">
+                <div class="header-badges">
+                    <div class="header-identity-block">
+                        <span class="user-id-display">👤 <span id="true-session-userid">Loading...</span></span>
+                        <span class="user-id-sep">|</span>
+                        <span class="mode-badge" id="mode-badge" style="opacity:0;display:inline-flex;align-items:center;color:#fff;">Loading...</span>
+                    </div>
+                    <span class="bot-status-badge" id="bot-status-badge" style="opacity:0;display:inline-flex;align-items:center;">⏸ PAUSED</span>
+                </div>
+                <span class="update-time" id="update-time">Last Update: --:--:--</span>
+                <button id="pause-resume-btn" onclick="togglePauseResume()" class="btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem; border-color: #f97316; color: #f97316;" title="Pause all Zerodha API calls so you can log into Kite without being logged out">⏸ Pause Bot</button>
+                <button onclick="logoutSession()" class="btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.8rem; border-color: #ef4444; color: #ef4444;">🚪 Reset Session</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="indices-ticker">
+        <div class="indices-container">
+            <div class="index-item" id="index-nifty50">
+                <span class="index-name">NIFTY 50</span>
+                <span class="index-value">--</span>
+                <span class="index-change">--</span>
+            </div>
+            <div class="index-item" id="index-midcap150">
+                <span class="index-name">MIDCAP 150</span>
+                <span class="index-value">--</span>
+                <span class="index-change">--</span>
+            </div>
+            <div class="index-item" id="index-indiavix">
+                <span class="index-name">INDIA VIX</span>
+                <span class="index-value">--</span>
+                <span class="index-change">--</span>
+            </div>
+        </div>
+    </div>
+
+    <nav class="tab-nav">
+        <div class="tab-nav-inner">
+            <button class="tab-btn active" data-tab="controls" onclick="switchTab('controls')">
+                <span class="tab-icon">⚙️</span>
+                <span class="tab-label">Controls</span>
+            </button>
+            <button class="tab-btn" data-tab="portfolio" onclick="switchTab('portfolio')">
+                <span class="tab-icon">💼</span>
+                <span class="tab-label">Portfolio</span>
+                <span class="tab-badge" id="holdings-count-badge">0</span>
+            </button>
+            <button class="tab-btn" data-tab="market" onclick="switchTab('market')">
+                <span class="tab-icon">📊</span>
+                <span class="tab-label">Active Strategy</span>
+                <span class="tab-pulse" id="market-pulse"></span>
+            </button>
+            <button class="tab-btn" data-tab="intraday" onclick="switchTab('intraday')">
+                <span class="tab-icon">⚡</span>
+                <span class="tab-label">Dip Accumulator &amp; Harvester</span>
+                <span class="tab-pulse" id="intraday-pulse" style="display:none;"></span>
+            </button>
+            <button class="tab-btn" data-tab="activity" onclick="switchTab('activity')">
+                <span class="tab-icon">📜</span>
+                <span class="tab-label">Activity</span>
+            </button>
+            <button class="tab-btn" data-tab="symbols" onclick="switchTab('symbols')">
+                <span class="tab-icon">🗂️</span>
+                <span class="tab-label">Manage Symbols</span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="tab-content-wrapper">
+
+        <div class="tab-pane active" id="tab-controls">
+
+            <!-- ── ROW 1: Bot Control + Quick Settings ── -->
+            <div class="controls-top-row">
+
+                <div class="ctrl-card">
+                    <div class="ctrl-card-header">
+                        <span class="ctrl-card-icon">🤖</span>
+                        <h3>Bot Control</h3>
+                    </div>
+                    <div class="control-buttons">
+                        <div class="bot-control-group">
+                            <small class="ctrl-bot-label">⚡ Active Strategy</small>
+                            <button class="btn-primary btn-large" id="btn-start" onclick="startBot()">▶ START</button>
+                            <button class="btn-warning btn-large" id="btn-pause" onclick="stopBot()" disabled>⏸ PAUSE</button>
+                        </div>
+                        <div class="bot-control-group">
+                            <small class="ctrl-bot-label">📈 Dip Accumulator &amp; Harvester</small>
+                            <button class="btn-primary btn-large" id="btn-bnh-start" onclick="startBnHBot()">▶ START</button>
+                            <button class="btn-warning btn-large" id="btn-bnh-stop" onclick="stopBnHBot()" disabled>⏸ PAUSE</button>
+                        </div>
+                        <button class="btn-secondary btn-large" onclick="syncPortfolio()" style="margin-top:0.25rem;">⟳ SYNC PORTFOLIO</button>
+                    </div>
+
+                    <!-- Force Execute — merged into Bot Control -->
+                    <div style="margin-top:0.75rem;border-top:1px solid var(--border-medium);padding-top:0.6rem;">
+                        <small class="ctrl-bot-label" style="display:block;margin-bottom:0.35rem;">⚡ Force Execute <span style="font-weight:400;opacity:0.7;">— bypass scheduled time</span></small>
+                        <small class="setting-hint-banner" style="display:block;margin-bottom:0.4rem;">
+                            Executes immediately regardless of Buy Execution Time. Only acts on symbols meeting strategy conditions right now.
+                        </small>
+                        <div class="force-trade-card">
+                            <button class="btn-buy-now" id="btn-buy-now" onclick="forceBuyNow()">
+                                🟢 BUY NOW — Active Strategy + Dip Accumulator &amp; Harvester
+                            </button>
+                            <button class="btn-sell-now" id="btn-sell-now" onclick="forceSellNow()">
+                                🔴 SELL NOW — Active Strategy
+                            </button>
+                            <div class="force-trade-result" id="force-trade-result"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ctrl-card">
+                    <div class="ctrl-card-header">
+                        <span class="ctrl-card-icon">⚙️</span>
+                        <h3>Quick Settings</h3>
+                    </div>
+                    <div class="setting-item" style="margin-bottom:0.5rem;">
+                        <label>Trading Mode</label>
+                        <select id="mode-select" class="sidebar-select">
+                            <option value="dry">🧪 DRY RUN</option>
+                            <option value="live">⚠️ LIVE TRADING</option>
+                        </select>
+                        <small class="warning-text">⚠️ LIVE = Real Money</small>
+                    </div>
+                    <div class="setting-item" style="margin-bottom:0.5rem;">
+                        <label>💵 Cash Reserve</label>
+                        <div class="setting-input-group">
+                            <span class="input-prefix">₹</span>
+                            <input type="number" id="bot-cash-reserve" class="sidebar-input" min="0" step="500" placeholder="5000">
+                        </div>
+                        <small class="setting-hint">Idle cash kept untouched — never deployed or auto-parked in LIQUIDCASE</small>
+                    </div>
+                    <div class="setting-item" style="margin-bottom:0.5rem;">
+                        <label>📋 Order Type</label>
+                        <div class="order-type-toggle" id="default-order-type-toggle">
+                            <button class="ot-btn active" id="ot-market" onclick="setDefaultOrderType('MARKET')">MARKET</button>
+                            <button class="ot-btn" id="ot-limit" onclick="setDefaultOrderType('LIMIT')">LIMIT (Top Bid)</button>
+                        </div>
+                        <small class="setting-hint">MARKET = instant fill · LIMIT = top bid (better price, may not fill)</small>
+                        <input type="hidden" id="bot-default-order-type" value="MARKET">
+                    </div>
+                    <div class="setting-item" style="margin-bottom:0.5rem;">
+                        <label>⏰ Execution Time</label>
+                        <select id="bot-buy-time" class="sidebar-select">
+                            <option value="09:15">09:15 AM — Market Open</option>
+                            <option value="09:30">09:30 AM</option>
+                            <option value="09:45">09:45 AM</option>
+                            <option value="10:00">10:00 AM</option>
+                            <option value="10:15">10:15 AM</option>
+                            <option value="10:30">10:30 AM</option>
+                            <option value="10:45">10:45 AM</option>
+                            <option value="11:00">11:00 AM</option>
+                            <option value="11:15">11:15 AM</option>
+                            <option value="11:30">11:30 AM</option>
+                            <option value="11:45">11:45 AM</option>
+                            <option value="12:00">12:00 PM</option>
+                            <option value="12:15">12:15 PM</option>
+                            <option value="12:30">12:30 PM</option>
+                            <option value="12:45">12:45 PM</option>
+                            <option value="13:00">01:00 PM</option>
+                            <option value="13:15">01:15 PM</option>
+                            <option value="13:30">01:30 PM</option>
+                            <option value="13:45">01:45 PM</option>
+                            <option value="14:00">02:00 PM</option>
+                            <option value="14:15">02:15 PM</option>
+                            <option value="14:30">02:30 PM</option>
+                            <option value="14:45">02:45 PM</option>
+                            <option value="15:00">03:00 PM</option>
+                            <option value="15:15" selected>03:15 PM ★ Default</option>
+                            <option value="15:30">03:30 PM — Market Close</option>
+                        </select>
+                    </div>
+                    <div class="setting-item" style="margin-bottom:0.75rem;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;">
+                            <label style="margin:0;">⚡ Anytime — No Time Gate</label>
+                            <label class="toggle-switch" style="margin:0;">
+                                <input type="checkbox" id="bot-anytime-toggle" onchange="onAnytimeToggleChange(this)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <small class="setting-hint">When ON — overrides Execution Time, orders fire immediately when conditions are met</small>
+                    </div>
+
+                    <!-- Saved Defaults — merged into Quick Settings -->
+                    <div style="border-top:1px solid var(--border-medium);padding-top:0.6rem;margin-top:0.1rem;">
+                        <small class="ctrl-bot-label" style="display:block;margin-bottom:0.35rem;">💾 Saved Defaults <span style="font-weight:400;opacity:0.7;">— auto-reset after each sell</span></small>
+                        <small class="setting-hint-banner" style="display:block;margin-bottom:0.5rem;">⭐ Active Strategy auto-resets to these values after each sell.</small>
+                        <div class="ctrl-settings-grid">
+                            <div class="setting-item">
+                                <label>🎯 Profit Target</label>
+                                <div class="setting-input-group">
+                                    <input type="number" id="bot-profit-target" class="sidebar-input" min="0.5" max="10" step="0.01" placeholder="Loading...">
+                                    <span class="input-suffix">%</span>
+                                </div>
+                                <small class="setting-hint">Auto-reset target</small>
+                            </div>
+                            <div class="setting-item">
+                                <label>📦 Max Qty / Trade</label>
+                                <div class="setting-input-group">
+                                    <input type="number" id="bot-max-qty" class="sidebar-input" min="0" max="10000" placeholder="Loading...">
+                                    <span class="input-suffix">units</span>
+                                </div>
+                                <small class="setting-hint">0 = Full slot value</small>
+                            </div>
+                            <div class="setting-item">
+                                <label>🔢 Slots</label>
+                                <div class="setting-input-group">
+                                    <input type="number" id="bot-slots" class="sidebar-input" min="1" max="5" placeholder="Loading...">
+                                    <span class="input-suffix">slots</span>
+                                </div>
+                                <small class="setting-hint">Capital division</small>
+                            </div>
+                            <div class="setting-item">
+                                <label>💰 Max Cash / Stock</label>
+                                <div class="setting-input-group">
+                                    <span class="input-prefix">₹</span>
+                                    <input type="number" id="bot-max-cash-per-stock" class="sidebar-input" min="0" step="1000" placeholder="Loading...">
+                                </div>
+                                <small class="setting-hint">Max cumulative per ETF (0 = unlimited)</small>
+                            </div>
+                            <div class="setting-item">
+                                <label>🧾 Max Cash / Transaction</label>
+                                <div class="setting-input-group">
+                                    <span class="input-prefix">₹</span>
+                                    <input type="number" id="bot-max-cash-per-tx" class="sidebar-input" min="0" step="1000" placeholder="Loading...">
+                                </div>
+                                <small class="setting-hint">Max per individual buy order (0 = unlimited)</small>
+                            </div>
+                            <div class="setting-item">
+                                <label>📉 Min Price Drop</label>
+                                <div class="setting-input-group">
+                                    <input type="number" id="bot-min-price-drop" class="sidebar-input" min="0" max="20" step="0.1" placeholder="1.0">
+                                    <span class="input-suffix">%</span>
+                                </div>
+                                <small class="setting-hint">Min % fall from avg price to trigger buy</small>
+                            </div>
+                        </div>
+                        <button class="sidebar-save-btn" onclick="saveBotSettings()" style="margin-top:0.5rem;">💾 Save</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ── ROW 3: Strategy Reference ── -->
+            <div class="strategy-reference-row">
+
+                <!-- Active Strategy -->
+                <div class="ctrl-card strategy-ref-card">
+                    <div class="ctrl-card-header">
+                        <span class="ctrl-card-icon">⚡</span>
+                        <h3>Active Strategy <span class="ctrl-card-sub">— Multi-ETF Williams %R Dip Buyer</span></h3>
+                    </div>
+
+                    <div class="strat-section">
+                        <div class="strat-section-title">📋 Overview</div>
+                        <p class="strat-desc">Monitors a basket of NSE ETFs in real-time. Uses Williams %R (14-period, daily bars) to identify oversold dips and buys in configurable tranches (slots). Exits each position individually once it reaches the profit target. Capital is always parked in <span class="strat-mono">LIQUIDCASE</span> between trades.</p>
+                    </div>
+
+                    <div class="strat-section">
+                        <div class="strat-section-title">🟢 Entry Conditions</div>
+                        <div class="strat-rules">
+                            <div class="strat-rule">
+                                <span class="strat-rule-label trigger-a">Trigger A</span>
+                                <span class="strat-rule-text">Williams %R (14) <span class="strat-hl">&le; −80</span> — deep oversold, fires regardless of price drop</span>
+                            </div>
+                            <div class="strat-rule">
+                                <span class="strat-rule-label trigger-b">Trigger B</span>
+                                <span class="strat-rule-text">Williams %R (14) <span class="strat-hl">&le; −60</span> <em>AND</em> LTP has dropped <span class="strat-hl">&ge; Min Price Drop %</span> from previous close</span>
+                            </div>
+                            <div class="strat-rule">
+                                <span class="strat-rule-label slot-1">Slot 1</span>
+                                <span class="strat-rule-text">Fires when Trigger A or B is first met for the day</span>
+                            </div>
+                            <div class="strat-rule">
+                                <span class="strat-rule-label slot-n">Slot 2–N</span>
+                                <span class="strat-rule-text">Fires only if a prior buy exists (can be from a previous day) <em>and</em> live price has fallen <span class="strat-hl">&ge; Min Price Drop %</span> below the current avg buy price. Same flat threshold applies to every additional slot — blended avg buy price is used, so this works correctly across multiple sessions</span>
+                            </div>
+                        </div>
+                        <div class="strat-note">⏰ All buy orders execute at the configured <strong>Order Execution Time</strong> (default 3:15 PM). Use <strong>Force Execute</strong> to bypass.</div>
+                    </div>
+
+                    <div class="strat-section">
+                        <div class="strat-section-title">🔴 Exit Conditions</div>
+                        <div class="strat-rules">
+                            <div class="strat-rule">
+                                <span class="strat-rule-label exit">Profit Hit</span>
+                                <span class="strat-rule-text">P&L % for the ETF reaches <span class="strat-hl">&ge; Profit Target %</span> (checked continuously during market hours)</span>
+                            </div>
+                        </div>
+                        <div class="strat-note">Sells the full position in one LIMIT/MARKET order at top-ask. Settings auto-reset to Saved Defaults after each sell.</div>
+                    </div>
+
+                    <div class="strat-section">
+                        <div class="strat-section-title">💰 Capital &amp; Risk Rules</div>
+                        <div class="strat-kv-grid">
+                            <div class="strat-kv"><span class="strat-k">Universe</span><span class="strat-v" id="ctrl-active-universe">Loading…</span></div>
+                            <div class="strat-kv"><span class="strat-k">Capital allocation</span><span class="strat-v">Budget per order = <strong>Max Cash / Transaction</strong>. If unset, falls back to Max Cash / Stock ÷ Slots. Each subsequent slot requires the same flat Min Price Drop % below the blended avg buy price.</span></div>
+                            <div class="strat-kv"><span class="strat-k">Max Cash / Stock</span><span class="strat-v">Cumulative ₹ cap across all slots for a single ETF (0 = unlimited)</span></div>
+                            <div class="strat-kv"><span class="strat-k">Max Cash / Transaction</span><span class="strat-v">Per-order ₹ cap — primary budget control. Overrides slot-based fallback</span></div>
+                            <div class="strat-kv"><span class="strat-k">Cash Reserve</span><span class="strat-v">Minimum idle cash kept untouched at all times — never deployed into ETFs or auto-parked in LIQUIDCASE (set under Quick Settings)</span></div>
+                            <div class="strat-kv"><span class="strat-k">Buy cooldown</span><span class="strat-v">5 min lock-out per symbol after a buy fires (prevents duplicate orders)</span></div>
+                            <div class="strat-kv"><span class="strat-k">Cash parking</span><span class="strat-v">Opt-in Auto-Buy toggle (Portfolio tab) parks surplus cash above the reserve into LIQUIDCASE. Bot also auto-sells LIQUIDCASE to fund ETF buys when cash runs short</span></div>
+                            <div class="strat-kv"><span class="strat-k">Order type</span><span class="strat-v">MARKET (instant) or LIMIT at top-bid / top-ask — shared setting with B&amp;H</span></div>
+                            <div class="strat-kv"><span class="strat-k">Product</span><span class="strat-v">CNC (delivery) — all positions held overnight</span></div>
+                        </div>
+                    </div>
+
+                    <div class="strat-section strat-section-last">
+                        <div class="strat-section-title">🔄 Daily Reset</div>
+                        <p class="strat-desc">Slot counters and recently-bought cooldowns reset at midnight. The avg buy price (used for Slot 2+ drop checks) persists across days via portfolio sync — so subsequent buys work correctly whether the first buy was today or weeks ago. Profit targets reset to Saved Defaults after each sell. W%R re-evaluated on each new daily candle close.</p>
+                    </div>
+                </div>
+
+                <!-- Dip Accumulator Strategy -->
+                <div class="ctrl-card strategy-ref-card">
+                    <div class="ctrl-card-header">
+                        <span class="ctrl-card-icon">📈</span>
+                        <h3>Dip Accumulator &amp; Harvester <span class="ctrl-card-sub">— Accumulate on Dips · Harvest at <span id="bnh-kv-pct">5</span>%</span></h3>
+                    </div>
+
+                    <div class="strat-section">
+                        <div class="strat-section-title">📋 Overview</div>
+                        <p class="strat-desc">A dual-phase CNC accumulation engine for ETFs in your BnH universe (see Manage Symbols). On every oversold dip, the system deploys capital across up to <strong>5 conviction tiers</strong> — each tier fires exactly once per dip cycle based on Williams %R depth. At 3:15 PM, if the position is in profit the engine automatically harvests 50% and re-deploys into the next cycle. The core half-position compounds indefinitely.</p>
+                    </div>
+
+                    <div class="strat-section">
+                        <div class="strat-section-title">🟢 Accumulation Phase — 5-Tier Buy Engine</div>
+                        <p class="strat-desc" style="margin-bottom:10px;">Each tier corresponds to a W%R depth band and allocates a fixed fraction of <strong>Max Cash / ETF</strong>. Each tier fires <em>at most once per dip cycle</em>. A dip cycle ends when W%R recovers above −40, resetting all tiers for the next dip.</p>
+                        <div class="strat-rules">
+                            <div class="strat-rule">
+                                <span class="strat-rule-label trigger-a">Tier 1 — Probe</span>
+                                <span class="strat-rule-text">W%R <span class="strat-hl">&le; −60</span> · deploys <span class="strat-hl">5%</span> of Max Cash / ETF · lightest conviction entry</span>
+                            </div>
+                            <div class="strat-rule">
+                                <span class="strat-rule-label trigger-b">Tier 2 — Mild Dip</span>
+                                <span class="strat-rule-text">W%R <span class="strat-hl">&le; −70</span> · deploys <span class="strat-hl">10%</span> of Max Cash / ETF</span>
+                            </div>
+                            <div class="strat-rule">
+                                <span class="strat-rule-label slot-1">Tier 3 — Oversold</span>
+                                <span class="strat-rule-text">W%R <span class="strat-hl">&le; −80</span> · deploys <span class="strat-hl">20%</span> of Max Cash / ETF</span>
+                            </div>
+                            <div class="strat-rule">
+                                <span class="strat-rule-label slot-n">Tier 4 — Deep Panic</span>
+                                <span class="strat-rule-text">W%R <span class="strat-hl">&le; −90</span> · deploys <span class="strat-hl">30%</span> of Max Cash / ETF</span>
+                            </div>
+                            <div class="strat-rule">
+                                <span class="strat-rule-label exit">Tier 5 — Extreme</span>
+                                <span class="strat-rule-text">W%R <span class="strat-hl">&le; −95</span> · deploys <span class="strat-hl">35%</span> of Max Cash / ETF · maximum conviction buy</span>
+                            </div>
+                        </div>
+                        <div class="strat-note">📌 Total max deployment across all 5 tiers = 100% of Max Cash / ETF (5+10+20+30+35). Each tier fires once and is locked until the dip cycle resets (W%R &gt; −40).</div>
+                    </div>
+
+                    <div class="strat-section">
+                        <div class="strat-note">⏰ All buy orders execute at the configured <strong>Execution Time</strong> (default 3:15 PM IST). Select <strong>⚡ Anytime</strong> to execute as soon as the buy condition is met.</div>
+                    </div>
+
+                    <div class="strat-section">
+                        <div class="strat-section-title">🔴 Harvest Phase — Partial Profit Exit</div>
+                        <div class="strat-rules">
+                            <div class="strat-rule">
+                                <span class="strat-rule-label trigger-b">Harvest Trigger</span>
+                                <span class="strat-rule-text">At execution time, if unrealised P&amp;L <span class="strat-hl">≥ <span id="bnh-ref-pct">5</span>%</span> — automatically sells <span class="strat-hl">50% of units held</span> (MARKET or LIMIT). Cooldown: one harvest per 30 days.</span>
+                            </div>
+                            <div class="strat-rule">
+                                <span class="strat-rule-label exit-none">Core Position</span>
+                                <span class="strat-rule-text">The retained 50% <span class="strat-hl">never sells automatically</span> — it compounds permanently. All tiers are available again for the next dip after the dip cycle resets.</span>
+                            </div>
+                        </div>
+                        <div class="strat-note">💡 Harvested cash is parked back in LIQUIDCASE and re-deployed into the next dip cycle via the 5-tier system — a self-funding accumulation loop.</div>
+                    </div>
+
+                    <div class="strat-section">
+                        <div class="strat-section-title">💰 Capital &amp; Risk Rules</div>
+                        <div class="strat-kv-grid">
+                            <div class="strat-kv"><span class="strat-k">Universe</span><span class="strat-v" id="ctrl-bnh-universe">Loading…</span></div>
+                            <div class="strat-kv"><span class="strat-k">Indicators</span><span class="strat-v">Daily W%R(14)</span></div>
+                            <div class="strat-kv"><span class="strat-k">Tier allocation base</span><span class="strat-v">Fractions of <strong>bnh_max_cash_per_etf</strong> — set this to your total intended deployment budget</span></div>
+                            <div class="strat-kv"><span class="strat-k">Dip cycle reset</span><span class="strat-v">W%R recovers above −40 → all 5 tiers reset and are available for next dip</span></div>
+                            <div class="strat-kv"><span class="strat-k">Harvest threshold</span><span class="strat-v">Unrealised P&amp;L ≥ <strong><span id="bnh-kv-pct">5</span>%</strong> (editable above) → sell 50%</span></div>
+                            <div class="strat-kv"><span class="strat-k">Harvest cooldown</span><span class="strat-v">30 days between harvests — prevents repeated halving during volatile rallies</span></div>
+                            <div class="strat-kv"><span class="strat-k">Funding</span><span class="strat-v">Uses available cash first → auto-sells LIQUIDCASE shortfall if cash is insufficient</span></div>
+                        </div>
+                    </div>
+
+                    <div class="strat-section strat-section-last">
+                        <div class="strat-section-title">📊 W%R Tier Map — Quick Reference</div>
+                        <div class="strat-kv-grid">
+                            <div class="strat-kv"><span class="strat-k">0 to −40</span><span class="strat-v strat-v-sell">Neutral / overbought — no buy, dip cycle resets above −40</span></div>
+                            <div class="strat-kv"><span class="strat-k">−40 to −60</span><span class="strat-v">Neutral-oversold — no tier active yet</span></div>
+                            <div class="strat-kv"><span class="strat-k">−60 to −70</span><span class="strat-v strat-v-mild">Tier 1 Probe — 5% allocation</span></div>
+                            <div class="strat-kv"><span class="strat-k">−70 to −80</span><span class="strat-v strat-v-mild">Tier 2 Mild Dip — 10% allocation</span></div>
+                            <div class="strat-kv"><span class="strat-k">−80 to −90</span><span class="strat-v strat-v-buy">Tier 3 Oversold — 20% allocation</span></div>
+                            <div class="strat-kv"><span class="strat-k">−90 to −95</span><span class="strat-v strat-v-buy">Tier 4 Deep Panic — 30% allocation</span></div>
+                            <div class="strat-kv"><span class="strat-k">−95 to −100</span><span class="strat-v strat-v-buy">Tier 5 Extreme — 35% allocation (maximum)</span></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="tab-pane" id="tab-portfolio">
+            <div class="portfolio-banner">
+                <div class="portfolio-stat-card portfolio-cash" title="LIQUIDCASE liquid fund — your cash parking">
+                    <div class="portfolio-stat-label">💵 LIQUIDCASE</div>
+                    <div class="portfolio-stat-value" id="liquidcase-avail-cash">₹—</div>
+                    <div class="liquidcase-controls">
+                        <button class="buy-liquidcase-btn" onclick="showBuyLiquidcaseModal()">➕ Buy</button>
+                        <button class="sell-liquidcase-btn" onclick="showSellLiquidcaseModal()">➖ Sell</button>
+                    </div>
+                </div>
+                <div class="portfolio-stat-card portfolio-cash" title="Net opening balance from Kite">
+                    <div class="portfolio-stat-label">💰 Available Cash</div>
+                    <div class="portfolio-stat-value" id="avail-cash-val">₹—</div>
+                </div>
+                <div class="portfolio-stat-card portfolio-cash" title="Total Collateral − Used Margin + Available Cash">
+                    <div class="portfolio-stat-label">📊 Available Margin</div>
+                    <div class="portfolio-stat-value" id="avail-margin-val">₹—</div>
+                    <div style="font-size:0.62rem;color:var(--text-muted);margin-top:0.2rem;" id="avail-margin-breakdown">—</div>
+                </div>
+
+            </div>
+
+            <div class="card">
+                <div class="card-header-row">
+                    <h2 class="card-title">📈 Current Holdings</h2>
+                </div>
+                <div class="table-container">
+                    <table class="data-table holdings-modal-table" id="holdings-inline-table">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Strategy</th>
+                                <th>Qty</th>
+                                <th>Avg Price</th>
+                                <th>LTP</th>
+                                <th>Value</th>
+                                <th>P&amp;L (₹)</th>
+                                <th>P&amp;L (%)</th>
+                                <th>Target</th>
+                            </tr>
+                        </thead>
+                        <tbody id="holdings-modal-body">
+                            <tr><td colspan="9" class="empty-state">Loading holdings…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ── Current Positions (live from Zerodha) ─────────────────── -->
+            <div class="card">
+                <div class="card-header-row">
+                    <h2 class="card-title">⚡ Current Positions</h2>
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <span class="holdings-live-dot"></span>
+                        <span class="holdings-meta-label">LIVE · <span id="positions-live-time">--:--:--</span></span>
+                        <span id="positions-summary" style="font-size:0.72rem;color:var(--text-muted);"></span>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table" id="positions-table">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Product</th>
+                                <th>Qty</th>
+                                <th>Avg Price ₹</th>
+                                <th>LTP ₹</th>
+                                <th>P&amp;L ₹</th>
+                                <th>P&amp;L %</th>
+                            </tr>
+                        </thead>
+                        <tbody id="positions-body">
+                            <tr><td colspan="7" class="empty-state">Loading positions…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="positions-totals" style="display:none; padding:0.5rem 0.75rem; border-top:1px solid var(--border-light); font-size:0.75rem; display:flex; gap:1.5rem; color:var(--text-secondary);">
+                    <span>Total Value: <strong id="pos-total-value">—</strong></span>
+                    <span>Total P&amp;L: <strong id="pos-total-pnl">—</strong></span>
+                    <span>Day P&amp;L: <strong id="pos-day-pnl">—</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane" id="tab-market">
+            <div class="card">
+                <div class="market-monitor-header">
+                    <h2 class="card-title">📊 Active Strategy — Live Prices &amp; Signals</h2>
+                </div>
+                <div class="table-container">
+                    <table class="data-table market-table" id="market-table">
+                        <thead>
+                            <tr>
+                                <th class="col-symbol" title="Trading Symbol">Symbol</th>
+                                <th class="col-ltp" title="Last Traded Price">LTP</th>
+                                <th class="col-avg" title="Average Buy Price">Avg Price</th>
+                                <th class="col-change" title="% Change from Previous Close">Change</th>
+                                <th class="col-wr" title="Williams %R">W%R</th>
+                                <th class="col-qty" title="Quantity Held">Qty</th>
+
+                                <th class="col-target" title="Target Price">Target ₹</th>
+                                <th class="col-pl-amt" title="Profit/Loss in Rupees">P/L ₹</th>
+                                <th class="col-pl" title="Profit/Loss %">P/L %</th>
+                                <th class="col-action" title="Strategy Recommendation">Action</th>
+                                <th class="col-manual" title="Manual Buy/Exit Controls">Manual Trade</th>
+                            </tr>
+                        </thead>
+                        <tbody id="market-body">
+                            <tr><td colspan="12" class="empty-state">Loading market data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <input type="number" id="profit-select" style="display:none;">
+                <input type="number" id="test-quantity" style="display:none;">
+                <button id="reset-manual-settings" style="display:none;"></button>
+                <div class="market-legend">
+                    <span><span class="legend-dot buy"></span> BUY: W%R ≤ <span id="legend-wr-threshold">-80</span> (oversold)</span>
+                    <span><span class="legend-dot sell"></span> SELL: Profit ≥ <span id="legend-profit-target">--</span>% (target hit)</span>
+                    <span><span class="legend-dot hold"></span> HOLD: Watching for profit</span>
+                    <span style="color: var(--text-secondary); font-style: italic;">💵 LIQUIDCASE in Portfolio tab</span>
+                    <span style="margin-left: 1rem;"><strong>Manual Trade:</strong> 🟢 Buy | 🔴 Exit</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane" id="tab-activity">
+
+            <!-- ── Strategy Signal Summary ─────────────────────────────── -->
+            <div class="card signal-summary-card" id="signal-summary-card">
+                <div class="card-header-row">
+                    <h2 class="card-title">🔍 Strategy Signal Summary</h2>
+                    <span class="signal-summary-time" id="signal-summary-time"></span>
+                </div>
+                <div class="signal-summary-body" id="signal-summary-body">
+                    <p class="empty-state">Loading signals…</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header-row">
+                    <h2 class="card-title">📋 Transaction Log</h2>
+                    <button class="btn-secondary btn-sm" onclick="loadTransactions()">⟳ Refresh</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table transaction-table" id="transaction-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Type</th>
+                                <th>Symbol</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaction-body">
+                            <tr><td colspan="7" class="empty-state">Loading transactions...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header-row">
+                    <h2 class="card-title">🔔 Recent Activity</h2>
+                    <button class="btn-secondary btn-sm" onclick="loadLogs()">⟳ Refresh</button>
+                </div>
+                <div class="logs-container" id="logs-container">
+                    <p class="empty-state">Loading activity...</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="buy-liquidcase-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeBuyLiquidcaseModal()">&times;</span>
+            <h3>💵 Buy LIQUIDCASE</h3>
+            <p class="modal-subtitle">Park your cash in LIQUIDCASE liquid fund</p>
+            <div class="modal-info">
+                <div class="info-row">
+                    <span>Available Cash:</span>
+                    <strong id="modal-cash-balance">Loading...</strong>
+                </div>
+                <div class="info-row">
+                    <span>LIQUIDCASE LTP:</span>
+                    <strong id="modal-liquidcase-price">₹0.00</strong>
+                </div>
+                <div class="info-row">
+                    <span>Top Bid:</span>
+                    <strong id="modal-liquidcase-bid" class="pnl-positive">—</strong>
+                </div>
+                <div class="info-row">
+                    <span>Top Ask:</span>
+                    <strong id="modal-liquidcase-ask" class="pnl-negative">—</strong>
+                </div>
+            </div>
+            <div class="modal-order-type">
+                <span class="modal-ot-label">Order Type:</span>
+                <div class="order-type-toggle" id="liquidcase-order-type-toggle">
+                    <button class="ot-btn" id="liq-ot-market" onclick="setLiquidcaseOrderType('MARKET')">MARKET</button>
+                    <button class="ot-btn active" id="liq-ot-limit"  onclick="setLiquidcaseOrderType('LIMIT')">LIMIT</button>
+                </div>
+                <input type="hidden" id="liquidcase-order-type" value="LIMIT">
+            </div>
+            <div class="limit-price-row modal-limit-row" id="liq-limit-row" style="display:flex;">
+                <span class="lp-label">Limit ₹</span>
+                <input type="number" class="trade-qty-input limit-price-input"
+                    id="liq-limit-price" step="0.05" placeholder="Enter price">
+                <button class="lp-bid-btn" onclick="setLiquidcaseLimitToBid()" title="Use top bid">= Bid</button>
+                <button class="lp-ask-btn" onclick="setLiquidcaseLimitToAsk()" title="Use top ask">= Ask</button>
+            </div>
+            <div class="modal-actions">
+                <div class="custom-amount-group">
+                    <input type="number" id="custom-liquidcase-amount" class="custom-amount-input" placeholder="Enter amount (₹)" min="1"/>
+                    <button class="modal-btn modal-btn-secondary" onclick="buyLiquidcaseCustom()">🎯 Buy Custom Amount</button>
+                </div>
+            </div>
+            <div class="modal-note">
+                <strong>Note:</strong> Quantity will be calculated based on current LTP
+            </div>
+        </div>
+    </div>
+
+    <div id="sell-liquidcase-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeSellLiquidcaseModal()">&times;</span>
+            <h3>💵 Sell LIQUIDCASE</h3>
+            <p class="modal-subtitle">Redeem LIQUIDCASE units back to cash</p>
+            <div class="modal-info">
+                <div class="info-row">
+                    <span>Current Market Value:</span>
+                    <strong id="sell-modal-liquidcase-qty">Loading...</strong>
+                </div>
+                <div class="info-row">
+                    <span>LIQUIDCASE LTP:</span>
+                    <strong id="sell-modal-liquidcase-price">₹0.00</strong>
+                </div>
+                <div class="info-row">
+                    <span>Top Bid:</span>
+                    <strong id="sell-modal-liquidcase-bid" class="pnl-positive">—</strong>
+                </div>
+                <div class="info-row">
+                    <span>Top Ask:</span>
+                    <strong id="sell-modal-liquidcase-ask" class="pnl-negative">—</strong>
+                </div>
+            </div>
+            <div class="modal-order-type">
+                <span class="modal-ot-label">Order Type:</span>
+                <div class="order-type-toggle" id="sell-liquidcase-order-type-toggle">
+                    <button class="ot-btn" id="sell-liq-ot-market" onclick="setSellLiquidcaseOrderType('MARKET')">MARKET</button>
+                    <button class="ot-btn active" id="sell-liq-ot-limit"  onclick="setSellLiquidcaseOrderType('LIMIT')">LIMIT</button>
+                </div>
+                <input type="hidden" id="sell-liquidcase-order-type" value="LIMIT">
+            </div>
+            <div class="limit-price-row modal-limit-row" id="sell-liq-limit-row" style="display:flex;">
+                <span class="lp-label">Limit ₹</span>
+                <input type="number" class="trade-qty-input limit-price-input"
+                    id="sell-liq-limit-price" step="0.05" placeholder="Enter price">
+                <button class="lp-bid-btn" onclick="setSellLiquidcaseLimitToBid()" title="Use top bid">= Bid</button>
+                <button class="lp-ask-btn" onclick="setSellLiquidcaseLimitToAsk()" title="Use top ask">= Ask</button>
+            </div>
+            <div class="modal-actions">
+                <div class="custom-amount-group">
+                    <input type="number" id="custom-sell-liquidcase-amount" class="custom-amount-input" placeholder="Enter amount (₹)" min="1" step="1"/>
+                    <button class="modal-btn modal-btn-secondary" onclick="sellLiquidcaseCustom()">🎯 Sell Custom Amount</button>
+                </div>
+            </div>
+            <div class="modal-note">
+                <strong>Note:</strong> Units will be sold at current market or specified limit price
+            </div>
+        </div>
+    </div>
+
+    <div id="holdings-modal" class="modal">
+        <div class="modal-content modal-large">
+            <span class="modal-close" onclick="closeHoldingsModal()">&times;</span>
+            <h3>📈 Current Holdings</h3>
+            <div class="holdings-meta-bar">
+                <span class="holdings-live-dot"></span>
+                <span class="holdings-meta-label">LIVE</span>
+                <span class="holdings-meta-sep">·</span>
+                <span class="holdings-meta-label">Updated: <span id="holdings-live-time-modal">--:--:--</span></span>
+                <span class="holdings-meta-sep">·</span>
+                <span class="holdings-meta-label">Profit Target: <strong id="holdings-meta-profit-modal">--</strong>%</span>
+                <span class="holdings-meta-sep">·</span>
+                <span class="holdings-meta-label">Sorted by P&amp;L %</span>
+            </div>
+            <div class="table-container">
+                <table class="data-table holdings-modal-table" id="holdings-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Qty</th>
+                            <th>Avg Price</th>
+                            <th>LTP</th>
+                            <th>Value</th>
+                            <th>P&amp;L (₹)</th>
+                            <th>P&amp;L (%)</th>
+                            <th>Target</th>
+                        </tr>
+                    </thead>
+                    <tbody id="holdings-modal-body-legacy">
+                        <tr><td colspan="8" class="empty-state">Loading holdings…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane" id="tab-intraday">
+        <div class="intraday-header">
+            <div class="intraday-title-block">
+                <h2 class="intraday-title">📈 Dip Accumulator &amp; Harvester</h2>
+                <span class="intraday-subtitle">CNC · LONG-only · Daily W%R · 5-Tier sizing · 50% partial exit @ <span id="bnh-subtitle-pct">5</span>%</span>
+            </div>
+            <div class="intraday-controls">
+                <div class="intraday-capital-group">
+                    <label class="intraday-capital-label">💰 Max Cash / ETF (₹)</label>
+                    <div class="intraday-capital-input-row">
+                        <span class="input-prefix">₹</span>
+                        <input type="number" id="bnh-max-cash-etf" class="sidebar-input intraday-capital-input" min="1000" step="1000" placeholder="e.g. 100000">
+                    </div>
+                </div>
+                <div class="intraday-capital-group">
+                    <label class="intraday-capital-label">💸 Max Cash / Transaction (₹)</label>
+                    <div class="intraday-capital-input-row">
+                        <span class="input-prefix">₹</span>
+                        <input type="number" id="bnh-max-cash-txn" class="sidebar-input intraday-capital-input" min="500" step="500" placeholder="e.g. 10000">
+                    </div>
+                </div>
+                <div class="intraday-capital-group">
+                    <label class="intraday-capital-label">🌾 Harvest Target (%)</label>
+                    <div class="intraday-capital-input-row">
+                        <span class="input-prefix">%</span>
+                        <input type="number" id="bnh-partial-profit-pct" class="sidebar-input intraday-capital-input" min="1" max="50" step="0.5" placeholder="e.g. 7">
+                        <button class="btn-secondary btn-sm" onclick="saveBnHSettings()">💾 Save</button>
+                    </div>
+                </div>
+                <div class="intraday-status-badge" id="bnh-status-badge">
+                    <span class="status-dot" id="bnh-dot"></span>
+                    <span id="bnh-status-text">Stopped</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Summary bar ─────────────────────────────────────────────────── -->
+        <div class="intraday-signal-bar" id="bnh-signal-bar" style="margin-bottom:12px;">Waiting for data...</div>
+
+        <!-- ── Per-symbol live table ────────────────────────────────────────── -->
+        <div class="card" style="margin-bottom:16px;">
+            <div class="card-header-row">
+                <h2 class="card-title">📡 Live Signals</h2>
+                <span class="card-meta" id="bnh-last-update" style="font-size:0.75rem;color:var(--text-secondary);">—</span>
+            </div>
+            <div class="table-container">
+                <table class="data-table" id="bnh-live-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Price ₹</th>
+                            <th>W%R (14)</th>
+                            <th>State</th>
+                            <th>Signal</th>
+                            <th>Qty Held</th>
+                            <th>Avg Cost ₹</th>
+                            <th>Cur Value ₹</th>
+                            <th>P&amp;L ₹</th>
+                            <th>P&amp;L %</th>
+                            <th>Next Buy</th>
+                            <th>Deployed ₹</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bnh-live-body">
+                        <tr><td colspan="12" class="empty-state">Starting engine…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── Summary stats ────────────────────────────────────────────────── -->
+        <div class="intraday-panels" style="margin-bottom:16px;">
+            <div class="intraday-panel">
+                <div class="intraday-panel-title">📊 Session Summary</div>
+                <div class="intraday-grid">
+                    <div class="intraday-kv"><span>Deployed today</span><strong id="bnh-deployed-today">₹0</strong></div>
+                    <div class="intraday-kv"><span>Total deployed</span><strong id="bnh-total-deployed">₹0</strong></div>
+                    <div class="intraday-kv"><span>Order type</span><strong id="bnh-order-type">—</strong></div>
+                    <div class="intraday-kv"><span>Max / ETF</span><strong id="bnh-rule-max-etf">—</strong></div>
+                    <div class="intraday-kv"><span>Max / Txn</span><strong id="bnh-rule-max-txn">—</strong></div>
+                </div>
+            </div>
+            <div class="intraday-panel">
+                <div class="intraday-panel-title">💵 LIQUIDCASE Reserve</div>
+                <div class="intraday-grid">
+                    <div class="intraday-kv"><span>Qty</span><strong id="bnh-liquidcase-qty">—</strong></div>
+                    <div class="intraday-kv"><span>Value ₹</span><strong id="bnh-liquidcase-val">—</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Trade log ────────────────────────────────────────────────────── -->
+        <div class="card">
+            <div class="card-header-row">
+                <h2 class="card-title">📋 Dip Accumulator &amp; Harvester Trade Log</h2>
+            </div>
+            <div class="table-container">
+                <table class="data-table" id="bnh-trade-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th><th>Time</th><th>Symbol</th><th>Action</th>
+                            <th>Price ₹</th><th>Qty</th><th>Amount ₹</th>
+                            <th>W%R</th><th>Funded By</th><th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bnh-trade-body">
+                        <tr><td colspan="10" class="empty-state">No trades yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+        <!-- ══════════════════════════════════════════════════════════════
+             MANAGE SYMBOLS TAB
+        ══════════════════════════════════════════════════════════════ -->
+        <div class="tab-pane" id="tab-symbols">
+            <div class="sym-manage-wrap">
+
+            <!-- ── Williams Scanner ──────────────────────────────────────── -->
+            <div class="scanner-panel" id="scanner-panel" style="grid-column:1/-1; margin-top:0;">
+                <div class="scanner-header">
+                    <div class="scanner-title-block">
+                        <h2 class="scanner-title">🔍 Williams Scanner</h2>
+                        <p class="scanner-subtitle">Scan ETFs &amp; stocks for oversold signals — Daily W%R, Weekly W%R &amp; 20 DMA filter</p>
+                    </div>
+                    <div class="scanner-controls">
+                        <div class="scanner-filter-group">
+                            <span class="scanner-filter-label">Scan universe</span>
+                            <div class="scn-universe-checks">
+                                <label class="scn-univ-label">
+                                    <input type="checkbox" id="scn-chk-etf" checked>
+                                    📊 ETFs
+                                </label>
+                                <label class="scn-univ-label">
+                                    <input type="checkbox" id="scn-chk-n200">
+                                    🏦 NIFTY 200
+                                </label>
+                                <label class="scn-univ-label">
+                                    <input type="checkbox" id="scn-chk-mid150">
+                                    📈 NIFTY MIDCAP 150
+                                </label>
+                            </div>
+                        </div>
+                        <div class="scanner-filter-group">
+                            <span class="scanner-filter-label">Daily W%R ≤</span>
+                            <input type="number" id="scn-daily-thresh"  class="scn-thresh-input" value="-50" min="-100" max="0" step="5">
+                        </div>
+                        <div class="scanner-filter-group">
+                            <span class="scanner-filter-label">Weekly W%R ≤</span>
+                            <input type="number" id="scn-weekly-thresh" class="scn-thresh-input" value="-50" min="-100" max="0" step="5">
+                        </div>
+                        <div class="scanner-filter-group">
+                            <span class="scanner-filter-label">Filter</span>
+                            <label class="scn-show-label">
+                                <input type="checkbox" id="scn-only-20dma" onchange="renderScanResults()" checked>
+                                Below 20 DMA
+                            </label>
+                        </div>
+                        <button class="scn-run-btn" id="scn-run-btn" onclick="runScanner()">▶ Run Scanner</button>
+                        <button class="scn-seed-btn" id="scn-seed-btn" onclick="runScannerSeed()" title="Download historical CSVs for all ETF/stock symbols so the scanner has local data">⬇ Seed Data</button>
+                    </div>
+                </div>
+
+                <!-- Progress bar -->
+                <div class="scn-progress-wrap" id="scn-progress-wrap" style="display:none;">
+                    <div class="scn-progress-bar"><div class="scn-progress-fill" id="scn-progress-fill"></div></div>
+                    <span class="scn-progress-label" id="scn-progress-label">Scanning…</span>
+                </div>
+
+                <!-- Summary chips -->
+                <div class="scn-summary" id="scn-summary" style="display:none;">
+                    <span class="scn-chip scn-chip-both"   id="scn-chip-both">— both ✓</span>
+                    <span class="scn-chip scn-chip-daily"  id="scn-chip-daily">— daily ✓</span>
+                    <span class="scn-chip scn-chip-weekly" id="scn-chip-weekly">— weekly ✓</span>
+                    <span class="scn-chip scn-chip-none"   id="scn-chip-none">— no data / neutral</span>
+                    <span class="scn-scanned" id="scn-scanned"></span>
+                </div>
+
+                <!-- Add-selected bar -->
+                <div class="scn-add-bar" id="scn-add-bar" style="display:none;">
+                    <span class="scn-sel-count" id="scn-sel-count">0 selected</span>
+                    <button class="scn-add-to-btn scn-add-active" onclick="addScanSelected('active')">➕ Add to Active Strategy</button>
+                    <button class="scn-add-to-btn scn-add-bnh"    onclick="addScanSelected('bnh')">➕ Add to Dip Accumulator</button>
+                    <button class="scn-add-to-btn scn-clear-btn"  onclick="clearScanSelection()">✕ Clear</button>
+                </div>
+
+                <!-- Results table -->
+                <div class="scanner-results" id="scanner-results" style="display:none;">
+                    <div class="table-container">
+                        <table class="data-table scn-table" id="scn-table">
+                            <thead>
+                                <tr>
+                                    <th class="scn-th-check">
+                                        <input type="checkbox" id="scn-check-all" onchange="toggleAllScanRows(this.checked)" title="Select all visible">
+                                    </th>
+                                    <th>Symbol</th>
+                                    <th>Type</th>
+                                    <th>LTP</th>
+                                    <th class="scn-th-sort" id="scn-th-dwr" onclick="setScanSort('dwr')" title="Sort by Daily W%R">Daily W%R <span class="scn-sort-arrow" id="scn-arr-dwr">↕</span></th>
+                                    <th class="scn-th-sort" id="scn-th-wwr" onclick="setScanSort('wwr')" title="Sort by Weekly W%R">Weekly W%R <span class="scn-sort-arrow" id="scn-arr-wwr">↕</span></th>
+                                    <th class="scn-th-sort" id="scn-th-dma" onclick="setScanSort('dma')" title="Sort by vs 20 DMA">vs 20 DMA <span class="scn-sort-arrow" id="scn-arr-dma">↕</span></th>
+                                    <th>Signal</th>
+                                    <th>In Strategy</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scn-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="scn-empty" id="scn-empty" style="display:none;">No symbols matched the thresholds — market may not be oversold, or historical data not available for scanned universe.</div>
+            </div>
+
+                <!-- ── Active Strategy Symbols ────────────────────────── -->
+                <div class="sym-section">
+                    <div class="sym-section-header">
+                        <div class="sym-section-title">
+                            <span class="sym-section-icon">📊</span>
+                            <div>
+                                <h2>Active Strategy</h2>
+                                <p>ETFs &amp; stocks monitored by the W%R bot — buys at signal, sells at profit target</p>
+                            </div>
+                        </div>
+                        <div class="sym-section-meta" id="active-sym-meta"></div>
+                    </div>
+                    <div class="sym-list-wrap">
+                        <div class="sym-grid" id="active-sym-list"></div>
+                    </div>
+                    <div class="sym-add-row">
+                        <div class="sym-multi-dropdowns">
+                            <div class="sym-dropdown-group" id="active-grp-etf">
+                                <label class="sym-dd-group-lbl">📊 ETFs</label>
+                                <div class="sym-dd-input-row">
+                                    <input type="text" id="active-sym-input-etf" class="sym-input"
+                                           placeholder="Search ETFs…" maxlength="30" autocomplete="off"
+                                           oninput="_buildFDD('active','etf',this)"
+                                           onfocus="_buildFDD('active','etf',this)"
+                                           onkeydown="if(event.key==='Enter'){event.preventDefault();_addFromInput('active','etf');}
+                                                      if(event.key==='Escape'){_closeFDD('active','etf');}" />
+                                    <button class="sym-add-btn" onclick="_addFromInput('active','etf')">+ Add</button>
+                                </div>
+                                <div class="sym-fdd" id="active-fdd-etf" style="display:none;"></div>
+                            </div>
+                            <div class="sym-dropdown-group" id="active-grp-n200">
+                                <label class="sym-dd-group-lbl">🏦 NIFTY 200 Stocks</label>
+                                <div class="sym-dd-input-row">
+                                    <input type="text" id="active-sym-input-n200" class="sym-input"
+                                           placeholder="Search NIFTY 200…" maxlength="30" autocomplete="off"
+                                           oninput="_buildFDD('active','n200',this)"
+                                           onfocus="_buildFDD('active','n200',this)"
+                                           onkeydown="if(event.key==='Enter'){event.preventDefault();_addFromInput('active','n200');}
+                                                      if(event.key==='Escape'){_closeFDD('active','n200');}" />
+                                    <button class="sym-add-btn" onclick="_addFromInput('active','n200')">+ Add</button>
+                                </div>
+                                <div class="sym-fdd" id="active-fdd-n200" style="display:none;"></div>
+                            </div>
+                            <div class="sym-dropdown-group" id="active-grp-mid150">
+                                <label class="sym-dd-group-lbl">📈 NIFTY MIDCAP 150</label>
+                                <div class="sym-dd-input-row">
+                                    <input type="text" id="active-sym-input-mid150" class="sym-input"
+                                           placeholder="Search MIDCAP 150…" maxlength="30" autocomplete="off"
+                                           oninput="_buildFDD('active','mid150',this)"
+                                           onfocus="_buildFDD('active','mid150',this)"
+                                           onkeydown="if(event.key==='Enter'){event.preventDefault();_addFromInput('active','mid150');}
+                                                      if(event.key==='Escape'){_closeFDD('active','mid150');}" />
+                                    <button class="sym-add-btn" onclick="_addFromInput('active','mid150')">+ Add</button>
+                                </div>
+                                <div class="sym-fdd" id="active-fdd-mid150" style="display:none;"></div>
+                            </div>
+                        </div>
+                        <p class="sym-input-hint">Type to search within each list, then press Enter or click + Add. Changes apply after saving — no restart needed.</p>
+                    </div>
+                    <div class="sym-actions">
+                        <button class="sym-save-btn" onclick="saveSymbols('active')" id="active-save-btn">💾 Save Active Strategy Symbols</button>
+                        <span class="sym-save-status" id="active-save-status"></span>
+                    </div>
+                </div>
+
+                <!-- ── Dip Accumulator Symbols ────────────────────────── -->
+                <div class="sym-section">
+                    <div class="sym-section-header">
+                        <div class="sym-section-title">
+                            <span class="sym-section-icon">⚡</span>
+                            <div>
+                                <h2>Dip Accumulator &amp; Harvester</h2>
+                                <p>Symbols accumulated on W%R ≤ −60 dips using the 5-tier sizing engine</p>
+                            </div>
+                        </div>
+                        <div class="sym-section-meta" id="bnh-sym-meta"></div>
+                    </div>
+                    <div class="sym-list-wrap">
+                        <div class="sym-grid" id="bnh-sym-list"></div>
+                    </div>
+                    <div class="sym-add-row">
+                        <div class="sym-multi-dropdowns">
+                            <div class="sym-dropdown-group" id="bnh-grp-etf">
+                                <label class="sym-dd-group-lbl">📊 ETFs</label>
+                                <div class="sym-dd-input-row">
+                                    <input type="text" id="bnh-sym-input-etf" class="sym-input"
+                                           placeholder="Search ETFs…" maxlength="30" autocomplete="off"
+                                           oninput="_buildFDD('bnh','etf',this)"
+                                           onfocus="_buildFDD('bnh','etf',this)"
+                                           onkeydown="if(event.key==='Enter'){event.preventDefault();_addFromInput('bnh','etf');}
+                                                      if(event.key==='Escape'){_closeFDD('bnh','etf');}" />
+                                    <button class="sym-add-btn" onclick="_addFromInput('bnh','etf')">+ Add</button>
+                                </div>
+                                <div class="sym-fdd" id="bnh-fdd-etf" style="display:none;"></div>
+                            </div>
+                            <div class="sym-dropdown-group" id="bnh-grp-n200">
+                                <label class="sym-dd-group-lbl">🏦 NIFTY 200 Stocks</label>
+                                <div class="sym-dd-input-row">
+                                    <input type="text" id="bnh-sym-input-n200" class="sym-input"
+                                           placeholder="Search NIFTY 200…" maxlength="30" autocomplete="off"
+                                           oninput="_buildFDD('bnh','n200',this)"
+                                           onfocus="_buildFDD('bnh','n200',this)"
+                                           onkeydown="if(event.key==='Enter'){event.preventDefault();_addFromInput('bnh','n200');}
+                                                      if(event.key==='Escape'){_closeFDD('bnh','n200');}" />
+                                    <button class="sym-add-btn" onclick="_addFromInput('bnh','n200')">+ Add</button>
+                                </div>
+                                <div class="sym-fdd" id="bnh-fdd-n200" style="display:none;"></div>
+                            </div>
+                            <div class="sym-dropdown-group" id="bnh-grp-mid150">
+                                <label class="sym-dd-group-lbl">📈 NIFTY MIDCAP 150</label>
+                                <div class="sym-dd-input-row">
+                                    <input type="text" id="bnh-sym-input-mid150" class="sym-input"
+                                           placeholder="Search MIDCAP 150…" maxlength="30" autocomplete="off"
+                                           oninput="_buildFDD('bnh','mid150',this)"
+                                           onfocus="_buildFDD('bnh','mid150',this)"
+                                           onkeydown="if(event.key==='Enter'){event.preventDefault();_addFromInput('bnh','mid150');}
+                                                      if(event.key==='Escape'){_closeFDD('bnh','mid150');}" />
+                                    <button class="sym-add-btn" onclick="_addFromInput('bnh','mid150')">+ Add</button>
+                                </div>
+                                <div class="sym-fdd" id="bnh-fdd-mid150" style="display:none;"></div>
+                            </div>
+                        </div>
+                        <p class="sym-input-hint">Each symbol gets independent capital caps, tier tracking, and trade log. Best for low-correlation ETFs. A symbol can only be in one strategy at a time.</p>
+                    </div>
+                    <div class="sym-actions">
+                        <button class="sym-save-btn" onclick="saveSymbols('bnh')" id="bnh-save-btn">💾 Save Dip Accumulator Symbols</button>
+                        <span class="sym-save-status" id="bnh-save-status"></span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v={{ v }}"></script>
+    <script src="{{ url_for('static', filename='js/tabs.js') }}?v={{ v }}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            function syncLiveUserIdentity() {
+                fetch('/api/auth/status')
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.user_id) {
+                            document.getElementById('true-session-userid').textContent = d.user_id.toUpperCase();
+                        } else {
+                            document.getElementById('true-session-userid').textContent = "ACTIVE ENGINE";
+                        }
+                    })
+                    .catch(() => {
+                        document.getElementById('true-session-userid').textContent = "DISCONNECTED";
+                    });
+            }
+            // Run instantly on load, then poll on an identity cadence loop
+            syncLiveUserIdentity();
+            setInterval(syncLiveUserIdentity, 5000);
+        });
+    </script>
+
+    <!-- ── Seed Data Modal ──────────────────────────────────────────────── -->
+    <div class="seed-modal-overlay" id="seed-modal-overlay">
+        <div class="seed-modal">
+            <p class="seed-modal-title">⬇ Seeding Scanner Data</p>
+            <p class="seed-modal-sub" id="seed-modal-sub">Downloading historical CSVs for all scanner symbols…</p>
+            <div class="seed-prog-bar"><div class="seed-prog-fill" id="seed-prog-fill"></div></div>
+            <div class="seed-prog-label" id="seed-prog-label">Starting…</div>
+            <div class="seed-log" id="seed-log"></div>
+            <div class="seed-modal-footer">
+                <button class="seed-close-btn" onclick="closeSeedModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v={{ v }}"></script>
+    <script src="{{ url_for('static', filename='js/tabs.js') }}?v={{ v }}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            function syncLiveUserIdentity() {
+                fetch('/api/auth/status')
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.user_id) {
+                            document.getElementById('true-session-userid').textContent = d.user_id.toUpperCase();
+                        } else {
+                            document.getElementById('true-session-userid').textContent = "ACTIVE ENGINE";
+                        }
+                    })
+                    .catch(() => {
+                        document.getElementById('true-session-userid').textContent = "DISCONNECTED";
+                    });
+            }
+            // Run instantly on load, then poll on an identity cadence loop
+            syncLiveUserIdentity();
+            setInterval(syncLiveUserIdentity, 5000);
+        });
+    </script>
+</body>
+</html>

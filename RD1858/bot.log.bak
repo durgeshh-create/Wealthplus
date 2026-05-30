@@ -1,0 +1,75 @@
+
+======================================================================
+                       🚀  ETF TRADING SYSTEM  🚀                       
+======================================================================
+                         🔴 LIVE TRADING MODE                          
+======================================================================
+
+⏳ Initializing system...
+
+   [1/7] 🔐 Using pre-authenticated session ✅
+   [2/7] 📈 Loading & refreshing historical data...
+         ✓ MON100: token=5821185
+         ✓ GOLDBEES: token=3693569
+         ✓ SILVERBEES: token=2068481
+         ✓ JUNIORBEES: token=2800385
+         ✓ MINDSPACE-RR: token=5710849
+         ✓ EMBASSY-RR: token=2402049
+         ✓ BANKBEES: token=2928385
+         ✓ HNGSNGBEES: token=4680705
+         ✓ MID150BEES: token=2177537
+         📥 MON100: data stale (last=2026-05-27) — fetching 2026-05-28 → 2026-05-28...
+         📥 GOLDBEES: data stale (last=2026-05-27) — fetching 2026-05-28 → 2026-05-28...
+         📥 SILVERBEES: data stale (last=2026-05-27) — fetching 2026-05-28 → 2026-05-28...
+         📥 JUNIORBEES: data stale (last=2026-05-27) — fetching 2026-05-28 → 2026-05-28...
+         📥 MINDSPACE-RR: data stale (last=2026-05-27) — fetching 2026-05-28 → 2026-05-28...
+         📥 EMBASSY-RR: data stale (last=2026-05-27) — fetching 2026-05-28 → 2026-05-28...
+         📥 BANKBEES: data stale (last=2026-05-27) — fetching 2026-05-28 → 2026-05-28...
+         📥 HNGSNGBEES: data stale (last=2026-05-27) — fetching 2026-05-28 → 2026-05-28...
+         📥 MID150BEES: data stale (last=2026-05-27) — fetching 2026-05-28 → 2026-05-28...
+   [2/7] ✅ Historical data ready
+   [3/7] 📡 Connecting to real-time data... ✅
+   [4/7] 💼 Syncing portfolio... ✅
+   [5/7] 📝 Initializing order manager... ✅
+   [6/7] 🎯 Initializing signal generator... ✅
+   [7/7] ⚡ Initializing strategy executor... ✅
+
+
+╔════════════════════════════════════════════════════════════════════╗
+║                           ✅  SYSTEM READY                          ║
+╠════════════════════════════════════════════════════════════════════╣
+║ 🌐 Dashboard: http://localhost:5000                                 ║
+║  📊  Real-time Data: 🟢 Connected                                    ║
+║  👤  User: RD1858                                                   ║
+║  💼  Portfolio: Synced & Tracking                                   ║
+║  🤖  Auto-Trading: Ready (Start from dashboard)                     ║
+╠════════════════════════════════════════════════════════════════════╣
+║  ⚠️   Press Ctrl+C to stop the server                              ║
+╚════════════════════════════════════════════════════════════════════╝
+
+
+  🌐  Dashboard server starting on http://localhost:5000
+  ⚡  Open http://localhost:5000 in your browser if it doesn't open automatically
+
+ * Serving Flask app 'frontend.app'
+ * Debug mode: off
+17:10:31 | ERROR    | Failed to fetch holdings
+17:10:31 | ERROR    | Positions fetch failed: 403
+17:10:46 | ERROR    | Positions fetch failed: 403
+17:11:01 | ERROR    | Failed to fetch holdings
+17:11:02 | ERROR    | Positions fetch failed: 403
+17:11:02 | ERROR    | Failed to fetch holdings
+17:11:03 | ERROR    | Positions fetch failed: 403
+17:11:18 | ERROR    | Positions fetch failed: 403
+17:11:33 | ERROR    | Positions fetch failed: 403
+17:11:33 | ERROR    | Failed to fetch holdings
+17:11:49 | ERROR    | Positions fetch failed: 403
+17:12:04 | ERROR    | Positions fetch failed: 403
+17:12:04 | ERROR    | Failed to fetch holdings
+17:12:18 | ERROR    | Positions fetch failed: 403
+17:12:34 | ERROR    | Failed to fetch holdings
+17:13:03 | ERROR    | Failed to fetch holdings
+17:13:09 | ERROR    | Positions fetch failed: 403
+17:13:34 | ERROR    | Failed to fetch holdings
+17:14:09 | ERROR    | Failed to fetch holdings
+17:14:09 | ERROR    | Positions fetch failed: 403

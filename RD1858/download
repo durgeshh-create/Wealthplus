@@ -1,0 +1,19 @@
+# Zerodha enctoken bot on Render
+
+This package gives you a small Flask admin panel that lets you manually paste a Zerodha `enctoken`, then run a background loop only during NSE market hours.
+
+## Files
+- `app.py` - Flask app, admin login, dashboard, health endpoint, worker loop.
+- `requirements.txt` - Python dependencies.
+- `render.yaml` - Render Blueprint for one-click deploy.
+- `.gitignore` - Keeps secrets out of git.
+
+## Local run
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+export ADMIN_PASSWORD='change-me'
+python app.py
+
+## Deploy on Render
+Use New > Blueprint if `render.yaml` is present in the repo root, otherwise create a Web Service manually.

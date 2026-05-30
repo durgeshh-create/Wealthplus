@@ -1,0 +1,449 @@
+"""
+Strategy Executor
+Executes validated trading signals.
+
+BUY sizing:
+  - Sell LIQUIDCASE worth max_cash_per_transaction
+  - Buy as many ETF units as that cash covers
+  - Respects max_qty_per_trade (unit cap) if set
+
+SELL sizing:
+  - Sell ALL held units of the ETF
+  - Buy LIQUIDCASE with proceeds
+"""
+from typing import Dict
+import json
+from pathlib import Path
+
+from backend.core.config import Config
+from backend.core.constants import SIGNAL_BUY, SIGNAL_SELL, LIQUIDCASE_SYMBOL
+from backend.utils.logger import get_logger, log_separator
+
+logger = get_logger(__name__)
+
+
+def _load_settings() -> dict:
+    try:
+        p = Path(__file__).parent.parent.parent / 'config' / 'settings.json'
+        if p.exists():
+            with open(p, 'r') as f:
+                return json.load(f)
+    except Exception as e:
+        logger.debug(f"Could not read settings.json: {e}")
+    return {}
+
+
+class StrategyExecutor:
+    """Executes trading strategy"""
+
+    def __init__(self, order_manager, portfolio_tracker, realtime_manager, signal_generator=None):
+        self.orders    = order_manager
+        self.portfolio = portfolio_tracker
+        self.realtime  = realtime_manager
+        self.signal_generator = signal_generator
+
+    # ──────────────────────────────────────────────────────────────
+    # Settings readers
+    # ──────────────────────────────────────────────────────────────
+
+    def _get_test_quantity(self) -> int:
+        return int(_load_settings().get('test_quantity', 0))
+
+    def _get_profit_target(self) -> float:
+        return float(_load_settings().get('profit_target_pct', Config.PROFIT_TARGET_PCT))
+
+    def _get_max_cash_per_transaction(self) -> float:
+        return float(_load_settings().get('max_cash_per_transaction',
+                                          getattr(Config, 'MAX_CASH_PER_TRANSACTION', 0)))
+
+    def _get_max_cash_per_stock(self) -> float:
+        return float(_load_settings().get('max_cash_per_stock',
+                                          getattr(Config, 'MAX_CASH_PER_STOCK', 0)))
+
+    def _get_slots_count(self) -> int:
+        try:
+            return len(Config.get_active_etfs())
+        except Exception:
+            return Config.SLOTS_COUNT
+
+    def _get_order_type(self) -> str:
+        """MARKET or LIMIT — from settings. Default MARKET for scheduled, LIMIT when price provided."""
+        return _load_settings().get('default_order_type', 'MARKET').upper()
+
+    # ──────────────────────────────────────────────────────────────
+    # Settings reset (after sell)
+    # ──────────────────────────────────────────────────────────────
+
+    def _reset_to_default_settings(self):
+        StrategyExecutor.reset_to_default_settings()
+
+    @staticmethod
+    def reset_to_default_settings():
+        """Reset profit_target_pct and test_quantity to their saved defaults."""
+        try:
+            p = Path(__file__).parent.parent.parent / 'config' / 'settings.json'
+            if not p.exists():
+                return
+            with open(p, 'r') as f:
+                s = json.load(f)
+
+            default_profit = s.get('default_profit_target_pct', Config.PROFIT_TARGET_PCT)
+            default_qty    = s.get('default_test_quantity', 0)
+            changed = False
+
+            if s.get('profit_target_pct') != default_profit:
+                s['profit_target_pct'] = default_profit
+                changed = True
+            if s.get('test_quantity') != default_qty:
+                s['test_quantity'] = default_qty
+                changed = True
+
+            if changed:
+                with open(p, 'w') as f:
+                    json.dump(s, f, indent=2)
+                logger.info(f"🔄 Reset: profit→{default_profit}%, qty→{default_qty}")
+        except Exception as e:
+            logger.error(f"Failed to reset settings: {e}")
+
+    # ──────────────────────────────────────────────────────────────
+    # BUY execution
+    # ──────────────────────────────────────────────────────────────
+
+    def execute_buy_signal(self, signal: Dict, is_automated: bool = True) -> bool:
+        """
+        Execute a buy signal.
+
+        Sizing:
+          1. Use max_cash_per_transaction as the spend budget for this buy.
+             Falls back to (total_liquidcase_value / slots_count) if not set.
+          2. Quantity = floor(budget / etf_price)
+          3. If max_qty_per_trade is set, further cap the quantity.
+          4. Recalculate LIQUIDCASE units to sell = ceil(etf_qty * etf_price / liq_price)
+             so proceeds always cover the cost.
+
+        Allows multiple buys into the same stock as long as:
+          - Total deployed < max_cash_per_stock
+          - Entry count < max_entries_per_stock
+        (These guards are enforced in SignalGenerator._check_buy_signal)
+        """
+        import math
+        symbol = signal['symbol']
+
+        if self.signal_generator and is_automated:
+            self.signal_generator.lock_symbol_for_execution(symbol, 'BUY')
+
+        log_separator(logger, f"EXECUTING {'AUTOMATED' if is_automated else 'MANUAL'} BUY: {symbol}")
+
+        try:
+            # ── prices ──────────────────────────────────────────
+            liquidcase_price = self.realtime.get_ltp(LIQUIDCASE_SYMBOL)
+            if not liquidcase_price:
+                logger.error("Cannot get LIQUIDCASE price")
+                return False
+
+            etf_price = self.realtime.get_ltp(symbol)
+            if not etf_price:
+                logger.error(f"Cannot get price for {symbol}")
+                return False
+
+            # ── budget for this transaction ──────────────────────
+            max_tx = self._get_max_cash_per_transaction()
+            if max_tx > 0:
+                budget = max_tx
+                logger.info(f"Budget: ₹{budget:.2f} (max_cash_per_transaction)")
+            else:
+                # Fallback: 1 slot worth of LIQUIDCASE
+                liq_qty   = self.portfolio.liquidcase_quantity
+                liq_value = liq_qty * liquidcase_price
+                slots     = self._get_slots_count()
+                budget    = liq_value / slots if slots > 0 else liq_value
+                logger.info(f"Budget: ₹{budget:.2f} (1/{slots} of LIQUIDCASE value — fallback)")
+
+            # ── safety: don't exceed remaining capacity for this stock ──
+            max_cash_stock = self._get_max_cash_per_stock()
+            if max_cash_stock > 0:
+                deployed = self._get_cash_deployed(symbol, etf_price)
+                remaining_capacity = max_cash_stock - deployed
+                if remaining_capacity <= 0:
+                    logger.warning(f"⚠️ {symbol}: max_cash_per_stock already reached (₹{deployed:.0f})")
+                    return False
+                budget = min(budget, remaining_capacity)
+                logger.info(f"Capacity remaining for {symbol}: ₹{remaining_capacity:.2f} → budget capped to ₹{budget:.2f}")
+
+            # ── quantities ──────────────────────────────────────
+            etf_qty = int(budget / etf_price)
+            if etf_qty <= 0:
+                logger.error(f"Budget ₹{budget:.2f} too small for 1 unit of {symbol} @ ₹{etf_price:.2f}")
+                return False
+
+            # Apply max_qty_per_trade cap
+            max_qty = self._get_test_quantity()
+            if max_qty > 0 and etf_qty > max_qty:
+                logger.warning(f"⚠️ Qty capped: {etf_qty} → {max_qty} (max_qty_per_trade)")
+                etf_qty = max_qty
+
+            etf_cost   = etf_qty * etf_price
+            avail_cash = self.orders.get_available_cash()
+
+            # ── Cash reserve: never deploy below the configured floor ──────
+            cash_reserve  = Config.get_cash_reserve()
+            spendable_cash = max(0.0, avail_cash - cash_reserve)
+            if spendable_cash < etf_cost:
+                logger.info(
+                    f"💵 Spendable cash ₹{spendable_cash:.2f} "
+                    f"(total ₹{avail_cash:.2f} − reserve ₹{cash_reserve:.2f}) "
+                    f"< cost ₹{etf_cost:.2f} — will sell LIQUIDCASE for shortfall"
+                )
+
+            # LIQUIDCASE needed = only the shortfall after using spendable cash
+            # ceil() so proceeds always cover the gap
+            shortfall   = max(0.0, etf_cost - spendable_cash)
+            liq_to_sell = math.ceil(shortfall / liquidcase_price) if shortfall > 0 else 0
+
+            # Verify we have enough LIQUIDCASE for the shortfall
+            liq_held       = self.portfolio.liquidcase_quantity
+            liq_held_value = liq_held * liquidcase_price
+            if liq_to_sell > liq_held:
+                logger.error(
+                    f"Insufficient funds: spendable cash ₹{spendable_cash:.2f} "
+                    f"(total ₹{avail_cash:.2f} − reserve ₹{cash_reserve:.2f}) + "
+                    f"LIQUIDCASE ₹{liq_held_value:.2f} < ETF cost ₹{etf_cost:.2f}"
+                )
+                return False, f"Insufficient funds: cash ₹{spendable_cash:.0f} + LIQUIDCASE ₹{liq_held_value:.0f} < cost ₹{etf_cost:.0f}"
+
+            if liq_to_sell > 0:
+                logger.info(
+                    f"💱 SWAP PLAN: spendable cash ₹{spendable_cash:.2f} + sell {liq_to_sell} LIQUIDCASE "
+                    f"× ₹{liquidcase_price:.2f} = ₹{liq_to_sell*liquidcase_price:.2f} (shortfall) → "
+                    f"Buy {etf_qty} {symbol} × ₹{etf_price:.2f} = ₹{etf_cost:.2f}"
+                )
+            else:
+                logger.info(
+                    f"✅ Spendable cash ₹{spendable_cash:.2f} sufficient — buying {etf_qty} × {symbol} "
+                    f"@ ₹{etf_price:.2f} directly"
+                )
+
+            # ── resolve order type and limit price ──────────────
+            order_type = self._get_order_type()
+
+            if order_type == 'LIMIT':
+                # Use top bid (best buy price in market depth) for buy LIMIT orders
+                top_bid = None
+                if hasattr(self.realtime, 'get_top_bid'):
+                    top_bid = self.realtime.get_top_bid(symbol)
+                limit_price = float(top_bid) if top_bid and top_bid > 0 else etf_price
+                logger.info(
+                    f"LIMIT BUY: using top_bid ₹{limit_price:.2f} for {symbol} "                    f"(LTP was ₹{etf_price:.2f}, {'top_bid from depth' if top_bid else 'fell back to LTP'})"                )
+            else:
+                limit_price = None
+                logger.info(f"MARKET BUY: {symbol} @ ₹{etf_price:.2f}")
+
+            # ── PRE-REGISTER in pending_exec BEFORE smart_buy ───────────
+            # This makes _get_avg_buy_price and _get_buys_today accurate
+            # immediately, so the signal loop won't re-queue this symbol
+            # during the 30s order monitoring window.
+            if self.signal_generator and is_automated and hasattr(self.signal_generator, 'record_buy_executed'):
+                self.signal_generator.record_buy_executed(
+                    symbol, price=float(limit_price if limit_price else etf_price), qty=etf_qty
+                )
+
+            # ── Smart buy: use available cash first, LIQUIDCASE only for shortfall ──
+            try:
+                success = self.orders.smart_buy(
+                    buy_symbol=symbol,
+                    buy_quantity=etf_qty,
+                    buy_price_estimate=etf_price,
+                    realtime_manager=self.realtime,
+                    portfolio_tracker=self.portfolio,
+                    buy_order_type=order_type,
+                    buy_limit_price=limit_price,
+                    buy_product='CNC',
+                    cash_reserve=cash_reserve,   # keep executor & smart_buy in sync
+                )
+            except RuntimeError as e:
+                logger.error(f"✗ BUY FAILED [{symbol}]: {e}")
+                # Undo pre-registration on failure
+                if self.signal_generator and is_automated:
+                    self.signal_generator.unlock_symbol(symbol, success=False)
+                return False, str(e)
+
+            if success:
+                logger.info(f"✓ BUY SUCCESS: {symbol} x{etf_qty} @ ₹{etf_price:.2f}")
+                if self.signal_generator and is_automated:
+                    # success=True keeps recently_bought cooldown active
+                    self.signal_generator.unlock_symbol(symbol, success=True)
+                return True
+            else:
+                logger.error(f"✗ BUY FAILED: {symbol}")
+                if self.signal_generator and is_automated:
+                    self.signal_generator.unlock_symbol(symbol, success=False)
+                return False, "Order did not complete"
+
+        except Exception as e:
+            logger.error(f"Error executing buy for {symbol}: {e}", exc_info=True)
+            if self.signal_generator and is_automated:
+                self.signal_generator.unlock_symbol(symbol)
+            return False
+
+    def _get_cash_deployed(self, symbol: str, current_price: float) -> float:
+        """Current market value deployed in a symbol (qty * avg_price)."""
+        qty = self.portfolio.get_quantity_held(symbol)
+        if qty <= 0:
+            return 0.0
+        avg = self.portfolio.get_average_price(symbol)
+        return float(qty * avg) if avg else 0.0
+
+    # ──────────────────────────────────────────────────────────────
+    # SELL execution (unchanged logic, cleaned up)
+    # ──────────────────────────────────────────────────────────────
+
+    def execute_sell_signal(self, signal: Dict, is_automated: bool = True) -> bool:
+        """
+        Execute a sell signal: sell ALL held ETF units, buy LIQUIDCASE with proceeds.
+        max_qty_per_trade cap still applies if set.
+        """
+        import time
+        symbol = signal['symbol']
+
+        if self.signal_generator and is_automated:
+            self.signal_generator.lock_symbol_for_execution(symbol, 'SELL')
+
+        log_separator(logger, f"EXECUTING {'AUTOMATED' if is_automated else 'MANUAL'} SELL: {symbol}")
+
+        try:
+            etf_qty = self.portfolio.get_quantity_held(symbol)
+            if etf_qty <= 0:
+                logger.error(f"No {symbol} held to sell")
+                if self.signal_generator and is_automated:
+                    self.signal_generator.unlock_symbol(symbol)
+                return False
+
+            max_qty = self._get_test_quantity()
+            if max_qty > 0 and etf_qty > max_qty:
+                logger.warning(f"⚠️ Sell qty capped: {etf_qty} → {max_qty} (max_qty_per_trade)")
+                etf_qty = max_qty
+
+            # Get ETF price (with retry)
+            etf_price = self._get_price_with_retry(symbol)
+            if not etf_price:
+                logger.error(f"❌ Cannot get valid price for {symbol} — sell aborted")
+                if self.signal_generator and is_automated:
+                    self.signal_generator.unlock_symbol(symbol)
+                return False
+
+            # Get LIQUIDCASE price (with retry)
+            liq_price = self._get_price_with_retry(LIQUIDCASE_SYMBOL)
+            if not liq_price:
+                logger.error("❌ Cannot get LIQUIDCASE price — sell aborted")
+                if self.signal_generator and is_automated:
+                    self.signal_generator.unlock_symbol(symbol)
+                return False
+
+            # Use top bid for LIQUIDCASE buy limit price; fall back to LTP
+            liq_top_bid = None
+            if hasattr(self.realtime, 'get_top_bid'):
+                liq_top_bid = self.realtime.get_top_bid(LIQUIDCASE_SYMBOL)
+            liq_limit_price = float(liq_top_bid) if liq_top_bid and liq_top_bid > 0 else liq_price
+            logger.info(
+                f"LIQUIDCASE buy limit price: ₹{liq_limit_price:.2f} "
+                f"({'top bid from depth' if liq_top_bid else 'fell back to LTP ₹' + str(round(liq_price, 2))})"
+            )
+
+            proceeds    = etf_qty * etf_price
+            liq_to_buy  = int(proceeds / liq_limit_price)
+
+            logger.info(
+                f"SWAP: Sell {etf_qty} {symbol} @ ₹{etf_price:.2f} = ₹{proceeds:.2f} → "
+                f"Buy {liq_to_buy} LIQUIDCASE LIMIT @ ₹{liq_limit_price:.2f}"
+            )
+
+            sell_order_type = self._get_order_type()
+
+            if sell_order_type == 'LIMIT':
+                # Use top ask (best offer price in market depth) for sell LIMIT orders
+                top_ask = None
+                if hasattr(self.realtime, 'get_top_ask'):
+                    top_ask = self.realtime.get_top_ask(symbol)
+                sell_limit_price = float(top_ask) if top_ask and top_ask > 0 else etf_price
+                logger.info(
+                    f"LIMIT SELL: using top_ask ₹{sell_limit_price:.2f} for {symbol} "
+                    f"(LTP was ₹{etf_price:.2f}, {'top_ask from depth' if top_ask else 'fell back to LTP'})"
+                )
+            else:
+                sell_limit_price = None
+                logger.info(f"MARKET SELL: {symbol} @ ₹{etf_price:.2f}")
+
+            success = self.orders.execute_swap(
+                sell_symbol=symbol,
+                sell_quantity=etf_qty,
+                buy_symbol=LIQUIDCASE_SYMBOL,
+                buy_quantity=liq_to_buy,
+                buy_price_estimate=liq_limit_price,
+                sell_price_estimate=etf_price,
+                sell_order_type=sell_order_type,
+                sell_limit_price=sell_limit_price,
+                buy_order_type='LIMIT',
+                buy_limit_price=liq_limit_price,
+            )
+
+            if success:
+                avg_price = self.portfolio.get_average_price(symbol)
+                if avg_price:
+                    pnl_pct = (etf_price - avg_price) / avg_price * 100
+                    pnl_amt = (etf_price - avg_price) * etf_qty
+                    logger.info(
+                        f"✓ PROFIT: {pnl_pct:.2f}% ₹{pnl_amt:.2f} | "
+                        f"Target was {self._get_profit_target()}%"
+                    )
+                logger.info(f"✓ SELL SUCCESS: {symbol}")
+
+                if is_automated:
+                    self._reset_to_default_settings()
+
+                self.portfolio.sync()
+                if self.signal_generator and is_automated:
+                    self.signal_generator.unlock_symbol(symbol)
+                return True
+            else:
+                logger.error(f"✗ SELL FAILED: {symbol}")
+                if self.signal_generator and is_automated:
+                    self.signal_generator.unlock_symbol(symbol)
+                return False
+
+        except Exception as e:
+            logger.error(f"Error executing sell for {symbol}: {e}", exc_info=True)
+            if self.signal_generator and is_automated:
+                self.signal_generator.unlock_symbol(symbol)
+            return False
+
+    def _get_price_with_retry(self, symbol: str, retries: int = 3) -> float:
+        import time
+        price = self.realtime.get_ltp(symbol)
+        for i in range(retries):
+            if price and price > 0:
+                return price
+            logger.warning(f"⚠️ {symbol} price unavailable (attempt {i+1}/{retries})")
+            time.sleep(0.5)
+            price = self.realtime.get_ltp(symbol)
+        logger.error(f"❌ Could not get valid price for {symbol} after {retries} retries")
+        return None
+
+    # ──────────────────────────────────────────────────────────────
+    # Batch execution
+    # ──────────────────────────────────────────────────────────────
+
+    def execute_signals(self, signals: Dict) -> Dict[str, bool]:
+        """Execute all active signals. Sells first, then buys."""
+        results = {}
+        for signal in signals.get('sell', []):
+            results[f"SELL_{signal['symbol']}"] = self.execute_sell_signal(signal)
+        for signal in signals.get('buy', []):
+            outcome = self.execute_buy_signal(signal)
+            # execute_buy_signal returns (success, reason) tuple or plain bool
+            if isinstance(outcome, tuple):
+                results[f"BUY_{signal['symbol']}"] = outcome[0]
+                if not outcome[0] and len(outcome) > 1:
+                    results[f"BUY_{signal['symbol']}__reason"] = outcome[1]
+            else:
+                results[f"BUY_{signal['symbol']}"] = outcome
+        return results

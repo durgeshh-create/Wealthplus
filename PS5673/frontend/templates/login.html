@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wealth++ — Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        #0d1117;
+            --card:      #1c2128;
+            --elevated:  #21262d;
+            --border:    rgba(16,185,129,0.25);
+            --primary:   #10b981;
+            --success:   #10b981;
+            --danger:    #f85149;
+            --warning:   #e3b341;
+            --text:      #e6edf3;
+            --muted:     #8b949e;
+            --dimmed:    #6e7681;
+            --mono:      'Geist Mono', monospace;
+            --display:   'Plus Jakarta Sans', sans-serif;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: var(--display);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .login-wrap {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        /* Brand */
+        .brand {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        .brand-logo {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.6rem;
+            box-shadow: 0 0 28px rgba(16,185,129,0.3);
+            margin-bottom: 1rem;
+        }
+        .brand h1 { font-size: 1.75rem; font-weight: 800; }
+        .brand h1 span { color: var(--primary); }
+        .brand p { font-size: 0.875rem; color: var(--muted); margin-top: 0.375rem; }
+
+        /* Card */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 2rem;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+        }
+
+        .card-title {
+            font-size: 1rem; font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        .card-sub {
+            font-size: 0.8125rem; color: var(--muted);
+            margin-bottom: 1.75rem; line-height: 1.5;
+        }
+
+        /* Form */
+        .field { margin-bottom: 1.25rem; }
+        .field label {
+            display: block;
+            font-size: 0.8125rem; font-weight: 600;
+            color: var(--muted); margin-bottom: 0.4rem;
+            letter-spacing: 0.3px;
+        }
+        .field input {
+            width: 100%; padding: 0.75rem 1rem;
+            background: #0f1220;
+            border: 1.5px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: var(--mono); font-size: 0.9375rem;
+            outline: none; transition: all 0.2s;
+        }
+        .field input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+        }
+        .field input::placeholder { color: var(--dimmed); }
+
+        .btn-login {
+            width: 100%; padding: 0.875rem;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #000; border: none; border-radius: 8px;
+            font-family: var(--display); font-size: 1rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 4px 16px rgba(16,185,129,0.25);
+            margin-top: 0.5rem;
+        }
+        .btn-login:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(16,185,129,0.35); }
+        .btn-login:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* Status */
+        .status-box {
+            display: none;
+            margin-top: 1.25rem;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        .status-box.error   { background: rgba(239,68,68,0.1);  border:1px solid rgba(239,68,68,0.25);  color: #fca5a5; }
+        .status-box.info    { background: rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.25); color: #a5b4fc; }
+        .status-box.success { background: rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.25); color: #6ee7b7; }
+
+        .boot-progress {
+            display: none;
+            margin-top: 1.25rem;
+        }
+        .boot-label {
+            font-size: 0.8125rem; color: var(--muted);
+            margin-bottom: 0.5rem;
+            font-family: var(--mono);
+        }
+        .progress-bar {
+            height: 4px; background: rgba(255,255,255,0.06);
+            border-radius: 2px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; width: 30%;
+            background: linear-gradient(90deg, var(--primary), #818cf8);
+            border-radius: 2px;
+            animation: progressSlide 1.8s ease-in-out infinite;
+        }
+        @keyframes progressSlide {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(400%); }
+        }
+
+        /* Divider */
+        .divider {
+            display: flex; align-items: center; gap: 0.875rem;
+            margin: 1.75rem 0;
+        }
+        .divider-line { flex:1; height:1px; background: rgba(255,255,255,0.07); }
+        .divider-label { font-size: 0.75rem; color: var(--dimmed); font-weight: 600; letter-spacing: 0.5px; white-space: nowrap; }
+
+        /* Bookmarklet section */
+        .bookmarklet-card {
+            background: var(--elevated);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+        }
+        .bookmarklet-title {
+            font-size: 0.875rem; font-weight: 700;
+            margin-bottom: 0.375rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .bookmarklet-sub {
+            font-size: 0.775rem; color: var(--muted); line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .step {
+            display: flex; gap: 0.75rem; align-items: flex-start;
+            margin-bottom: 0.875rem;
+        }
+        .step-num {
+            width: 22px; height: 22px; min-width: 22px;
+            background: rgba(16,185,129,0.15); color: var(--success);
+            border-radius: 50%; font-size: 0.7rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; margin-top: 1px;
+        }
+        .step-text { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+        .step-text strong { color: var(--text); }
+
+        .bookmarklet-btn {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: linear-gradient(135deg, var(--warning), #d97706);
+            color: white; padding: 0.5rem 1rem;
+            border-radius: 6px; font-size: 0.8125rem; font-weight: 700;
+            text-decoration: none; cursor: pointer;
+            font-family: var(--display);
+            box-shadow: 0 2px 8px rgba(245,158,11,0.25);
+            transition: all 0.2s;
+            border: none;
+        }
+        .bookmarklet-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(245,158,11,0.35); }
+
+        .bookmarklet-note {
+            margin-top: 0.875rem;
+            padding: 0.625rem 0.875rem;
+            background: rgba(245,158,11,0.06);
+            border-left: 3px solid var(--warning);
+            border-radius: 4px;
+            font-size: 0.75rem; color: #d97706; line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+<div class="login-wrap">
+
+    <div class="brand">
+        <div class="brand-logo">⚡</div>
+        <h1>Wealth<span>++</span> Algo</h1>
+        <p>Enter your Zerodha credentials to start</p>
+    </div>
+
+    <div class="card">
+        <div class="card-title" id="action-title">🔐 Connect to Zerodha</div>
+        <div class="card-sub" id="action-sub">
+            Your User ID and enctoken are used only to authenticate with Zerodha APIs
+            and are saved locally on this machine only.
+        </div>
+
+        <div id="manual-form-fields">
+            <div class="field">
+                <label>USER ID</label>
+                <input type="text" id="user-id" placeholder="e.g. AB1234" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="field">
+                <label>ENCTOKEN</label>
+                <input type="password" id="enctoken" placeholder="Paste your enctoken here" autocomplete="off" spellcheck="false">
+            </div>
+
+            <button class="btn-login" id="btn-login" onclick="doLogin()">
+                ⚡ Connect &amp; Launch Dashboard
+            </button>
+        </div>
+
+        <div class="status-box" id="status-box"></div>
+
+        <div class="boot-progress" id="boot-progress">
+            <div class="boot-label" id="boot-label">Starting up...</div>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+        </div>
+    </div>
+
+    <div class="bookmarklet-card" id="bookmarklet-ui-card">
+        <div class="bookmarklet-title">🔖 1-Click Instant Login (Bookmarklet)</div>
+        <div class="bookmarklet-sub">
+            Drag the button below to your browser bookmarks bar.
+            When clicked while on Kite, it auto-extracts your live User ID and token and logs you straight in.
+        </div>
+
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-text">
+                Drag this button to your browser's <strong>bookmarks bar</strong>:&nbsp;
+                <a class="bookmarklet-btn" id="bm-link" href="#" title="Drag me to your bookmarks bar">
+                    🔖 Kite → Wealth++
+                </a>
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-text">
+                Go to <strong>kite.zerodha.com</strong> and make sure you are actively logged in.
+            </div>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-text">
+                Click the <strong>Kite → Wealth++</strong> bookmark. The script will safely package your session credentials and seamlessly load the system dashboard framework.
+            </div>
+        </div>
+
+        <div class="bookmarklet-note">
+            ⚠️ The bookmarklet dynamically reads configuration targets from your window interface and pairs securely with your active engine running on port <strong id="current-port-label">5000</strong>.
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Auto-detect localized port to support seamless multi-instance orchestration
+const ACTIVE_PORT = window.location.port || "5000";
+document.getElementById('current-port-label').textContent = ACTIVE_PORT;
+
+// Check if a direct token authorization redirect query was supplied from the bookmarklet tab
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('autoboot') === 'true') {
+    document.getElementById('manual-form-fields').style.display = 'none';
+    document.getElementById('bookmarklet-ui-card').style.display = 'none';
+    document.getElementById('action-title').textContent = "🤖 Framework Synchronizing";
+    document.getElementById('action-sub').textContent = "Credentials received from external tab. Waiting for technical indicator maps and portfolio sync arrays to finalize initialization...";
+    startBootPolling();
+}
+
+// ── Build the Dynamic Self-Aware Bookmarklet Code ───────────────────────────
+(function () {
+    const code = `(function(){
+        var cookieList = document.cookie.split(';');
+        var token = '';
+        for (var i = 0; i < cookieList.length; i++) {
+            var c = cookieList[i].trim();
+            if (c.indexOf('enctoken=') === 0) {
+                token = decodeURIComponent(c.substring('enctoken='.length, c.length));
+                break;
+            }
+        }
+        
+        if(!token){
+            alert('enctoken cookie not found!\\n\\n⚠️ CRITICAL: Make sure you are clicking this bookmark while looking directly at the tab containing kite.zerodha.com/dashboard!');
+            return;
+        }
+        
+        var uid = '';
+        try {
+            var rawData = localStorage.getItem('user_data');
+            if (rawData) {
+                var parsed = JSON.parse(rawData);
+                uid = parsed.user_id || parsed.userId || '';
+            }
+        } catch(e){}
+        
+        if (!uid) {
+            try {
+                var rawSession = localStorage.getItem('kf_session');
+                if (rawSession) {
+                    var parsedS = JSON.parse(rawSession);
+                    uid = parsedS.user_id || parsedS.userId || '';
+                }
+            } catch(e){}
+        }
+        
+        if (!uid) {
+            var userClassElement = document.querySelector('.user-id');
+            if (userClassElement && userClassElement.textContent) {
+                uid = userClassElement.textContent.trim();
+            }
+        }
+        if (!uid) {
+            var avatarElement = document.querySelector('.avatar span');
+            if (avatarElement && avatarElement.textContent) {
+                uid = avatarElement.textContent.trim();
+            }
+        }
+        
+        if(!uid){
+            uid = prompt('Could not auto-detect User ID from session memory. Please provide your Zerodha User ID manually (e.g. AB1234):') || '';
+        }
+        if(!uid){alert('User ID is mandatory for backend session routing.');return;}
+        
+        // Dynamically matches whatever port the landing card was launched from
+        var targetUrl = 'http://localhost:' + '${ACTIVE_PORT}';
+        
+        fetch(targetUrl + '/api/auth/login',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({user_id:uid.toUpperCase(), enctoken:token})
+        }).then(function(r){return r.json();}).then(function(d){
+            if(d.success){
+                // FIX: Stopped window.open cross-thread invocation to eliminate duplicate tabs
+                alert('🚀 Wealth++ Algo Framework Synchronized for ' + uid.toUpperCase() + '!\\n\\nYou can now close this extra tab or go back to your existing Dashboard window to trade.');
+            }
+            else{alert('Authentication failed: '+(d.error||'Unknown API rejection'));}
+        }).catch(function(e){alert('Could not reach backend instance on port ' + '${ACTIVE_PORT}' + '. Is the corresponding terminal instance up?\\nError details: '+e);});
+    })();`;
+
+    document.getElementById('bm-link').href = 'javascript:' + encodeURIComponent(code).replace(/%20/g, ' ');
+})();
+
+// ── Manual login ────────────────────────────────────────────────────────────
+function showStatus(msg, type) {
+    const box = document.getElementById('status-box');
+    box.className = 'status-box ' + type;
+    box.style.display = 'block';
+    box.textContent = msg;
+}
+
+function doLogin() {
+    const userId   = document.getElementById('user-id').value.trim();
+    const enctoken = document.getElementById('enctoken').value.trim();
+
+    if (!userId)  { showStatus('⚠️ Please enter your User ID.', 'error'); return; }
+    if (!enctoken){ showStatus('⚠️ Please paste your enctoken.', 'error'); return; }
+
+    const btn = document.getElementById('btn-login');
+    btn.disabled = true;
+    btn.textContent = '⏳ Verifying...';
+    document.getElementById('status-box').style.display = 'none';
+
+    fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, enctoken: enctoken })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showStatus('✅ ' + data.message, 'info');
+            startBootPolling();
+        } else {
+            showStatus('❌ ' + data.error, 'error');
+            btn.disabled = false;
+            btn.textContent = '⚡ Connect & Launch Dashboard';
+        }
+    })
+    .catch(err => {
+        showStatus('❌ Network error: ' + err, 'error');
+        btn.disabled = false;
+        btn.textContent = '⚡ Connect & Launch Dashboard';
+    });
+}
+
+// ── Poll /api/auth/status while backend boots ───────────────────────────────
+function startBootPolling() {
+    const progress = document.getElementById('boot-progress');
+    const label    = document.getElementById('boot-label');
+    progress.style.display = 'block';
+
+    const poll = setInterval(() => {
+        fetch('/api/auth/status')
+            .then(r => r.json())
+            .then(d => {
+                label.textContent = d.boot_message || 'Starting...';
+                if (d.boot_status === 'ready') {
+                    clearInterval(poll);
+                    label.textContent = '✅ System ready — opening dashboard...';
+                    setTimeout(() => { window.location.href = '/dashboard'; }, 800);
+                } else if (d.boot_status === 'error') {
+                    clearInterval(poll);
+                    progress.style.display = 'none';
+                    showStatus('❌ Boot failed: ' + d.boot_message, 'error');
+                    const btn = document.getElementById('btn-login');
+                    btn.disabled = false;
+                    btn.textContent = '⚡ Connect & Launch Dashboard';
+                }
+            })
+            .catch(() => {});
+    }, 1200);
+}
+
+// If user maps are completely initialized and valid, handle immediate transition
+if (urlParams.get('autoboot') !== 'true') {
+    fetch('/api/auth/status').then(r=>r.json()).then(d=>{
+        if(d.auth_ready) window.location.href = '/dashboard';
+    });
+}
+
+// ── CDP Auto-login polling ───────────────────────────────────────────────────
+// Silently polls /api/auth/try-cdp starting quickly (1s) then backs off to 3s.
+// Once Chrome has kite.zerodha.com loaded and logged in, the server extracts
+// the enctoken automatically — no bookmarklet click or manual paste needed.
+(function startCdpPoll() {
+    if (urlParams.get('autoboot') === 'true') return; // already booting
+    let cdpAttempts = 0;
+    const MAX_CDP_ATTEMPTS = 40; // ~2 minutes
+    let cdpTimer = null;
+
+    function doCdpAttempt() {
+        cdpAttempts++;
+        if (cdpAttempts > MAX_CDP_ATTEMPTS) {
+            clearTimeout(cdpTimer);
+            return;
+        }
+        fetch('/api/auth/try-cdp', { method: 'POST' })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success && !d.already) {
+                    // Show boot progress, hide manual form
+                    document.getElementById('manual-form-fields').style.display = 'none';
+                    document.getElementById('bookmarklet-ui-card').style.display = 'none';
+                    document.getElementById('action-title').textContent = '🤖 Auto-Login Detected';
+                    document.getElementById('action-sub').textContent = 'Kite session found — booting system automatically...';
+                    startBootPolling();
+                } else if (d.already) {
+                    window.location.href = '/dashboard';
+                } else {
+                    // Back off: first 5 attempts every 1s, then 3s
+                    const delay = cdpAttempts <= 5 ? 1000 : 3000;
+                    cdpTimer = setTimeout(doCdpAttempt, delay);
+                }
+            })
+            .catch(() => {
+                // network not ready yet — keep polling
+                const delay = cdpAttempts <= 5 ? 1000 : 3000;
+                cdpTimer = setTimeout(doCdpAttempt, delay);
+            });
+    }
+
+    // Start first attempt quickly
+    cdpTimer = setTimeout(doCdpAttempt, 800);
+})();
+
+document.addEventListener('DOMContentLoaded', () => {
+    ['user-id','enctoken'].forEach(id => {
+        const element = document.getElementById(id);
+        if(element) {
+            element.addEventListener('keydown', e => {
+                if (e.key === 'Enter') doLogin();
+            });
+        }
+    });
+});
+</script>
+</body>
+</html>

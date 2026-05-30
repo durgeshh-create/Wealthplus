@@ -1,0 +1,62 @@
+name: WealthAlgo
+on:
+  schedule:
+    - cron: '40 3 * * 1-5'
+  workflow_dispatch:
+jobs:
+  RD1858:
+    runs-on: ubuntu-latest
+    timeout-minutes: 390
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: rd1858-${{ hashFiles('RD1858/requirements.txt') }}
+      - name: Install dependencies
+        run: pip install -r RD1858/requirements.txt
+      - name: Write credentials
+        run: |
+          mkdir -p RD1858/config
+          cat > RD1858/config/credentials.json << 'EOF'
+          {
+            "user_id": "${{ secrets.RD1858_USER_ID }}",
+            "password": "${{ secrets.RD1858_PASSWORD }}",
+            "totp_secret": "${{ secrets.RD1858_TOTP_SECRET }}"
+          }
+          EOF
+      - name: Run RD1858 bot
+        working-directory: RD1858
+        run: python dashboard.py
+  PS5673:
+    runs-on: ubuntu-latest
+    timeout-minutes: 390
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ps5673-${{ hashFiles('PS5673/requirements.txt') }}
+      - name: Install dependencies
+        run: pip install -r PS5673/requirements.txt
+      - name: Write credentials
+        run: |
+          mkdir -p PS5673/config
+          cat > PS5673/config/credentials.json << 'EOF'
+          {
+            "user_id": "${{ secrets.PS5673_USER_ID }}",
+            "password": "${{ secrets.PS5673_PASSWORD }}",
+            "totp_secret": "${{ secrets.PS5673_TOTP_SECRET }}"
+          }
+          EOF
+      - name: Run PS5673 bot
+        working-directory: PS5673
+        run: python dashboard.py
