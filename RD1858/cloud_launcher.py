@@ -122,13 +122,19 @@ def save_enctoken(user_id: str, enctoken: str):
 
 
 def screenshot(page, name: str):
-    """Save a debug screenshot. Always runs — shows exactly what Kite displayed."""
-    path = SCREENSHOT_DIR / f"kite_debug_{name}.png"
+    """Save a debug screenshot + HTML dump. Uploaded as GitHub Actions artifacts."""
+    png  = SCREENSHOT_DIR / f"kite_debug_{name}.png"
+    html = SCREENSHOT_DIR / f"kite_debug_{name}.html"
     try:
-        page.screenshot(path=str(path))
-        print(f"  📸 Screenshot: {path}")
+        page.screenshot(path=str(png), full_page=True)
+        print(f"  📸 Screenshot: {png}")
     except Exception as e:
         print(f"  ⚠️  Screenshot failed ({name}): {e}")
+    try:
+        html.write_text(page.content(), encoding="utf-8")
+        print(f"  📄 HTML dump:  {html}")
+    except Exception as e:
+        print(f"  ⚠️  HTML dump failed ({name}): {e}")
 
 
 def try_selector(page, selectors: list, timeout: int = 5000):
