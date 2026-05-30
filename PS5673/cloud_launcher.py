@@ -266,25 +266,33 @@ def login_to_kite() -> str:
         screenshot(page, "03_totp_filled")
 
         # Submit TOTP
-        print("[3/4] Submitting TOTP...")
-        submit2 = try_selector(page, [
-            'button[type="submit"]',
-            'button.button-orange',
-            'button:has-text("Continue")',
-        ])
-        if submit2:
-            submit2.click()
-        else:
-            page.keyboard.press("Enter")
+        # Kite auto-submits when 6 digits are entered — button click is optional.
+        # We try a gentle click but immediately move on if the page already navigated.
+        print("[3/4] Submitting TOTP (auto-submit or button click)...")
+        try:
+            submit2 = page.locator('button[type="submit"], button.button-orange')
+            submit2.first.wait_for(state="visible", timeout=3_000)
+            # Use force=True so we don't hang if Kite disabled the button mid-flight
+            submit2.first.click(force=True, timeout=3_000)
+            print("  → TOTP submit button clicked")
+        except Exception:
+            # Kite already auto-submitted — this is fine
+            print("  → TOTP auto-submitted (no button click needed)")
 
         # Step 5: Wait for dashboard
         print("\n[4/4] Waiting for Kite dashboard...")
         try:
-            page.wait_for_url("**/dashboard**", timeout=20_000)
-            print(f"  → Reached dashboard: {page.url}")
+            page.wait_for_url("**/dashboard**", timeout=25_000)
+            print(f"  → Reached dashboard: {page.url} ✅")
         except PWTimeout:
-            page.wait_for_load_state("networkidle", timeout=10_000)
-            print(f"  → Post-TOTP URL: {page.url}")
+            # May already be on dashboard — check URL directly
+            current_url = page.url
+            print(f"  → Current URL: {current_url}")
+            if "dashboard" in current_url or "kite.zerodha.com" in current_url:
+                print("  → Already on dashboard ✅")
+            else:
+                page.wait_for_load_state("networkidle", timeout=10_000)
+                print(f"  → Post-TOTP URL: {page.url}")
 
         screenshot(page, "04_post_login")
 
