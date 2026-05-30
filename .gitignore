@@ -1,0 +1,16 @@
+# Secrets — NEVER push these
+RD1858/config/credentials.json
+PS5673/config/credentials.json
+RD1858/config/enctoken.json
+PS5673/config/enctoken.json
+
+# Data and logs
+RD1858/data/
+PS5673/data/
+RD1858/logs/
+PS5673/logs/
+*.log
+*.pyc
+__pycache__/
+.env
+launch.bat

@@ -1,62 +1,104 @@
 name: WealthAlgo
+
 on:
   schedule:
-    - cron: '40 3 * * 1-5'
-  workflow_dispatch:
+    - cron: '40 3 * * 1-5'   # 9:10 AM IST (3:40 UTC) Mon–Fri
+  workflow_dispatch:           # Manual trigger from GitHub Actions UI
+
 jobs:
+
   RD1858:
     runs-on: ubuntu-latest
-    timeout-minutes: 390
+    timeout-minutes: 390       # 6.5 hrs — covers full market session + buffer
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Cache pip
+
+      - name: Cache pip packages
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: rd1858-${{ hashFiles('RD1858/requirements.txt') }}
-      - name: Install dependencies
-        run: pip install -r RD1858/requirements.txt
-      - name: Write credentials
+          restore-keys: rd1858-
+
+      - name: Install Python dependencies
         run: |
-          mkdir -p RD1858/config
-          cat > RD1858/config/credentials.json << 'EOF'
-          {
-            "user_id": "${{ secrets.RD1858_USER_ID }}",
-            "password": "${{ secrets.RD1858_PASSWORD }}",
-            "totp_secret": "${{ secrets.RD1858_TOTP_SECRET }}"
-          }
-          EOF
+          pip install --upgrade pip
+          pip install -r RD1858/requirements.txt
+          pip install playwright pyotp
+
+      - name: Install Playwright Chromium browser
+        run: playwright install chromium --with-deps
+
+      - name: Upload debug screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-rd1858
+          path: /tmp/kite_debug_*.png
+
       - name: Run RD1858 bot
         working-directory: RD1858
-        run: python dashboard.py
+        timeout-minutes: 385
+        env:
+          KITE_USER_ID:     ${{ secrets.RD1858_USER_ID }}
+          KITE_PASSWORD:    ${{ secrets.RD1858_PASSWORD }}
+          KITE_TOTP_SECRET: ${{ secrets.RD1858_TOTP_SECRET }}
+          BOT_PORT:         "5000"
+          PYTHONIOENCODING: utf-8
+          PYTHONUTF8:       "1"
+        run: python cloud_launcher.py
+
   PS5673:
     runs-on: ubuntu-latest
     timeout-minutes: 390
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Cache pip
+
+      - name: Cache pip packages
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ps5673-${{ hashFiles('PS5673/requirements.txt') }}
-      - name: Install dependencies
-        run: pip install -r PS5673/requirements.txt
-      - name: Write credentials
+          restore-keys: ps5673-
+
+      - name: Install Python dependencies
         run: |
-          mkdir -p PS5673/config
-          cat > PS5673/config/credentials.json << 'EOF'
-          {
-            "user_id": "${{ secrets.PS5673_USER_ID }}",
-            "password": "${{ secrets.PS5673_PASSWORD }}",
-            "totp_secret": "${{ secrets.PS5673_TOTP_SECRET }}"
-          }
-          EOF
+          pip install --upgrade pip
+          pip install -r PS5673/requirements.txt
+          pip install playwright pyotp
+
+      - name: Install Playwright Chromium browser
+        run: playwright install chromium --with-deps
+
+      - name: Upload debug screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-ps5673
+          path: /tmp/kite_debug_*.png
+
       - name: Run PS5673 bot
         working-directory: PS5673
-        run: python dashboard.py
+        timeout-minutes: 385
+        env:
+          KITE_USER_ID:     ${{ secrets.PS5673_USER_ID }}
+          KITE_PASSWORD:    ${{ secrets.PS5673_PASSWORD }}
+          KITE_TOTP_SECRET: ${{ secrets.PS5673_TOTP_SECRET }}
+          BOT_PORT:         "5001"
+          PYTHONIOENCODING: utf-8
+          PYTHONUTF8:       "1"
+        run: python cloud_launcher.py
