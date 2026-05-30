@@ -1,5 +1,5 @@
 """
-ETF Trading Dashboard Launcher
+ETF Trading Dashboard Launcher — PS5673 (port 5001)
 Integrates backend trading system with web dashboard.
 
 FEATURES:
@@ -9,11 +9,13 @@ FEATURES:
 - Real-time updates every 1 second
 - Signal checking every 2 seconds when bot is active
 - Portfolio sync every 60 seconds
+- Telegram notifications for trades, start, stop, errors
 
 ARCHITECTURE:
 - Main thread: Runs Flask web server
 - Background thread: Trading loop (monitors signals when bot_running=True)
 - WebSocket thread: Real-time market data updates
+- Watchdog thread: Auto-shutdown at 3:32 PM IST (cloud only)
 
 The trading loop is ALWAYS running in the background, but only executes
 signals when you click "Start Bot" in the dashboard.
@@ -22,11 +24,14 @@ signals when you click "Start Bot" in the dashboard.
 import sys
 import os
 import time
+import signal
 import threading
 import socket
 import subprocess
 import platform
 import webbrowser
+import json
+import urllib.request
 from pathlib import Path
 
 # Add backend to path
@@ -46,13 +51,136 @@ from frontend.app import run_dashboard, initialize_dashboard, dashboard_state
 logger = get_logger(__name__)
 
 # FIX: Forces engine to cleanly listen strictly on default trading port 5001
-PORT = 5001
+PORT = int(os.environ.get("PORT", 5001))
 HOST = "0.0.0.0"
 BASE_URL = f"http://localhost:{PORT}"
+
+# ── Cloud auto-shutdown ───────────────────────────────────────────────────────
+# Active ONLY on GitHub Actions (GITHUB_ACTIONS=true is set automatically).
+# On your local PC this is always False — Ctrl+C works as usual.
+IS_CLOUD = os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
+
+# Shutdown at 3:32 PM IST — 2 min after market close.
+# Override via env var: SHUTDOWN_TIME_IST=15:35
+_shutdown_env = os.environ.get("SHUTDOWN_TIME_IST", "15:30").split(":")
+SHUTDOWN_HOUR_IST   = int(_shutdown_env[0])
+SHUTDOWN_MINUTE_IST = int(_shutdown_env[1])
+# ─────────────────────────────────────────────────────────────────────────────
 
 # Global trading thread control
 trading_thread = None
 trading_active = False
+
+
+# ── Telegram notifications ────────────────────────────────────────────────────
+
+def telegram_notify(message: str):
+    """
+    Send a Telegram message. Silently skips if credentials are not set.
+    Never raises — notifications must never crash the trading bot.
+    Uses stdlib urllib only — no extra dependency.
+    """
+    token   = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+    if not token or not chat_id:
+        return
+    try:
+        payload = json.dumps({
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "HTML"
+        }).encode()
+        req = urllib.request.Request(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+        urllib.request.urlopen(req, timeout=5)
+    except Exception:
+        pass  # Never crash the bot over a notification failure
+
+
+def _ist_now() -> str:
+    """Return current IST time as a readable string."""
+    from datetime import datetime, timezone, timedelta
+    IST = timezone(timedelta(hours=5, minutes=30))
+    return datetime.now(IST).strftime("%d %b %Y %H:%M IST")
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def market_close_watchdog(backend: dict):
+    """
+    Cloud-only background watchdog — shuts the process down cleanly at
+    SHUTDOWN_HOUR_IST:SHUTDOWN_MINUTE_IST IST every day.
+
+    Steps:
+      1. Send Telegram shutdown notification.
+      2. Stop the trading loop.
+      3. Stop the realtime data feed.
+      4. Send SIGINT to main thread (same as Ctrl+C → clean Flask exit).
+      5. Hard-exit fallback after 60s if Flask doesn't respond.
+
+    Only starts when IS_CLOUD is True. Never fires on local PC.
+    """
+    from datetime import datetime, timezone, timedelta
+    IST = timezone(timedelta(hours=5, minutes=30))
+
+    logger.info(
+        f"⏰ Market-close watchdog started — "
+        f"auto-shutdown at {SHUTDOWN_HOUR_IST:02d}:{SHUTDOWN_MINUTE_IST:02d} IST"
+    )
+
+    while True:
+        now_ist = datetime.now(IST)
+
+        if (now_ist.hour > SHUTDOWN_HOUR_IST or
+                (now_ist.hour == SHUTDOWN_HOUR_IST and
+                 now_ist.minute >= SHUTDOWN_MINUTE_IST)):
+
+            shutdown_time = now_ist.strftime("%H:%M IST")
+            logger.info(f"⏰ Market closed — {shutdown_time} — initiating shutdown...")
+            print(
+                f"\n{'=' * 60}\n"
+                f"  ⏰  MARKET CLOSE AUTO-SHUTDOWN ({shutdown_time})\n"
+                f"{'=' * 60}\n"
+            )
+
+            # Step 1: Telegram notification
+            telegram_notify(
+                f"⏹️ <b>WealthAlgo PS5673 — MARKET CLOSE</b>\n"
+                f"📅 {shutdown_time}\n"
+                f"✅ Bot shutting down cleanly after market hours.\n"
+                f"🔁 Will restart automatically next trading day at 9:10 AM IST."
+            )
+
+            # Step 2: Stop trading loop
+            global trading_active
+            trading_active = False
+            logger.info("🛑 Trading loop stopped")
+
+            # Step 3: Stop realtime data feed
+            try:
+                if backend and backend.get("realtime"):
+                    backend["realtime"].stop()
+                    logger.info("🛑 Realtime data feed stopped")
+            except Exception as _e:
+                logger.warning(f"Error stopping realtime feed: {_e}")
+
+            # Step 4: Graceful Flask shutdown (same as Ctrl+C)
+            logger.info("🛑 Sending shutdown signal to Flask server...")
+            try:
+                os.kill(os.getpid(), signal.SIGINT)
+            except Exception as _e:
+                logger.warning(f"SIGINT failed: {_e}")
+
+            # Step 5: Hard-exit fallback if Flask doesn't exit in 60s
+            time.sleep(60)
+            logger.info("🛑 Hard-exit fallback triggered")
+            os._exit(0)
+
+        time.sleep(30)  # Check every 30 seconds
 
 
 def trading_loop(signal_generator, executor, portfolio_tracker):
@@ -112,7 +240,6 @@ def check_and_execute_signals(signal_generator, executor):
     """
     global _loop_started_at
     try:
-        import json
         from datetime import datetime as _dt, time as _dtime
 
         # ── Startup grace period (60s) ────────────────────────────────────────
@@ -123,7 +250,7 @@ def check_and_execute_signals(signal_generator, executor):
         settings_path = Path(__file__).parent / "config" / "settings.json"
         profit_target = Config.PROFIT_TARGET_PCT
         max_qty = 0
-        sell_exec_time = _dtime(15, 15)   # default: same window as buy
+        sell_exec_time = _dtime(15, 15)
         anytime_mode   = False
 
         if settings_path.exists():
@@ -142,13 +269,10 @@ def check_and_execute_signals(signal_generator, executor):
                 pass
 
         signals = signal_generator.get_active_signals()
-
-        buy_signals  = signals.get("buy",  [])   # already time-gated by get_due_buys()
+        buy_signals  = signals.get("buy",  [])
         sell_signals = signals.get("sell", [])
 
         # ── Sell time gate ────────────────────────────────────────────────────
-        # Anytime mode: sell immediately whenever profit target is met.
-        # Scheduled mode: sell only within the 1-minute execution window.
         if not anytime_mode:
             now_t = _dt.now().time()
             sell_window_end = _dtime(sell_exec_time.hour,
@@ -156,12 +280,12 @@ def check_and_execute_signals(signal_generator, executor):
             in_sell_window  = sell_exec_time <= now_t <= sell_window_end
 
             if sell_signals and not in_sell_window:
-                for signal in sell_signals:
+                for sig in sell_signals:
                     logger.info(
                         f"  🔴 SELL PENDING (executes at {sell_exec_time.strftime('%H:%M')}): "
-                        f"{signal['symbol']} | profit target met @ ₹{signal['price']:.2f}"
+                        f"{sig['symbol']} | profit target met @ ₹{sig['price']:.2f}"
                     )
-                sell_signals = []   # suppress execution until window opens
+                sell_signals = []
 
         if buy_signals or sell_signals:
             logger.info("=" * 60)
@@ -171,21 +295,39 @@ def check_and_execute_signals(signal_generator, executor):
                 f"Max Qty={max_qty if max_qty > 0 else 'Unlimited'}"
             )
 
-            for signal in buy_signals:
+            for sig in buy_signals:
                 logger.info(
-                    f"  🟢 BUY: {signal['symbol']} | "
-                    f"W%R={signal['williams_r']:.2f} | ₹{signal['price']:.2f}"
+                    f"  🟢 BUY: {sig['symbol']} | "
+                    f"W%R={sig['williams_r']:.2f} | ₹{sig['price']:.2f}"
                 )
-            for signal in sell_signals:
-                logger.info(f"  🔴 SELL: {signal['symbol']} | ₹{signal['price']:.2f}")
+            for sig in sell_signals:
+                logger.info(f"  🔴 SELL: {sig['symbol']} | ₹{sig['price']:.2f}")
 
             logger.info("=" * 60)
 
             if Config.is_dry_run():
                 logger.warning("⚠️  DRY RUN MODE: Signals detected but not executing")
+                if buy_signals or sell_signals:
+                    lines = ["🧪 <b>WealthAlgo PS5673 — DRY RUN SIGNALS</b>", f"📅 {_ist_now()}"]
+                    for sig in buy_signals:
+                        lines.append(f"🟢 BUY (dry): {sig['symbol']} @ ₹{sig['price']:.2f}")
+                    for sig in sell_signals:
+                        lines.append(f"🔴 SELL (dry): {sig['symbol']} @ ₹{sig['price']:.2f}")
+                    telegram_notify("\n".join(lines))
             else:
                 logger.info("⚡ Executing signals...")
                 results = executor.execute_signals({'buy': buy_signals, 'sell': sell_signals})
+
+                # ── Telegram trade notification ───────────────────────────────
+                lines = [f"📊 <b>WealthAlgo PS5673 — TRADES EXECUTED</b>", f"📅 {_ist_now()}"]
+                for sig in buy_signals:
+                    lines.append(f"🟢 BUY: {sig['symbol']} @ ₹{sig['price']:.2f}")
+                for sig in sell_signals:
+                    lines.append(f"🔴 SELL: {sig['symbol']} @ ₹{sig['price']:.2f}")
+                lines.append(f"⚙️ Profit target: {profit_target}%")
+                telegram_notify("\n".join(lines))
+                # ─────────────────────────────────────────────────────────────
+
                 for action, success in results.items():
                     status = "✅" if success else "❌"
                     logger.info(f"{status} {action}")
@@ -216,19 +358,17 @@ def initialize_backend(auth_manager=None):
 
         print("   [3/7] 📡 Connecting to real-time data...", end=" ", flush=True)
         realtime_manager = RealtimeDataManager(auth_manager)
-        # initialize() fetches instrument tokens (up to 13s total with timeouts).
-        # Run it in a thread so we can cap its wait time and move on.
         import threading as _rt_threading
         _rt_ok = [False]
         def _do_init():
             _rt_ok[0] = realtime_manager.initialize()
         _t = _rt_threading.Thread(target=_do_init, daemon=True)
         _t.start()
-        _t.join(timeout=15)   # max 15s wait for WS init (token fetch = 8+5s max)
+        _t.join(timeout=15)
 
         ws_thread = threading.Thread(target=realtime_manager.start, daemon=True)
         ws_thread.start()
-        time.sleep(2)   # reduced from 5s — WS connect is fast once tokens are ready
+        time.sleep(2)
         print("✅" if realtime_manager.is_connected else "⚠️  (offline — live data unavailable)")
 
         print("   [4/7] 💼 Syncing portfolio...", end=" ", flush=True)
@@ -277,10 +417,7 @@ def get_pid_using_port(port=5001):
     try:
         if platform.system() == "Windows":
             result = subprocess.run(
-                ["netstat", "-ano"],
-                capture_output=True,
-                text=True,
-                check=True
+                ["netstat", "-ano"], capture_output=True, text=True, check=True
             )
             for line in result.stdout.split("\n"):
                 if f":{port}" in line and "LISTENING" in line:
@@ -289,10 +426,7 @@ def get_pid_using_port(port=5001):
                         return int(parts[-1])
         else:
             result = subprocess.run(
-                ["lsof", "-ti", f":{port}"],
-                capture_output=True,
-                text=True,
-                check=True
+                ["lsof", "-ti", f":{port}"], capture_output=True, text=True, check=True
             )
             if result.stdout.strip():
                 return int(result.stdout.strip().split()[0])
@@ -305,17 +439,9 @@ def kill_process(pid):
     """Kill process by PID."""
     try:
         if platform.system() == "Windows":
-            subprocess.run(
-                ["taskkill", "/F", "/PID", str(pid)],
-                capture_output=True,
-                check=True
-            )
+            subprocess.run(["taskkill", "/F", "/PID", str(pid)], capture_output=True, check=True)
         else:
-            subprocess.run(
-                ["kill", "-9", str(pid)],
-                capture_output=True,
-                check=True
-            )
+            subprocess.run(["kill", "-9", str(pid)], capture_output=True, check=True)
         return True
     except Exception as e:
         logger.error(f"Error killing process {pid}: {e}")
@@ -330,20 +456,16 @@ def check_and_clear_port(port=5001):
 
     if result == 0:
         print(f"\n⚠️  Port {port} is already in use. Checking for existing dashboard...")
-
         pid = get_pid_using_port(port)
         if pid:
             print(f"🔄 Found existing dashboard instance (PID: {pid})")
             print("🔄 Stopping old instance...")
-
             if kill_process(pid):
                 print("✅ Stopped old instance successfully")
                 time.sleep(2)
-
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 result = sock.connect_ex(("localhost", port))
                 sock.close()
-
                 if result != 0:
                     print(f"✅ Port {port} is now available\n")
                     return True
@@ -366,27 +488,30 @@ def check_and_clear_port(port=5001):
 def print_startup_banner():
     """Print professional startup banner."""
     print("\n" + "=" * 70)
-    print("🚀  ETF TRADING SYSTEM  🚀".center(70))
+    print("🚀  ETF TRADING SYSTEM — PS5673  🚀".center(70))
     print("=" * 70)
     mode = "🟡 DRY RUN MODE" if Config.is_dry_run() else "🔴 LIVE TRADING MODE"
     print(mode.center(70))
+    if IS_CLOUD:
+        print(f"☁️  CLOUD MODE — auto-shutdown at {SHUTDOWN_HOUR_IST:02d}:{SHUTDOWN_MINUTE_IST:02d} IST".center(70))
     print("=" * 70 + "\n")
 
 
 def print_startup_summary(backend):
     """Print clean startup summary."""
     print("\n" + "╔" + "═" * 68 + "╗")
-    print("║" + "  ✅  SYSTEM READY".center(68) + "║")
+    print("║" + "  ✅  SYSTEM READY — PS5673".center(68) + "║")
     print("╠" + "═" * 68 + "╣")
-    print("║" + f" 🌐 Dashboard: {BASE_URL}".ljust(68) + "║")
-    print(
-        "║"
-        + f"  📊  Real-time Data: {'🟢 Connected' if backend['realtime'].is_connected else '🔴 Disconnected'}".ljust(68)
-        + "║"
-    )
+    print("║" + f"  🌐  Dashboard: {BASE_URL}".ljust(68) + "║")
+    print("║" + f"  📊  Real-time: {'🟢 Connected' if backend['realtime'].is_connected else '🔴 Disconnected'}".ljust(68) + "║")
     print("║" + f"  👤  User: {backend['auth'].user_id}".ljust(68) + "║")
     print("║" + "  💼  Portfolio: Synced & Tracking".ljust(68) + "║")
     print("║" + "  🤖  Auto-Trading: Ready (Start from dashboard)".ljust(68) + "║")
+    if IS_CLOUD:
+        print("╠" + "═" * 68 + "╣")
+        print("║" + f"  ⏰  Auto-shutdown: {SHUTDOWN_HOUR_IST:02d}:{SHUTDOWN_MINUTE_IST:02d} IST (market close)".ljust(68) + "║")
+        tg = "✅ Active" if os.environ.get("TELEGRAM_BOT_TOKEN") else "⚠️  Not configured"
+        print("║" + f"  📱  Telegram alerts: {tg}".ljust(68) + "║")
     print("╠" + "═" * 68 + "╣")
     print("║" + "  ⚠️   Press Ctrl+C to stop the server".ljust(68) + "║")
     print("╚" + "═" * 68 + "╝")
@@ -394,13 +519,9 @@ def print_startup_summary(backend):
 
 
 def _open_browser_when_ready(port: int = PORT, timeout: int = 30):
-    """
-    Wait until Flask is accepting connections on port, then open the browser.
-    Local-only convenience helper.
-    """
+    """Wait until Flask is accepting connections, then open browser. Local only."""
     url = f"http://localhost:{port}"
     deadline = time.time() + timeout
-
     while time.time() < deadline:
         for host in ("127.0.0.1", "localhost"):
             try:
@@ -418,21 +539,13 @@ def main():
     global trading_thread, trading_active
 
     check_and_clear_port(PORT)
-
     print_startup_banner()
 
     auth_manager = AuthManager()
     has_valid_auth = auth_manager.authenticate()
 
-    # == FIX: LOCAL LOGIN HOOK RECOVERY REMOVED ==
-    # Disables old background port 5050 capture scripts entirely
-
     if not has_valid_auth:
         print("\n ⚠️ No saved session — attempting CDP auto-login from Kite browser tab...")
-
-        # Try CDP extraction directly at startup (before Flask loads the login page).
-        # This covers the first-ever boot where enctoken.json doesn't exist yet but
-        # the user already has kite.zerodha.com open in Chrome (launched by algo.bat).
         try:
             has_valid_auth = auth_manager._load_enctoken_from_browser()
             if has_valid_auth:
@@ -446,8 +559,12 @@ def main():
         print(f" 📋 Standby Login interface: {BASE_URL}")
         print(" ℹ️ Booting system infrastructure into manual capture listening mode.\n")
 
-        # == FIX: INTERNALLY SPAWNED AUTO-OPEN THREAD REMOVED ==
-        # Bypasses the auto-browser thread to avoid spawning phantom tabs
+        if IS_CLOUD:
+            telegram_notify(
+                f"❌ <b>WealthAlgo PS5673 — AUTH FAILED</b>\n"
+                f"📅 {_ist_now()}\n"
+                f"⚠️ Bot could not authenticate. Check GitHub secrets."
+            )
 
         try:
             sys.stdout.flush()
@@ -464,6 +581,12 @@ def main():
 
     if not backend:
         logger.error("Failed to initialize backend. Exiting.")
+        if IS_CLOUD:
+            telegram_notify(
+                f"❌ <b>WealthAlgo PS5673 — INIT FAILED</b>\n"
+                f"📅 {_ist_now()}\n"
+                f"⚠️ Backend failed to initialize. Bot not trading."
+            )
         return
 
     dashboard_state["boot_status"] = "ready"
@@ -489,7 +612,22 @@ def main():
     trading_thread.start()
     logger.info("✅ Trading loop thread started (waiting for bot activation)")
 
-    # Hibernate + WS watchdogs — must start after all backend objects are ready
+    # ── Cloud auto-shutdown watchdog ──────────────────────────────────────────
+    if IS_CLOUD:
+        watchdog_thread = threading.Thread(
+            target=market_close_watchdog,
+            args=(backend,),
+            daemon=True,
+            name="MarketCloseWatchdog",
+        )
+        watchdog_thread.start()
+        logger.info(
+            f"✅ Market-close watchdog started — "
+            f"auto-shutdown at {SHUTDOWN_HOUR_IST:02d}:{SHUTDOWN_MINUTE_IST:02d} IST"
+        )
+    # ─────────────────────────────────────────────────────────────────────────
+
+    # Hibernate + WS watchdogs
     try:
         from backend.utils.keep_alive import start_keep_alive
         start_keep_alive(
@@ -503,7 +641,7 @@ def main():
 
     print_startup_summary(backend)
 
-    # Browser is opened by algo.bat (Ulaa→5001, Chrome→5001) — no auto-open here
+    # Browser is opened by algo.bat (Chrome→5001) — no auto-open here
 
     try:
         run_dashboard(host=HOST, port=PORT, debug=False)
@@ -520,9 +658,15 @@ def main():
         if backend["realtime"]:
             backend["realtime"].stop()
 
-        logger.info("Dashboard stopped by user")
+        logger.info("Dashboard stopped")
     except Exception as e:
         logger.error(f"Dashboard error: {e}", exc_info=True)
+        if IS_CLOUD:
+            telegram_notify(
+                f"💥 <b>WealthAlgo PS5673 — CRASH</b>\n"
+                f"📅 {_ist_now()}\n"
+                f"❌ {str(e)[:200]}"
+            )
         trading_active = False
         if backend and backend.get("realtime"):
             backend["realtime"].stop()

@@ -2,11 +2,14 @@ name: WealthAlgo
 
 on:
   schedule:
-    - cron: '40 3 * * 1-5'   # 9:10 AM IST (3:40 UTC) Mon–Fri
+    - cron: '30 3 * * 1-5'   # 9:00 AM IST (3:30 UTC) Mon–Fri
   workflow_dispatch:           # Manual trigger from GitHub Actions UI
 
 jobs:
 
+  # ────────────────────────────────────────────────────────────────────────────
+  # RD1858 — runs in parallel with PS5673
+  # ────────────────────────────────────────────────────────────────────────────
   RD1858:
     runs-on: ubuntu-latest
     timeout-minutes: 390       # 6.5 hrs — covers full market session + buffer
@@ -36,25 +39,23 @@ jobs:
       - name: Install Playwright Chromium browser
         run: playwright install chromium --with-deps
 
-      - name: Upload debug screenshots on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-rd1858
-          path: /tmp/kite_debug_*.png
-
-      - name: Run RD1858 bot
+      - name: Run RD1858 bot (headless Chrome login + trading)
         working-directory: RD1858
         timeout-minutes: 385
         env:
-          KITE_USER_ID:     ${{ secrets.RD1858_USER_ID }}
-          KITE_PASSWORD:    ${{ secrets.RD1858_PASSWORD }}
-          KITE_TOTP_SECRET: ${{ secrets.RD1858_TOTP_SECRET }}
-          BOT_PORT:         "5000"
-          PYTHONIOENCODING: utf-8
-          PYTHONUTF8:       "1"
+          KITE_USER_ID:        ${{ secrets.RD1858_USER_ID }}
+          KITE_PASSWORD:       ${{ secrets.RD1858_PASSWORD }}
+          KITE_TOTP_SECRET:    ${{ secrets.RD1858_TOTP_SECRET }}
+          TELEGRAM_BOT_TOKEN:  ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:    ${{ secrets.TELEGRAM_CHAT_ID }}
+          BOT_PORT:            "5000"
+          PYTHONIOENCODING:    utf-8
+          PYTHONUTF8:          "1"
         run: python cloud_launcher.py
 
+  # ────────────────────────────────────────────────────────────────────────────
+  # PS5673 — runs in parallel with RD1858
+  # ────────────────────────────────────────────────────────────────────────────
   PS5673:
     runs-on: ubuntu-latest
     timeout-minutes: 390
@@ -84,21 +85,16 @@ jobs:
       - name: Install Playwright Chromium browser
         run: playwright install chromium --with-deps
 
-      - name: Upload debug screenshots on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-ps5673
-          path: /tmp/kite_debug_*.png
-
-      - name: Run PS5673 bot
+      - name: Run PS5673 bot (headless Chrome login + trading)
         working-directory: PS5673
         timeout-minutes: 385
         env:
-          KITE_USER_ID:     ${{ secrets.PS5673_USER_ID }}
-          KITE_PASSWORD:    ${{ secrets.PS5673_PASSWORD }}
-          KITE_TOTP_SECRET: ${{ secrets.PS5673_TOTP_SECRET }}
-          BOT_PORT:         "5001"
-          PYTHONIOENCODING: utf-8
-          PYTHONUTF8:       "1"
+          KITE_USER_ID:        ${{ secrets.PS5673_USER_ID }}
+          KITE_PASSWORD:       ${{ secrets.PS5673_PASSWORD }}
+          KITE_TOTP_SECRET:    ${{ secrets.PS5673_TOTP_SECRET }}
+          TELEGRAM_BOT_TOKEN:  ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:    ${{ secrets.TELEGRAM_CHAT_ID }}
+          BOT_PORT:            "5001"
+          PYTHONIOENCODING:    utf-8
+          PYTHONUTF8:          "1"
         run: python cloud_launcher.py
