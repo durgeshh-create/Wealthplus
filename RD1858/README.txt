@@ -1,4 +1,4 @@
-Wealth++ Algo Setup
+Wealth++ Algo Setup (local)
 
 use ulaa or chrome browser
 Install Python 3.11 windows
@@ -32,3 +32,57 @@ run task scheduler & import this xml
 5. create desktop shortcut for algo.bat & run it. ensure existing ulaa/chrome browsers are closed before running this bat. 
 
 6. you can login to kite after clicking on 'Pause bot' in the algo dashboard.
+--------------------------------------------------------------------------------------------
+
+Wealth++ Algo Setup (cloud)
+if any any changes required for settings, update in local bot & publish via github repo or edit in notepad --? C:\durgesh\RD1858\config\settings.json
+read intraday variables as all dip accumulator...
+
+GitHub Actions
+Create a new repo at github.com (can be private, free)
+Download from git-scm.com
+create file trading-bot.yml under C:\durgesh\algo\.github\workflows
+go to C:\durgesh\algo Hold Shift + Right-click on empty space → Open PowerShell window here
+git config --global user.email "durgeshh@gmail.com"
+git config --global user.name "Durgesh"
+
+git init
+git add .
+git commit -m "Initial commit — WealthAlgo"
+git branch -M main
+git remote add origin https://github.com/durgeshh-create/Wealthplus.git
+git push -u origin main
+
+goto https://github.com/durgeshh-create/Wealthplus.git
+Settings  - Secrets and variables → Actions ..New repository secret 
+RD1858_USER_ID	RD1858
+RD1858_PASSWORD	Kite login password for RD1858
+RD1858_TOTP_SECRET	TOTP secret key from Step A1
+PS5673_USER_ID	PS5673
+PS5673_PASSWORD	Kite login password for PS5673
+PS5673_TOTP_SECRET	TOTP secret key from Step A1
+
+
+Open Telegram → search @BotFather
+Send /newbot
+Choose a name: WealthAlgo Alerts
+Choose a username: wealthalgoDH_bot
+Copy the token: 8790343916:AAHIA4NeI_kbpfIbyATTc2qFeJiqYNkHB_o
+Search for your new bot → press Start
+Send it any message (e.g. hello)
+Open this URL in your browser (replace TOKEN):
+https://api.telegram.org/bot8790343916:AAHIA4NeI_kbpfIbyATTc2qFeJiqYNkHB_o/getUpdates
+
+add to git settings-actions
+TELEGRAM_BOT_TOKEN	8790343916:AAEYP88HMUvR4pT79T-kbmHjMfMPWYvuwUo
+TELEGRAM_CHAT_ID	8607862253
+
+
+git...cd C:\durgesh\algo
+git status
+git add .
+git commit -m "Add Telegram alerts + 9am start + 3:30pm shutdown"
+git push
+
+in GitHub, actions-run workflow  https://github.com/durgeshh-create/Wealthplus.git
+--------------------------------------------------------------------------------------------

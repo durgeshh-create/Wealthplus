@@ -18,15 +18,6 @@ from pathlib import Path
 from backend.core.config import Config
 from backend.core.constants import SIGNAL_BUY, SIGNAL_SELL, LIQUIDCASE_SYMBOL
 from backend.utils.logger import get_logger, log_separator
-# ── Telegram trade notifications ──────────────────────────────────────────────
-try:
-    from backend.utils.telegram import notify_buy, notify_sell
-    _TELEGRAM_OK = True
-except Exception:
-    _TELEGRAM_OK = False
-    def notify_buy(*a, **kw): pass
-    def notify_sell(*a, **kw): pass
-
 
 logger = get_logger(__name__)
 
@@ -278,22 +269,6 @@ class StrategyExecutor:
 
             if success:
                 logger.info(f"✓ BUY SUCCESS: {symbol} x{etf_qty} @ ₹{etf_price:.2f}")
-                # ── Telegram BUY notification ──────────────────────────────
-                if _TELEGRAM_OK:
-                    try:
-                        from backend.core.config import Config as _Cfg
-                        notify_buy(
-                            symbol=symbol,
-                            qty=etf_qty,
-                            price=etf_price,
-                            value=etf_qty * etf_price,
-                            williams_r=signal.get('williams_r'),
-                            profit_target_pct=self._get_profit_target(),
-                            dry_run=_Cfg.is_dry_run(),
-                        )
-                    except Exception:
-                        pass
-                # ──────────────────────────────────────────────────────────
                 if self.signal_generator and is_automated:
                     # success=True keeps recently_bought cooldown active
                     self.signal_generator.unlock_symbol(symbol, success=True)
@@ -421,20 +396,6 @@ class StrategyExecutor:
                         f"Target was {self._get_profit_target()}%"
                     )
                 logger.info(f"✓ SELL SUCCESS: {symbol}")
-                # ── Telegram SELL notification ─────────────────────────────
-                if _TELEGRAM_OK:
-                    try:
-                        from backend.core.config import Config as _Cfg
-                        notify_sell(
-                            symbol=symbol,
-                            qty=etf_qty,
-                            sell_price=etf_price,
-                            avg_buy_price=self.portfolio.get_average_price(symbol),
-                            dry_run=_Cfg.is_dry_run(),
-                        )
-                    except Exception:
-                        pass
-                # ──────────────────────────────────────────────────────────
 
                 if is_automated:
                     self._reset_to_default_settings()

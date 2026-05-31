@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-WealthAlgo Cloud Launcher — RD1858
-------------------------------------
+WealthAlgo Cloud Launcher
+--------------------------
 Automates Kite login via Playwright headless Chrome, writes the enctoken
 to config/enctoken.json, then launches dashboard.py — no browser window,
 no CDP extraction, no proxy needed.
@@ -14,21 +14,14 @@ Environment variables (set as GitHub Secrets):
     KITE_PASSWORD       — Kite login password
     KITE_TOTP_SECRET    — TOTP secret key from your 2FA setup (base32, no spaces)
     BOT_PORT            — Flask port (5000 for RD1858, 5001 for PS5673)
-    TELEGRAM_BOT_TOKEN  — Telegram bot token for notifications
-    TELEGRAM_CHAT_ID    — Your Telegram chat ID
-
-NEW in this version:
-    - Morning briefing at 09:05 IST (watchlist + W%%R)
-    - Opening prices at 09:16 IST
-    - End-of-day summary at 15:32 IST
-    - Trade notifications on every BUY/SELL (via executor.py patch)
+    TELEGRAM_BOT_TOKEN  — (optional) Telegram bot token for notifications
+    TELEGRAM_CHAT_ID    — (optional) Your Telegram chat ID
 """
 
 import os
 import sys
 import json
 import time
-import threading
 import subprocess
 from pathlib import Path
 
@@ -50,6 +43,8 @@ BOT_PORT    = os.environ.get("BOT_PORT", "5000").strip()
 
 CONFIG_DIR    = Path(__file__).parent / "config"
 ENCTOKEN_FILE = CONFIG_DIR / "enctoken.json"
+
+# All debug screenshots go here — uploaded as GitHub Actions artifacts on failure
 SCREENSHOT_DIR = Path("/tmp")
 
 
@@ -94,12 +89,15 @@ def validate_env():
         print(f"ERROR: Missing environment variables: {', '.join(missing)}")
         sys.exit(1)
 
+    # Validate TOTP secret is valid base32
     try:
         totp = pyotp.TOTP(TOTP_SECRET)
         code = totp.now()
         print(f"  → TOTP secret valid — test code: {code}")
     except Exception as e:
         print(f"ERROR: KITE_TOTP_SECRET is invalid: {e}")
+        print("  → It must be a base32 string like: JBSWY3DPEHPK3PXP")
+        print("  → Remove any spaces from the secret if present")
         sys.exit(1)
 
 
@@ -124,6 +122,7 @@ def save_enctoken(user_id: str, enctoken: str):
 
 
 def screenshot(page, name: str):
+    """Save a debug screenshot + HTML dump. Uploaded as GitHub Actions artifacts."""
     png  = SCREENSHOT_DIR / f"kite_debug_{name}.png"
     html = SCREENSHOT_DIR / f"kite_debug_{name}.html"
     try:
@@ -139,6 +138,7 @@ def screenshot(page, name: str):
 
 
 def try_selector(page, selectors: list, timeout: int = 5000):
+    """Return first matching locator, or None."""
     for sel in selectors:
         try:
             loc = page.locator(sel)
@@ -154,6 +154,10 @@ def try_selector(page, selectors: list, timeout: int = 5000):
 # ── Playwright login ──────────────────────────────────────────────────────────
 
 def login_to_kite() -> str:
+    """
+    Open kite.zerodha.com in a headless Chromium browser, complete the
+    2-step login (password + TOTP), and return the enctoken cookie value.
+    """
     print("\n[1/4] Launching headless Chrome → kite.zerodha.com ...")
 
     with sync_playwright() as p:
@@ -175,6 +179,7 @@ def login_to_kite() -> str:
         )
         page = ctx.new_page()
 
+        # Step 1: Load login page
         print("[1/4] Loading kite.zerodha.com ...")
         page.goto("https://kite.zerodha.com", wait_until="domcontentloaded", timeout=30_000)
         page.wait_for_load_state("networkidle", timeout=15_000)
@@ -182,23 +187,30 @@ def login_to_kite() -> str:
         print(f"  → Page title: {page.title()}")
         print(f"  → Page URL:   {page.url}")
 
+        # Step 2: Fill user ID
         print(f"\n[2/4] Filling user ID ({USER_ID})...")
         uid_field = try_selector(page, [
-            'input#userid', 'input[name="user_id"]',
-            'input[type="text"]', 'input[placeholder*="User"]',
+            'input#userid',
+            'input[name="user_id"]',
+            'input[type="text"]',
+            'input[placeholder*="User"]',
             'input[placeholder*="user"]',
         ])
         if uid_field is None:
             screenshot(page, "02_userid_field_not_found")
             raise RuntimeError(
                 f"Cannot find user ID field on page: {page.url}\n"
+                f"Page title: {page.title()}\n"
                 f"Check screenshot: kite_debug_02_userid_field_not_found.png"
             )
         uid_field.fill(USER_ID)
 
+        # Step 3: Fill password
         print(f"[2/4] Filling password...")
         pwd_field = try_selector(page, [
-            'input#password', 'input[name="password"]', 'input[type="password"]',
+            'input#password',
+            'input[name="password"]',
+            'input[type="password"]',
         ])
         if pwd_field is None:
             screenshot(page, "02_password_field_not_found")
@@ -206,32 +218,45 @@ def login_to_kite() -> str:
         pwd_field.fill(PASSWORD)
         screenshot(page, "02_credentials_filled")
 
+        # Click Login
         print("[2/4] Clicking login button...")
         submit = try_selector(page, [
-            'button[type="submit"]', 'button.button-orange', 'button:has-text("Login")',
+            'button[type="submit"]',
+            'button.button-orange',
+            'button:has-text("Login")',
         ])
         if submit:
             submit.click()
         else:
             page.keyboard.press("Enter")
 
+        # Wait briefly for page to react
         time.sleep(2)
         screenshot(page, "03_after_login_click")
         print(f"  → URL after login click: {page.url}")
 
+        # Step 4: Fill TOTP
         print("\n[3/4] Waiting for TOTP prompt...")
         totp_field = try_selector(page, [
-            'input#totp', 'input[name="totp"]', 'input[label*="TOTP"]',
-            'input[placeholder*="TOTP"]', 'input[placeholder*="OTP"]',
-            'input[placeholder*="otp"]', 'input[type="number"]', 'input[maxlength="6"]',
+            'input#totp',
+            'input[name="totp"]',
+            'input[label*="TOTP"]',
+            'input[placeholder*="TOTP"]',
+            'input[placeholder*="OTP"]',
+            'input[placeholder*="otp"]',
+            'input[type="number"]',
+            'input[maxlength="6"]',
         ], timeout=15_000)
 
         if totp_field is None:
             screenshot(page, "03_totp_field_not_found")
+            # Check for error messages on the page
             page_text = page.inner_text("body")
             print(f"  → Page text snippet: {page_text[:500]}")
             raise RuntimeError(
-                f"TOTP field not found.\nURL: {page.url}\n"
+                f"TOTP field not found.\n"
+                f"URL: {page.url}\n"
+                f"This usually means the password was wrong or login was blocked.\n"
                 f"Check screenshot: kite_debug_03_totp_field_not_found.png"
             )
 
@@ -240,20 +265,27 @@ def login_to_kite() -> str:
         totp_field.fill(otp)
         screenshot(page, "03_totp_filled")
 
+        # Submit TOTP
+        # Kite auto-submits when 6 digits are entered — button click is optional.
+        # We try a gentle click but immediately move on if the page already navigated.
         print("[3/4] Submitting TOTP (auto-submit or button click)...")
         try:
             submit2 = page.locator('button[type="submit"], button.button-orange')
             submit2.first.wait_for(state="visible", timeout=3_000)
+            # Use force=True so we don't hang if Kite disabled the button mid-flight
             submit2.first.click(force=True, timeout=3_000)
             print("  → TOTP submit button clicked")
         except Exception:
+            # Kite already auto-submitted — this is fine
             print("  → TOTP auto-submitted (no button click needed)")
 
+        # Step 5: Wait for dashboard
         print("\n[4/4] Waiting for Kite dashboard...")
         try:
             page.wait_for_url("**/dashboard**", timeout=25_000)
             print(f"  → Reached dashboard: {page.url} ✅")
         except PWTimeout:
+            # May already be on dashboard — check URL directly
             current_url = page.url
             print(f"  → Current URL: {current_url}")
             if "dashboard" in current_url or "kite.zerodha.com" in current_url:
@@ -264,7 +296,8 @@ def login_to_kite() -> str:
 
         screenshot(page, "04_post_login")
 
-        cookies  = ctx.cookies("https://kite.zerodha.com")
+        # Extract enctoken
+        cookies = ctx.cookies("https://kite.zerodha.com")
         print(f"  → Cookies found: {[c['name'] for c in cookies]}")
         enctoken = next((c["value"] for c in cookies if c["name"] == "enctoken"), None)
 
@@ -284,28 +317,6 @@ def login_to_kite() -> str:
 
         print(f"  → enctoken extracted ({len(enctoken)} chars) ✅")
         return enctoken
-
-
-# ── Morning briefing thread ───────────────────────────────────────────────────
-
-def start_briefing_thread():
-    """
-    Start the morning briefing background thread.
-    Runs briefing.py schedule: 09:05 watchlist, 09:16 opening prices, 15:32 EOD.
-    Safe to call even outside market hours — the thread exits cleanly after 15:32.
-    """
-    try:
-        # Add project root to path so backend.* imports work from this thread
-        project_root = str(Path(__file__).parent)
-        if project_root not in sys.path:
-            sys.path.insert(0, project_root)
-
-        from backend.notifications.briefing import run_briefing_thread
-        t = threading.Thread(target=run_briefing_thread, daemon=True, name="WealthAlgoBriefing")
-        t.start()
-        print("  → Morning briefing thread started ✅")
-    except Exception as e:
-        print(f"  ⚠️  Could not start briefing thread: {e}")
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -349,6 +360,8 @@ def main():
                 )
                 telegram_notify(msg)
                 print("\n  ❌ All login attempts failed. Bot cannot start.")
+                print("  → Check the uploaded screenshots in GitHub Actions Artifacts")
+                print("  → Go to: Actions → your run → scroll down → Artifacts section")
                 sys.exit(1)
 
     save_enctoken(USER_ID, enctoken)
@@ -358,24 +371,19 @@ def main():
         print(f"ERROR: {bot_script} not found")
         sys.exit(1)
 
-    # ── Start briefing thread BEFORE dashboard subprocess ────────────────────
-    print("\n  Starting morning briefing scheduler...")
-    start_briefing_thread()
-
     # ── Notify: bot started successfully ─────────────────────────────────────
     telegram_notify(
         f"✅ <b>WealthAlgo {USER_ID} — BOT STARTED</b>\n"
         f"📅 {now_ist}\n"
         f"🟢 Kite login successful\n"
         f"📊 Trading begins at market open (9:15 AM IST)\n"
-        f"📩 Morning briefing scheduled for 9:05 AM IST\n"
         f"⏰ Auto-shutdown at 3:30 PM IST"
     )
 
     print(f"\n✅ Authentication complete — launching bot on port {BOT_PORT}...\n")
     print("=" * 60)
 
-    env    = {**os.environ, "PORT": BOT_PORT}
+    env = {**os.environ, "PORT": BOT_PORT}
     result = subprocess.run(
         [sys.executable, str(bot_script)],
         cwd=str(Path(__file__).parent),
@@ -383,8 +391,6 @@ def main():
     )
 
     # ── Notify: bot exited ────────────────────────────────────────────────────
-    from datetime import datetime, timezone, timedelta
-    IST       = timezone(timedelta(hours=5, minutes=30))
     exit_code = result.returncode
     if exit_code == 0:
         telegram_notify(
