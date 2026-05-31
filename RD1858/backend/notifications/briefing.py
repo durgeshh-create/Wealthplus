@@ -6,6 +6,8 @@ Runs in a background thread inside cloud_launcher.py.
 Timeline (all IST):
   09:05 — Pre-market briefing: watchlist + yesterday's close + W%%R readings
   09:16 — Opening prices: live quotes fetched via Zerodha REST after market opens
+  11:00 — Heartbeat ping: mid-morning alive check
+  13:30 — Heartbeat ping: afternoon alive check (post session-handover)
   15:32 — End-of-day summary: trades done today, positions held, cash deployed
 
 The thread is started BEFORE dashboard.py is launched so it's alive for the
@@ -307,6 +309,48 @@ def send_opening_prices():
         print(f"[briefing] ⚠️ Opening prices failed: {e}", flush=True)
 
 
+
+# ── Heartbeat pings ───────────────────────────────────────────────────────────
+
+def send_heartbeat(label: str):
+    """Send a brief 'still alive' ping at scheduled intervals."""
+    try:
+        acct = _account()
+        now  = datetime.now(IST)
+
+        # Count today's trades from log for a live status line
+        log_file = _BOT_DIR / "logs" / "trading.log"
+        today    = now.strftime("%Y-%m-%d")
+        buys_today, sells_today = 0, 0
+
+        if log_file.exists():
+            for line in log_file.read_text(errors="replace").splitlines():
+                if today not in line:
+                    continue
+                if "✓ BUY SUCCESS" in line or "BUY EXECUTED" in line:
+                    buys_today += 1
+                elif "✓ SELL SUCCESS" in line or "SELL EXECUTED" in line:
+                    sells_today += 1
+
+        trade_str = (
+            f"📈 Trades so far: {buys_today} BUY, {sells_today} SELL"
+            if (buys_today or sells_today)
+            else "📋 No trades executed yet today"
+        )
+
+        msg = (
+            f"💓 <b>WealthAlgo {acct} — Heartbeat</b>\n"
+            f"⏱ {now.strftime('%H:%M IST')} | {label}\n"
+            f"🟢 Bot running normally\n"
+            f"{trade_str}"
+        )
+        _send(msg)
+        print(f"[briefing] 💓 Heartbeat sent ({label})", flush=True)
+
+    except Exception as e:
+        print(f"[briefing] ⚠️ Heartbeat failed ({label}): {e}", flush=True)
+
+
 # ── 15:32 End-of-day summary ──────────────────────────────────────────────────
 
 def send_eod_summary():
@@ -380,6 +424,12 @@ def run_briefing_thread():
 
         _wait_until_ist(9, 16)
         send_opening_prices()
+
+        _wait_until_ist(11, 0)
+        send_heartbeat("Mid-morning check")
+
+        _wait_until_ist(13, 30)
+        send_heartbeat("Afternoon check")
 
         _wait_until_ist(15, 32)
         send_eod_summary()
