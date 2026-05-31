@@ -1,16 +1,46 @@
-# Secrets — NEVER push these
-RD1858/config/credentials.json
-PS5673/config/credentials.json
-RD1858/config/enctoken.json
-PS5673/config/enctoken.json
+# ── Secrets & tokens — NEVER commit these ──────────────────────────────────────
+**/config/enctoken.json
+**/config/enctoken.json.bak
+**/config/credentials.json
+**/config/credentials.json.local
+**/.env
+**/.env.*
 
-# Data and logs
-RD1858/data/
-PS5673/data/
-RD1858/logs/
-PS5673/logs/
+# ── Logs ───────────────────────────────────────────────────────────────────────
 *.log
-*.pyc
+*.log.bak
+**/logs/
+**/bot.log
+**/bot.log.bak
+**/token_refresh.log
+
+# ── Historical data CSVs (large, downloaded fresh by the bot) ──────────────────
+**/data/daily/
+**/data/weekly/
+
+# ── Python compiled / cache ───────────────────────────────────────────────────
 __pycache__/
-.env
-launch.bat
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# ── Backup / copy files (use git for versioning, not filename copies) ─────────
+*- Copy.*
+*- Copy/
+* - Copy.*
+
+# ── OS / editor noise ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Playwright debug screenshots (uploaded as Actions artifacts instead) ──────
+/tmp/kite_debug_*.png
+/tmp/kite_debug_*.html

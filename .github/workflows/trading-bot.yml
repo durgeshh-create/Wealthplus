@@ -2,7 +2,7 @@ name: WealthAlgo
 
 on:
   schedule:
-    - cron: '30 3 * * 1-5'   # 9:00 AM IST (3:30 UTC) Mon–Fri
+    - cron: '20 3 * * 1-5'   # 8:50 AM IST (3:20 UTC) Mon–Fri — 25min before market open
   workflow_dispatch:           # Manual trigger from GitHub Actions UI
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
   # ────────────────────────────────────────────────────────────────────────────
   RD1858:
     runs-on: ubuntu-latest
-    timeout-minutes: 390       # 6.5 hrs — covers full market session + buffer
+    timeout-minutes: 355       # 5h 55m — safely within GitHub Actions 6hr hard limit
 
     steps:
       - name: Checkout code
@@ -41,7 +41,7 @@ jobs:
 
       - name: Run RD1858 bot (headless Chrome login + trading)
         working-directory: RD1858
-        timeout-minutes: 385
+        timeout-minutes: 350
         env:
           KITE_USER_ID:        ${{ secrets.RD1858_USER_ID }}
           KITE_PASSWORD:       ${{ secrets.RD1858_PASSWORD }}
@@ -58,7 +58,7 @@ jobs:
   # ────────────────────────────────────────────────────────────────────────────
   PS5673:
     runs-on: ubuntu-latest
-    timeout-minutes: 390
+    timeout-minutes: 355
 
     steps:
       - name: Checkout code
@@ -87,7 +87,7 @@ jobs:
 
       - name: Run PS5673 bot (headless Chrome login + trading)
         working-directory: PS5673
-        timeout-minutes: 385
+        timeout-minutes: 350
         env:
           KITE_USER_ID:        ${{ secrets.PS5673_USER_ID }}
           KITE_PASSWORD:       ${{ secrets.PS5673_PASSWORD }}

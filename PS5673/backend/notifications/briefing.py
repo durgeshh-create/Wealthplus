@@ -251,7 +251,7 @@ def send_opening_prices():
             f"{ZERODHA_API}/oms/quote?{params}",
             headers={
                 "Authorization": f"enctoken {enctoken}",
-                "X-Kite-Version": "3",
+
             },
             method="GET",
         )

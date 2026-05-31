@@ -1,3 +1,46 @@
-.env
+# ── Secrets & tokens — NEVER commit these ──────────────────────────────────────
+**/config/enctoken.json
+**/config/enctoken.json.bak
+**/config/credentials.json
+**/config/credentials.json.local
+**/.env
+**/.env.*
+
+# ── Logs ───────────────────────────────────────────────────────────────────────
+*.log
+*.log.bak
+**/logs/
+**/bot.log
+**/bot.log.bak
+**/token_refresh.log
+
+# ── Historical data CSVs (large, downloaded fresh by the bot) ──────────────────
+**/data/daily/
+**/data/weekly/
+
+# ── Python compiled / cache ───────────────────────────────────────────────────
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# ── Backup / copy files (use git for versioning, not filename copies) ─────────
+*- Copy.*
+*- Copy/
+* - Copy.*
+
+# ── OS / editor noise ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Playwright debug screenshots (uploaded as Actions artifacts instead) ──────
+/tmp/kite_debug_*.png
+/tmp/kite_debug_*.html

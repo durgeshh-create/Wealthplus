@@ -53,6 +53,10 @@ git branch -M main
 git remote add origin https://github.com/durgeshh-create/Wealthplus.git
 git push -u origin main
 
+..............commands if GitHub has changes your local doesn't. Pull first, then push:
+git pull origin main --rebase
+git push origin main --force
+
 goto https://github.com/durgeshh-create/Wealthplus.git
 Settings  - Secrets and variables → Actions ..New repository secret 
 RD1858_USER_ID	RD1858

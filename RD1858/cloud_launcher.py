@@ -375,32 +375,65 @@ def main():
     print(f"\n✅ Authentication complete — launching bot on port {BOT_PORT}...\n")
     print("=" * 60)
 
-    env    = {**os.environ, "PORT": BOT_PORT}
-    result = subprocess.run(
-        [sys.executable, str(bot_script)],
-        cwd=str(Path(__file__).parent),
-        env=env,
-    )
+    env = {**os.environ, "PORT": BOT_PORT, "SHUTDOWN_TIME_IST": "15:35"}
+    MAX_RESTARTS  = 3    # restart up to 3 times on crash (not on clean exit)
+    restart_count = 0
 
-    # ── Notify: bot exited ────────────────────────────────────────────────────
-    from datetime import datetime, timezone, timedelta
-    IST       = timezone(timedelta(hours=5, minutes=30))
-    exit_code = result.returncode
-    if exit_code == 0:
-        telegram_notify(
-            f"⏹️ <b>WealthAlgo {USER_ID} — BOT STOPPED</b>\n"
-            f"📅 {datetime.now(IST).strftime('%d %b %Y %H:%M IST')}\n"
-            f"✅ Clean exit (market close)"
+    while True:
+        from datetime import datetime, timezone, timedelta
+        IST     = timezone(timedelta(hours=5, minutes=30))
+        now_ist = datetime.now(IST)
+
+        # Don't restart after 15:30 IST — market is closing
+        if now_ist.hour > 15 or (now_ist.hour == 15 and now_ist.minute >= 30):
+            print("\n  ⏰ Past 15:30 IST — not restarting bot after exit.")
+            break
+
+        print(f"\n  ▶ Starting bot (attempt {restart_count + 1})...")
+        result    = subprocess.run(
+            [sys.executable, str(bot_script)],
+            cwd=str(Path(__file__).parent),
+            env=env,
         )
-    else:
+        exit_code = result.returncode
+
+        if exit_code == 0:
+            # Clean shutdown (market close watchdog fired) — don't restart
+            telegram_notify(
+                f"⏹️ <b>WealthAlgo {USER_ID} — BOT STOPPED</b>\n"
+                f"📅 {datetime.now(IST).strftime('%d %b %Y %H:%M IST')}\n"
+                f"✅ Clean exit (market close)"
+            )
+            break
+
+        # Crash — notify and possibly restart
+        restart_count += 1
+        print(f"  ❌ Bot crashed (exit {exit_code}), restart {restart_count}/{MAX_RESTARTS}")
         telegram_notify(
-            f"💥 <b>WealthAlgo {USER_ID} — BOT CRASHED</b>\n"
+            f"⚠️ <b>WealthAlgo {USER_ID} — BOT CRASHED (restart {restart_count}/{MAX_RESTARTS})</b>\n"
             f"📅 {datetime.now(IST).strftime('%d %b %Y %H:%M IST')}\n"
-            f"❌ Exit code: {exit_code}\n"
-            f"⚠️ Check GitHub Actions logs for details."
+            f"❌ Exit code: {exit_code}"
         )
 
-    sys.exit(exit_code)
+        if restart_count >= MAX_RESTARTS:
+            telegram_notify(
+                f"💥 <b>WealthAlgo {USER_ID} — BOT STOPPED (max restarts reached)</b>\n"
+                f"📅 {datetime.now(IST).strftime('%d %b %Y %H:%M IST')}\n"
+                f"⚠️ Check GitHub Actions logs."
+            )
+            sys.exit(exit_code)
+
+        # Re-authenticate before restart — token may have expired
+        print("  🔐 Re-authenticating before restart...")
+        try:
+            new_token = login_to_kite()
+            save_enctoken(USER_ID, new_token)
+            print("  ✅ Re-authentication successful")
+        except Exception as re_err:
+            print(f"  ❌ Re-authentication failed: {re_err}")
+            sys.exit(1)
+
+        time.sleep(10)   # brief pause before restart
 
 
 if __name__ == "__main__":
