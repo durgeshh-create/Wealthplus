@@ -18,6 +18,7 @@ Environment variables (set as GitHub Secrets):
 
 Features:
     - Headless Chrome login with 3-attempt retry
+    - Session aware context handling (Morning vs. Afternoon split runner)
     - Morning briefing at 09:05 IST (watchlist + W%%R)
     - Opening prices at 09:16 IST
     - End-of-day summary at 15:32 IST
@@ -269,11 +270,16 @@ def main():
 
     from datetime import datetime, timezone, timedelta
     IST     = timezone(timedelta(hours=5, minutes=30))
-    now_ist = datetime.now(IST).strftime("%d %b %Y %H:%M IST")
+    now_ist = datetime.now(IST)
+    now_str = now_ist.strftime("%d %b %Y %H:%M IST")
+
+    # Determine if this runner is dealing with the morning open or afternoon session
+    is_afternoon_session = now_ist.hour >= 12
 
     print("=" * 60)
     print(f"  WealthAlgo Cloud Launcher — {USER_ID} (port {BOT_PORT})")
-    print(f"  Started: {now_ist}")
+    print(f"  Started: {now_str}")
+    print(f"  Session: {'Afternoon Pickup' if is_afternoon_session else 'Morning Open'}")
     print("=" * 60)
 
     enctoken      = None
@@ -293,7 +299,7 @@ def main():
             else:
                 telegram_notify(
                     f"❌ <b>WealthAlgo {USER_ID} — LOGIN FAILED</b>\n"
-                    f"📅 {now_ist}\n"
+                    f"📅 {now_str}\n"
                     f"🔴 All {max_attempts} login attempts failed.\n"
                     f"⚠️ Error: {str(e)[:200]}\n"
                     f"📋 Check GitHub Actions → Artifacts for screenshots."
@@ -313,23 +319,39 @@ def main():
         sys.exit(1)
 
     # ── Start briefing thread BEFORE dashboard subprocess ────────────────────
-    print("\n  Starting morning briefing scheduler...")
+    print("\n  Starting briefing scheduler...")
     start_briefing_thread()
 
-    # ── Notify: bot started ───────────────────────────────────────────────────
-    telegram_notify(
-        f"✅ <b>WealthAlgo {USER_ID} — BOT STARTED</b>\n"
-        f"📅 {now_ist}\n"
-        f"🟢 Kite login successful\n"
-        f"📊 Trading begins at market open (9:15 AM IST)\n"
-        f"📩 Morning briefing scheduled for 9:05 AM IST\n"
-        f"⏰ Auto-shutdown at 3:30 PM IST"
-    )
+    # ── Notify: bot started with dynamic session info ────────────────────────
+    if is_afternoon_session:
+        telegram_notify(
+            f"✅ <b>WealthAlgo {USER_ID} — AFTERNOON SESSION STARTED</b>\n"
+            f"📅 {now_str}\n"
+            f"🟢 Kite login successful\n"
+            f"🔄 Resuming tracking and execution matrix\n"
+            f"📩 EOD summary scheduled for 3:32 PM IST\n"
+            f"⏰ Auto-shutdown at 3:30 PM IST"
+        )
+        shutdown_env_time = "15:35"
+        restart_cutoff_hour = 15
+        restart_cutoff_minute = 30
+    else:
+        telegram_notify(
+            f"✅ <b>WealthAlgo {USER_ID} — MORNING SESSION STARTED</b>\n"
+            f"📅 {now_str}\n"
+            f"🟢 Kite login successful\n"
+            f"📊 Trading begins at market open (9:15 AM IST)\n"
+            f"📩 Morning briefing scheduled for 9:05 AM IST\n"
+            f"⏰ Session handover scheduled for 12:30 PM IST"
+        )
+        shutdown_env_time = "12:35"
+        restart_cutoff_hour = 12
+        restart_cutoff_minute = 25
 
     print(f"\n✅ Authentication complete — launching {bot_script.name} on port {BOT_PORT}...\n")
     print("=" * 60)
 
-    env = {**os.environ, "PORT": BOT_PORT, "SHUTDOWN_TIME_IST": "15:35"}
+    env = {**os.environ, "PORT": BOT_PORT, "SHUTDOWN_TIME_IST": shutdown_env_time}
     MAX_RESTARTS  = 3
     restart_count = 0
 
@@ -338,12 +360,13 @@ def main():
         IST     = timezone(timedelta(hours=5, minutes=30))
         now_ist = datetime.now(IST)
 
-        if now_ist.hour > 15 or (now_ist.hour == 15 and now_ist.minute >= 30):
-            print("\n  ⏰ Past 15:30 IST — not restarting bot after exit.")
+        # Dynamic validation check based on the current run segment boundaries
+        if now_ist.hour > restart_cutoff_hour or (now_ist.hour == restart_cutoff_hour and now_ist.minute >= restart_cutoff_minute):
+            print(f"\n  ⏰ Past {restart_cutoff_hour}:{restart_cutoff_minute} IST — not restarting bot after exit.")
             break
 
         print(f"\n  ▶ Starting bot (attempt {restart_count + 1})...")
-        result    = subprocess.run(
+        result = subprocess.run(
             [sys.executable, str(bot_script)],
             cwd=str(Path(__file__).parent),
             env=env,
@@ -352,9 +375,9 @@ def main():
 
         if exit_code == 0:
             telegram_notify(
-                f"⏹️ <b>WealthAlgo {USER_ID} — BOT STOPPED</b>\n"
+                f"⏹️ <b>WealthAlgo {USER_ID} — SESSION COMPLETED</b>\n"
                 f"📅 {datetime.now(IST).strftime('%d %b %Y %H:%M IST')}\n"
-                f"✅ Clean exit (market close)"
+                f"✅ Clean exit (Scheduled Session Break)"
             )
             break
 

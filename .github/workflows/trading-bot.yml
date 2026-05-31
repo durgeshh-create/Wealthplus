@@ -2,7 +2,10 @@ name: WealthAlgo
 
 on:
   schedule:
-    - cron: '20 3 * * 1-5'   # 8:50 AM IST (3:20 UTC) Mon–Fri — 25min before market open
+    # Session 1: 09:15 AM to 12:30 PM IST (03:45 AM to 07:00 AM UTC) -> 195 mins
+    - cron: '45 3 * * 1-5'
+    # Session 2: 12:30 PM to 03:30 PM IST (07:00 AM to 10:00 AM UTC) -> 180 mins
+    - cron: '0 7 * * 1-5'
   workflow_dispatch:           # Manual trigger from GitHub Actions UI
 
 jobs:
@@ -12,7 +15,7 @@ jobs:
   # ────────────────────────────────────────────────────────────────────────────
   RD1858:
     runs-on: ubuntu-latest
-    timeout-minutes: 355       # 5h 55m — safely within GitHub Actions 6hr hard limit
+    timeout-minutes: 210       # Safety buffer slightly above max session length (195m)
 
     steps:
       - name: Checkout code
@@ -41,7 +44,7 @@ jobs:
 
       - name: Run RD1858 bot (headless Chrome login + trading)
         working-directory: RD1858
-        timeout-minutes: 350
+        timeout-minutes: 200   # Will automatically stop the script when the session ends
         env:
           KITE_USER_ID:        ${{ secrets.RD1858_USER_ID }}
           KITE_PASSWORD:       ${{ secrets.RD1858_PASSWORD }}
@@ -58,7 +61,7 @@ jobs:
   # ────────────────────────────────────────────────────────────────────────────
   PS5673:
     runs-on: ubuntu-latest
-    timeout-minutes: 355
+    timeout-minutes: 210       # Safety buffer slightly above max session length (195m)
 
     steps:
       - name: Checkout code
@@ -87,7 +90,7 @@ jobs:
 
       - name: Run PS5673 bot (headless Chrome login + trading)
         working-directory: PS5673
-        timeout-minutes: 350
+        timeout-minutes: 200   # Will automatically stop the script when the session ends
         env:
           KITE_USER_ID:        ${{ secrets.PS5673_USER_ID }}
           KITE_PASSWORD:       ${{ secrets.PS5673_PASSWORD }}
