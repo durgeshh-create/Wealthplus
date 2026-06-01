@@ -686,6 +686,19 @@ def main():
     trading_thread.start()
     logger.info("✅ Trading loop thread started (waiting for bot activation)")
 
+    # ── Cloud auto-start ──────────────────────────────────────────────────────
+    # On GitHub Actions there is no browser to click "Start Bot", so we
+    # activate trading automatically as soon as the backend is ready.
+    if IS_CLOUD:
+        dashboard_state["bot_running"] = True
+        logger.info("☁️  CLOUD MODE — bot_running set to True automatically")
+        telegram_notify(
+            f"🤖 <b>WealthAlgo {backend['auth'].user_id} — BOT ACTIVE</b>\n"
+            f"📅 {_ist_now()}\n"
+            f"🟢 Trading loop started — monitoring signals"
+        )
+    # ─────────────────────────────────────────────────────────────────────────
+
     # ── Cloud auto-shutdown watchdog ──────────────────────────────────────────
     if IS_CLOUD:
         watchdog_thread = threading.Thread(
