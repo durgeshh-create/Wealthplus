@@ -30,15 +30,35 @@ def _credentials():
     return token, chat_id
 
 
+# ── Deduplication guard: same message cannot fire more than once per 60s ──────
+import time as _time
+_last_sent: dict = {}   # text_hash → timestamp
+_DEDUP_WINDOW = 60      # seconds
+
 def send_message(text: str, parse_mode: str = "HTML") -> bool:
     """
     Send a plain Telegram message.
-    Returns True on success, False otherwise.
+    Deduplicates: identical message text is suppressed if sent within 60s.
+    Returns True on success, False otherwise (including duplicate suppression).
     Never raises.
     """
     token, chat_id = _credentials()
     if not token or not chat_id:
         return False
+
+    # Dedup check — use first 120 chars as key to catch repeated signal messages
+    key = text[:120]
+    now = _time.time()
+    if now - _last_sent.get(key, 0) < _DEDUP_WINDOW:
+        return False   # suppressed duplicate
+    _last_sent[key] = now
+
+    # Prune old entries to avoid unbounded growth
+    if len(_last_sent) > 200:
+        cutoff = now - _DEDUP_WINDOW * 2
+        for k in [k for k, t in _last_sent.items() if t < cutoff]:
+            _last_sent.pop(k, None)
+
     try:
         payload = json.dumps({
             "chat_id":    chat_id,
@@ -68,7 +88,9 @@ def notify_buy(
     max_slots:         int    = None,
     dry_run:           bool   = False,
 ):
-    """Send a BUY execution notification."""
+    """Send a BUY execution notification. Silently skips LIQUIDCASE."""
+    if symbol == "LIQUIDCASE":
+        return
     acct = _account()
     wr_line     = f"\n📊 W%%R: {williams_r:.1f} (oversold)" if williams_r is not None else ""
     target_line = ""
@@ -98,7 +120,9 @@ def notify_sell(
     pnl_amt:       float  = None,
     dry_run:       bool   = False,
 ):
-    """Send a SELL execution notification."""
+    """Send a SELL execution notification. Silently skips LIQUIDCASE."""
+    if symbol == "LIQUIDCASE":
+        return
     acct = _account()
 
     if avg_buy_price and avg_buy_price > 0:
@@ -127,8 +151,11 @@ def notify_sell(
 
 
 def notify_eod_summary(trades_today: list, total_deployed: float, positions_held: list):
-    """Send an end-of-day portfolio summary."""
+    """Send an end-of-day portfolio summary. Excludes LIQUIDCASE."""
     acct  = _account()
+    # Filter out LIQUIDCASE from all trade and position lists
+    trades_today   = [t for t in trades_today   if t.get("symbol") != "LIQUIDCASE"]
+    positions_held = [p for p in positions_held if p != "LIQUIDCASE"]
     buys  = [t for t in trades_today if t.get("action") == "BUY"]
     sells = [t for t in trades_today if t.get("action") == "SELL"]
 

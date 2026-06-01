@@ -327,6 +327,8 @@ def send_heartbeat(label: str):
             for line in log_file.read_text(errors="replace").splitlines():
                 if today not in line:
                     continue
+                if "LIQUIDCASE" in line:
+                    continue
                 if "✓ BUY SUCCESS" in line or "BUY EXECUTED" in line:
                     buys_today += 1
                 elif "✓ SELL SUCCESS" in line or "SELL EXECUTED" in line:
@@ -370,6 +372,8 @@ def send_eod_summary():
         if log_file.exists():
             for line in log_file.read_text(errors="replace").splitlines():
                 if today not in line:
+                    continue
+                if "LIQUIDCASE" in line:
                     continue
                 if "✓ BUY SUCCESS" in line or "BUY EXECUTED" in line:
                     buys.append(line.strip())
