@@ -1,17 +1,22 @@
 """
 Signal Generator
 ================
-BUY TRIGGERS (either fires a buy):
-  Trigger A: W%R <= -80   (deep oversold)
+BUY TRIGGERS (any one fires a buy):
+  Trigger A: W%R <= williams_r_threshold (default -75, configurable in settings.json)
+             Deep oversold — no price drop required.
   Trigger B: W%R <= -60  AND  price drop >= min_price_drop_pct% from prev close
+             Moderate oversold with meaningful drop confirmation.
+  Trigger C: W%R <= -75  AND  price drop >= min_price_drop_pct% from prev close
+             Genuinely oversold with any confirmed drop. Fills the gap between A and B —
+             catches cases like W%R=-78, drop=1.5% that slip through when threshold is -80.
 
 SLOT RULES (per symbol, slot counter resets daily):
-  Slot 1: Fires when Trigger A or B is first met and symbol is not already held.
+  Slot 1: Fires when any trigger is first met and symbol is not already held.
   Slot 2+: Fires only when ALL of the following are true:
            - A prior buy already exists for this symbol (could be from a previous day)
            - Live price has fallen >= min_price_drop_pct% BELOW the current avg buy price
              (flat threshold — same % required for every additional slot)
-           - Trigger A or B is still active (market still oversold)
+           - Any trigger is still active (market still oversold)
   Max buys per day = slots_count setting (default 5). Counter resets at midnight.
   avg_buy_price is blended across ALL prior buys (current day + previous days),
   so the drop-from-avg check works correctly when accumulating over multiple sessions.
@@ -242,13 +247,16 @@ class SignalGenerator:
             else:
                 signal_type = SIGNAL_NONE
 
+            # Read threshold from settings so dashboard label matches trigger logic
+            wr_threshold = float(_load_settings().get('williams_r_threshold', Config.WILLIAMS_R_THRESHOLD))
+
             return {
                 'symbol':     symbol,
                 'signal':     signal_type,
                 'williams_r': williams_r,
                 'price':      live_price,
                 'prev_close': prev_close,
-                'status':     get_signal_status(williams_r),
+                'status':     get_signal_status(williams_r, threshold=wr_threshold),
                 'buy_ready':  buy_signal,
                 'sell_ready': sell_signal,
                 'timestamp':  datetime.now(),
@@ -262,16 +270,23 @@ class SignalGenerator:
     def _check_buy_signal(self, symbol: str, williams_r: float,
                           live_price: float, prev_close: float) -> bool:
         """
-        TRIGGER CONDITIONS (either fires):
-          Trigger A: W%R <= -80
+        TRIGGER CONDITIONS (any one fires):
+          Trigger A: W%R <= williams_r_threshold (default -75, read from settings.json)
+                     Deep oversold — no price drop required.
           Trigger B: W%R <= -60 AND price dropped >= min_drop% from prev_close
+                     Moderate oversold with meaningful price drop confirmation.
+          Trigger C: W%R <= -75 AND price dropped >= min_drop% from prev_close
+                     Fills the gap — genuinely oversold with any confirmed drop.
+                     Catches cases like W%R=-78, drop=1.5% that Trigger A misses
+                     when threshold is at -80, and that Trigger B misses because
+                     W%R is already deep enough to not need B's loose entry.
 
         SLOT RULES:
-          Slot 1 (first buy): Trigger A or B fires and no existing holding.
+          Slot 1 (first buy): Any trigger fires and no existing holding.
           Slot 2+ (additional buys): Requires BOTH:
             - Symbol already held (slot 1 already executed, possibly on a prior day)
             - Live price is >= min_price_drop_pct% BELOW current avg_buy_price
-            - Trigger A or B must still be met (market still oversold)
+            - Any trigger must still be met (market still oversold)
           The drop check uses the CURRENT avg_buy_price (blended across all prior
           buys), so the rule works correctly whether slot 1 was today or weeks ago.
           Each slot requires the same flat min_drop% below avg — not cumulative.
@@ -281,22 +296,27 @@ class SignalGenerator:
         wr_val   = williams_r if williams_r is not None else 0.0
         min_drop = self._get_min_price_drop_pct()
 
+        # Read threshold from settings.json (falls back to Config default if missing)
+        wr_threshold = float(_load_settings().get('williams_r_threshold', Config.WILLIAMS_R_THRESHOLD))
+
         drop_from_prev = ((prev_close - live_price) / prev_close * 100) if prev_close > 0 else 0.0
 
-        trigger_a = wr_val <= Config.WILLIAMS_R_THRESHOLD          # W%R <= -80
-        trigger_b = (wr_val <= -60) and (drop_from_prev >= min_drop)
+        trigger_a = wr_val <= wr_threshold                              # deep oversold, no drop needed
+        trigger_b = (wr_val <= -60) and (drop_from_prev >= min_drop)   # moderate oversold + drop
+        trigger_c = (wr_val <= -75) and (drop_from_prev >= min_drop)   # genuinely oversold + any drop
 
-        if not trigger_a and not trigger_b:
+        if not trigger_a and not trigger_b and not trigger_c:
             logger.debug(
                 f"No trigger {symbol}: W%R={wr_val:.1f} "
-                f"(A<={Config.WILLIAMS_R_THRESHOLD}, "
-                f"B<=-60+drop>={min_drop}%), drop={drop_from_prev:.2f}%"
+                f"(A<={wr_threshold}, B<=-60+drop>={min_drop}%, C<=-75+drop>={min_drop}%), "
+                f"drop={drop_from_prev:.2f}%"
             )
             return False
 
         trigger_str = []
         if trigger_a: trigger_str.append(f"A(W%R={wr_val:.1f})")
         if trigger_b: trigger_str.append(f"B(W%R={wr_val:.1f}+drop={drop_from_prev:.2f}%)")
+        if trigger_c: trigger_str.append(f"C(W%R={wr_val:.1f}+drop={drop_from_prev:.2f}%)")
 
         max_slots     = self._get_max_slots()
         buys_today    = self._get_buys_today(symbol)
