@@ -20,31 +20,64 @@ def main():
     max_attempts = 3
     enctoken = None
 
-    for attempt in range(1, max_attempts + 1):
-        try:
-            print(f"\n{'─' * 60}")
-            print(f"  LOGIN ATTEMPT {attempt}/{max_attempts}")
-            print(f"{'─' * 60}")
-            enctoken = login_to_kite()
-            break
-        except Exception as e:
-            print(f"\n  ❌ Attempt {attempt}/{max_attempts} failed:")
-            print(f"     {e}")
-            if attempt < max_attempts:
-                wait = attempt * 15
-                print(f"  → Retrying in {wait}s...")
-                time.sleep(wait)
-            else:
-                msg = (
-                    f"❌ <b>WealthAlgo {USER_ID} — LOGIN FAILED</b>\n"
-                    f"📅 {now_str}\n"
-                    f"🔴 All {max_attempts} login attempts failed.\n"
-                    f"⚠️ Error: {str(e)[:200]}\n"
-                    f"📋 Check GitHub Actions → Artifacts for screenshots."
-                )
-                telegram_notify(msg)
-                print("\n  ❌ All login attempts failed. Bot cannot start.")
-                sys.exit(1)
+    # ── CRITICAL: Check if existing saved token is still valid BEFORE logging in.
+    # ─────────────────────────────────────────────────────────────────────────
+    # Zerodha allows only ONE active session per account.  Doing a fresh
+    # Playwright login when a valid token already exists creates a NEW session
+    # which immediately invalidates the old one — logging you out of Kite in
+    # your local browser.
+    #
+    # Rule: only login when the saved token is actually expired or missing.
+    # ─────────────────────────────────────────────────────────────────────────
+    print("\n  🔍 Checking existing token validity before login...")
+    saved_token_valid = False
+    try:
+        from backend.auth.token_store import load_token
+        import requests as _req
+        saved = load_token()
+        if saved and saved.get("enctoken"):
+            _s = _req.Session()
+            _s.headers.update({
+                "Authorization": f"enctoken {saved['enctoken']}",
+                "User-Agent":    "Mozilla/5.0",
+                "Referer":       "https://kite.zerodha.com/",
+            })
+            _r = _s.get("https://kite.zerodha.com/oms/user/profile", timeout=8)
+            if _r.status_code == 200 and _r.json().get("data", {}).get("user_name"):
+                enctoken = saved["enctoken"]
+                saved_token_valid = True
+                print(f"  ✅ Saved token is still valid for {saved.get('user_id')} — skipping Playwright login.")
+                print(f"     (No new session created, your Kite browser session is untouched)")
+    except Exception as _e:
+        print(f"  ⚠️  Token check error: {_e} — will attempt fresh login")
+
+    if not saved_token_valid:
+        print("  🔐 Saved token expired or missing — performing fresh TOTP login...")
+        for attempt in range(1, max_attempts + 1):
+            try:
+                print(f"\n{'─' * 60}")
+                print(f"  LOGIN ATTEMPT {attempt}/{max_attempts}")
+                print(f"{'─' * 60}")
+                enctoken = login_to_kite()
+                break
+            except Exception as e:
+                print(f"\n  ❌ Attempt {attempt}/{max_attempts} failed:")
+                print(f"     {e}")
+                if attempt < max_attempts:
+                    wait = attempt * 15
+                    print(f"  → Retrying in {wait}s...")
+                    time.sleep(wait)
+                else:
+                    msg = (
+                        f"❌ <b>WealthAlgo {USER_ID} — LOGIN FAILED</b>\n"
+                        f"📅 {now_str}\n"
+                        f"🔴 All {max_attempts} login attempts failed.\n"
+                        f"⚠️ Error: {str(e)[:200]}\n"
+                        f"📋 Check GitHub Actions → Artifacts for screenshots."
+                    )
+                    telegram_notify(msg)
+                    print("\n  ❌ All login attempts failed. Bot cannot start.")
+                    sys.exit(1)
 
     save_enctoken(USER_ID, enctoken)
 
