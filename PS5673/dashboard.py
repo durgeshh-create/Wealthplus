@@ -392,15 +392,7 @@ def check_and_execute_signals(signal_generator, executor):
                 logger.info("⚡ Executing signals...")
                 results = executor.execute_signals({'buy': buy_signals, 'sell': sell_signals})
 
-                # ── Telegram trade notification ───────────────────────────────
-                lines = [f"📊 <b>WealthAlgo PS5673 — TRADES EXECUTED</b>", f"📅 {_ist_now()}"]
-                for sig in buy_signals:
-                    lines.append(f"🟢 BUY: {sig['symbol']} @ ₹{sig['price']:.2f}")
-                for sig in sell_signals:
-                    lines.append(f"🔴 SELL: {sig['symbol']} @ ₹{sig['price']:.2f}")
-                lines.append(f"⚙️ Profit target: {profit_target}%")
-                telegram_notify("\n".join(lines))
-                # ─────────────────────────────────────────────────────────────
+
 
                 for action, success in results.items():
                     status = "✅" if success else "❌"
@@ -685,19 +677,6 @@ def main():
     )
     trading_thread.start()
     logger.info("✅ Trading loop thread started (waiting for bot activation)")
-
-    # ── Cloud auto-start ──────────────────────────────────────────────────────
-    # On GitHub Actions there is no browser to click "Start Bot", so we
-    # activate trading automatically as soon as the backend is ready.
-    if IS_CLOUD:
-        dashboard_state["bot_running"] = True
-        logger.info("☁️  CLOUD MODE — bot_running set to True automatically")
-        telegram_notify(
-            f"🤖 <b>WealthAlgo {backend['auth'].user_id} — BOT ACTIVE</b>\n"
-            f"📅 {_ist_now()}\n"
-            f"🟢 Trading loop started — monitoring signals"
-        )
-    # ─────────────────────────────────────────────────────────────────────────
 
     # ── Cloud auto-shutdown watchdog ──────────────────────────────────────────
     if IS_CLOUD:
