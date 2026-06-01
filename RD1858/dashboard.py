@@ -310,14 +310,28 @@ def check_and_execute_signals(signal_generator, executor):
 
             if Config.is_dry_run():
                 logger.warning("⚠️  DRY RUN MODE: Signals detected but not executing")
-                # Still notify on dry run so you know signals fired
+                # Notify on dry run — but only ONCE per symbol until it clears
+                # (signals repeat every 2s while oversold; without this guard
+                #  a single oversold symbol generates hundreds of messages)
                 if buy_signals or sell_signals:
-                    lines = ["🧪 <b>WealthAlgo RD1858 — DRY RUN SIGNALS</b>", f"📅 {_ist_now()}"]
-                    for sig in buy_signals:
-                        lines.append(f"🟢 BUY (dry): {sig['symbol']} @ ₹{sig['price']:.2f}")
-                    for sig in sell_signals:
-                        lines.append(f"🔴 SELL (dry): {sig['symbol']} @ ₹{sig['price']:.2f}")
-                    telegram_notify("\n".join(lines))
+                    new_syms = set(s['symbol'] for s in buy_signals + sell_signals)
+                    already  = getattr(check_and_execute_signals, '_dry_notified', set())
+                    to_notify = [s for s in buy_signals + sell_signals
+                                 if s['symbol'] not in already]
+                    if to_notify:
+                        acct = os.environ.get("KITE_USER_ID", bot)
+                        lines = [f"🧪 <b>WealthAlgo {acct} — DRY RUN SIGNALS</b>",
+                                 f"📅 {_ist_now()}"]
+                        for sig in [s for s in buy_signals if s['symbol'] not in already]:
+                            lines.append(f"🟢 BUY (dry): {sig['symbol']} @ ₹{sig['price']:.2f} W%%R={sig.get('williams_r',0):.1f}")
+                        for sig in [s for s in sell_signals if s['symbol'] not in already]:
+                            lines.append(f"🔴 SELL (dry): {sig['symbol']} @ ₹{sig['price']:.2f}")
+                        telegram_notify("\n".join(lines))
+                    # Track notified symbols; clear ones no longer signalling
+                    check_and_execute_signals._dry_notified = already | new_syms
+                else:
+                    # All signals cleared — reset guard so next signal fires fresh
+                    check_and_execute_signals._dry_notified = set()
             else:
                 logger.info("⚡ Executing signals...")
                 results = executor.execute_signals({'buy': buy_signals, 'sell': sell_signals})
@@ -607,6 +621,11 @@ def main():
     )
     trading_thread.start()
     logger.info("✅ Trading loop thread started (waiting for bot activation)")
+
+    # ── Cloud: auto-start trading immediately (no manual dashboard button needed) ──
+    if IS_CLOUD:
+        dashboard_state["bot_running"] = True
+        logger.info("☁️  Cloud mode — bot_running auto-set to True (no dashboard button needed)")
 
     # ── Cloud auto-shutdown watchdog ──────────────────────────────────────────
     if IS_CLOUD:
