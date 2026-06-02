@@ -151,6 +151,40 @@ def _prev_close(csv_path: Path) -> Optional[float]:
         return None
 
 
+# ── Zerodha quote fetch (fallback when local CSVs are absent) ─────────────────
+
+def _fetch_quotes(symbols: list) -> dict:
+    """
+    Fetch last-traded prices for a list of NSE symbols via Zerodha quote API.
+    Returns a dict {symbol: last_price} for symbols that returned data.
+    Uses the saved enctoken — returns {} if token unavailable or request fails.
+    """
+    enctoken = _load_enctoken()
+    if not enctoken or not symbols:
+        return {}
+    try:
+        inst_keys = [f"NSE:{s}" for s in symbols]
+        params    = urllib.parse.urlencode([("i", k) for k in inst_keys])
+        req = urllib.request.Request(
+            f"{ZERODHA_API}/oms/quote?{params}",
+            headers={"Authorization": f"enctoken {enctoken}"},
+            method="GET",
+        )
+        resp = urllib.request.urlopen(req, timeout=10)
+        data = json.loads(resp.read()).get("data", {})
+        result = {}
+        for sym in symbols:
+            q = data.get(f"NSE:{sym}", {})
+            ohlc = q.get("ohlc", {})
+            # yesterday's close is the "close" in OHLC (previous day's close)
+            prev_close = ohlc.get("close")
+            if prev_close:
+                result[sym] = float(prev_close)
+        return result
+    except Exception:
+        return {}
+
+
 # ── 09:05 Pre-market briefing ─────────────────────────────────────────────────
 
 def send_premarket_briefing():
@@ -173,14 +207,27 @@ def send_premarket_briefing():
             )
             return
 
+        # Check if local CSVs exist for at least one symbol — if not, fall back to API
+        csvs_available = any((_DAILY_DIR / f"{s}.csv").exists() for s in all_syms)
+        api_quotes: dict = {}
+        if not csvs_available:
+            # GitHub Actions: data/daily/ is gitignored so CSVs aren't checked out.
+            # Fetch previous-close prices from Zerodha quote API instead.
+            api_quotes = _fetch_quotes(all_syms)
+
         rows           = []
         oversold_syms  = []
         near_syms      = []        # W%%R between -60 and -80 (watch zone)
 
         for sym in all_syms:
             csv_path = _DAILY_DIR / f"{sym}.csv"
-            wr    = _calc_wr(csv_path, period=wr_period) if csv_path.exists() else None
-            close = _prev_close(csv_path)                if csv_path.exists() else None
+            if csv_path.exists():
+                wr    = _calc_wr(csv_path, period=wr_period)
+                close = _prev_close(csv_path)
+            else:
+                # No local CSV — use API price; W%R unavailable without history
+                wr    = None
+                close = api_quotes.get(sym)
 
             if wr is not None and wr <= wr_thresh:
                 status    = "🔴 OVERSOLD"

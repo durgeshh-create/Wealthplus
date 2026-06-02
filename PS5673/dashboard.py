@@ -130,20 +130,29 @@ def send_daily_summary(backend: dict):
                 positions = portfolio.get_positions() if hasattr(portfolio, "get_positions") else []
                 holdings  = portfolio.get_holdings()  if hasattr(portfolio, "get_holdings")  else []
 
+                # Only report symbols defined in settings — skip unmanaged demat holdings (e.g. NIFTYBEES)
+                system_symbols = set(Config.get_active_etfs()) | set(Config.get_bnh_symbols()) | {"LIQUIDCASE"}
+
                 total_pnl = 0.0
                 trade_lines = []
+                seen_symbols: set = set()   # guard against double-counting across positions + holdings
 
                 for pos in (positions or []):
                     sym = pos.get("tradingsymbol", pos.get("symbol", "?"))
+                    if sym not in system_symbols:
+                        continue   # skip ETFs held in demat but not managed by this bot
                     pnl = float(pos.get("pnl", pos.get("unrealised", 0)))
                     qty = pos.get("quantity", pos.get("net_quantity", 0))
                     total_pnl += pnl
                     if qty != 0:
                         icon = "🟢" if pnl >= 0 else "🔴"
                         trade_lines.append(f"  {icon} {sym}: qty={qty}, P&L=₹{pnl:+.2f}")
+                    seen_symbols.add(sym)
 
                 for h in (holdings or []):
                     sym = h.get("tradingsymbol", h.get("symbol", "?"))
+                    if sym not in system_symbols or sym in seen_symbols:
+                        continue   # skip unmanaged ETFs and symbols already counted from positions
                     pnl = float(h.get("pnl", h.get("unrealised", 0)))
                     qty = h.get("quantity", 0)
                     total_pnl += pnl

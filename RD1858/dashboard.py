@@ -110,17 +110,91 @@ def _ist_now() -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
+def send_daily_summary(backend: dict):
+    """
+    Build and send a Telegram end-of-day P&L summary.
+    Called at 3:28 PM IST — 2 minutes before shutdown.
+    Only reports symbols managed by this bot (active_etfs + bnh_symbols + LIQUIDCASE).
+    Never raises — a failed summary must not affect shutdown.
+    """
+    try:
+        lines = [
+            f"📊 <b>WealthAlgo RD1858 — Daily Summary</b>",
+            f"📅 {_ist_now()}",
+            f"{'─' * 30}",
+        ]
+
+        try:
+            portfolio = backend.get("portfolio")
+            if portfolio:
+                positions = portfolio.get_positions() if hasattr(portfolio, "get_positions") else []
+                holdings  = portfolio.get_holdings()  if hasattr(portfolio, "get_holdings")  else []
+
+                # Only report symbols defined in settings — skip unmanaged demat holdings (e.g. NIFTYBEES)
+                system_symbols = set(Config.get_active_etfs()) | set(Config.get_bnh_symbols()) | {"LIQUIDCASE"}
+
+                total_pnl = 0.0
+                trade_lines = []
+                seen_symbols: set = set()   # guard against double-counting across positions + holdings
+
+                for pos in (positions or []):
+                    sym = pos.get("tradingsymbol", pos.get("symbol", "?"))
+                    if sym not in system_symbols:
+                        continue   # skip ETFs held in demat but not managed by this bot
+                    pnl = float(pos.get("pnl", pos.get("unrealised", 0)))
+                    qty = pos.get("quantity", pos.get("net_quantity", 0))
+                    total_pnl += pnl
+                    if qty != 0:
+                        icon = "🟢" if pnl >= 0 else "🔴"
+                        trade_lines.append(f"  {icon} {sym}: qty={qty}, P&L=₹{pnl:+.2f}")
+                    seen_symbols.add(sym)
+
+                for h in (holdings or []):
+                    sym = h.get("tradingsymbol", h.get("symbol", "?"))
+                    if sym not in system_symbols or sym in seen_symbols:
+                        continue   # skip unmanaged ETFs and symbols already counted from positions
+                    pnl = float(h.get("pnl", h.get("unrealised", 0)))
+                    qty = h.get("quantity", 0)
+                    total_pnl += pnl
+                    if qty != 0:
+                        icon = "🟢" if pnl >= 0 else "🔴"
+                        trade_lines.append(f"  {icon} {sym}: qty={qty}, P&L=₹{pnl:+.2f}")
+
+                if trade_lines:
+                    lines.append("💼 <b>Positions today:</b>")
+                    lines.extend(trade_lines)
+                    lines.append(f"{'─' * 30}")
+                else:
+                    lines.append("💼 No open positions today")
+
+                pnl_icon = "🟢" if total_pnl >= 0 else "🔴"
+                lines.append(f"{pnl_icon} <b>Total P&amp;L: ₹{total_pnl:+.2f}</b>")
+        except Exception as _e:
+            lines.append(f"⚠️ Portfolio data unavailable: {_e}")
+
+        lines.append(f"{'─' * 30}")
+        lines.append(f"⏹️ Bot shutting down at 3:30 PM IST")
+        lines.append(f"🔁 Restarts automatically tomorrow at 9:00 AM IST")
+
+        telegram_notify("\n".join(lines))
+        logger.info("📊 Daily P&L summary sent to Telegram")
+
+    except Exception as e:
+        logger.warning(f"Daily summary failed (non-fatal): {e}")
+
+
 def market_close_watchdog(backend: dict):
     """
     Cloud-only background watchdog — shuts the process down cleanly at
     SHUTDOWN_HOUR_IST:SHUTDOWN_MINUTE_IST IST every day.
 
     Steps:
-      1. Send Telegram shutdown notification.
-      2. Stop the trading loop.
-      3. Stop the realtime data feed.
-      4. Send SIGINT to main thread (same as Ctrl+C → clean Flask exit).
-      5. Hard-exit fallback after 60s if Flask doesn't respond.
+      1. Send Telegram daily P&L summary at 3:28 PM.
+      2. Send Telegram shutdown notification.
+      3. Stop the trading loop.
+      4. Stop the realtime data feed.
+      5. Send SIGINT to main thread (same as Ctrl+C → clean Flask exit).
+      6. Hard-exit fallback after 60s if Flask doesn't respond.
 
     Only starts when IS_CLOUD is True. Never fires on local PC.
     """
@@ -132,8 +206,17 @@ def market_close_watchdog(backend: dict):
         f"auto-shutdown at {SHUTDOWN_HOUR_IST:02d}:{SHUTDOWN_MINUTE_IST:02d} IST"
     )
 
+    summary_sent = False   # send only once per day
+
     while True:
         now_ist = datetime.now(IST)
+
+        # ── Daily P&L summary at 3:28 PM IST (2 min before shutdown) ─────────
+        if (not summary_sent and
+                now_ist.hour == 15 and now_ist.minute >= 28):
+            logger.info("📊 Sending daily P&L summary to Telegram...")
+            send_daily_summary(backend)
+            summary_sent = True
 
         if (now_ist.hour > SHUTDOWN_HOUR_IST or
                 (now_ist.hour == SHUTDOWN_HOUR_IST and
