@@ -31,9 +31,16 @@ SCHEDULED EXECUTION:
 import json
 import threading
 from collections import defaultdict
-from datetime import datetime, timedelta, time as dtime
+from datetime import datetime, timedelta, time as dtime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
+
+# GitHub Actions runners use UTC — all market-hours comparisons must use IST
+_IST = timezone(timedelta(hours=5, minutes=30))
+
+def _now_ist() -> datetime:
+    """Return current datetime in IST (works correctly on both local PC and GitHub Actions)."""
+    return datetime.now(_IST).replace(tzinfo=None)  # naive IST for drop-in replacement
 
 from backend.core.config import Config
 from backend.core.constants import (
@@ -115,7 +122,7 @@ class SignalGenerator:
     # ── Daily session reset ───────────────────────────────────────────────────
 
     def _reset_daily_if_needed(self):
-        today = datetime.now().date()
+        today = _now_ist().date()
         with self._lock:
             if self._session_date != today:
                 self._session_date = today
@@ -199,7 +206,7 @@ class SignalGenerator:
 
         # Clean stale execution locks
         stale = [s for s, info in self.executing_symbols.items()
-                 if datetime.now() - info['timestamp'] > timedelta(seconds=60)]
+                 if _now_ist() - info['timestamp'] > timedelta(seconds=60)]
         for s in stale:
             del self.executing_symbols[s]
             logger.warning(f"⚠️ Removed stale lock: {s}")
@@ -259,7 +266,7 @@ class SignalGenerator:
                 'status':     get_signal_status(williams_r, threshold=wr_threshold),
                 'buy_ready':  buy_signal,
                 'sell_ready': sell_signal,
-                'timestamp':  datetime.now(),
+                'timestamp':  _now_ist(),
             }
         except Exception as e:
             logger.error(f"Error generating signal for {symbol}: {e}")
@@ -400,7 +407,7 @@ class SignalGenerator:
 
         # Within post-buy cooldown (5 min after a confirmed buy)
         if symbol in self.recently_bought:
-            elapsed = (datetime.now() - self.recently_bought[symbol]).total_seconds()
+            elapsed = (_now_ist() - self.recently_bought[symbol]).total_seconds()
             if elapsed < 300:
                 logger.debug(
                     f"Skip {symbol}: within post-buy cooldown ({elapsed:.0f}s / 300s)"
@@ -420,7 +427,7 @@ class SignalGenerator:
     def _check_sell_signal(self, symbol: str, current_price: float) -> bool:
         # Cooldown: don't re-signal within 10s of last signal (prevents duplicate orders)
         if symbol in self.recently_sold:
-            if datetime.now() - self.recently_sold[symbol] < timedelta(seconds=10):
+            if _now_ist() - self.recently_sold[symbol] < timedelta(seconds=10):
                 return False
             del self.recently_sold[symbol]
 
@@ -445,7 +452,7 @@ class SignalGenerator:
                 f"LTP=₹{current_price:.2f} Avg=₹{avg_price:.2f} "
                 f"Profit={profit_pct:.2f}% (Target={target}%)"
             )
-            self.recently_sold[symbol] = datetime.now()
+            self.recently_sold[symbol] = _now_ist()
             return True
 
         logger.debug(f"No sell signal {symbol}: profit={profit_pct:.2f}% < target={target}%")
@@ -457,7 +464,7 @@ class SignalGenerator:
         bypassing the scheduled execution time gate.
         Used by the 'Trade All Now' button in the Controls tab.
         """
-        now = datetime.now()
+        now = _now_ist()
         forced = []
         # Get fresh signals (re-evaluates W%R etc.)
         all_signals = self.generate_signals()
@@ -487,7 +494,7 @@ class SignalGenerator:
             return
         # Don't re-queue within 5 minutes of a buy firing (execution cooldown)
         if symbol in self.recently_bought:
-            elapsed = (datetime.now() - self.recently_bought[symbol]).total_seconds()
+            elapsed = (_now_ist() - self.recently_bought[symbol]).total_seconds()
             if elapsed < 300:
                 logger.debug(
                     f"Skip re-queue {symbol}: bought {elapsed:.0f}s ago "
@@ -503,7 +510,7 @@ class SignalGenerator:
         self.pending_buys[symbol] = {
             'scheduled_time': exec_time,   # None signals no time gate
             'signal':         signal,
-            'queued_at':      datetime.now(),
+            'queued_at':      _now_ist(),
         }
         if exec_time is None:
             logger.info(
@@ -517,7 +524,22 @@ class SignalGenerator:
             )
 
     def get_due_buys(self) -> List[dict]:
-        now = datetime.now()
+        now = _now_ist()
+
+        # ── Market-hours guard ────────────────────────────────────────────────
+        # NSE trading hours: 09:15–15:30 IST.  Block ALL order execution outside
+        # this window — prevents AMO rejections when GitHub Actions runner starts
+        # before market open (runner clock is UTC; _now_ist() corrects this).
+        _MARKET_OPEN  = dtime(9, 15)
+        _MARKET_CLOSE = dtime(15, 25)   # 5-min buffer before 15:30 hard close
+        if not (_MARKET_OPEN <= now.time() <= _MARKET_CLOSE):
+            logger.debug(
+                f"⏸ Outside market hours ({now.strftime('%H:%M IST')}) "
+                f"— holding {len(self.pending_buys)} pending buy(s)"
+            )
+            return []
+        # ─────────────────────────────────────────────────────────────────────
+
         due, remove = [], []
         for symbol, entry in self.pending_buys.items():
             sched = entry['scheduled_time']   # None = anytime, dtime = scheduled
@@ -545,7 +567,7 @@ class SignalGenerator:
 
     def expire_stale_pending_buys(self):
         stale = []
-        now = datetime.now()
+        now = _now_ist()
         for symbol, entry in self.pending_buys.items():
             sched = entry['scheduled_time']
             if sched is None:
@@ -561,7 +583,7 @@ class SignalGenerator:
 
     def lock_symbol_for_execution(self, symbol: str, signal_type: str):
         self.executing_symbols[symbol] = {
-            'type': signal_type, 'timestamp': datetime.now()
+            'type': signal_type, 'timestamp': _now_ist()
         }
 
     def unlock_symbol(self, symbol: str, success: bool = False):
@@ -576,7 +598,7 @@ class SignalGenerator:
             self.executing_symbols.pop(symbol)
         if success:
             # Order placed — set cooldown NOW (was not pre-set; only set after confirmed execution)
-            self.recently_bought[symbol] = datetime.now()
+            self.recently_bought[symbol] = _now_ist()
         else:
             # Failed execution — clear guards so next cycle can retry
             if symbol in self.recently_bought:
@@ -601,7 +623,7 @@ class SignalGenerator:
             if symbol in self.executing_symbols:
                 continue
             if symbol in self.recently_bought:
-                elapsed = (datetime.now() - self.recently_bought[symbol]).total_seconds()
+                elapsed = (_now_ist() - self.recently_bought[symbol]).total_seconds()
                 if elapsed < 300:
                     continue
             try:
@@ -634,7 +656,7 @@ class SignalGenerator:
                         'williams_r': williams_r,
                         'price':      live_price,
                         'prev_close': prev_close,
-                        'timestamp':  datetime.now(),
+                        'timestamp':  _now_ist(),
                     }
                     # NOTE: Do NOT set recently_bought here — that must only happen
                     # after the order is successfully placed (executor handles it).
@@ -669,7 +691,7 @@ class SignalGenerator:
                         'symbol':    symbol,
                         'signal':    SIGNAL_SELL,
                         'price':     live_price,
-                        'timestamp': datetime.now(),
+                        'timestamp': _now_ist(),
                     })
             except Exception as e:
                 logger.error(f"get_sell_signals_direct error for {symbol}: {e}")
