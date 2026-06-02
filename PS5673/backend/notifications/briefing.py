@@ -207,13 +207,15 @@ def send_premarket_briefing():
             )
             return
 
-        # Check if local CSVs exist for at least one symbol — if not, fall back to API
-        csvs_available = any((_DAILY_DIR / f"{s}.csv").exists() for s in all_syms)
+        # Identify symbols that have no local CSV — fetch those from the API.
+        # Even if some CSVs exist, symbols without a file still need an API fallback
+        # (e.g. newly-added symbols, or gitignored data/ folder on first run).
+        syms_missing_csv = [s for s in all_syms if not (_DAILY_DIR / f"{s}.csv").exists()]
         api_quotes: dict = {}
-        if not csvs_available:
+        if syms_missing_csv:
             # GitHub Actions: data/daily/ is gitignored so CSVs aren't checked out.
-            # Fetch previous-close prices from Zerodha quote API instead.
-            api_quotes = _fetch_quotes(all_syms)
+            # Fetch previous-close prices from Zerodha quote API for missing symbols.
+            api_quotes = _fetch_quotes(syms_missing_csv)
 
         rows           = []
         oversold_syms  = []

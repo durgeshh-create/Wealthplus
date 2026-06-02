@@ -211,7 +211,7 @@ class SignalGenerator:
             del self.executing_symbols[s]
             logger.warning(f"⚠️ Removed stale lock: {s}")
 
-        for symbol in Config.get_active_etfs():
+        for symbol in Config.get_all_monitored_symbols():
             if symbol == LIQUIDCASE_SYMBOL:
                 continue
             if symbol in self.executing_symbols:
@@ -617,7 +617,7 @@ class SignalGenerator:
         Standard slot/cooldown/cash guards still apply.
         """
         buy_signals = []
-        for symbol in Config.get_active_etfs():
+        for symbol in Config.get_all_monitored_symbols():
             if symbol == LIQUIDCASE_SYMBOL:
                 continue
             if symbol in self.executing_symbols:
@@ -676,7 +676,7 @@ class SignalGenerator:
         profit target is never silently skipped due to a missing W%R value.
         """
         sell_signals = []
-        for symbol in Config.get_active_etfs():
+        for symbol in Config.get_all_monitored_symbols():
             if symbol == LIQUIDCASE_SYMBOL:
                 continue
             if symbol in self.executing_symbols:
