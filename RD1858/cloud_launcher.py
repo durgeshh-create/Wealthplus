@@ -9,10 +9,10 @@ Usage (GitHub Actions):
     python cloud_launcher.py
 
 Environment variables (set as GitHub Secrets):
-    KITE_USER_ID        — Zerodha user ID  (e.g. PS5673)
+    KITE_USER_ID        — Zerodha user ID  (e.g. RD1858)
     KITE_PASSWORD       — Kite login password
     KITE_TOTP_SECRET    — TOTP secret key from your 2FA setup (base32, no spaces)
-    BOT_PORT            — Flask port (5001 for PS5673)
+    BOT_PORT            — Flask port (5000 for RD1858)
     TELEGRAM_BOT_TOKEN  — Telegram bot token for notifications
     TELEGRAM_CHAT_ID    — Your Telegram chat ID
 
@@ -42,7 +42,7 @@ except ImportError:
     sys.exit(1)
 
 
-# ── Config ────────────────────────────────────────────────────────────────────
+# ── Config ────────────────────────────────────────────────────────────[...]
 
 USER_ID     = os.environ.get("KITE_USER_ID", "").strip()
 PASSWORD    = os.environ.get("KITE_PASSWORD", "").strip()
@@ -54,7 +54,7 @@ ENCTOKEN_FILE  = CONFIG_DIR / "enctoken.json"
 SCREENSHOT_DIR = Path("/tmp")
 
 
-# ── Telegram notifications ────────────────────────────────────────────────────
+# ── Telegram notifications ────────────────────────────────────────────────
 
 def telegram_notify(message: str):
     """Send a Telegram message. Never raises."""
@@ -80,7 +80,7 @@ def telegram_notify(message: str):
         pass
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Helpers ─────────────────────────────────────────────────────────────[...]
 
 def validate_env():
     missing = [k for k, v in {
@@ -142,7 +142,7 @@ def try_selector(page, selectors: list, timeout: int = 5000):
     return None
 
 
-# ── Playwright login ──────────────────────────────────────────────────────────
+# ── Playwright login ────────────────────────────────────────────────────────–[...]
 
 def login_to_kite() -> str:
     print("\n[1/4] Launching headless Chrome → kite.zerodha.com ...")
@@ -263,7 +263,7 @@ def start_briefing_thread():
         print(f"  ⚠️  Could not start briefing thread: {e}")
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+# ── Main ────────────────────────────────────────────────────────────–[...]
 
 def main():
     validate_env()
@@ -373,7 +373,7 @@ def main():
         )
         shutdown_env_time = "12:35"
         restart_cutoff_hour = 12
-        restart_cutoff_minute = 25
+        restart_cutoff_minute = 30  # ✅ FIXED: was 25, now 30 to match 12:30 PM cutoff
 
     print(f"\n✅ Authentication complete — launching {bot_script.name} on port {BOT_PORT}...\n")
     print("=" * 60)
