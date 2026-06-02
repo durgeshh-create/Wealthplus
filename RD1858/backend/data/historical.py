@@ -38,8 +38,29 @@ class HistoricalDataManager:
         
         logger.info(f"Loading data for {len(symbols_to_load)} symbols: {chr(39)}{chr(39).join(symbols_to_load)}{chr(39)}")
         
-        # Pre-fetch instrument tokens in background — avoids blocking startup
-        # when Zerodha's instrument endpoint is slow or outside market hours.
+        # ── Pre-load tokens from saved cache ─────────────────────────────────
+        # instrument_tokens.json is committed to the repo and always available on
+        # GitHub Actions — use it immediately so bootstrap never blocks on a slow
+        # live API fetch.  The live fetch below will overwrite with fresher tokens
+        # if the API responds within the timeout window.
+        _token_cache_path = Path(__file__).resolve().parent.parent.parent / 'config' / 'instrument_tokens.json'
+        try:
+            import json as _json
+            _cache = _json.loads(_token_cache_path.read_text())
+            for token_id, info in _cache.get('instrument_tokens', {}).items():
+                sym = info.get('symbol', '')
+                if sym and sym in symbols_to_load:
+                    self._instrument_tokens[sym] = token_id
+            if self._instrument_tokens:
+                logger.info(
+                    f"✓ Pre-loaded {len(self._instrument_tokens)} instrument tokens "
+                    f"from saved cache ({_token_cache_path.name})"
+                )
+        except Exception as _e:
+            logger.debug(f"Could not pre-load token cache: {_e}")
+
+        # Pre-fetch instrument tokens in background — updates tokens with live values
+        # and catches any symbols missing from the saved cache.
         if self.auth_manager:
             import threading
             t = threading.Thread(target=self._fetch_instrument_tokens, daemon=True,
@@ -151,7 +172,12 @@ class HistoricalDataManager:
         if df is None or len(df) == 0:
             return True
         last_date = df['timestamp'].max().date()
-        today = datetime.now().date()
+        # Use IST — GitHub Actions runners clock is UTC; using UTC here would
+        # cause incorrect staleness checks (e.g. treating Friday as 2+ days stale
+        # on Monday morning UTC when it is already Monday IST).
+        from datetime import timezone
+        _IST = timezone(timedelta(hours=5, minutes=30))
+        today = datetime.now(_IST).date()
         return (today - last_date).days >= 2
     
     def _refresh_if_stale(self, symbol: str, df: pd.DataFrame) -> pd.DataFrame:
@@ -172,7 +198,7 @@ class HistoricalDataManager:
         
         try:
             last_date = df['timestamp'].max().date()
-            today = datetime.now().date()
+            from datetime import timezone as _tz; _IST = _tz(timedelta(hours=5, minutes=30)); today = datetime.now(_IST).date()
             # Fetch from the day after the last bar up to yesterday (today = live data)
             fetch_from = last_date + timedelta(days=1)
             fetch_to = today - timedelta(days=1)
@@ -251,7 +277,7 @@ class HistoricalDataManager:
             )
             
             # Return combined but filtered to exclude today (live covers today)
-            today = datetime.now().date()
+            from datetime import timezone as _tz; _IST = _tz(timedelta(hours=5, minutes=30)); today = datetime.now(_IST).date()
             combined = combined[combined['timestamp'].dt.date < today].reset_index(drop=True)
             return combined
         
@@ -277,7 +303,7 @@ class HistoricalDataManager:
             return None
 
         try:
-            today = datetime.now().date()
+            from datetime import timezone as _tz; _IST = _tz(timedelta(hours=5, minutes=30)); today = datetime.now(_IST).date()
             fetch_from = today - timedelta(days=400)   # ~1 year + buffer
             fetch_to   = today - timedelta(days=1)     # exclude today (live covers today)
 
@@ -381,7 +407,7 @@ class HistoricalDataManager:
             df['timestamp'] = pd.to_datetime(df['timestamp'])
             
             # Filter out today's data (we'll use live data for today)
-            today = datetime.now().date()
+            from datetime import timezone as _tz; _IST = _tz(timedelta(hours=5, minutes=30)); today = datetime.now(_IST).date()
             df = df[df['timestamp'].dt.date < today]
             
             # Sort by timestamp
