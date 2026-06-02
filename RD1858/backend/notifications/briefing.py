@@ -4,11 +4,11 @@ WealthAlgo Morning Briefing
 Runs in a background thread inside cloud_launcher.py.
 
 Timeline (all IST):
-  09:05 — Pre-market briefing: watchlist + yesterday's close + W%%R readings
-  09:16 — Opening prices: live quotes fetched via Zerodha REST after market opens
-  11:00 — Heartbeat ping: mid-morning alive check
-  13:30 — Heartbeat ping: afternoon alive check (post session-handover)
-  15:32 — End-of-day summary: trades done today, positions held, cash deployed
+   09:05 — Pre-market briefing: watchlist + yesterday's close + W%%R readings
+   09:16 — Opening prices: live quotes fetched via Zerodha REST after market opens
+   11:00 — Heartbeat ping: mid-morning alive check
+   13:30 — Heartbeat ping: afternoon alive check (post session-handover)
+   15:32 — End-of-day summary: trades done today, positions held, cash deployed
 
 The thread is started BEFORE dashboard.py is launched so it's alive for the
 full session.  It never raises — any error is silently logged to stdout.
@@ -35,7 +35,7 @@ _DAILY_DIR   = _BOT_DIR / "data" / "daily"
 ZERODHA_API  = "https://kite.zerodha.com"
 
 
-# ── helpers ───────────────────────────────────────────────────────────────────
+# ── helpers ───────────────────────────────────────────────────────────[...]
 
 def _account() -> str:
     return os.environ.get("KITE_USER_ID", "BOT").strip()
@@ -151,7 +151,7 @@ def _prev_close(csv_path: Path) -> Optional[float]:
         return None
 
 
-# ── Zerodha quote fetch (fallback when local CSVs are absent) ─────────────────
+# ── Zerodha quote fetch (primary source) ──────────────────────────────────────
 
 def _fetch_quotes(symbols: list) -> dict:
     """
@@ -181,8 +181,44 @@ def _fetch_quotes(symbols: list) -> dict:
             if prev_close:
                 result[sym] = float(prev_close)
         return result
-    except Exception:
+    except Exception as e:
+        print(f"[briefing] ⚠️ API fetch failed: {e}", flush=True)
         return {}
+
+
+# ── Kite web scrape fallback (for GitHub Actions) ────────────────────────────
+
+def _scrape_kite_price(symbol: str) -> Optional[float]:
+    """
+    Last-resort fallback: scrape Kite's quote page for a single symbol.
+    Returns the LTP (last traded price) if scrape succeeds.
+    This is slow but works without authentication.
+    """
+    try:
+        import re
+        url = f"{ZERODHA_API}/quote/{symbol}"
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+        )
+        resp = urllib.request.urlopen(req, timeout=8)
+        html = resp.read().decode('utf-8', errors='ignore')
+        
+        # Try to extract LTP from the HTML (pattern: "lastPrice":"123.45")
+        match = re.search(r'"lastPrice"\s*:\s*([0-9.]+)', html)
+        if match:
+            return float(match.group(1))
+        
+        # Fallback pattern: look for price in data attributes
+        match = re.search(r'data-value="([0-9.]+)".*?ltp', html)
+        if match:
+            return float(match.group(1))
+            
+        return None
+    except Exception:
+        return None
 
 
 # ── 09:05 Pre-market briefing ─────────────────────────────────────────────────
@@ -208,14 +244,20 @@ def send_premarket_briefing():
             return
 
         # Identify symbols that have no local CSV — fetch those from the API.
-        # Even if some CSVs exist, symbols without a file still need an API fallback
-        # (e.g. newly-added symbols, or gitignored data/ folder on first run).
         syms_missing_csv = [s for s in all_syms if not (_DAILY_DIR / f"{s}.csv").exists()]
         api_quotes: dict = {}
         if syms_missing_csv:
-            # GitHub Actions: data/daily/ is gitignored so CSVs aren't checked out.
-            # Fetch previous-close prices from Zerodha quote API for missing symbols.
+            # Try Zerodha API first (GitHub Actions: data/daily/ is gitignored)
             api_quotes = _fetch_quotes(syms_missing_csv)
+            
+            # ✅ NEW: For any symbols still missing, scrape Kite web page
+            still_missing = [s for s in syms_missing_csv if s not in api_quotes]
+            if still_missing:
+                print(f"[briefing] Falling back to web scrape for {still_missing}", flush=True)
+                for sym in still_missing:
+                    price = _scrape_kite_price(sym)
+                    if price:
+                        api_quotes[sym] = price
 
         rows           = []
         oversold_syms  = []
@@ -227,7 +269,7 @@ def send_premarket_briefing():
                 wr    = _calc_wr(csv_path, period=wr_period)
                 close = _prev_close(csv_path)
             else:
-                # No local CSV — use API price; W%R unavailable without history
+                # No local CSV — use API/scrape price; W%R unavailable without history
                 wr    = None
                 close = api_quotes.get(sym)
 
@@ -240,7 +282,7 @@ def send_premarket_briefing():
             elif wr is not None:
                 status    = "⚪ Neutral"
             else:
-                status    = "❓ No data"
+                status    = "❓ No data" if close is None else "⏳ Loading..."
 
             wr_str    = f"{wr:.1f}" if wr is not None else "N/A"
             close_str = f"₹{close:,.2f}" if close else "N/A"
@@ -359,7 +401,7 @@ def send_opening_prices():
 
 
 
-# ── Heartbeat pings ───────────────────────────────────────────────────────────
+# ── Heartbeat pings ────────────────────────────────────────────────────────[...]
 
 def send_heartbeat(label: str):
     """Send a brief 'still alive' ping at scheduled intervals."""
@@ -453,7 +495,7 @@ def send_eod_summary():
         print(f"[briefing] ⚠️ EOD summary failed: {e}", flush=True)
 
 
-# ── Main thread entry ─────────────────────────────────────────────────────────
+# ── Main thread entry ────────────────────────────────────────────────────────[...]
 
 def run_briefing_thread():
     """
