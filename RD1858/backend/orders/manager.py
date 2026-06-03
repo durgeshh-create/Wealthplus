@@ -439,9 +439,38 @@ class OrderManager:
 
         logger.info(f"✓ LIQUIDCASE sell complete: {liq_to_sell} units @ ₹{liq_price:.2f}")
 
-        # Now buy the ETF
+        # ── Wait for Zerodha to credit sale proceeds into available cash ──────
+        # Zerodha does NOT update available margin instantly after a CNC sell.
+        # Placing the ETF buy too quickly causes "Insufficient funds" even though
+        # the LIQUIDCASE was sold successfully.  Poll until cash reflects the
+        # proceeds (up to 15s), then add a small safety buffer before buying.
         import time as _time
-        _time.sleep(1)   # brief pause to let funds settle
+        expected_cash_floor = avail_cash + (liq_to_sell * liq_price * 0.95)  # 95% to account for slippage
+        _poll_wait  = 0
+        _poll_limit = 15  # max seconds to wait
+        while _poll_wait < _poll_limit:
+            _time.sleep(1)
+            _poll_wait += 1
+            try:
+                refreshed_cash = self.get_available_cash()
+                logger.debug(
+                    f"[smart_buy] Margin poll {_poll_wait}/{_poll_limit}: "
+                    f"cash=₹{refreshed_cash:,.2f} (need ≥ ₹{expected_cash_floor:,.2f})"
+                )
+                if refreshed_cash >= expected_cash_floor:
+                    logger.info(
+                        f"✅ Margin updated after {_poll_wait}s: "
+                        f"₹{refreshed_cash:,.2f} ≥ ₹{expected_cash_floor:,.2f} — proceeding to buy"
+                    )
+                    break
+            except Exception:
+                pass  # margin API hiccup — keep waiting
+        else:
+            logger.warning(
+                f"⚠️ Margin did not update within {_poll_limit}s — proceeding anyway "
+                f"(Zerodha may still accept the order)"
+            )
+        # ─────────────────────────────────────────────────────────────────────
 
         buy_oid, buy_msg = self.place_order(
             buy_symbol, 'BUY', buy_quantity,
