@@ -317,23 +317,23 @@ class StrategyExecutor:
                 if '403' in err_str or 'access_token' in err_str.lower() or 'api_key' in err_str.lower():
                     logger.critical(
                         f"🔐 AUTH FAILURE detected during BUY {symbol} — "
-                        f"blocking all retries this session. Token must be refreshed."
+                        f"signalling launcher to re-authenticate (exit 2)."
                     )
-                    # Latch the symbol without clearing _attempted_today
                     self.signal_generator.executing_symbols.pop(symbol, None)
                     self.signal_generator._attempted_today.add(symbol)
-                    # Send Telegram alert once
                     if _TELEGRAM_OK:
                         try:
                             from backend.utils.telegram import _send as _tg_send
                             from backend.core.config import Config as _Cfg
                             _tg_send(
                                 f"🔐 <b>WealthAlgo {_Cfg.USER_ID if hasattr(_Cfg, 'USER_ID') else ''} — AUTH ERROR</b>\n"
-                                f"❌ Zerodha 403: access_token expired or invalid.\n"
-                                f"⚠️ All BUY orders blocked. Token refresh required."
+                                f"❌ Zerodha 403: access_token expired.\n"
+                                f"🔄 Bot will re-authenticate and resume automatically."
                             )
                         except Exception:
                             pass
+                    import sys as _sys
+                    _sys.exit(2)   # exit code 2 = auth failure → launcher re-logins
                 else:
                     self.signal_generator.unlock_symbol(symbol, success=False)
             return False
@@ -484,7 +484,7 @@ class StrategyExecutor:
                 if '403' in err_str or 'access_token' in err_str.lower() or 'api_key' in err_str.lower():
                     logger.critical(
                         f"🔐 AUTH FAILURE detected during SELL {symbol} — "
-                        f"blocking retries this session. Token must be refreshed."
+                        f"signalling launcher to re-authenticate (exit 2)."
                     )
                     self.signal_generator.executing_symbols.pop(symbol, None)
                     if _TELEGRAM_OK:
@@ -493,11 +493,13 @@ class StrategyExecutor:
                             from backend.core.config import Config as _Cfg
                             _tg_send(
                                 f"🔐 <b>WealthAlgo — AUTH ERROR (SELL)</b>\n"
-                                f"❌ Zerodha 403: access_token expired or invalid.\n"
-                                f"⚠️ SELL for {symbol} blocked. Token refresh required."
+                                f"❌ Zerodha 403: access_token expired.\n"
+                                f"🔄 Bot will re-authenticate and resume automatically."
                             )
                         except Exception:
                             pass
+                    import sys as _sys
+                    _sys.exit(2)   # exit code 2 = auth failure → launcher re-logins
                 else:
                     self.signal_generator.unlock_symbol(symbol)
             return False
