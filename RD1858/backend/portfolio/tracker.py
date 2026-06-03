@@ -33,19 +33,19 @@ class PortfolioTracker:
         Returns:
             True if sync successful, False otherwise
         """
-        logger.info("Syncing portfolio with Zerodha...")
+        logger.debug("Syncing portfolio with Zerodha...")
         
         try:
             # Fetch holdings
             holdings = self._fetch_holdings()
             if holdings is None:
-                logger.error("Failed to fetch holdings")
+                logger.debug("Failed to fetch holdings — retaining cached state")
                 return False
             
             # Fetch positions
             positions = self._fetch_positions()
             if positions is None:
-                logger.error("Failed to fetch positions")
+                logger.debug("Failed to fetch positions — retaining cached state")
                 return False
             
             # Update state
