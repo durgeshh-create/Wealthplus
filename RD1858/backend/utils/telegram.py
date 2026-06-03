@@ -17,7 +17,7 @@ IST = timezone(timedelta(hours=5, minutes=30))
 
 
 def _now_ist() -> str:
-    return datetime.now(IST).strftime("%H:%M IST")
+    return datetime.now(IST).strftime("%H:%M:%S IST")
 
 
 def _account() -> str:
@@ -35,10 +35,11 @@ import time as _time
 _last_sent: dict = {}   # text_hash → timestamp
 _DEDUP_WINDOW = 60      # seconds
 
-def send_message(text: str, parse_mode: str = "HTML") -> bool:
+def send_message(text: str, parse_mode: str = "HTML", _bypass_dedup: bool = False) -> bool:
     """
     Send a plain Telegram message.
     Deduplicates: identical message text is suppressed if sent within 60s.
+    Pass _bypass_dedup=True for trade notifications that must always fire.
     Returns True on success, False otherwise (including duplicate suppression).
     Never raises.
     """
@@ -46,18 +47,19 @@ def send_message(text: str, parse_mode: str = "HTML") -> bool:
     if not token or not chat_id:
         return False
 
-    # Dedup check — use first 120 chars as key to catch repeated signal messages
-    key = text[:120]
-    now = _time.time()
-    if now - _last_sent.get(key, 0) < _DEDUP_WINDOW:
-        return False   # suppressed duplicate
-    _last_sent[key] = now
+    if not _bypass_dedup:
+        # Use full text as dedup key (not just first 120 chars)
+        key = text
+        now = _time.time()
+        if now - _last_sent.get(key, 0) < _DEDUP_WINDOW:
+            return False   # suppressed duplicate
+        _last_sent[key] = now
 
-    # Prune old entries to avoid unbounded growth
-    if len(_last_sent) > 200:
-        cutoff = now - _DEDUP_WINDOW * 2
-        for k in [k for k, t in _last_sent.items() if t < cutoff]:
-            _last_sent.pop(k, None)
+        # Prune old entries to avoid unbounded growth
+        if len(_last_sent) > 200:
+            cutoff = now - _DEDUP_WINDOW * 2
+            for k in [k for k, t in _last_sent.items() if t < cutoff]:
+                _last_sent.pop(k, None)
 
     try:
         payload = json.dumps({
@@ -108,10 +110,7 @@ def notify_buy(
         f"{target_line}\n"
         f"⏱ {_now_ist()}"
     )
-    send_message(msg)
-
-
-def notify_sell(
+    send_message(msg, _bypass_dedup=True)
     symbol:        str,
     qty:           int,
     sell_price:    float,
@@ -147,7 +146,7 @@ def notify_sell(
         f"{pnl_line}\n"
         f"⏱ {_now_ist()}"
     )
-    send_message(msg)
+    send_message(msg, _bypass_dedup=True)
 
 
 def notify_eod_summary(trades_today: list, total_deployed: float, positions_held: list):
@@ -168,4 +167,4 @@ def notify_eod_summary(trades_today: list, total_deployed: float, positions_held
         f"Positions held: {held_str}\n"
         f"⏱ Market closed 15:30 IST"
     )
-    send_message(msg)
+    send_message(msg, _bypass_dedup=True)
