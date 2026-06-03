@@ -185,39 +185,6 @@ def _fetch_quotes(symbols: list) -> dict:
         return {}
 
 
-def _scrape_kite_price(symbol: str) -> Optional[float]:
-    """
-    Last-resort fallback: scrape Kite's quote page for a single symbol.
-    Returns the LTP (last traded price) if scrape succeeds.
-    This is slow but works without authentication.
-    """
-    try:
-        import re
-        url = f"{ZERODHA_API}/quote/{symbol}"
-        req = urllib.request.Request(
-            url,
-            headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            }
-        )
-        resp = urllib.request.urlopen(req, timeout=8)
-        html = resp.read().decode('utf-8', errors='ignore')
-
-        # Try to extract LTP from the HTML (pattern: "lastPrice":"123.45")
-        match = re.search(r'"lastPrice"\s*:\s*([0-9.]+)', html)
-        if match:
-            return float(match.group(1))
-
-        # Fallback pattern: look for price in data attributes
-        match = re.search(r'data-value="([0-9.]+)".*?ltp', html)
-        if match:
-            return float(match.group(1))
-
-        return None
-    except Exception:
-        return None
-
-
 # ── 09:05 Pre-market briefing ─────────────────────────────────────────────────
 
 def send_premarket_briefing():
@@ -250,15 +217,6 @@ def send_premarket_briefing():
             # Fetch previous-close prices from Zerodha quote API for missing symbols.
             api_quotes = _fetch_quotes(syms_missing_csv)
 
-            # For any symbols still missing after API, fall back to Kite web scrape
-            still_missing = [s for s in syms_missing_csv if s not in api_quotes]
-            if still_missing:
-                print(f"[briefing] Falling back to web scrape for {still_missing}", flush=True)
-                for sym in still_missing:
-                    price = _scrape_kite_price(sym)
-                    if price:
-                        api_quotes[sym] = price
-
         rows           = []
         oversold_syms  = []
         near_syms      = []        # W%%R between -60 and -80 (watch zone)
@@ -273,22 +231,32 @@ def send_premarket_briefing():
                 wr    = None
                 close = api_quotes.get(sym)
 
+            # Skip symbols where we have no data at all — don't show N/A rows
+            if wr is None and not close:
+                continue
+
             if wr is not None and wr <= wr_thresh:
-                status    = "🔴 OVERSOLD"
+                status = "🔴 OVERSOLD"
                 oversold_syms.append(sym)
             elif wr is not None and wr <= -60:
-                status    = "🟡 Watch"
+                status = "🟡 Watch"
                 near_syms.append(sym)
             elif wr is not None:
-                status    = "⚪ Neutral"
+                status = "⚪ Neutral"
             else:
-                status    = "❓ No data"
+                status = "⏳ W%%R pending"
 
-            wr_str    = f"{wr:.1f}" if wr is not None else "N/A"
-            close_str = f"₹{close:,.2f}" if close else "N/A"
+            wr_str    = f"{wr:.1f}" if wr is not None else "—"
+            close_str = f"₹{close:,.2f}" if close else "—"
             rows.append(f"  <b>{sym}</b>  {close_str}  W%%R {wr_str}  {status}")
 
-        rows_text = "\n".join(rows)
+        data_count  = len(rows)
+        if not rows:
+            print(f"[briefing] ⚠️ No data available for any symbol — briefing suppressed", flush=True)
+            return
+
+        count_label = f"{data_count}/{len(all_syms)}" if data_count < len(all_syms) else str(len(all_syms))
+        rows_text   = "\n".join(rows)
 
         signal_section = ""
         if oversold_syms:
@@ -305,13 +273,13 @@ def send_premarket_briefing():
         msg = (
             f"🌅 <b>WealthAlgo {acct} — Morning Briefing</b>\n"
             f"📅 {date_str} | W%%R period: {wr_period}d | Threshold: {wr_thresh:.0f}\n\n"
-            f"<b>Watchlist ({len(all_syms)} symbols) — yesterday's close:</b>\n"
+            f"<b>Watchlist ({count_label} symbols) — yesterday's close:</b>\n"
             f"{rows_text}"
             f"{signal_section}\n\n"
             f"⏰ Market opens 09:15 IST — opening prices to follow"
         )
         _send(msg)
-        print(f"[briefing] ✅ Pre-market briefing sent ({len(all_syms)} symbols)", flush=True)
+        print(f"[briefing] ✅ Pre-market briefing sent ({data_count}/{len(all_syms)} symbols)", flush=True)
 
     except Exception as e:
         print(f"[briefing] ⚠️ Pre-market briefing failed: {e}", flush=True)
@@ -362,6 +330,10 @@ def send_opening_prices():
             open_p = ohlc.get("open")
             prev_c = ohlc.get("close")   # yesterday's close from Zerodha
 
+            # Skip symbols with no open price — don't show blank rows
+            if not open_p:
+                continue
+
             if open_p and prev_c and prev_c > 0:
                 chg_pct = (open_p - prev_c) / prev_c * 100
                 arrow   = "▲" if chg_pct >= 0 else "▼"
@@ -369,13 +341,14 @@ def send_opening_prices():
                 chg_str = f"{sign}{chg_pct:.2f}%% {arrow}"
                 if abs(chg_pct) >= 1:
                     movers.append((sym, chg_pct, open_p))
-            elif open_p:
-                chg_str = "N/A"
             else:
                 chg_str = "—"
 
-            open_str = f"₹{open_p:,.2f}" if open_p else "N/A"
-            rows.append(f"  <b>{sym}</b>  {open_str}  {chg_str}")
+            rows.append(f"  <b>{sym}</b>  ₹{open_p:,.2f}  {chg_str}")
+
+        if not rows:
+            print(f"[briefing] ⚠️ No opening price data — opening prices message suppressed", flush=True)
+            return
 
         rows_text = "\n".join(rows)
 
