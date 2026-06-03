@@ -313,14 +313,28 @@ class OrderManager:
             live_bal    = float(avail.get('live_balance', 0))
             net_bal     = float(avail.get('cash', 0))
             adhoc_bal   = float(avail.get('adhoc_margin', 0))
-            # live_balance is 0 outside market hours; 'cash' (net) reflects the
-            # full settled balance.  After a CNC intraday sell Zerodha credits
-            # the proceeds into 'adhoc_margin' before live_balance catches up.
-            # Use the maximum across all three fields so we never under-count.
-            cash = max(live_bal, net_bal, adhoc_bal)
+
+            # ── Which field to use ────────────────────────────────────────────
+            # live_balance: real-time spendable cash during market hours.
+            #               Returns 0 before market open (not yet calculated).
+            # cash (net):   Settled balance — reliable outside market hours.
+            # adhoc_margin: Includes collateral/pledged securities. Must NOT be
+            #               used for CNC buy decisions — Zerodha won't let you
+            #               spend collateral margin on fresh delivery purchases.
+            #               It temporarily holds LIQUIDCASE sale proceeds too,
+            #               but using max() here caused us to over-count and
+            #               skip the LIQUIDCASE sell path incorrectly.
+            #
+            # Rule: use live_balance when non-zero (market is open and it has
+            # been calculated), otherwise fall back to net cash.
+            if live_bal > 0:
+                cash = live_bal
+            else:
+                cash = net_bal
+
             logger.debug(
                 f"Available cash: live=₹{live_bal:,.2f} net=₹{net_bal:,.2f} "
-                f"adhoc=₹{adhoc_bal:,.2f} → ₹{cash:,.2f}"
+                f"adhoc=₹{adhoc_bal:,.2f} → using ₹{cash:,.2f}"
             )
             return cash
         except RuntimeError:
