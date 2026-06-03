@@ -71,7 +71,7 @@ class StrategyExecutor:
 
     def _get_slots_count(self) -> int:
         try:
-            return len(Config.get_active_etfs())
+            return len(Config.get_all_monitored_symbols())
         except Exception:
             return Config.SLOTS_COUNT
 
