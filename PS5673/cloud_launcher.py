@@ -119,6 +119,7 @@ def save_enctoken(user_id: str, enctoken: str):
 
 
 def screenshot(page, name: str):
+    """Save a debug screenshot — only call on failures to avoid wasting time."""
     for path, method in [
         (SCREENSHOT_DIR / f"kite_debug_{name}.png",  lambda p: page.screenshot(path=str(p), full_page=True)),
         (SCREENSHOT_DIR / f"kite_debug_{name}.html", lambda p: p.write_text(page.content(), encoding="utf-8")),
@@ -164,7 +165,6 @@ def login_to_kite() -> str:
 
         page.goto("https://kite.zerodha.com", wait_until="domcontentloaded", timeout=30_000)
         page.wait_for_load_state("networkidle", timeout=15_000)
-        screenshot(page, "01_login_page")
 
         # User ID
         uid = try_selector(page, [
@@ -184,7 +184,6 @@ def login_to_kite() -> str:
             screenshot(page, "02_no_password")
             raise RuntimeError("Cannot find password field")
         pwd.fill(PASSWORD)
-        screenshot(page, "02_credentials")
 
         # Submit
         btn = try_selector(page, ['button[type="submit"]', 'button.button-orange', 'button:has-text("Login")'])
@@ -194,7 +193,6 @@ def login_to_kite() -> str:
             page.keyboard.press("Enter")
 
         time.sleep(2)
-        screenshot(page, "03_after_login")
 
         # TOTP
         totp_field = try_selector(page, [
@@ -207,9 +205,7 @@ def login_to_kite() -> str:
                 f"TOTP field not found. URL: {page.url}\n"
                 "Password may be wrong or login was blocked."
             )
-        screenshot(page, "03_totp_page")
         totp_field.fill(generate_totp())
-        screenshot(page, "03_totp_filled")
 
         try:
             s2 = page.locator('button[type="submit"], button.button-orange')
@@ -227,8 +223,6 @@ def login_to_kite() -> str:
                 print("  → On Kite ✅")
             else:
                 page.wait_for_load_state("networkidle", timeout=10_000)
-
-        screenshot(page, "04_post_login")
 
         cookies  = ctx.cookies("https://kite.zerodha.com")
         enctoken = next((c["value"] for c in cookies if c["name"] == "enctoken"), None)
@@ -379,7 +373,7 @@ def main():
     print("=" * 60)
 
     env = {**os.environ, "PORT": BOT_PORT, "SHUTDOWN_TIME_IST": shutdown_env_time}
-    MAX_RESTARTS  = 10   # enough restarts to cover the full session
+    MAX_RESTARTS  = 3
     restart_count = 0
 
     while True:
@@ -389,7 +383,7 @@ def main():
 
         # Dynamic validation check based on the current run segment boundaries
         if now_ist.hour > restart_cutoff_hour or (now_ist.hour == restart_cutoff_hour and now_ist.minute >= restart_cutoff_minute):
-            print(f"\n  ⏰ Past {restart_cutoff_hour}:{restart_cutoff_minute:02d} IST — not restarting bot after exit.")
+            print(f"\n  ⏰ Past {restart_cutoff_hour}:{restart_cutoff_minute} IST — not restarting bot after exit.")
             break
 
         print(f"\n  ▶ Starting bot (attempt {restart_count + 1})...")
@@ -409,35 +403,21 @@ def main():
             break
 
         restart_count += 1
-        now_str_r = datetime.now(IST).strftime('%d %b %Y %H:%M IST')
-
-        # exit code 2 = auth failure signalled by the bot — always re-login
-        auth_failure = (exit_code == 2)
-
-        if auth_failure:
-            print(f"  🔐 Auth failure signalled (exit 2) — refreshing token before restart {restart_count}/{MAX_RESTARTS}")
-            telegram_notify(
-                f"🔐 <b>WealthAlgo {USER_ID} — TOKEN EXPIRED (restart {restart_count}/{MAX_RESTARTS})</b>\n"
-                f"📅 {now_str_r}\n"
-                f"🔄 Re-authenticating with fresh TOTP login..."
-            )
-        else:
-            print(f"  ❌ Bot crashed (exit {exit_code}), restart {restart_count}/{MAX_RESTARTS}")
-            telegram_notify(
-                f"⚠️ <b>WealthAlgo {USER_ID} — BOT CRASHED (restart {restart_count}/{MAX_RESTARTS})</b>\n"
-                f"📅 {now_str_r}\n"
-                f"❌ Exit code: {exit_code}"
-            )
+        print(f"  ❌ Bot crashed (exit {exit_code}), restart {restart_count}/{MAX_RESTARTS}")
+        telegram_notify(
+            f"⚠️ <b>WealthAlgo {USER_ID} — BOT CRASHED (restart {restart_count}/{MAX_RESTARTS})</b>\n"
+            f"📅 {datetime.now(IST).strftime('%d %b %Y %H:%M IST')}\n"
+            f"❌ Exit code: {exit_code}"
+        )
 
         if restart_count >= MAX_RESTARTS:
             telegram_notify(
                 f"💥 <b>WealthAlgo {USER_ID} — BOT STOPPED (max restarts reached)</b>\n"
-                f"📅 {now_str_r}\n"
+                f"📅 {datetime.now(IST).strftime('%d %b %Y %H:%M IST')}\n"
                 f"⚠️ Check GitHub Actions logs."
             )
             sys.exit(exit_code)
 
-        # Always re-authenticate before restart to ensure fresh token
         print("  🔐 Re-authenticating before restart...")
         try:
             new_token = login_to_kite()
@@ -445,14 +425,9 @@ def main():
             print("  ✅ Re-authentication successful")
         except Exception as re_err:
             print(f"  ❌ Re-authentication failed: {re_err}")
-            telegram_notify(
-                f"❌ <b>WealthAlgo {USER_ID} — RE-AUTH FAILED</b>\n"
-                f"📅 {now_str_r}\n"
-                f"⚠️ {str(re_err)[:200]}"
-            )
             sys.exit(1)
 
-        time.sleep(5)
+        time.sleep(10)
 
 
 if __name__ == "__main__":
