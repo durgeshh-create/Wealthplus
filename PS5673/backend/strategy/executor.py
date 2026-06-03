@@ -71,7 +71,7 @@ class StrategyExecutor:
 
     def _get_slots_count(self) -> int:
         try:
-            return len(Config.get_all_monitored_symbols())
+            return len(Config.get_active_etfs())
         except Exception:
             return Config.SLOTS_COUNT
 
@@ -305,9 +305,37 @@ class StrategyExecutor:
                 return False, "Order did not complete"
 
         except Exception as e:
+            err_str = str(e)
             logger.error(f"Error executing buy for {symbol}: {e}", exc_info=True)
             if self.signal_generator and is_automated:
-                self.signal_generator.unlock_symbol(symbol)
+                # ── Auth/token failure (HTTP 403) ─────────────────────────────
+                # The access_token is dead for the rest of this session.
+                # unlock_symbol(success=False) would clear _attempted_today and
+                # allow a retry every 2s — causing hundreds of logged errors.
+                # Instead treat it like a permanent failure: keep _attempted_today
+                # latched so this symbol is skipped for the rest of the session.
+                if '403' in err_str or 'access_token' in err_str.lower() or 'api_key' in err_str.lower():
+                    logger.critical(
+                        f"🔐 AUTH FAILURE detected during BUY {symbol} — "
+                        f"blocking all retries this session. Token must be refreshed."
+                    )
+                    # Latch the symbol without clearing _attempted_today
+                    self.signal_generator.executing_symbols.pop(symbol, None)
+                    self.signal_generator._attempted_today.add(symbol)
+                    # Send Telegram alert once
+                    if _TELEGRAM_OK:
+                        try:
+                            from backend.utils.telegram import _send as _tg_send
+                            from backend.core.config import Config as _Cfg
+                            _tg_send(
+                                f"🔐 <b>WealthAlgo {_Cfg.USER_ID if hasattr(_Cfg, 'USER_ID') else ''} — AUTH ERROR</b>\n"
+                                f"❌ Zerodha 403: access_token expired or invalid.\n"
+                                f"⚠️ All BUY orders blocked. Token refresh required."
+                            )
+                        except Exception:
+                            pass
+                else:
+                    self.signal_generator.unlock_symbol(symbol, success=False)
             return False
 
     def _get_cash_deployed(self, symbol: str, current_price: float) -> float:
@@ -450,9 +478,28 @@ class StrategyExecutor:
                 return False
 
         except Exception as e:
+            err_str = str(e)
             logger.error(f"Error executing sell for {symbol}: {e}", exc_info=True)
             if self.signal_generator and is_automated:
-                self.signal_generator.unlock_symbol(symbol)
+                if '403' in err_str or 'access_token' in err_str.lower() or 'api_key' in err_str.lower():
+                    logger.critical(
+                        f"🔐 AUTH FAILURE detected during SELL {symbol} — "
+                        f"blocking retries this session. Token must be refreshed."
+                    )
+                    self.signal_generator.executing_symbols.pop(symbol, None)
+                    if _TELEGRAM_OK:
+                        try:
+                            from backend.utils.telegram import _send as _tg_send
+                            from backend.core.config import Config as _Cfg
+                            _tg_send(
+                                f"🔐 <b>WealthAlgo — AUTH ERROR (SELL)</b>\n"
+                                f"❌ Zerodha 403: access_token expired or invalid.\n"
+                                f"⚠️ SELL for {symbol} blocked. Token refresh required."
+                            )
+                        except Exception:
+                            pass
+                else:
+                    self.signal_generator.unlock_symbol(symbol)
             return False
 
     def _get_price_with_retry(self, symbol: str, retries: int = 3) -> float:
