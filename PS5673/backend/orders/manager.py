@@ -313,28 +313,31 @@ class OrderManager:
             live_bal    = float(avail.get('live_balance', 0))
             net_bal     = float(avail.get('cash', 0))
             adhoc_bal   = float(avail.get('adhoc_margin', 0))
+            opening_bal = float(avail.get('opening_balance', 0))
 
             # ── Which field to use ────────────────────────────────────────────
-            # live_balance: real-time spendable cash during market hours.
-            #               Returns 0 before market open (not yet calculated).
-            # cash (net):   Settled balance — reliable outside market hours.
-            # adhoc_margin: Includes collateral/pledged securities. Must NOT be
-            #               used for CNC buy decisions — Zerodha won't let you
-            #               spend collateral margin on fresh delivery purchases.
-            #               It temporarily holds LIQUIDCASE sale proceeds too,
-            #               but using max() here caused us to over-count and
-            #               skip the LIQUIDCASE sell path incorrectly.
+            # live_balance: includes pledged collateral/securities margin.
+            #               Suitable for F&O/MIS but NOT for CNC delivery buys —
+            #               Zerodha will NOT allow collateral to fund fresh CNC
+            #               purchases, causing "Insufficient funds" rejections even
+            #               when live_balance appears high enough.
             #
-            # Rule: use live_balance when non-zero (market is open and it has
-            # been calculated), otherwise fall back to net cash.
-            if live_bal > 0:
+            # cash (net_bal): settled cash balance only — this is the true liquid
+            #                 cash available for CNC (delivery) purchases.
+            #                 May be 0 before market open until recalculated.
+            #
+            # Rule: prefer cash (net_bal) for CNC accuracy.
+            # Fall back to live_balance, then opening_balance if both are zero.
+            if net_bal > 0:
+                cash = net_bal
+            elif live_bal > 0:
                 cash = live_bal
             else:
-                cash = net_bal
+                cash = opening_bal
 
-            logger.debug(
-                f"Available cash: live=₹{live_bal:,.2f} net=₹{net_bal:,.2f} "
-                f"adhoc=₹{adhoc_bal:,.2f} → using ₹{cash:,.2f}"
+            logger.info(
+                f"Available cash: live=₹{live_bal:,.2f} net(cash)=₹{net_bal:,.2f} "
+                f"opening=₹{opening_bal:,.2f} adhoc=₹{adhoc_bal:,.2f} → using ₹{cash:,.2f}"
             )
             return cash
         except RuntimeError:
@@ -556,8 +559,11 @@ class OrderManager:
                 return False, f"Failed to fetch margin data: HTTP {response.status_code}"
             
             margins_data = response.json()
-            equity_margin = margins_data.get('data', {}).get('equity', {})
-            available_margin = float(equity_margin.get('available', {}).get('live_balance', 0))
+            avail_data = margins_data.get('data', {}).get('equity', {}).get('available', {})
+            net_bal     = float(avail_data.get('cash', 0))
+            live_bal    = float(avail_data.get('live_balance', 0))
+            opening_bal = float(avail_data.get('opening_balance', 0))
+            available_margin = net_bal if net_bal > 0 else (live_bal if live_bal > 0 else opening_bal)
             
             if available_margin < required_value:
                 msg = f"Insufficient funds: Need ₹{required_value:.2f}, have ₹{available_margin:.2f}"
