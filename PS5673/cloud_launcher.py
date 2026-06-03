@@ -379,7 +379,7 @@ def main():
     print("=" * 60)
 
     env = {**os.environ, "PORT": BOT_PORT, "SHUTDOWN_TIME_IST": shutdown_env_time}
-    MAX_RESTARTS  = 3
+    MAX_RESTARTS  = 10   # enough restarts to cover the full session
     restart_count = 0
 
     while True:
@@ -389,7 +389,7 @@ def main():
 
         # Dynamic validation check based on the current run segment boundaries
         if now_ist.hour > restart_cutoff_hour or (now_ist.hour == restart_cutoff_hour and now_ist.minute >= restart_cutoff_minute):
-            print(f"\n  ⏰ Past {restart_cutoff_hour}:{restart_cutoff_minute} IST — not restarting bot after exit.")
+            print(f"\n  ⏰ Past {restart_cutoff_hour}:{restart_cutoff_minute:02d} IST — not restarting bot after exit.")
             break
 
         print(f"\n  ▶ Starting bot (attempt {restart_count + 1})...")
@@ -409,21 +409,35 @@ def main():
             break
 
         restart_count += 1
-        print(f"  ❌ Bot crashed (exit {exit_code}), restart {restart_count}/{MAX_RESTARTS}")
-        telegram_notify(
-            f"⚠️ <b>WealthAlgo {USER_ID} — BOT CRASHED (restart {restart_count}/{MAX_RESTARTS})</b>\n"
-            f"📅 {datetime.now(IST).strftime('%d %b %Y %H:%M IST')}\n"
-            f"❌ Exit code: {exit_code}"
-        )
+        now_str_r = datetime.now(IST).strftime('%d %b %Y %H:%M IST')
+
+        # exit code 2 = auth failure signalled by the bot — always re-login
+        auth_failure = (exit_code == 2)
+
+        if auth_failure:
+            print(f"  🔐 Auth failure signalled (exit 2) — refreshing token before restart {restart_count}/{MAX_RESTARTS}")
+            telegram_notify(
+                f"🔐 <b>WealthAlgo {USER_ID} — TOKEN EXPIRED (restart {restart_count}/{MAX_RESTARTS})</b>\n"
+                f"📅 {now_str_r}\n"
+                f"🔄 Re-authenticating with fresh TOTP login..."
+            )
+        else:
+            print(f"  ❌ Bot crashed (exit {exit_code}), restart {restart_count}/{MAX_RESTARTS}")
+            telegram_notify(
+                f"⚠️ <b>WealthAlgo {USER_ID} — BOT CRASHED (restart {restart_count}/{MAX_RESTARTS})</b>\n"
+                f"📅 {now_str_r}\n"
+                f"❌ Exit code: {exit_code}"
+            )
 
         if restart_count >= MAX_RESTARTS:
             telegram_notify(
                 f"💥 <b>WealthAlgo {USER_ID} — BOT STOPPED (max restarts reached)</b>\n"
-                f"📅 {datetime.now(IST).strftime('%d %b %Y %H:%M IST')}\n"
+                f"📅 {now_str_r}\n"
                 f"⚠️ Check GitHub Actions logs."
             )
             sys.exit(exit_code)
 
+        # Always re-authenticate before restart to ensure fresh token
         print("  🔐 Re-authenticating before restart...")
         try:
             new_token = login_to_kite()
@@ -431,9 +445,14 @@ def main():
             print("  ✅ Re-authentication successful")
         except Exception as re_err:
             print(f"  ❌ Re-authentication failed: {re_err}")
+            telegram_notify(
+                f"❌ <b>WealthAlgo {USER_ID} — RE-AUTH FAILED</b>\n"
+                f"📅 {now_str_r}\n"
+                f"⚠️ {str(re_err)[:200]}"
+            )
             sys.exit(1)
 
-        time.sleep(10)
+        time.sleep(5)
 
 
 if __name__ == "__main__":
