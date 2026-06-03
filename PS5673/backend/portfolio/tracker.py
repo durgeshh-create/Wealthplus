@@ -4,13 +4,18 @@ Manages portfolio state by syncing with Zerodha
 Source of truth: Zerodha Holdings and Positions
 """
 from typing import Dict, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone, timedelta, time as dtime
 
 from backend.core.config import Config
 from backend.core.constants import LIQUIDCASE_SYMBOL
 from backend.utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+_IST = timezone(timedelta(hours=5, minutes=30))
+# Allow sync from 9:00 (15 min before market open for warm-up) to 15:35
+_SYNC_START = dtime(9, 0)
+_SYNC_END   = dtime(15, 35)
 
 
 class PortfolioTracker:
@@ -33,19 +38,19 @@ class PortfolioTracker:
         Returns:
             True if sync successful, False otherwise
         """
-        logger.info("Syncing portfolio with Zerodha...")
+        logger.debug("Syncing portfolio with Zerodha...")
         
         try:
             # Fetch holdings
             holdings = self._fetch_holdings()
             if holdings is None:
-                logger.error("Failed to fetch holdings")
+                logger.debug("Failed to fetch holdings — retaining cached state")
                 return False
             
             # Fetch positions
             positions = self._fetch_positions()
             if positions is None:
-                logger.error("Failed to fetch positions")
+                logger.debug("Failed to fetch positions — retaining cached state")
                 return False
             
             # Update state
