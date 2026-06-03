@@ -185,6 +185,39 @@ def _fetch_quotes(symbols: list) -> dict:
         return {}
 
 
+def _scrape_kite_price(symbol: str) -> Optional[float]:
+    """
+    Last-resort fallback: scrape Kite's quote page for a single symbol.
+    Returns the LTP (last traded price) if scrape succeeds.
+    This is slow but works without authentication.
+    """
+    try:
+        import re
+        url = f"{ZERODHA_API}/quote/{symbol}"
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+        )
+        resp = urllib.request.urlopen(req, timeout=8)
+        html = resp.read().decode('utf-8', errors='ignore')
+
+        # Try to extract LTP from the HTML (pattern: "lastPrice":"123.45")
+        match = re.search(r'"lastPrice"\s*:\s*([0-9.]+)', html)
+        if match:
+            return float(match.group(1))
+
+        # Fallback pattern: look for price in data attributes
+        match = re.search(r'data-value="([0-9.]+)".*?ltp', html)
+        if match:
+            return float(match.group(1))
+
+        return None
+    except Exception:
+        return None
+
+
 # ── 09:05 Pre-market briefing ─────────────────────────────────────────────────
 
 def send_premarket_briefing():
@@ -216,6 +249,15 @@ def send_premarket_briefing():
             # GitHub Actions: data/daily/ is gitignored so CSVs aren't checked out.
             # Fetch previous-close prices from Zerodha quote API for missing symbols.
             api_quotes = _fetch_quotes(syms_missing_csv)
+
+            # For any symbols still missing after API, fall back to Kite web scrape
+            still_missing = [s for s in syms_missing_csv if s not in api_quotes]
+            if still_missing:
+                print(f"[briefing] Falling back to web scrape for {still_missing}", flush=True)
+                for sym in still_missing:
+                    price = _scrape_kite_price(sym)
+                    if price:
+                        api_quotes[sym] = price
 
         rows           = []
         oversold_syms  = []
