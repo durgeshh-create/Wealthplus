@@ -310,12 +310,18 @@ class OrderManager:
             margins  = response.json()
             equity   = margins.get('data', {}).get('equity', {})
             avail    = equity.get('available', {})
-            live_bal = float(avail.get('live_balance', 0))
-            net_bal  = float(avail.get('cash', 0))
+            live_bal    = float(avail.get('live_balance', 0))
+            net_bal     = float(avail.get('cash', 0))
+            adhoc_bal   = float(avail.get('adhoc_margin', 0))
             # live_balance is 0 outside market hours; 'cash' (net) reflects the
-            # full settled balance. Use whichever is larger.
-            cash = max(live_bal, net_bal)
-            logger.debug(f"Available cash: live=₹{live_bal:,.2f} net=₹{net_bal:,.2f} → ₹{cash:,.2f}")
+            # full settled balance.  After a CNC intraday sell Zerodha credits
+            # the proceeds into 'adhoc_margin' before live_balance catches up.
+            # Use the maximum across all three fields so we never under-count.
+            cash = max(live_bal, net_bal, adhoc_bal)
+            logger.debug(
+                f"Available cash: live=₹{live_bal:,.2f} net=₹{net_bal:,.2f} "
+                f"adhoc=₹{adhoc_bal:,.2f} → ₹{cash:,.2f}"
+            )
             return cash
         except RuntimeError:
             raise   # let the caller (smart_buy) propagate this to the UI
@@ -443,11 +449,16 @@ class OrderManager:
         # Zerodha does NOT update available margin instantly after a CNC sell.
         # Placing the ETF buy too quickly causes "Insufficient funds" even though
         # the LIQUIDCASE was sold successfully.  Poll until cash reflects the
-        # proceeds (up to 15s), then add a small safety buffer before buying.
+        # full cost of the ETF buy (up to 45s), then add a small safety pause.
+        #
+        # FIX: compare against total_cost (what the buy actually needs) rather
+        # than a computed floor from the pre-sale balance — the old floor could
+        # be satisfied before Zerodha's OMS had actually credited the margin,
+        # because the margins API and the OMS margin engine update independently.
         import time as _time
-        expected_cash_floor = avail_cash + (liq_to_sell * liq_price * 0.95)  # 95% to account for slippage
         _poll_wait  = 0
-        _poll_limit = 15  # max seconds to wait
+        _poll_limit = 45  # increased from 15s — Zerodha CNC margin can lag 20-30s
+        _last_cash  = avail_cash
         while _poll_wait < _poll_limit:
             _time.sleep(1)
             _poll_wait += 1
@@ -455,20 +466,32 @@ class OrderManager:
                 refreshed_cash = self.get_available_cash()
                 logger.debug(
                     f"[smart_buy] Margin poll {_poll_wait}/{_poll_limit}: "
-                    f"cash=₹{refreshed_cash:,.2f} (need ≥ ₹{expected_cash_floor:,.2f})"
+                    f"cash=₹{refreshed_cash:,.2f} (need ≥ ₹{total_cost:,.2f})"
                 )
-                if refreshed_cash >= expected_cash_floor:
+                _last_cash = refreshed_cash
+                if refreshed_cash >= total_cost:
                     logger.info(
                         f"✅ Margin updated after {_poll_wait}s: "
-                        f"₹{refreshed_cash:,.2f} ≥ ₹{expected_cash_floor:,.2f} — proceeding to buy"
+                        f"₹{refreshed_cash:,.2f} ≥ ₹{total_cost:,.2f} — proceeding to buy"
                     )
                     break
             except Exception:
                 pass  # margin API hiccup — keep waiting
         else:
+            # Poll timed out — check one final time before deciding to abort
+            try:
+                _last_cash = self.get_available_cash()
+            except Exception:
+                pass
+            if _last_cash < total_cost:
+                raise RuntimeError(
+                    f"Margin not credited after {_poll_limit}s: "
+                    f"available ₹{_last_cash:,.2f} < required ₹{total_cost:,.2f}. "
+                    f"LIQUIDCASE was sold ({liq_to_sell} units) — check broker account."
+                )
             logger.warning(
-                f"⚠️ Margin did not update within {_poll_limit}s — proceeding anyway "
-                f"(Zerodha may still accept the order)"
+                f"⚠️ Margin poll timed out at {_poll_limit}s but cash ₹{_last_cash:,.2f} "
+                f"now covers cost ₹{total_cost:,.2f} — proceeding to buy"
             )
         # ─────────────────────────────────────────────────────────────────────
 
