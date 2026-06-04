@@ -15,9 +15,43 @@ permissions:
 jobs:
 
   # ────────────────────────────────────────────────────────────────────────────
-  # RD1858 — runs in parallel with PS5673
+  # bootstrap-ghpages — runs first, ensures dashboard.html is always on gh-pages
+  # ────────────────────────────────────────────────────────────────────────────
+  bootstrap-ghpages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name  "WealthAlgo Bot"
+          git config user.email "bot@wealthalgo.local"
+
+      - name: Push dashboard.html to gh-pages root
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO:      ${{ github.repository }}
+        run: |
+          git fetch origin gh-pages 2>/dev/null || true
+          git worktree add /tmp/ghp gh-pages 2>/dev/null || \
+            git worktree add /tmp/ghp --orphan gh-pages
+          cp settings-editor/dashboard.html /tmp/ghp/dashboard.html
+          cd /tmp/ghp
+          git add dashboard.html
+          git diff --cached --quiet && echo "dashboard.html unchanged, skipping commit" || \
+            git commit -m "deploy dashboard.html $(date -u +'%Y-%m-%d')"
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # RD1858 — runs in parallel with PS5673, after bootstrap
   # ────────────────────────────────────────────────────────────────────────────
   RD1858:
+    needs: bootstrap-ghpages
     runs-on: ubuntu-latest
     timeout-minutes: 210
 
@@ -130,9 +164,10 @@ jobs:
           key: enctoken-rd1858-${{ github.run_id }}-${{ github.run_attempt }}
 
   # ────────────────────────────────────────────────────────────────────────────
-  # PS5673 — runs in parallel with RD1858
+  # PS5673 — runs in parallel with RD1858, after bootstrap
   # ────────────────────────────────────────────────────────────────────────────
   PS5673:
+    needs: bootstrap-ghpages
     runs-on: ubuntu-latest
     timeout-minutes: 210
 
