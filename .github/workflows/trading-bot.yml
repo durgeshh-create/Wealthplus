@@ -8,6 +8,10 @@ on:
     - cron: '0 7 * * 1-5'
   workflow_dispatch:           # Manual trigger from GitHub Actions UI
 
+# Workflow-level permissions — required for gh-pages push from Actions
+permissions:
+  contents: write
+
 jobs:
 
   # ────────────────────────────────────────────────────────────────────────────
@@ -16,8 +20,6 @@ jobs:
   RD1858:
     runs-on: ubuntu-latest
     timeout-minutes: 210
-    permissions:
-      contents: write          # needed for git push to gh-pages
 
     steps:
       - name: Checkout code
@@ -56,7 +58,6 @@ jobs:
       - name: Install Playwright Chromium browser
         run: playwright install chromium --with-deps
 
-      # Configure git once so the push loop in the bot step can use it.
       - name: Configure git for gh-pages push
         run: |
           git config user.name  "WealthAlgo Bot"
@@ -78,29 +79,22 @@ jobs:
           GITHUB_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
           GH_REPO:             ${{ github.repository }}
         run: |
-          # ── Background snapshot pusher (every 5 min, matches snapshot.py interval) ──
-          # Reads /tmp/status_rd1858.json written by snapshot.py and pushes to gh-pages.
           (
             cd "$GITHUB_WORKSPACE"
             while true; do
               sleep 300
               if [ -f /tmp/status_rd1858.json ]; then
-                # Work on gh-pages without disturbing the working tree
                 git fetch origin gh-pages 2>/dev/null || true
-
-                # Use git worktree so we can commit to gh-pages while main is checked out
                 if [ ! -d /tmp/gh-pages-rd1858 ]; then
                   git worktree add /tmp/gh-pages-rd1858 gh-pages 2>/dev/null || \
                     git worktree add /tmp/gh-pages-rd1858 --orphan gh-pages
                 fi
-
                 cp /tmp/status_rd1858.json /tmp/gh-pages-rd1858/status_rd1858.json
                 cd /tmp/gh-pages-rd1858
                 git add status_rd1858.json
                 if ! git diff --cached --quiet; then
                   git commit -m "rd1858 snapshot $(date -u +'%H:%M UTC')"
                   git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
-                  echo "[pusher] rd1858 snapshot pushed at $(date -u +'%H:%M UTC')"
                 fi
                 cd "$GITHUB_WORKSPACE"
               fi
@@ -108,13 +102,11 @@ jobs:
           ) &
           PUSHER_PID=$!
 
-          # ── Run the actual bot ──────────────────────────────────────────────
           python cloud_launcher.py
           BOT_EXIT=$?
 
           kill $PUSHER_PID 2>/dev/null || true
 
-          # ── Final push after bot exits ──────────────────────────────────────
           if [ -f /tmp/status_rd1858.json ]; then
             cd "$GITHUB_WORKSPACE"
             git fetch origin gh-pages 2>/dev/null || true
@@ -122,7 +114,6 @@ jobs:
               git worktree add /tmp/gh-pages-rd1858 gh-pages 2>/dev/null || \
                 git worktree add /tmp/gh-pages-rd1858 --orphan gh-pages
             fi
-            # Mark bot as stopped in the final snapshot
             python3 -c "
 import json, pathlib
 p = pathlib.Path('/tmp/status_rd1858.json')
@@ -153,8 +144,6 @@ p.write_text(json.dumps(d, indent=2))
   PS5673:
     runs-on: ubuntu-latest
     timeout-minutes: 210
-    permissions:
-      contents: write          # needed for git push to gh-pages
 
     steps:
       - name: Checkout code
@@ -193,7 +182,6 @@ p.write_text(json.dumps(d, indent=2))
       - name: Install Playwright Chromium browser
         run: playwright install chromium --with-deps
 
-      # Configure git once so the push loop in the bot step can use it.
       - name: Configure git for gh-pages push
         run: |
           git config user.name  "WealthAlgo Bot"
@@ -215,26 +203,22 @@ p.write_text(json.dumps(d, indent=2))
           GITHUB_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
           GH_REPO:             ${{ github.repository }}
         run: |
-          # ── Background snapshot pusher (every 5 min, matches snapshot.py interval) ──
           (
             cd "$GITHUB_WORKSPACE"
             while true; do
               sleep 300
               if [ -f /tmp/status_ps5673.json ]; then
                 git fetch origin gh-pages 2>/dev/null || true
-
                 if [ ! -d /tmp/gh-pages-ps5673 ]; then
                   git worktree add /tmp/gh-pages-ps5673 gh-pages 2>/dev/null || \
                     git worktree add /tmp/gh-pages-ps5673 --orphan gh-pages
                 fi
-
                 cp /tmp/status_ps5673.json /tmp/gh-pages-ps5673/status_ps5673.json
                 cd /tmp/gh-pages-ps5673
                 git add status_ps5673.json
                 if ! git diff --cached --quiet; then
                   git commit -m "ps5673 snapshot $(date -u +'%H:%M UTC')"
                   git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
-                  echo "[pusher] ps5673 snapshot pushed at $(date -u +'%H:%M UTC')"
                 fi
                 cd "$GITHUB_WORKSPACE"
               fi
@@ -242,13 +226,11 @@ p.write_text(json.dumps(d, indent=2))
           ) &
           PUSHER_PID=$!
 
-          # ── Run the actual bot ──────────────────────────────────────────────
           python cloud_launcher.py
           BOT_EXIT=$?
 
           kill $PUSHER_PID 2>/dev/null || true
 
-          # ── Final push after bot exits ──────────────────────────────────────
           if [ -f /tmp/status_ps5673.json ]; then
             cd "$GITHUB_WORKSPACE"
             git fetch origin gh-pages 2>/dev/null || true
