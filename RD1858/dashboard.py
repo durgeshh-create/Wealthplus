@@ -114,7 +114,7 @@ def send_daily_summary(backend: dict):
     """
     Build and send a Telegram end-of-day P&L summary.
     Called at 3:28 PM IST — 2 minutes before shutdown.
-    Only reports symbols managed by this bot (active_etfs + bnh_symbols + LIQUIDCASE).
+    Only reports symbols managed by this bot (active_etfs + bnh_symbols).
     Never raises — a failed summary must not affect shutdown.
     """
     try:
@@ -131,7 +131,7 @@ def send_daily_summary(backend: dict):
                 holdings  = portfolio.get_holdings()  if hasattr(portfolio, "get_holdings")  else []
 
                 # Only report symbols defined in settings — skip unmanaged demat holdings (e.g. NIFTYBEES)
-                system_symbols = set(Config.get_active_etfs()) | set(Config.get_bnh_symbols()) | {"LIQUIDCASE"}
+                system_symbols = set(Config.get_active_etfs()) | set(Config.get_bnh_symbols())
 
                 total_pnl = 0.0
                 trade_lines = []
@@ -400,7 +400,8 @@ def check_and_execute_signals(signal_generator, executor):
                     new_syms = set(s['symbol'] for s in buy_signals + sell_signals)
                     already  = getattr(check_and_execute_signals, '_dry_notified', set())
                     to_notify = [s for s in buy_signals + sell_signals
-                                 if s['symbol'] not in already]
+                                 if s['symbol'] not in already
+                                 and s['symbol'] != 'LIQUIDCASE']
                     if to_notify:
                         acct = os.environ.get("KITE_USER_ID", bot)
                         lines = [f"🧪 <b>WealthAlgo {acct} — DRY RUN SIGNALS</b>",
