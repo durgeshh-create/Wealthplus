@@ -137,19 +137,40 @@ def send_daily_summary(backend: dict):
                 trade_lines = []
                 seen_symbols: set = set()   # guard against double-counting across positions + holdings
 
-                realtime = backend.get("realtime")
+                realtime   = backend.get("realtime")
+                historical = backend.get("historical")
+
+                def _prev_close(sym):
+                    """
+                    Get previous session close for a symbol.
+                    Priority:
+                      1. WebSocket OHLC tick (ohlc.close = prev session close, only in MODE_FULL)
+                      2. Historical daily data last candle close (always available, already cached)
+                    """
+                    # Try WebSocket ohlc.close first
+                    if realtime:
+                        ohlc = realtime.get_ohlc(sym)
+                        if ohlc and ohlc.get("close") and float(ohlc["close"]) > 0:
+                            return float(ohlc["close"])
+                    # Fall back to last row of historical daily data (prev trading day close)
+                    if historical:
+                        try:
+                            df = historical.get_daily_data(sym)
+                            if df is not None and len(df) > 0:
+                                return float(df.iloc[-1]["close"])
+                        except Exception:
+                            pass
+                    return None
 
                 for pos in (positions or []):
                     sym = pos.get("tradingsymbol", pos.get("symbol", "?"))
                     if sym not in system_symbols:
                         continue
                     qty = int(pos.get("quantity", pos.get("net_quantity", 0)))
-                    # Positions: use live ltp vs prev_close for today's P&L
-                    ltp = (realtime.get_ltp(sym) if realtime else None)
-                    ohlc = (realtime.get_ohlc(sym) if realtime else None)
-                    prev_close = float(ohlc["close"]) if ohlc and ohlc.get("close") else None
+                    ltp        = float(realtime.get_ltp(sym)) if realtime else None
+                    prev_close = _prev_close(sym)
                     if ltp and prev_close and prev_close > 0:
-                        pnl = round((float(ltp) - prev_close) * qty, 2)
+                        pnl = round((ltp - prev_close) * qty, 2)
                     else:
                         pnl = float(pos.get("pnl", pos.get("unrealised", 0)))
                     total_pnl += pnl
@@ -163,18 +184,12 @@ def send_daily_summary(backend: dict):
                     if sym not in system_symbols or sym in seen_symbols:
                         continue
                     qty = int(h.get("quantity", 0))
-                    # Holdings: use live ltp vs prev_close (ohlc.close from WebSocket tick)
-                    # h.get("pnl") = total unrealised since avg purchase — NOT today's P&L
-                    ltp = (realtime.get_ltp(sym) if realtime else None)
-                    ohlc = (realtime.get_ohlc(sym) if realtime else None)
-                    prev_close = float(ohlc["close"]) if ohlc and ohlc.get("close") else None
+                    ltp        = float(realtime.get_ltp(sym)) if realtime else float(h.get("last_price", 0) or 0)
+                    prev_close = _prev_close(sym)
                     if ltp and prev_close and prev_close > 0:
-                        pnl = round((float(ltp) - prev_close) * qty, 2)
+                        pnl = round((ltp - prev_close) * qty, 2)
                     else:
-                        # Fallback: use last_price vs close_price from holdings API response
-                        last_price  = float(h.get("last_price", 0) or 0)
-                        close_price = float(h.get("close_price", 0) or 0)
-                        pnl = round((last_price - close_price) * qty, 2) if close_price > 0 else 0.0
+                        pnl = 0.0
                     total_pnl += pnl
                     if qty != 0:
                         icon = "🟢" if pnl >= 0 else "🔴"
