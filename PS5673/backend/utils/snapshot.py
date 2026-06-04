@@ -90,13 +90,23 @@ def write_snapshot(dashboard_state: dict):
             liq_val   = liq_qty * liq_price
             total_value += liq_val
 
-            # Today's P&L — sum live (ltp - avg) * qty across holdings
-            # This is more accurate than portfolio.positions["day"]["pnl"] which:
-            #   (a) is only refreshed every 60s by portfolio.sync()
-            #   (b) uses Zerodha's cached pnl field, not the live LTP we already have
-            # We already computed ltp and avg above when building the holdings list,
-            # so we just sum the pnl values we stored there.
-            today_pnl = sum(h["pnl"] for h in holdings)
+            # Today's P&L — (ltp - prev_close) * qty for each holding
+            # prev_close comes from the OHLC "close" field in the WebSocket tick,
+            # which is the previous session's closing price.
+            # We do NOT use (ltp - avg)*qty because avg is the purchase price which
+            # may be weeks/months old — that gives total unrealised, not today's move.
+            today_pnl = 0.0
+            for h in holdings:
+                sym = h.get("symbol", "")
+                qty = h.get("qty", 0)
+                ltp = h.get("ltp", 0)
+                ohlc = realtime.get_ohlc(sym) if realtime else None
+                prev_close = float(ohlc["close"]) if ohlc and ohlc.get("close") else None
+                if prev_close and prev_close > 0:
+                    today_pnl += (ltp - prev_close) * qty
+                else:
+                    # Fallback: use pnl already computed as (ltp-avg)*qty
+                    today_pnl += h.get("pnl", 0)
 
         else:
             liq_qty = liq_price = liq_val = 0
