@@ -40,7 +40,16 @@ jobs:
           git fetch origin gh-pages 2>/dev/null || true
           git worktree add /tmp/ghp gh-pages 2>/dev/null || \
             git worktree add /tmp/ghp --orphan gh-pages
-          cp settings-editor/dashboard.html /tmp/ghp/dashboard.html
+
+          # dashboard.html source: prefer main branch, fall back to gh-pages itself
+          if [ -f settings-editor/dashboard.html ]; then
+            cp settings-editor/dashboard.html /tmp/ghp/dashboard.html
+          elif [ -f /tmp/ghp/dashboard.html ]; then
+            echo "dashboard.html already on gh-pages, no copy needed"
+          else
+            echo "ERROR: dashboard.html not found in main or gh-pages" && exit 1
+          fi
+
           cd /tmp/ghp
           git add dashboard.html
           git diff --cached --quiet && echo "dashboard.html unchanged, skipping commit" || \
