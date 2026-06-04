@@ -70,7 +70,24 @@ def write_snapshot(dashboard_state: dict):
                 avg = float(h.get("average_price", 0))
                 ltp = (realtime.get_ltp(sym) if realtime else None) or float(h.get("last_price", avg))
                 val = qty * ltp
-                pnl = (ltp - avg) * qty
+
+                # today_move = (ltp - prev_close) * qty  — today's P&L only
+                # Per-row pnl shown in holdings table also uses today's move, not total unrealised
+                prev_close = None
+                if realtime:
+                    ohlc = realtime.get_ohlc(sym)
+                    if ohlc and ohlc.get("close") and float(ohlc["close"]) > 0:
+                        prev_close = float(ohlc["close"])
+                if prev_close is None and historical:
+                    try:
+                        df = historical.get_daily_data(sym)
+                        if df is not None and len(df) > 0:
+                            prev_close = float(df.iloc[-1]["close"])
+                    except Exception:
+                        pass
+                today_move = round((ltp - prev_close) * qty, 2) if prev_close and prev_close > 0 else 0.0
+                today_move_pct = round((ltp - prev_close) / prev_close * 100, 2) if prev_close and prev_close > 0 else 0.0
+
                 total_value += val
                 held_set.add(sym)
                 holdings.append({
@@ -79,8 +96,8 @@ def write_snapshot(dashboard_state: dict):
                     "avg":      round(avg, 2),
                     "ltp":      round(ltp, 2),
                     "value":    round(val, 2),
-                    "pnl":      round(pnl, 2),
-                    "pnl_pct":  round((ltp - avg) / avg * 100, 2) if avg else 0,
+                    "pnl":      today_move,
+                    "pnl_pct":  today_move_pct,
                     "strategy": "bnh" if sym in bnh_symbols else "active",
                 })
 
@@ -90,23 +107,8 @@ def write_snapshot(dashboard_state: dict):
             liq_val   = liq_qty * liq_price
             total_value += liq_val
 
-            # Today's P&L — (ltp - prev_close) * qty for each holding
-            # prev_close comes from the OHLC "close" field in the WebSocket tick,
-            # which is the previous session's closing price.
-            # We do NOT use (ltp - avg)*qty because avg is the purchase price which
-            # may be weeks/months old — that gives total unrealised, not today's move.
-            today_pnl = 0.0
-            for h in holdings:
-                sym = h.get("symbol", "")
-                qty = h.get("qty", 0)
-                ltp = h.get("ltp", 0)
-                ohlc = realtime.get_ohlc(sym) if realtime else None
-                prev_close = float(ohlc["close"]) if ohlc and ohlc.get("close") else None
-                if prev_close and prev_close > 0:
-                    today_pnl += (ltp - prev_close) * qty
-                else:
-                    # Fallback: use pnl already computed as (ltp-avg)*qty
-                    today_pnl += h.get("pnl", 0)
+            # Today's P&L — sum of per-holding today_move already computed above
+            today_pnl = sum(h["pnl"] for h in holdings)
 
         else:
             liq_qty = liq_price = liq_val = 0
