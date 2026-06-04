@@ -90,10 +90,13 @@ def write_snapshot(dashboard_state: dict):
             liq_val   = liq_qty * liq_price
             total_value += liq_val
 
-            # Today's P&L from day positions
-            for pos in (portfolio.positions or {}).get("day", []):
-                if pos.get("tradingsymbol") != LIQUIDCASE_SYMBOL:
-                    today_pnl += float(pos.get("pnl", 0))
+            # Today's P&L — sum live (ltp - avg) * qty across holdings
+            # This is more accurate than portfolio.positions["day"]["pnl"] which:
+            #   (a) is only refreshed every 60s by portfolio.sync()
+            #   (b) uses Zerodha's cached pnl field, not the live LTP we already have
+            # We already computed ltp and avg above when building the holdings list,
+            # so we just sum the pnl values we stored there.
+            today_pnl = sum(h["pnl"] for h in holdings)
 
         else:
             liq_qty = liq_price = liq_val = 0
