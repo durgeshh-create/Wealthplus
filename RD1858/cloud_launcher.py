@@ -344,14 +344,9 @@ def main():
     print("\n  Starting briefing scheduler...")
     start_briefing_thread()
 
-    # ── Start snapshot writer (writes /tmp/status_rd1858.json every 5 min) ──
-    # GitHub Actions pushes this to gh-pages so the static dashboard can read it.
-    print("  Starting snapshot writer...")
-    try:
-        from backend.utils.snapshot import start_snapshot_thread
-        start_snapshot_thread(dashboard_state if 'dashboard_state' in dir() else {})
-    except Exception as _snap_err:
-        print(f"  ⚠️  Snapshot writer not started: {{_snap_err}}")
+    # NOTE: snapshot writer is started inside dashboard.py (the subprocess) where
+    # portfolio_tracker, realtime_manager, historical_manager and order_manager
+    # are all available. Starting it here would use an empty dict and write useless data.
 
     # ── Notify: bot started with dynamic session info ────────────────────────
     if is_afternoon_session:
