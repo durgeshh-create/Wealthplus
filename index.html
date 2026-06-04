@@ -6,14 +6,14 @@
 <title>WealthAlgo — Settings Editor</title>
 <style>
   :root {
-    --bg: #0f1117; --card: #1a1d27; --border: #2a2d3e; --accent: #4f8ef7;
-    --success: #22c55e; --warning: #f59e0b; --danger: #ef4444;
-    --text: #e2e8f0; --muted: #64748b; --input-bg: #0f1117;
+    --bg: #f8f9fb; --card: #ffffff; --border: #e2e6ed; --accent: #2563eb;
+    --success: #16a34a; --warning: #d97706; --danger: #dc2626;
+    --text: #1e293b; --muted: #64748b; --input-bg: #f1f5f9;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; font-size: 14px; min-height: 100vh; }
 
-  header { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  header { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
   header h1 { font-size: 1rem; font-weight: 700; color: var(--accent); }
   header .subtitle { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
 
@@ -23,8 +23,8 @@
 
   main { max-width: 900px; margin: 0 auto; padding: 24px 16px 80px; }
 
-  .section { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
-  .section-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .section { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .section-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; background: #f8fafc; }
   .section-header h2 { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent); }
   .section-body { padding: 16px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .section-body.single { grid-template-columns: 1fr; }
@@ -32,7 +32,7 @@
   .field { display: flex; flex-direction: column; gap: 5px; }
   .field label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
   .field input, .field select { background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; color: var(--text); font-size: 0.84rem; width: 100%; transition: border-color 0.15s; }
-  .field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
   .field .hint { font-size: 0.65rem; color: var(--muted); }
 
   /* Symbol manager */
@@ -45,13 +45,13 @@
   .btn-add { padding: 6px 14px; background: var(--accent); color: #fff; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .btn-add:hover { opacity: 0.85; }
   .sym-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-height: 32px; padding: 6px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; }
-  .chip { display: inline-flex; align-items: center; gap: 4px; background: #1e3a5f; color: #93c5fd; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: 600; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; background: #dbeafe; color: #1d4ed8; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: 600; border: 1px solid #bfdbfe; }
   .chip .rm { cursor: pointer; color: var(--muted); font-size: 0.9rem; line-height: 1; }
   .chip .rm:hover { color: var(--danger); }
   .sym-chips-empty { font-size: 0.72rem; color: var(--muted); padding: 4px; }
 
   /* Actions */
-  .actions { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 12px; z-index: 100; }
+  .actions { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 12px; z-index: 100; box-shadow: 0 -2px 8px rgba(0,0,0,0.06); }
   .btn-save { padding: 9px 28px; background: var(--success); color: #fff; border: none; border-radius: 7px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
   .btn-save:hover { opacity: 0.88; }
   .btn-save:disabled { opacity: 0.4; cursor: default; }
@@ -60,12 +60,12 @@
   .status.err { color: var(--danger); }
 
   /* Setup modal */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-  .modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; width: 480px; max-width: 95vw; }
-  .modal h2 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; width: 480px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+  .modal h2 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; color: var(--text); }
   .modal p { font-size: 0.8rem; color: var(--muted); margin-bottom: 18px; line-height: 1.5; }
   .modal input { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; color: var(--text); font-size: 0.85rem; margin-bottom: 10px; }
-  .modal input:focus { outline: none; border-color: var(--accent); }
+  .modal input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
   .modal .btn-primary { width: 100%; padding: 10px; background: var(--accent); color: #fff; border: none; border-radius: 7px; font-size: 0.88rem; font-weight: 700; cursor: pointer; margin-top: 4px; }
   .modal .muted { font-size: 0.68rem; color: var(--muted); margin-top: 10px; text-align: center; line-height: 1.4; }
 

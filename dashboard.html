@@ -9,24 +9,24 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:      #0a0c0e;
-  --bg2:     #111316;
-  --bg3:     #181b1f;
-  --border:  rgba(255,255,255,0.07);
-  --border2: rgba(255,255,255,0.13);
-  --text:    #e8eaed;
-  --muted:   #6b7280;
-  --muted2:  #9ca3af;
-  --green:   #22c55e;
-  --green-d: rgba(34,197,94,0.12);
-  --red:     #ef4444;
-  --red-d:   rgba(239,68,68,0.12);
-  --amber:   #f59e0b;
-  --amber-d: rgba(245,158,11,0.12);
-  --blue:    #3b82f6;
-  --blue-d:  rgba(59,130,246,0.10);
-  --accent:  #6366f1;
-  --acc-d:   rgba(99,102,241,0.15);
+  --bg:      #f8f9fb;
+  --bg2:     #ffffff;
+  --bg3:     #f1f5f9;
+  --border:  #e2e8f0;
+  --border2: #cbd5e1;
+  --text:    #1e293b;
+  --muted:   #64748b;
+  --muted2:  #475569;
+  --green:   #16a34a;
+  --green-d: rgba(22,163,74,0.10);
+  --red:     #dc2626;
+  --red-d:   rgba(220,38,38,0.10);
+  --amber:   #d97706;
+  --amber-d: rgba(217,119,6,0.10);
+  --blue:    #2563eb;
+  --blue-d:  rgba(37,99,235,0.08);
+  --accent:  #4f46e5;
+  --acc-d:   rgba(79,70,229,0.10);
   --mono:    'DM Mono', monospace;
   --head:    'Syne', sans-serif;
 }
@@ -34,9 +34,9 @@
 body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;line-height:1.6}
 
 /* ── header ── */
-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(10,12,14,0.96);backdrop-filter:blur(8px);z-index:100}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
 .logo{display:flex;align-items:baseline;gap:10px}
-.logo h1{font-family:var(--head);font-size:19px;font-weight:800;letter-spacing:-.5px;color:#fff}
+.logo h1{font-family:var(--head);font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--accent)}
 .logo .sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
 .hdr-right{display:flex;align-items:center;gap:14px}
 .pill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px}
@@ -52,7 +52,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 @keyframes rspin{to{transform:rotate(360deg)}}
 
 /* ── tabs ── */
-.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px}
+.tabs{display:flex;background:var(--bg2);border-bottom:2px solid var(--border);padding:0 20px}
 .tab{padding:10px 18px;font-size:12px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-family:var(--head);font-weight:700;letter-spacing:.02em;transition:all .15s}
 .tab:hover{color:var(--text)}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
@@ -92,7 +92,7 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 .tbl td{padding:10px 15px;border-bottom:1px solid var(--border);vertical-align:middle}
 .tbl tr:last-child td{border-bottom:none}
 .tbl td:not(:first-child){text-align:right}
-.tbl tr:hover td{background:rgba(255,255,255,0.02)}
+.tbl tr:hover td{background:rgba(79,70,229,0.03)}
 
 .sym{font-family:var(--head);font-size:13px;font-weight:700}
 .tag{display:inline-block;font-size:9px;padding:1px 6px;border-radius:3px;margin-left:5px;text-transform:uppercase;letter-spacing:.05em}
@@ -109,7 +109,7 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 /* ── trades ── */
 .trade-row{display:flex;align-items:center;gap:10px;padding:9px 15px;border-bottom:1px solid var(--border)}
 .trade-row:last-child{border-bottom:none}
-.trade-row:hover{background:rgba(255,255,255,0.02)}
+.trade-row:hover{background:rgba(79,70,229,0.03)}
 .badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;letter-spacing:.05em;min-width:36px;text-align:center;flex-shrink:0}
 .b-buy{background:var(--green-d);color:var(--green);border:1px solid rgba(34,197,94,.2)}
 .b-sell{background:var(--red-d);color:var(--red);border:1px solid rgba(239,68,68,.2)}
@@ -147,10 +147,10 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 .empty{padding:28px 15px;text-align:center;color:var(--muted);font-size:12px}
 
 /* ── stale banner ── */
-#stale-banner{display:none;background:#1a1200;border-bottom:1px solid var(--amber);padding:8px 20px;font-size:11px;color:var(--amber)}
+#stale-banner{display:none;background:#fffbeb;border-bottom:1px solid var(--amber);padding:8px 20px;font-size:11px;color:#92400e}
 
 /* ── config note ── */
-#cfg-note{display:none;background:#0d1117;border-bottom:1px solid var(--border2);padding:10px 20px;font-size:11px;color:var(--muted2)}
+#cfg-note{display:none;background:#f8fafc;border-bottom:1px solid var(--border2);padding:10px 20px;font-size:11px;color:var(--muted2)}
 #cfg-note a{color:var(--accent);text-decoration:none}
 </style>
 </head>
@@ -232,9 +232,9 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
       </div>
     </div>
 
-    <!-- Trades today (from snapshot) -->
+    <!-- Today's Orders (from snapshot) -->
     <div class="panel">
-      <div class="ph"><span class="pt">Recent Trades</span><span class="pb" id="tr-count">—</span></div>
+      <div class="ph"><span class="pt">Today's Orders</span><span class="pb" id="tr-count">—</span></div>
       <div class="scroll" id="tr-body"><div class="empty">Loading…</div></div>
     </div>
   </div>
@@ -393,26 +393,39 @@ function render(data) {
       <span><div class="ld" style="background:var(--green-d);border:1px solid rgba(34,197,94,.3)"></div> LIQUIDCASE buffer</span>
     </div>`;
 
-  // Trades — pulled from snapshot.trades if present, else empty
-  const trades = data.trades ?? [];
-  document.getElementById("tr-count").textContent = trades.length + " orders";
+  // Today's Orders — pulled from snapshot.orders (bot pushes this) or snapshot.trades fallback
+  const trades = data.orders ?? data.trades ?? [];
+  // Filter to today's orders only (IST date match)
+  const todayIST = new Date().toLocaleDateString("en-IN", {timeZone:"Asia/Kolkata"});
+  const todayTrades = trades.filter(t => {
+    if (!t.order_timestamp && !t.time) return true; // show if no timestamp
+    const ts = t.order_timestamp || t.time;
+    const d = new Date(ts);
+    return !isNaN(d) ? d.toLocaleDateString("en-IN", {timeZone:"Asia/Kolkata"}) === todayIST : true;
+  });
+  document.getElementById("tr-count").textContent = todayTrades.length + " orders today";
   const trb = document.getElementById("tr-body");
-  trb.innerHTML = trades.length ? trades.map(t => {
+  trb.innerHTML = todayTrades.length ? todayTrades.map(t => {
     const ok  = t.status === "COMPLETE";
     const rej = t.status === "REJECTED";
+    const sym = t.tradingsymbol || t.symbol || "—";
+    const typ = t.transaction_type || t.type || "—";
+    const qty = t.filled_quantity ?? t.quantity ?? "—";
+    const px  = t.average_price ?? t.price ?? null;
+    const val = (qty !== "—" && px) ? qty * px : null;
     return `<div class="trade-row">
-      <span class="badge ${t.type==='BUY'?'b-buy':'b-sell'} ${ok?'':'b-pending'}">${t.type}</span>
+      <span class="badge ${typ==='BUY'?'b-buy':'b-sell'} ${ok?'':'b-pending'}">${typ}</span>
       <div style="flex:1">
-        <div class="sym">${t.symbol}</div>
-        <div style="font-size:11px;color:var(--muted2)">${t.filled_quantity??t.quantity} units · ${fmtR(t.price)}</div>
+        <div class="sym">${sym}</div>
+        <div style="font-size:11px;color:var(--muted2)">${qty} units · ${px ? fmtR(px) : "—"}</div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:12px">${fmtL(t.value)}</div>
-        <div class="${ok?'status-ok':rej?'status-rej':'status-other'}">${t.status}</div>
+        <div style="font-size:12px">${val ? fmtL(val) : "—"}</div>
+        <div class="${ok?'status-ok':rej?'status-rej':'status-other'}">${t.status || "—"}</div>
       </div>
-      <div style="font-size:10px;color:var(--muted);white-space:nowrap;margin-left:6px">${tStr(t.time)}</div>
+      <div style="font-size:10px;color:var(--muted);white-space:nowrap;margin-left:6px">${tStr(t.order_timestamp||t.time)}</div>
     </div>`;
-  }).join("") : `<div class="empty">No trades in snapshot<br><span style="font-size:11px;color:var(--muted)">Trades feed available via live Flask API</span></div>`;
+  }).join("") : `<div class="empty">No orders executed today<br><span style="font-size:11px;color:var(--muted)">Orders will appear once bot pushes <code>orders</code> in snapshot</span></div>`;
 }
 
 // ── Fetch + refresh ───────────────────────────────────────────────────────────
