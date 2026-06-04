@@ -17,6 +17,14 @@ from backend.core.constants import LIQUIDCASE_SYMBOL
 from backend.indicators.calculator import calculate_daily_williams_r
 from backend.utils.logger import get_logger
 
+from datetime import timezone as _tz
+_IST = _tz(timedelta(hours=5, minutes=30))
+
+def _now_ist() -> datetime:
+    """Return current datetime in IST (works on GitHub Actions UTC runners)."""
+    return datetime.now(_IST).replace(tzinfo=None)
+
+
 logger = get_logger(__name__)
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -47,7 +55,7 @@ class _SymState:
     latest:                 dict            = field(default_factory=dict)
 
     def reset_session(self):
-        today = datetime.now().date()
+        today = _now_ist().date()
         if self.session_date == today:
             return
         self.session_date        = today
@@ -426,7 +434,7 @@ class IntradayEngine:
             if wr > OVERSOLD_THRESHOLD:
                 results.append({'symbol': sym, 'success': False, 'reason': f'W%R {wr:.1f} not oversold'})
                 continue
-            now = datetime.now()
+            now = _now_ist()
             st.buy_attempted_today = True
             st.buy_in_progress     = True
             try:
@@ -452,7 +460,7 @@ class IntradayEngine:
             try:
                 self._reset_sessions()
                 self._sync_sym_states()
-                now  = datetime.now()
+                now  = _now_ist()
                 t    = now.time()
 
                 exec_val = self._s('buy_execution_time', '15:15')
@@ -638,7 +646,7 @@ class IntradayEngine:
     # ── Public API ────────────────────────────────────────────────────────────
 
     def get_status(self) -> dict:
-        now  = datetime.now()
+        now  = _now_ist()
         # Sync first: ensures newly added symbols have a _SymState immediately
         # (the _loop also syncs every 15s, but status may be polled sooner)
         self._sync_sym_states()

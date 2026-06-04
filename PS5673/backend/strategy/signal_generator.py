@@ -586,25 +586,37 @@ class SignalGenerator:
             'type': signal_type, 'timestamp': _now_ist()
         }
 
-    def unlock_symbol(self, symbol: str, success: bool = False):
+    def unlock_symbol(self, symbol: str, success: bool = False, allow_retry: bool = False):
         """
         Release execution lock.
-        success=False (default): clear recently_bought and _attempted_today so a retry is allowed.
-        success=True           : SET recently_bought now (order placed) and keep _attempted_today —
-                                 recently_bought enforces 5-min cooldown,
-                                 _attempted_today prevents any further buy this session.
+        success=True               : Order confirmed. Set recently_bought cooldown and keep
+                                     _attempted_today — no second buy this session.
+        success=False, allow_retry=True  : Order NEVER reached broker (pre-flight failure,
+                                     e.g. insufficient funds, price unavailable). Clear all
+                                     guards so the signal can re-trigger next cycle.
+        success=False, allow_retry=False : Order submitted but outcome uncertain (confirmation
+                                     timeout, broker returned False). Keep _attempted_today
+                                     latched — do NOT re-trigger. This prevents duplicate
+                                     orders when broker accepted the order but confirmation poll
+                                     timed out. recently_bought cooldown still clears (order
+                                     may have failed) but session latch stays.
         """
         if symbol in self.executing_symbols:
             self.executing_symbols.pop(symbol)
         if success:
-            # Order placed — set cooldown NOW (was not pre-set; only set after confirmed execution)
+            # Order confirmed — set cooldown and keep session latch
             self.recently_bought[symbol] = _now_ist()
-        else:
-            # Failed execution — clear guards so next cycle can retry
+        elif allow_retry:
+            # Pre-flight failure — order never reached broker; allow full retry
             if symbol in self.recently_bought:
                 del self.recently_bought[symbol]
             self._attempted_today.discard(symbol)
-        # On success: both guards stay set — no second buy this session for this symbol.
+        else:
+            # Order outcome uncertain — clear cooldown but keep session latch
+            # (prevents duplicate orders if broker silently accepted)
+            if symbol in self.recently_bought:
+                del self.recently_bought[symbol]
+            # _attempted_today stays set — no re-trigger this session
 
     # ── Public interface ──────────────────────────────────────────────────────
 
