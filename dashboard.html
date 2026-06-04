@@ -78,6 +78,41 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 @media(max-width:860px){.two-col{grid-template-columns:1fr}}
 
+/* ── mobile ── */
+@media(max-width:600px){
+  header{padding:10px 14px}
+  .logo h1{font-size:16px}
+  .logo .sub{display:none}
+  .hdr-right{gap:8px}
+  .pill{padding:3px 8px;font-size:10px}
+  .rbtn{padding:4px 9px;font-size:10px}
+  .ts{font-size:9px}
+  .tabs{padding:0 10px}
+  .tab{padding:9px 12px;font-size:11px}
+  main{padding:12px 10px}
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+  .sc{padding:10px 11px}
+  .sc-val{font-size:17px}
+  .sc-label{font-size:9px}
+  .two-col{grid-template-columns:1fr;gap:10px;margin-bottom:10px}
+  .panel{margin-bottom:10px}
+  .ph{padding:9px 12px}
+  .pt{font-size:10px}
+  .tbl th,.tbl td{padding:8px 10px;font-size:11px}
+  .sym{font-size:12px}
+  .trade-row{padding:8px 10px;gap:8px}
+  .sig-row{padding:8px 10px;gap:8px}
+  .slots-wrap{padding:10px;gap:10px}
+  .slots-grid{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px}
+  .slot{padding:7px 8px}
+  .slot-sym{font-size:10px}
+  .slot-status{font-size:8px}
+  .cash-body{padding:10px}
+  #stale-banner,#offline-banner,#cfg-note{font-size:10px;padding:6px 14px}
+  .scroll{max-height:240px}
+  .wr-bar-wrap{min-width:50px}
+}
+
 /* ── panel ── */
 .panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px}
 .ph{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-bottom:1px solid var(--border)}
@@ -471,19 +506,11 @@ function render(data) {
       <span><div class="ld" style="background:rgba(37,99,235,0.16);border:1px solid rgba(37,99,235,.5)"></div> B&amp;H Accumulating</span>
     </div>`;
 
-  // Today's Orders — pulled from snapshot.orders (bot pushes this) or snapshot.trades fallback
+  // Today's Orders — snapshot.orders already filtered to today by the bot
   const trades = data.orders ?? data.trades ?? [];
-  // Filter to today's orders only (IST date match)
-  const todayIST = new Date().toLocaleDateString("en-IN", {timeZone:"Asia/Kolkata"});
-  const todayTrades = trades.filter(t => {
-    if (!t.order_timestamp && !t.time) return true; // show if no timestamp
-    const ts = t.order_timestamp || t.time;
-    const d = new Date(ts);
-    return !isNaN(d) ? d.toLocaleDateString("en-IN", {timeZone:"Asia/Kolkata"}) === todayIST : true;
-  });
-  document.getElementById("tr-count").textContent = todayTrades.length + " orders today";
+  document.getElementById("tr-count").textContent = trades.length + " orders today";
   const trb = document.getElementById("tr-body");
-  trb.innerHTML = todayTrades.length ? todayTrades.map(t => {
+  trb.innerHTML = trades.length ? trades.map(t => {
     const ok  = t.status === "COMPLETE";
     const rej = t.status === "REJECTED";
     const sym = t.tradingsymbol || t.symbol || "—";
@@ -503,7 +530,7 @@ function render(data) {
       </div>
       <div style="font-size:10px;color:var(--muted);white-space:nowrap;margin-left:6px">${tStr(t.order_timestamp||t.time)}</div>
     </div>`;
-  }).join("") : `<div class="empty">No orders executed today<br><span style="font-size:11px;color:var(--muted)">Orders will appear once bot pushes <code>orders</code> in snapshot</span></div>`;
+  }).join("") : `<div class="empty">No orders executed today<br><span style="font-size:11px;color:var(--muted)">Orders appear once the bot pushes a snapshot</span></div>`;
 }
 
 // ── Fetch + refresh ───────────────────────────────────────────────────────────
