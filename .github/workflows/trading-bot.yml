@@ -16,10 +16,14 @@ jobs:
   RD1858:
     runs-on: ubuntu-latest
     timeout-minutes: 210
+    permissions:
+      contents: write          # needed for git push to gh-pages
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0       # full history so we can push to gh-pages
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -33,8 +37,7 @@ jobs:
           key: rd1858-${{ hashFiles('RD1858/requirements.txt') }}
           restore-keys: rd1858-
 
-      # Restore enctoken from the most recent previous attempt of this run,
-      # or from any previous run. Prevents TOTP login on cancel + rerun.
+      # Restore enctoken from previous attempt/run — skips TOTP login if still valid.
       - name: Restore enctoken cache (RD1858)
         uses: actions/cache/restore@v4
         with:
@@ -53,7 +56,14 @@ jobs:
       - name: Install Playwright Chromium browser
         run: playwright install chromium --with-deps
 
-      - name: Run RD1858 bot (headless Chrome login + trading)
+      # Configure git once so the push loop in the bot step can use it.
+      - name: Configure git for gh-pages push
+        run: |
+          git config user.name  "WealthAlgo Bot"
+          git config user.email "bot@wealthalgo.local"
+          git fetch origin gh-pages 2>/dev/null || echo "gh-pages branch not yet created"
+
+      - name: Run RD1858 bot + live snapshot pusher
         working-directory: RD1858
         timeout-minutes: 200
         env:
@@ -65,10 +75,71 @@ jobs:
           BOT_PORT:            "5000"
           PYTHONIOENCODING:    utf-8
           PYTHONUTF8:          "1"
-        run: python cloud_launcher.py
+          GITHUB_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO:             ${{ github.repository }}
+        run: |
+          # ── Background snapshot pusher (every 5 min, matches snapshot.py interval) ──
+          # Reads /tmp/status_rd1858.json written by snapshot.py and pushes to gh-pages.
+          (
+            cd "$GITHUB_WORKSPACE"
+            while true; do
+              sleep 300
+              if [ -f /tmp/status_rd1858.json ]; then
+                # Work on gh-pages without disturbing the working tree
+                git fetch origin gh-pages 2>/dev/null || true
 
-      # Save with a unique key per attempt so reruns can always find the
-      # latest token via the restore-keys fallback chain above.
+                # Use git worktree so we can commit to gh-pages while main is checked out
+                if [ ! -d /tmp/gh-pages-rd1858 ]; then
+                  git worktree add /tmp/gh-pages-rd1858 gh-pages 2>/dev/null || \
+                    git worktree add /tmp/gh-pages-rd1858 --orphan gh-pages
+                fi
+
+                cp /tmp/status_rd1858.json /tmp/gh-pages-rd1858/status_rd1858.json
+                cd /tmp/gh-pages-rd1858
+                git add status_rd1858.json
+                if ! git diff --cached --quiet; then
+                  git commit -m "rd1858 snapshot $(date -u +'%H:%M UTC')"
+                  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
+                  echo "[pusher] rd1858 snapshot pushed at $(date -u +'%H:%M UTC')"
+                fi
+                cd "$GITHUB_WORKSPACE"
+              fi
+            done
+          ) &
+          PUSHER_PID=$!
+
+          # ── Run the actual bot ──────────────────────────────────────────────
+          python cloud_launcher.py
+          BOT_EXIT=$?
+
+          kill $PUSHER_PID 2>/dev/null || true
+
+          # ── Final push after bot exits ──────────────────────────────────────
+          if [ -f /tmp/status_rd1858.json ]; then
+            cd "$GITHUB_WORKSPACE"
+            git fetch origin gh-pages 2>/dev/null || true
+            if [ ! -d /tmp/gh-pages-rd1858 ]; then
+              git worktree add /tmp/gh-pages-rd1858 gh-pages 2>/dev/null || \
+                git worktree add /tmp/gh-pages-rd1858 --orphan gh-pages
+            fi
+            # Mark bot as stopped in the final snapshot
+            python3 -c "
+import json, pathlib
+p = pathlib.Path('/tmp/status_rd1858.json')
+d = json.loads(p.read_text())
+d['bot_running'] = False
+p.write_text(json.dumps(d, indent=2))
+"
+            cp /tmp/status_rd1858.json /tmp/gh-pages-rd1858/status_rd1858.json
+            cd /tmp/gh-pages-rd1858
+            git add status_rd1858.json
+            git diff --cached --quiet || \
+              git commit -m "rd1858 final $(date -u +'%H:%M UTC')" && \
+              git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
+          fi
+
+          exit $BOT_EXIT
+
       - name: Save enctoken cache (RD1858)
         if: always()
         uses: actions/cache/save@v4
@@ -82,10 +153,14 @@ jobs:
   PS5673:
     runs-on: ubuntu-latest
     timeout-minutes: 210
+    permissions:
+      contents: write          # needed for git push to gh-pages
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0       # full history so we can push to gh-pages
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -99,8 +174,7 @@ jobs:
           key: ps5673-${{ hashFiles('PS5673/requirements.txt') }}
           restore-keys: ps5673-
 
-      # Restore enctoken from the most recent previous attempt of this run,
-      # or from any previous run. Prevents TOTP login on cancel + rerun.
+      # Restore enctoken from previous attempt/run — skips TOTP login if still valid.
       - name: Restore enctoken cache (PS5673)
         uses: actions/cache/restore@v4
         with:
@@ -119,7 +193,14 @@ jobs:
       - name: Install Playwright Chromium browser
         run: playwright install chromium --with-deps
 
-      - name: Run PS5673 bot (headless Chrome login + trading)
+      # Configure git once so the push loop in the bot step can use it.
+      - name: Configure git for gh-pages push
+        run: |
+          git config user.name  "WealthAlgo Bot"
+          git config user.email "bot@wealthalgo.local"
+          git fetch origin gh-pages 2>/dev/null || echo "gh-pages branch not yet created"
+
+      - name: Run PS5673 bot + live snapshot pusher
         working-directory: PS5673
         timeout-minutes: 200
         env:
@@ -131,10 +212,67 @@ jobs:
           BOT_PORT:            "5001"
           PYTHONIOENCODING:    utf-8
           PYTHONUTF8:          "1"
-        run: python cloud_launcher.py
+          GITHUB_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO:             ${{ github.repository }}
+        run: |
+          # ── Background snapshot pusher (every 5 min, matches snapshot.py interval) ──
+          (
+            cd "$GITHUB_WORKSPACE"
+            while true; do
+              sleep 300
+              if [ -f /tmp/status_ps5673.json ]; then
+                git fetch origin gh-pages 2>/dev/null || true
 
-      # Save with a unique key per attempt so reruns can always find the
-      # latest token via the restore-keys fallback chain above.
+                if [ ! -d /tmp/gh-pages-ps5673 ]; then
+                  git worktree add /tmp/gh-pages-ps5673 gh-pages 2>/dev/null || \
+                    git worktree add /tmp/gh-pages-ps5673 --orphan gh-pages
+                fi
+
+                cp /tmp/status_ps5673.json /tmp/gh-pages-ps5673/status_ps5673.json
+                cd /tmp/gh-pages-ps5673
+                git add status_ps5673.json
+                if ! git diff --cached --quiet; then
+                  git commit -m "ps5673 snapshot $(date -u +'%H:%M UTC')"
+                  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
+                  echo "[pusher] ps5673 snapshot pushed at $(date -u +'%H:%M UTC')"
+                fi
+                cd "$GITHUB_WORKSPACE"
+              fi
+            done
+          ) &
+          PUSHER_PID=$!
+
+          # ── Run the actual bot ──────────────────────────────────────────────
+          python cloud_launcher.py
+          BOT_EXIT=$?
+
+          kill $PUSHER_PID 2>/dev/null || true
+
+          # ── Final push after bot exits ──────────────────────────────────────
+          if [ -f /tmp/status_ps5673.json ]; then
+            cd "$GITHUB_WORKSPACE"
+            git fetch origin gh-pages 2>/dev/null || true
+            if [ ! -d /tmp/gh-pages-ps5673 ]; then
+              git worktree add /tmp/gh-pages-ps5673 gh-pages 2>/dev/null || \
+                git worktree add /tmp/gh-pages-ps5673 --orphan gh-pages
+            fi
+            python3 -c "
+import json, pathlib
+p = pathlib.Path('/tmp/status_ps5673.json')
+d = json.loads(p.read_text())
+d['bot_running'] = False
+p.write_text(json.dumps(d, indent=2))
+"
+            cp /tmp/status_ps5673.json /tmp/gh-pages-ps5673/status_ps5673.json
+            cd /tmp/gh-pages-ps5673
+            git add status_ps5673.json
+            git diff --cached --quiet || \
+              git commit -m "ps5673 final $(date -u +'%H:%M UTC')" && \
+              git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
+          fi
+
+          exit $BOT_EXIT
+
       - name: Save enctoken cache (PS5673)
         if: always()
         uses: actions/cache/save@v4
