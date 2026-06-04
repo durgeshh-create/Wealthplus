@@ -25,7 +25,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0       # full history so we can push to gh-pages
+          fetch-depth: 0
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -39,7 +39,6 @@ jobs:
           key: rd1858-${{ hashFiles('RD1858/requirements.txt') }}
           restore-keys: rd1858-
 
-      # Restore enctoken from previous attempt/run — skips TOTP login if still valid.
       - name: Restore enctoken cache (RD1858)
         uses: actions/cache/restore@v4
         with:
@@ -86,8 +85,7 @@ jobs:
               if [ -f /tmp/status_rd1858.json ]; then
                 git fetch origin gh-pages 2>/dev/null || true
                 if [ ! -d /tmp/gh-pages-rd1858 ]; then
-                  git worktree add /tmp/gh-pages-rd1858 gh-pages 2>/dev/null || \
-                    git worktree add /tmp/gh-pages-rd1858 --orphan gh-pages
+                  git worktree add /tmp/gh-pages-rd1858 gh-pages 2>/dev/null || git worktree add /tmp/gh-pages-rd1858 --orphan gh-pages
                 fi
                 cp /tmp/status_rd1858.json /tmp/gh-pages-rd1858/status_rd1858.json
                 cd /tmp/gh-pages-rd1858
@@ -111,22 +109,15 @@ jobs:
             cd "$GITHUB_WORKSPACE"
             git fetch origin gh-pages 2>/dev/null || true
             if [ ! -d /tmp/gh-pages-rd1858 ]; then
-              git worktree add /tmp/gh-pages-rd1858 gh-pages 2>/dev/null || \
-                git worktree add /tmp/gh-pages-rd1858 --orphan gh-pages
+              git worktree add /tmp/gh-pages-rd1858 gh-pages 2>/dev/null || git worktree add /tmp/gh-pages-rd1858 --orphan gh-pages
             fi
-python3 - <<'PYEOF'
-import json, pathlib
-p = pathlib.Path('/tmp/status_rd1858.json')
-d = json.loads(p.read_text())
-d['bot_running'] = False
-p.write_text(json.dumps(d, indent=2))
-PYEOF
+            printf 'import json, pathlib\np = pathlib.Path("/tmp/status_rd1858.json")\nd = json.loads(p.read_text())\nd["bot_running"] = False\np.write_text(json.dumps(d, indent=2))\n' > /tmp/set_offline_rd1858.py
+            python3 /tmp/set_offline_rd1858.py
             cp /tmp/status_rd1858.json /tmp/gh-pages-rd1858/status_rd1858.json
             cd /tmp/gh-pages-rd1858
             git add status_rd1858.json
-            git diff --cached --quiet || \
-              git commit -m "rd1858 final $(date -u +'%H:%M UTC')" && \
-              git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
+            git diff --cached --quiet || git commit -m "rd1858 final $(date -u +'%H:%M UTC')"
+            git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
           fi
 
           exit $BOT_EXIT
@@ -149,7 +140,7 @@ PYEOF
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0       # full history so we can push to gh-pages
+          fetch-depth: 0
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -163,7 +154,6 @@ PYEOF
           key: ps5673-${{ hashFiles('PS5673/requirements.txt') }}
           restore-keys: ps5673-
 
-      # Restore enctoken from previous attempt/run — skips TOTP login if still valid.
       - name: Restore enctoken cache (PS5673)
         uses: actions/cache/restore@v4
         with:
@@ -210,8 +200,7 @@ PYEOF
               if [ -f /tmp/status_ps5673.json ]; then
                 git fetch origin gh-pages 2>/dev/null || true
                 if [ ! -d /tmp/gh-pages-ps5673 ]; then
-                  git worktree add /tmp/gh-pages-ps5673 gh-pages 2>/dev/null || \
-                    git worktree add /tmp/gh-pages-ps5673 --orphan gh-pages
+                  git worktree add /tmp/gh-pages-ps5673 gh-pages 2>/dev/null || git worktree add /tmp/gh-pages-ps5673 --orphan gh-pages
                 fi
                 cp /tmp/status_ps5673.json /tmp/gh-pages-ps5673/status_ps5673.json
                 cd /tmp/gh-pages-ps5673
@@ -235,22 +224,15 @@ PYEOF
             cd "$GITHUB_WORKSPACE"
             git fetch origin gh-pages 2>/dev/null || true
             if [ ! -d /tmp/gh-pages-ps5673 ]; then
-              git worktree add /tmp/gh-pages-ps5673 gh-pages 2>/dev/null || \
-                git worktree add /tmp/gh-pages-ps5673 --orphan gh-pages
+              git worktree add /tmp/gh-pages-ps5673 gh-pages 2>/dev/null || git worktree add /tmp/gh-pages-ps5673 --orphan gh-pages
             fi
-python3 - <<'PYEOF'
-import json, pathlib
-p = pathlib.Path('/tmp/status_ps5673.json')
-d = json.loads(p.read_text())
-d['bot_running'] = False
-p.write_text(json.dumps(d, indent=2))
-PYEOF
+            printf 'import json, pathlib\np = pathlib.Path("/tmp/status_ps5673.json")\nd = json.loads(p.read_text())\nd["bot_running"] = False\np.write_text(json.dumps(d, indent=2))\n' > /tmp/set_offline_ps5673.py
+            python3 /tmp/set_offline_ps5673.py
             cp /tmp/status_ps5673.json /tmp/gh-pages-ps5673/status_ps5673.json
             cd /tmp/gh-pages-ps5673
             git add status_ps5673.json
-            git diff --cached --quiet || \
-              git commit -m "ps5673 final $(date -u +'%H:%M UTC')" && \
-              git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
+            git diff --cached --quiet || git commit -m "ps5673 final $(date -u +'%H:%M UTC')"
+            git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
           fi
 
           exit $BOT_EXIT
