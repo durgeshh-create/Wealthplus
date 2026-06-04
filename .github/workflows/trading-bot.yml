@@ -54,7 +54,11 @@ jobs:
           git add dashboard.html
           git diff --cached --quiet && echo "dashboard.html unchanged, skipping commit" || \
             git commit -m "deploy dashboard.html $(date -u +'%Y-%m-%d')"
-          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
+          for _retry in 1 2 3; do
+            git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+            git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
+            sleep 3
+          done
 
   # ────────────────────────────────────────────────────────────────────────────
   # RD1858 — runs in parallel with PS5673, after bootstrap
@@ -135,7 +139,11 @@ jobs:
                 git add status_rd1858.json
                 if ! git diff --cached --quiet; then
                   git commit -m "rd1858 snapshot $(date -u +'%H:%M UTC')"
-                  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
+                  for _retry in 1 2 3; do
+                    git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+                    git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
+                    sleep 3
+                  done
                 fi
                 cd "$GITHUB_WORKSPACE"
               fi
@@ -160,7 +168,11 @@ jobs:
             cd /tmp/gh-pages-rd1858
             git add status_rd1858.json
             git diff --cached --quiet || git commit -m "rd1858 final $(date -u +'%H:%M UTC')"
-            git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
+            for _retry in 1 2 3; do
+              git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+              git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
+              sleep 3
+            done
           fi
 
           exit $BOT_EXIT
@@ -251,7 +263,11 @@ jobs:
                 git add status_ps5673.json
                 if ! git diff --cached --quiet; then
                   git commit -m "ps5673 snapshot $(date -u +'%H:%M UTC')"
-                  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
+                  for _retry in 1 2 3; do
+                    git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+                    git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
+                    sleep 3
+                  done
                 fi
                 cd "$GITHUB_WORKSPACE"
               fi
@@ -276,7 +292,11 @@ jobs:
             cd /tmp/gh-pages-ps5673
             git add status_ps5673.json
             git diff --cached --quiet || git commit -m "ps5673 final $(date -u +'%H:%M UTC')"
-            git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages
+            for _retry in 1 2 3; do
+              git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+              git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
+              sleep 3
+            done
           fi
 
           exit $BOT_EXIT
