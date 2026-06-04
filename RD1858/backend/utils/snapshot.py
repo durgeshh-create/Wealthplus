@@ -1,7 +1,7 @@
 """
-snapshot.py — RD1858
+snapshot.py — PS5673
 =====================
-Writes a JSON status file to /tmp/status_rd1858.json every N minutes.
+Writes a JSON status file to /tmp/status_ps5673.json every N minutes.
 GitHub Actions pushes this file to the gh-pages branch so the static
 GitHub Pages dashboard can read it without any server or tunnel.
 
@@ -17,8 +17,8 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 IST           = timezone(timedelta(hours=5, minutes=30))
-SNAPSHOT_PATH = Path("/tmp/status_rd1858.json")
-ACCOUNT       = "RD1858"
+SNAPSHOT_PATH = Path("/tmp/status_ps5673.json")
+ACCOUNT       = "PS5673"
 INTERVAL_SEC  = 300   # write every 5 minutes
 
 
@@ -159,6 +159,35 @@ def write_snapshot(dashboard_state: dict):
         # ── Slot summary ──────────────────────────────────────────────────────
         slots_used = len([s for s in active_etfs if s in held_set])
 
+        # ── Today's orders ────────────────────────────────────────────────────
+        orders = []
+        try:
+            kite = dashboard_state.get("kite")
+            if kite:
+                raw_orders = kite.orders() or []
+                today_str = datetime.now(IST).strftime("%Y-%m-%d")
+                for o in raw_orders:
+                    ts = o.get("order_timestamp") or o.get("exchange_timestamp") or ""
+                    ts_str = str(ts)
+                    if today_str not in ts_str:
+                        continue
+                    sym = o.get("tradingsymbol", "")
+                    if sym not in active_etfs and sym not in bnh_symbols and sym != LIQUIDCASE_SYMBOL:
+                        continue
+                    orders.append({
+                        "order_id":          o.get("order_id"),
+                        "tradingsymbol":      sym,
+                        "transaction_type":   o.get("transaction_type"),
+                        "quantity":           o.get("quantity"),
+                        "filled_quantity":    o.get("filled_quantity"),
+                        "average_price":      o.get("average_price"),
+                        "price":              o.get("price"),
+                        "status":             o.get("status"),
+                        "order_timestamp":    ts_str,
+                    })
+        except Exception:
+            pass
+
         # ── Build snapshot ────────────────────────────────────────────────────
         snapshot = {
             "account":     ACCOUNT,
@@ -184,6 +213,7 @@ def write_snapshot(dashboard_state: dict):
             "holdings":   holdings,
             "williams_r": wr_data,
             "signals":    signals,
+            "orders":     orders,
         }
 
         SNAPSHOT_PATH.write_text(json.dumps(snapshot, indent=2))
@@ -203,7 +233,7 @@ def write_snapshot(dashboard_state: dict):
 
 def start_snapshot_thread(dashboard_state: dict):
     """
-    Start background thread that writes /tmp/status_rd1858.json every 5 minutes.
+    Start background thread that writes /tmp/status_ps5673.json every 5 minutes.
     Returns immediately. Thread is daemon so it dies with the process.
     """
     def _loop():
@@ -213,6 +243,6 @@ def start_snapshot_thread(dashboard_state: dict):
             time.sleep(INTERVAL_SEC)
             write_snapshot(dashboard_state)
 
-    t = threading.Thread(target=_loop, daemon=True, name="SnapshotWriter-RD1858")
+    t = threading.Thread(target=_loop, daemon=True, name="SnapshotWriter-PS5673")
     t.start()
     print(f"  → Snapshot writer started (every {INTERVAL_SEC//60} min → {SNAPSHOT_PATH}) ✅")
