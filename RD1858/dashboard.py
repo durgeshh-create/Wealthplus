@@ -695,6 +695,19 @@ def main():
         executor=backend["executor"],
     )
 
+    # ── Snapshot writer — writes /tmp/status_rd1858.json every 5 min ─────────
+    # GitHub Actions pushes this to gh-pages for the static dashboard.
+    try:
+        from backend.utils.snapshot import start_snapshot_thread
+        _snap_state = {
+            "portfolio_tracker":  backend["portfolio"],
+            "realtime_manager":   backend["realtime"],
+            "historical_manager": backend["historical"],
+        }
+        start_snapshot_thread(_snap_state)
+    except Exception as _snap_err:
+        logger.warning(f"Snapshot writer not started: {_snap_err}")
+
     trading_active = True
     trading_thread = threading.Thread(
         target=trading_loop,
