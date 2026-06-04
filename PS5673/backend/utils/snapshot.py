@@ -168,31 +168,39 @@ def write_snapshot(dashboard_state: dict):
         bnh_held   = len([s for s in bnh_symbols if s in held_set])
 
         # ── Today's orders ────────────────────────────────────────────────────
+        # FIX: "kite" key is never set in dashboard_state — use order_manager's
+        # auth session to hit /oms/orders directly (same endpoint get_order_status uses)
         orders = []
         try:
-            kite = dashboard_state.get("kite")
-            if kite:
-                raw_orders = kite.orders() or []
-                today_str = datetime.now(IST).strftime("%Y-%m-%d")
-                for o in raw_orders:
-                    ts = o.get("order_timestamp") or o.get("exchange_timestamp") or ""
-                    ts_str = str(ts)
-                    if today_str not in ts_str:
-                        continue
-                    sym = o.get("tradingsymbol", "")
-                    if sym not in active_etfs and sym not in bnh_symbols and sym != LIQUIDCASE_SYMBOL:
-                        continue
-                    orders.append({
-                        "order_id":          o.get("order_id"),
-                        "tradingsymbol":      sym,
-                        "transaction_type":   o.get("transaction_type"),
-                        "quantity":           o.get("quantity"),
-                        "filled_quantity":    o.get("filled_quantity"),
-                        "average_price":      o.get("average_price"),
-                        "price":              o.get("price"),
-                        "status":             o.get("status"),
-                        "order_timestamp":    ts_str,
-                    })
+            order_mgr = dashboard_state.get("order_manager")
+            if order_mgr and hasattr(order_mgr, "auth") and order_mgr.auth:
+                from backend.core.config import Config
+                resp = order_mgr.auth.session.get(
+                    f"{Config.ZERODHA_API_BASE}/oms/orders",
+                    timeout=10,
+                )
+                if resp.status_code == 200:
+                    raw_orders = resp.json().get("data", []) or []
+                    today_str = datetime.now(IST).strftime("%Y-%m-%d")
+                    for o in raw_orders:
+                        ts = o.get("order_timestamp") or o.get("exchange_timestamp") or ""
+                        ts_str = str(ts)
+                        if today_str not in ts_str:
+                            continue
+                        sym = o.get("tradingsymbol", "")
+                        if sym not in active_etfs and sym not in bnh_symbols and sym != LIQUIDCASE_SYMBOL:
+                            continue
+                        orders.append({
+                            "order_id":         o.get("order_id"),
+                            "tradingsymbol":     sym,
+                            "transaction_type":  o.get("transaction_type"),
+                            "quantity":          o.get("quantity"),
+                            "filled_quantity":   o.get("filled_quantity"),
+                            "average_price":     o.get("average_price"),
+                            "price":             o.get("price"),
+                            "status":            o.get("status"),
+                            "order_timestamp":   ts_str,
+                        })
         except Exception:
             pass
 
