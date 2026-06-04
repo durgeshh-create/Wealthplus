@@ -69,7 +69,7 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 .sc.b::before{background:var(--blue)}
 .sc.a::before{background:var(--amber)}
 .sc-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
-.sc-val{font-family:var(--head);font-size:21px;font-weight:700;color:#fff;line-height:1.1}
+.sc-val{font-family:var(--head);font-size:21px;font-weight:700;color:var(--text);line-height:1.1}
 .sc-val.pos{color:var(--green)}
 .sc-val.neg{color:var(--red)}
 .sc-sub{font-size:10px;color:var(--muted);margin-top:3px}
@@ -123,12 +123,18 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 .sig-row:last-child{border-bottom:none}
 
 /* ── slots ── */
-.slots-wrap{padding:14px;display:flex;flex-direction:column;gap:10px}
-.slots-row{display:flex;gap:5px;flex-wrap:wrap}
-.slot{width:30px;height:30px;border-radius:4px;border:1px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:7px;font-family:var(--head);font-weight:700;cursor:default;transition:all .2s}
-.slot.used{background:var(--acc-d);border-color:rgba(99,102,241,.4);color:var(--accent)}
-.slot.liq{background:var(--green-d);border-color:rgba(34,197,94,.3);color:var(--green)}
-.slot-leg{display:flex;gap:14px;font-size:10px;color:var(--muted)}
+.slots-wrap{padding:14px;display:flex;flex-direction:column;gap:12px}
+.slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.slot{border-radius:6px;border:1px solid var(--border2);background:var(--bg3);padding:8px 10px;cursor:default;transition:all .2s;min-width:0}
+.slot.used{background:var(--acc-d);border-color:rgba(99,102,241,.4)}
+.slot.liq{background:var(--green-d);border-color:rgba(34,197,94,.3)}
+.slot-sym{font-family:var(--head);font-size:11px;font-weight:700;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot.used .slot-sym{color:var(--accent)}
+.slot.liq .slot-sym{color:var(--green)}
+.slot-status{font-size:9px;margin-top:2px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.slot.used .slot-status{color:var(--accent);opacity:.8}
+.slot.liq .slot-status{color:var(--green);opacity:.8}
+.slot-leg{display:flex;gap:14px;font-size:10px;color:var(--muted);flex-wrap:wrap}
 .slot-leg span{display:flex;align-items:center;gap:5px}
 .ld{width:8px;height:8px;border-radius:2px;flex-shrink:0}
 
@@ -261,6 +267,8 @@ const URLS = {
 // ── State ─────────────────────────────────────────────────────────────────────
 let account = "PS5673";
 let timer   = null;
+let countdown = 0;
+let countdownTimer = null;
 const INTERVAL = 30000;   // auto-refresh every 30s
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -280,6 +288,41 @@ const tStr   = ts => {
   const d = new Date(ts);
   return isNaN(d) ? ts.slice(11,16) : d.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:true});
 };
+
+// Parse "2026-06-04 09:17:39 IST" — handles space separator and IST suffix
+function parseSnapTs(ts) {
+  if (!ts) return NaN;
+  // Replace space between date and time with T, strip trailing timezone label
+  const cleaned = ts.replace(" IST","").replace(" +0530","").trim().replace(" ","T");
+  // Try direct parse first
+  let d = new Date(cleaned);
+  if (!isNaN(d)) {
+    // If no timezone in string, it's parsed as local — treat as IST (+05:30)
+    if (!cleaned.includes("+") && !cleaned.includes("Z")) {
+      // Adjust: subtract local offset, add IST offset
+      const localOffsetMs  = new Date().getTimezoneOffset() * 60000;  // negative for UTC+
+      const istOffsetMs    = -330 * 60000;   // IST is UTC+5:30, offset = -330 min
+      d = new Date(d.getTime() + localOffsetMs - istOffsetMs);
+    }
+    return d;
+  }
+  return NaN;
+}
+
+function startCountdown() {
+  clearInterval(countdownTimer);
+  countdown = Math.round(INTERVAL / 1000);
+  const el = document.getElementById("last-ts");
+  countdownTimer = setInterval(() => {
+    countdown--;
+    if (countdown <= 0) {
+      clearInterval(countdownTimer);
+    } else {
+      const base = el.dataset.base || "";
+      el.textContent = base + (base ? "  ·  " : "") + `next in ${countdown}s`;
+    }
+  }, 1000);
+}
 
 function setDot(state) {
   const d = document.getElementById("bot-dot");
@@ -376,17 +419,24 @@ function render(data) {
     </tr>`;
   }).join("") : `<tr><td colspan="4" class="empty">No market data</td></tr>`;
 
-  // Slot matrix
+  // Slot matrix — card grid layout, full symbol names, no truncation overflow
   const allEtfs = slots.active_etfs ?? [];
   const bnhSyms = slots.bnh_symbols ?? [];
   const heldSet = new Set(holdings.map(h => h.symbol));
   const sw = document.getElementById("slots-wrap");
   const blocks = allEtfs.map(sym => {
     const u = heldSet.has(sym);
-    return `<div class="slot ${u?'used':''}" title="${sym}">${sym.replace(/-RR$/,"").slice(0,6)}</div>`;
+    return `<div class="slot ${u?'used':''}" title="${sym}">
+      <div class="slot-sym">${sym}</div>
+      <div class="slot-status">${u ? "● Holding" : "○ Empty"}</div>
+    </div>`;
   });
+  const liqBlock = `<div class="slot liq" title="LIQUIDCASE">
+    <div class="slot-sym">LIQUIDCASE</div>
+    <div class="slot-status">● Buffer</div>
+  </div>`;
   sw.innerHTML = `
-    <div class="slots-row">${blocks.join("")}<div class="slot liq" title="LIQUIDCASE">LIQC</div></div>
+    <div class="slots-grid">${blocks.join("")}${liqBlock}</div>
     <div class="slot-leg">
       <span><div class="ld" style="background:var(--acc-d);border:1px solid rgba(99,102,241,.4)"></div> Holding</span>
       <span><div class="ld" style="background:var(--bg3);border:1px solid var(--border2)"></div> Empty</span>
@@ -468,8 +518,10 @@ async function refreshAll() {
   document.getElementById("cfg-note").style.display = "none";
 
   // Freshness check — warn if snapshot is older than 12 minutes
+  // Uses parseSnapTs() which correctly handles "YYYY-MM-DD HH:MM:SS IST" format
   const snapTs = data.timestamp ?? "";
-  const ageMin = snapTs ? (Date.now() - new Date(snapTs.replace(" IST","")).getTime()) / 60000 : 999;
+  const snapDate = parseSnapTs(snapTs);
+  const ageMin = !isNaN(snapDate) ? (Date.now() - snapDate.getTime()) / 60000 : 999;
   const isStale = ageMin > 12;
   const botOn   = data.bot_running !== false;
 
@@ -490,13 +542,16 @@ async function refreshAll() {
   }
 
   const now = new Date();
-  document.getElementById("last-ts").textContent =
-    "Refreshed " + now.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  const tsText = "Refreshed " + now.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  const el = document.getElementById("last-ts");
+  el.dataset.base = tsText;
+  el.textContent = tsText;
 
   render(data);
 
   clearTimeout(timer);
   timer = setTimeout(refreshAll, INTERVAL);
+  startCountdown();
 }
 
 function switchAccount(acc) {
