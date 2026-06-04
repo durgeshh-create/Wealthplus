@@ -72,19 +72,25 @@ def write_snapshot(dashboard_state: dict):
                 val = qty * ltp
 
                 # today_move = (ltp - prev_close) * qty  — today's P&L only
-                # Per-row pnl shown in holdings table also uses today's move, not total unrealised
                 prev_close = None
+                prev_close_src = "none"
                 if realtime:
                     ohlc = realtime.get_ohlc(sym)
                     if ohlc and ohlc.get("close") and float(ohlc["close"]) > 0:
                         prev_close = float(ohlc["close"])
-                if prev_close is None and historical:
-                    try:
-                        df = historical.get_daily_data(sym)
-                        if df is not None and len(df) > 0:
-                            prev_close = float(df.iloc[-1]["close"])
-                    except Exception:
-                        pass
+                        prev_close_src = "ohlc"
+                if prev_close is None:
+                    # Use get_latest_close — always returns yesterday's close from cached CSV
+                    if historical:
+                        try:
+                            pc = historical.get_latest_close(sym)
+                            if pc and pc > 0:
+                                prev_close = pc
+                                prev_close_src = "historical"
+                        except Exception:
+                            pass
+                import sys as _sys
+                print(f"[snapshot] {sym}: ltp={ltp} prev_close={prev_close}({prev_close_src}) qty={qty}", flush=True, file=_sys.stderr)
                 today_move = round((ltp - prev_close) * qty, 2) if prev_close and prev_close > 0 else 0.0
                 today_move_pct = round((ltp - prev_close) / prev_close * 100, 2) if prev_close and prev_close > 0 else 0.0
 
