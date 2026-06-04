@@ -124,7 +124,7 @@ jobs:
           (
             cd "$GITHUB_WORKSPACE"
             while true; do
-              sleep 300
+              sleep 120
               if [ -f /tmp/status_rd1858.json ]; then
                 git fetch origin gh-pages 2>/dev/null || true
                 if [ ! -d /tmp/gh-pages-rd1858 ]; then
@@ -240,7 +240,7 @@ jobs:
           (
             cd "$GITHUB_WORKSPACE"
             while true; do
-              sleep 300
+              sleep 120
               if [ -f /tmp/status_ps5673.json ]; then
                 git fetch origin gh-pages 2>/dev/null || true
                 if [ ! -d /tmp/gh-pages-ps5673 ]; then
