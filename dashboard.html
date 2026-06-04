@@ -134,7 +134,11 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 .slot-status{font-size:9px;margin-top:2px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
 .slot.used .slot-status{color:var(--accent);opacity:.8}
 .slot.liq .slot-status{color:var(--green);opacity:.8}
-.slot-leg{display:flex;gap:14px;font-size:10px;color:var(--muted);flex-wrap:wrap}
+.slot.bnh{background:rgba(37,99,235,0.08);border-color:rgba(37,99,235,.35)}
+.slot.bnh .slot-sym{color:var(--blue)}
+.slot.bnh .slot-status{color:var(--blue);opacity:.8}
+.slot.bnh.held{background:rgba(37,99,235,0.16);border-color:rgba(37,99,235,.5)}
+.slots-section-label{font-family:var(--head);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
 .slot-leg span{display:flex;align-items:center;gap:5px}
 .ld{width:8px;height:8px;border-radius:2px;flex-shrink:0}
 
@@ -152,8 +156,9 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 /* ── empty / stale ── */
 .empty{padding:28px 15px;text-align:center;color:var(--muted);font-size:12px}
 
-/* ── stale banner ── */
+/* ── status banners ── */
 #stale-banner{display:none;background:#fffbeb;border-bottom:1px solid var(--amber);padding:8px 20px;font-size:11px;color:#92400e}
+#offline-banner{display:none;background:#f8fafc;border-bottom:1px solid var(--border2);padding:8px 20px;font-size:11px;color:var(--muted2)}
 
 /* ── config note ── */
 #cfg-note{display:none;background:#f8fafc;border-bottom:1px solid var(--border2);padding:10px 20px;font-size:11px;color:var(--muted2)}
@@ -163,6 +168,7 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 <body>
 
 <div id="stale-banner">⚠ Data is stale — bot may have stopped or snapshot push is delayed. Last update: <span id="stale-ts">—</span></div>
+<div id="offline-banner">🔴 Bot offline — last session ended <span id="offline-ts">—</span>. P&amp;L shown is from the last session close.</div>
 <div id="cfg-note"></div>
 
 <header>
@@ -247,7 +253,7 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 
   <!-- Slot matrix -->
   <div class="panel">
-    <div class="ph"><span class="pt">Slot Matrix</span><span style="font-size:10px;color:var(--muted)">Active ETF positions</span></div>
+    <div class="ph"><span class="pt">Slot Matrix</span><span style="font-size:10px;color:var(--muted)">Active strategy + Dip Accumulator (B&amp;H)</span></div>
     <div class="slots-wrap" id="slots-wrap"><div class="empty">Loading…</div></div>
   </div>
 </main>
@@ -344,10 +350,13 @@ function render(data) {
   document.getElementById("s-total").textContent     = fmtL(tv);
   document.getElementById("s-total-sub").textContent = `across all positions`;
   const pnlEl = document.getElementById("s-pnl");
-  pnlEl.textContent   = (pnl >= 0 ? "+" : "") + fmtL(pnl);
-  pnlEl.className     = "sc-val " + (pnl >= 0 ? "pos" : "neg");
-  document.getElementById("s-pnl-pct").textContent = fmtPct(pnlPct);
-  document.getElementById("s-pnl-card").className  = "sc " + (pnl >= 0 ? "g" : "r");
+  pnlEl.textContent = (pnl >= 0 ? "+" : "") + fmtL(Math.abs(pnl) < 0.01 ? 0 : pnl);
+  pnlEl.className   = "sc-val " + (pnl > 0 ? "pos" : pnl < 0 ? "neg" : "");
+  document.getElementById("s-pnl-pct").textContent =
+    (Math.abs(pnlPct) < 0.001 && !data.bot_running)
+      ? (data.timestamp ? "as of " + data.timestamp.slice(11,16) + " IST" : "last session")
+      : fmtPct(pnlPct);
+  document.getElementById("s-pnl-card").className  = "sc " + (pnl > 0 ? "g" : pnl < 0 ? "r" : "");
   document.getElementById("s-liq").textContent     = fmtL(liq.value);
   document.getElementById("s-liq-sub").textContent = `${liq.quantity ?? 0} units · ${liq.pct ?? 0}%`;
   document.getElementById("s-slots").textContent   = `${slots.used ?? 0}/${slots.total ?? 0}`;
@@ -407,10 +416,11 @@ function render(data) {
               : v != null && v <= -55 ? `<span style="color:var(--amber);font-size:10px">WATCH</span>`
               : `<span style="color:var(--muted);font-size:10px">NEUTRAL</span>`;
     const held = item.is_held ? `<span style="font-size:9px;color:var(--accent);margin-left:4px">●</span>` : "";
+    const bnhTag = item.strategy === "bnh" ? `<span class="tag tag-b" style="margin-left:4px">B&H</span>` : "";
     const chg  = item.change_pct;
     const chgS = chg != null ? `<span style="color:${chg>=0?'var(--green)':'var(--red)'};font-size:10px">${chg>=0?"+":""}${chg.toFixed(2)}%</span>` : "";
     return `<tr>
-      <td><div class="sym">${item.symbol}${held}</div><div style="font-size:10px;color:var(--muted2)">${item.ltp ? fmtR(item.ltp) : "—"} ${chgS}</div></td>
+      <td><div class="sym">${item.symbol}${held}${bnhTag}</div><div style="font-size:10px;color:var(--muted2)">${item.ltp ? fmtR(item.ltp) : "—"} ${chgS}</div></td>
       <td style="width:100px;padding-right:8px">
         <div class="wr-bar-wrap"><div class="wr-bar" style="width:${bw}%;background:${col}"></div><div class="threshold-line"></div></div>
       </td>
@@ -419,12 +429,13 @@ function render(data) {
     </tr>`;
   }).join("") : `<tr><td colspan="4" class="empty">No market data</td></tr>`;
 
-  // Slot matrix — card grid layout, full symbol names, no truncation overflow
+  // Slot matrix — active strategy + dip accumulator (BNH) sections
   const allEtfs = slots.active_etfs ?? [];
   const bnhSyms = slots.bnh_symbols ?? [];
   const heldSet = new Set(holdings.map(h => h.symbol));
   const sw = document.getElementById("slots-wrap");
-  const blocks = allEtfs.map(sym => {
+
+  const activeBlocks = allEtfs.map(sym => {
     const u = heldSet.has(sym);
     return `<div class="slot ${u?'used':''}" title="${sym}">
       <div class="slot-sym">${sym}</div>
@@ -435,12 +446,29 @@ function render(data) {
     <div class="slot-sym">LIQUIDCASE</div>
     <div class="slot-status">● Buffer</div>
   </div>`;
+
+  const bnhBlocks = bnhSyms.map(sym => {
+    const u = heldSet.has(sym);
+    return `<div class="slot bnh ${u?'held':''}" title="${sym}">
+      <div class="slot-sym">${sym}</div>
+      <div class="slot-status">${u ? "● Accumulating" : "○ Watching"}</div>
+    </div>`;
+  });
+
   sw.innerHTML = `
-    <div class="slots-grid">${blocks.join("")}${liqBlock}</div>
+    <div>
+      <div class="slots-section-label">Active Strategy</div>
+      <div class="slots-grid">${activeBlocks.join("")}${liqBlock}</div>
+    </div>
+    ${bnhBlocks.length ? `<div>
+      <div class="slots-section-label">Dip Accumulator (B&amp;H)</div>
+      <div class="slots-grid">${bnhBlocks.join("")}</div>
+    </div>` : ""}
     <div class="slot-leg">
-      <span><div class="ld" style="background:var(--acc-d);border:1px solid rgba(99,102,241,.4)"></div> Holding</span>
+      <span><div class="ld" style="background:var(--acc-d);border:1px solid rgba(99,102,241,.4)"></div> Active Holding</span>
       <span><div class="ld" style="background:var(--bg3);border:1px solid var(--border2)"></div> Empty</span>
       <span><div class="ld" style="background:var(--green-d);border:1px solid rgba(34,197,94,.3)"></div> LIQUIDCASE buffer</span>
+      <span><div class="ld" style="background:rgba(37,99,235,0.16);border:1px solid rgba(37,99,235,.5)"></div> B&amp;H Accumulating</span>
     </div>`;
 
   // Today's Orders — pulled from snapshot.orders (bot pushes this) or snapshot.trades fallback
@@ -517,28 +545,46 @@ async function refreshAll() {
 
   document.getElementById("cfg-note").style.display = "none";
 
-  // Freshness check — warn if snapshot is older than 12 minutes
-  // Uses parseSnapTs() which correctly handles "YYYY-MM-DD HH:MM:SS IST" format
-  const snapTs = data.timestamp ?? "";
+  // ── Parse snapshot timestamp "2026-06-04 09:17:39 IST" ───────────────────
+  const snapTs  = data.timestamp ?? "";
   const snapDate = parseSnapTs(snapTs);
-  const ageMin = !isNaN(snapDate) ? (Date.now() - snapDate.getTime()) / 60000 : 999;
-  const isStale = ageMin > 12;
+  const ageMin  = !isNaN(snapDate) ? (Date.now() - snapDate.getTime()) / 60000 : 999;
   const botOn   = data.bot_running !== false;
+
+  // ── Market-hours awareness (IST 09:15–15:30 Mon–Fri) ─────────────────────
+  const nowIST    = new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
+  const dayOfWeek = nowIST.getDay();           // 0=Sun,6=Sat
+  const istMin    = nowIST.getHours()*60 + nowIST.getMinutes();
+  const isMarketHours = dayOfWeek >= 1 && dayOfWeek <= 5
+                     && istMin >= 555   // 09:15
+                     && istMin <= 930;  // 15:30
+  // Only flag stale during market hours when bot should be pushing data
+  // Snapshot writes every 2 min + GH Actions pushes every 2 min = ~4 min max lag; 7 min gives headroom
+  const isStale = botOn && isMarketHours && ageMin > 7;
+
+  // ── Dot + banners ─────────────────────────────────────────────────────────
+  const staleBanner   = document.getElementById("stale-banner");
+  const offlineBanner = document.getElementById("offline-banner");
+  staleBanner.style.display   = "none";
+  offlineBanner.style.display = "none";
 
   if (!botOn) {
     setDot("off");
+    // Show soft offline banner with last-session timestamp
+    offlineBanner.style.display = "block";
+    document.getElementById("offline-ts").textContent = snapTs || "unknown";
   } else if (isStale) {
     setDot("stale");
+    staleBanner.style.display = "block";
+    document.getElementById("stale-ts").textContent = snapTs;
   } else {
     setDot("live");
   }
 
-  const sb = document.getElementById("stale-banner");
-  if (isStale || !botOn) {
-    sb.style.display = "block";
-    document.getElementById("stale-ts").textContent = snapTs;
-  } else {
-    sb.style.display = "none";
+  // ── P&L label — clarify when showing last-session values ─────────────────
+  const pnlLabel = document.querySelector("#s-pnl-card .sc-label");
+  if (pnlLabel) {
+    pnlLabel.textContent = botOn ? "Today's P&L" : "Last Session P&L";
   }
 
   const now = new Date();
