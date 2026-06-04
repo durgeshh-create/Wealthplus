@@ -1,0 +1,218 @@
+"""
+snapshot.py — RD1858
+=====================
+Writes a JSON status file to /tmp/status_rd1858.json every N minutes.
+GitHub Actions pushes this file to the gh-pages branch so the static
+GitHub Pages dashboard can read it without any server or tunnel.
+
+Started from cloud_launcher.py:
+    from backend.utils.snapshot import start_snapshot_thread
+    start_snapshot_thread(dashboard_state)
+"""
+
+import json
+import threading
+import time
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+
+IST           = timezone(timedelta(hours=5, minutes=30))
+SNAPSHOT_PATH = Path("/tmp/status_rd1858.json")
+ACCOUNT       = "RD1858"
+INTERVAL_SEC  = 300   # write every 5 minutes
+
+
+def _load_settings() -> dict:
+    settings_path = Path(__file__).parent.parent.parent / "config" / "settings.json"
+    if settings_path.exists():
+        try:
+            with open(settings_path) as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+
+def write_snapshot(dashboard_state: dict):
+    """Build and write the full status snapshot. Never raises."""
+    try:
+        from backend.core.constants import LIQUIDCASE_SYMBOL
+        from backend.indicators.calculator import calculate_daily_williams_r
+
+        portfolio  = dashboard_state.get("portfolio_tracker")
+        realtime   = dashboard_state.get("realtime_manager")
+        historical = dashboard_state.get("historical_manager")
+
+        settings    = _load_settings()
+        active_etfs = settings.get("active_etfs", [
+            "MON100", "GOLDBEES", "SILVERBEES", "JUNIORBEES",
+            "MINDSPACE-RR", "EMBASSY-RR", "BANKBEES",
+        ])
+        bnh_symbols    = settings.get("bnh_symbols", ["MID150BEES"])
+        profit_target  = float(settings.get("profit_target_pct", 3))
+        wr_threshold   = float(settings.get("williams_r_threshold", -75))
+        slots_count    = int(settings.get("slots_count", 5))
+
+        # ── Holdings ──────────────────────────────────────────────────────────
+        holdings   = []
+        total_value = 0.0
+        today_pnl  = 0.0
+        held_set   = set()
+
+        if portfolio:
+            for h in (portfolio.holdings or []):
+                sym = h.get("tradingsymbol", "")
+                qty = int(h.get("quantity", 0)) + int(h.get("t1_quantity", 0))
+                if qty <= 0 or sym == LIQUIDCASE_SYMBOL:
+                    continue
+                if sym not in active_etfs and sym not in bnh_symbols:
+                    continue
+                avg = float(h.get("average_price", 0))
+                ltp = (realtime.get_ltp(sym) if realtime else None) or float(h.get("last_price", avg))
+                val = qty * ltp
+                pnl = (ltp - avg) * qty
+                total_value += val
+                held_set.add(sym)
+                holdings.append({
+                    "symbol":   sym,
+                    "quantity": qty,
+                    "avg":      round(avg, 2),
+                    "ltp":      round(ltp, 2),
+                    "value":    round(val, 2),
+                    "pnl":      round(pnl, 2),
+                    "pnl_pct":  round((ltp - avg) / avg * 100, 2) if avg else 0,
+                    "strategy": "bnh" if sym in bnh_symbols else "active",
+                })
+
+            # LIQUIDCASE
+            liq_qty   = getattr(portfolio, "liquidcase_quantity", 0)
+            liq_price = (realtime.get_ltp(LIQUIDCASE_SYMBOL) if realtime else None) or 0
+            liq_val   = liq_qty * liq_price
+            total_value += liq_val
+
+            # Today's P&L from day positions
+            for pos in (portfolio.positions or {}).get("day", []):
+                if pos.get("tradingsymbol") != LIQUIDCASE_SYMBOL:
+                    today_pnl += float(pos.get("pnl", 0))
+
+        else:
+            liq_qty = liq_price = liq_val = 0
+
+        # ── Williams %R + market data ─────────────────────────────────────────
+        wr_data = []
+        signals = []
+
+        for sym in active_etfs:
+            ltp = (realtime.get_ltp(sym) if realtime else None)
+            ohlc = (realtime.get_ohlc(sym) if realtime else None) or {}
+            prev_close = ohlc.get("close", 0)
+            chg_pct = ((ltp - prev_close) / prev_close * 100) if ltp and prev_close else None
+
+            wr = None
+            try:
+                hist = historical.get_daily_data(sym) if historical else None
+                if hist is not None and len(hist) > 0:
+                    wr = calculate_daily_williams_r(
+                        hist,
+                        live_price=ltp,
+                        live_high=ohlc.get("high") if ohlc else None,
+                        live_low=ohlc.get("low") if ohlc else None,
+                    )
+            except Exception:
+                pass
+
+            is_held = sym in held_set
+            avg_price = None
+            if is_held and portfolio:
+                avg_price = portfolio.get_average_price(sym)
+
+            wr_data.append({
+                "symbol":     sym,
+                "ltp":        round(ltp, 2) if ltp else None,
+                "change_pct": round(chg_pct, 2) if chg_pct is not None else None,
+                "williams_r": round(wr, 2) if wr is not None else None,
+                "is_held":    is_held,
+                "avg_price":  round(avg_price, 2) if avg_price else None,
+            })
+
+            # Generate signals
+            if is_held and avg_price and ltp:
+                profit_pct = (ltp - avg_price) / avg_price * 100
+                if profit_pct >= profit_target:
+                    signals.append({
+                        "type":    "SELL",
+                        "symbol":  sym,
+                        "reason":  f"Profit target {profit_pct:.1f}% ≥ {profit_target}%",
+                        "ltp":     round(ltp, 2),
+                        "avg":     round(avg_price, 2),
+                        "profit_pct": round(profit_pct, 2),
+                    })
+            elif not is_held and wr is not None and wr <= wr_threshold:
+                signals.append({
+                    "type":      "BUY",
+                    "symbol":    sym,
+                    "reason":    f"W%R {wr:.1f} ≤ {wr_threshold}",
+                    "ltp":       round(ltp, 2) if ltp else None,
+                    "williams_r": round(wr, 2),
+                })
+
+        # ── Slot summary ──────────────────────────────────────────────────────
+        slots_used = len([s for s in active_etfs if s in held_set])
+
+        # ── Build snapshot ────────────────────────────────────────────────────
+        snapshot = {
+            "account":     ACCOUNT,
+            "timestamp":   datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S IST"),
+            "bot_running": True,
+            "total_value": round(total_value, 2),
+            "today_pnl":   round(today_pnl, 2),
+            "today_pnl_pct": round(today_pnl / (total_value - today_pnl) * 100, 2)
+                              if total_value > today_pnl and total_value > 0 else 0,
+            "liquidcase": {
+                "quantity": liq_qty,
+                "price":    round(liq_price, 2),
+                "value":    round(liq_val, 2),
+                "pct":      round(liq_val / total_value * 100, 2) if total_value else 0,
+            },
+            "slots": {
+                "total":     slots_count,
+                "used":      slots_used,
+                "available": max(0, slots_count - slots_used),
+                "active_etfs": active_etfs,
+                "bnh_symbols": bnh_symbols,
+            },
+            "holdings":   holdings,
+            "williams_r": wr_data,
+            "signals":    signals,
+        }
+
+        SNAPSHOT_PATH.write_text(json.dumps(snapshot, indent=2))
+
+    except Exception as e:
+        # Write a minimal error snapshot so the dashboard shows something
+        try:
+            SNAPSHOT_PATH.write_text(json.dumps({
+                "account":     ACCOUNT,
+                "timestamp":   datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S IST"),
+                "bot_running": True,
+                "error":       str(e),
+            }, indent=2))
+        except Exception:
+            pass
+
+
+def start_snapshot_thread(dashboard_state: dict):
+    """
+    Start background thread that writes /tmp/status_rd1858.json every 5 minutes.
+    Returns immediately. Thread is daemon so it dies with the process.
+    """
+    def _loop():
+        # Write immediately on start so dashboard has data right away
+        write_snapshot(dashboard_state)
+        while True:
+            time.sleep(INTERVAL_SEC)
+            write_snapshot(dashboard_state)
+
+    t = threading.Thread(target=_loop, daemon=True, name="SnapshotWriter-RD1858")
+    t.start()
+    print(f"  → Snapshot writer started (every {INTERVAL_SEC//60} min → {SNAPSHOT_PATH}) ✅")
