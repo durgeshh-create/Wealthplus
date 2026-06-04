@@ -119,7 +119,7 @@ def send_daily_summary(backend: dict):
     """
     try:
         lines = [
-            f"📊 <b>WealthAlgo RD1858 — Daily Summary</b>",
+            f"📊 <b>WealthAlgo RD1858 — Today's P&L Summary</b>",
             f"📅 {_ist_now()}",
             f"{'─' * 30}",
         ]
@@ -153,12 +153,15 @@ def send_daily_summary(backend: dict):
                     sym = h.get("tradingsymbol", h.get("symbol", "?"))
                     if sym not in system_symbols or sym in seen_symbols:
                         continue   # skip unmanaged ETFs and symbols already counted from positions
-                    pnl = float(h.get("pnl", h.get("unrealised", 0)))
-                    qty = h.get("quantity", 0)
+                    qty = int(h.get("quantity", 0))
+                    # day_change = today's price move per unit (last_price - prev_close)
+                    # Use this for "today's P&L" instead of pnl (which is total unrealised since purchase)
+                    day_change = float(h.get("day_change", 0) or 0)
+                    pnl = round(day_change * qty, 2)
                     total_pnl += pnl
                     if qty != 0:
                         icon = "🟢" if pnl >= 0 else "🔴"
-                        trade_lines.append(f"  {icon} {sym}: qty={qty}, P&L=₹{pnl:+.2f}")
+                        trade_lines.append(f"  {icon} {sym}: qty={qty}, Today=₹{pnl:+.2f} (₹{day_change:+.2f}/unit)")
 
                 if trade_lines:
                     lines.append("💼 <b>Positions today:</b>")
@@ -211,10 +214,16 @@ def market_close_watchdog(backend: dict):
     while True:
         now_ist = datetime.now(IST)
 
-        # ── Daily P&L summary at 3:28 PM IST (2 min before shutdown) ─────────
+        # ── P&L summary 2 min before shutdown (works for both sessions) ───────
+        # Fires when within 2 minutes of SHUTDOWN_HOUR_IST:SHUTDOWN_MINUTE_IST
+        summary_min = SHUTDOWN_MINUTE_IST - 2
+        summary_hour = SHUTDOWN_HOUR_IST
+        if summary_min < 0:
+            summary_min += 60
+            summary_hour -= 1
         if (not summary_sent and
-                now_ist.hour == 15 and now_ist.minute >= 28):
-            logger.info("📊 Sending daily P&L summary to Telegram...")
+                now_ist.hour == summary_hour and now_ist.minute >= summary_min):
+            logger.info("📊 Sending P&L summary to Telegram...")
             send_daily_summary(backend)
             summary_sent = True
 
