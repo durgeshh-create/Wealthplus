@@ -271,9 +271,9 @@ class StrategyExecutor:
                 )
             except RuntimeError as e:
                 logger.error(f"✗ BUY FAILED [{symbol}]: {e}")
-                # Undo pre-registration on failure
+                # Pre-flight failure inside smart_buy — order never reached broker
                 if self.signal_generator and is_automated:
-                    self.signal_generator.unlock_symbol(symbol, success=False)
+                    self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=True)
                 return False, str(e)
 
             if success:
