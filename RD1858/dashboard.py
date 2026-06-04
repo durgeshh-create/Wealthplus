@@ -137,31 +137,48 @@ def send_daily_summary(backend: dict):
                 trade_lines = []
                 seen_symbols: set = set()   # guard against double-counting across positions + holdings
 
+                realtime = backend.get("realtime")
+
                 for pos in (positions or []):
                     sym = pos.get("tradingsymbol", pos.get("symbol", "?"))
                     if sym not in system_symbols:
-                        continue   # skip ETFs held in demat but not managed by this bot
-                    pnl = float(pos.get("pnl", pos.get("unrealised", 0)))
-                    qty = pos.get("quantity", pos.get("net_quantity", 0))
+                        continue
+                    qty = int(pos.get("quantity", pos.get("net_quantity", 0)))
+                    # Positions: use live ltp vs prev_close for today's P&L
+                    ltp = (realtime.get_ltp(sym) if realtime else None)
+                    ohlc = (realtime.get_ohlc(sym) if realtime else None)
+                    prev_close = float(ohlc["close"]) if ohlc and ohlc.get("close") else None
+                    if ltp and prev_close and prev_close > 0:
+                        pnl = round((float(ltp) - prev_close) * qty, 2)
+                    else:
+                        pnl = float(pos.get("pnl", pos.get("unrealised", 0)))
                     total_pnl += pnl
                     if qty != 0:
                         icon = "🟢" if pnl >= 0 else "🔴"
-                        trade_lines.append(f"  {icon} {sym}: qty={qty}, P&L=₹{pnl:+.2f}")
+                        trade_lines.append(f"  {icon} {sym}: qty={qty}, Today=₹{pnl:+.2f}")
                     seen_symbols.add(sym)
 
                 for h in (holdings or []):
                     sym = h.get("tradingsymbol", h.get("symbol", "?"))
                     if sym not in system_symbols or sym in seen_symbols:
-                        continue   # skip unmanaged ETFs and symbols already counted from positions
+                        continue
                     qty = int(h.get("quantity", 0))
-                    # day_change = today's price move per unit (last_price - prev_close)
-                    # Use this for "today's P&L" instead of pnl (which is total unrealised since purchase)
-                    day_change = float(h.get("day_change", 0) or 0)
-                    pnl = round(day_change * qty, 2)
+                    # Holdings: use live ltp vs prev_close (ohlc.close from WebSocket tick)
+                    # h.get("pnl") = total unrealised since avg purchase — NOT today's P&L
+                    ltp = (realtime.get_ltp(sym) if realtime else None)
+                    ohlc = (realtime.get_ohlc(sym) if realtime else None)
+                    prev_close = float(ohlc["close"]) if ohlc and ohlc.get("close") else None
+                    if ltp and prev_close and prev_close > 0:
+                        pnl = round((float(ltp) - prev_close) * qty, 2)
+                    else:
+                        # Fallback: use last_price vs close_price from holdings API response
+                        last_price  = float(h.get("last_price", 0) or 0)
+                        close_price = float(h.get("close_price", 0) or 0)
+                        pnl = round((last_price - close_price) * qty, 2) if close_price > 0 else 0.0
                     total_pnl += pnl
                     if qty != 0:
                         icon = "🟢" if pnl >= 0 else "🔴"
-                        trade_lines.append(f"  {icon} {sym}: qty={qty}, Today=₹{pnl:+.2f} (₹{day_change:+.2f}/unit)")
+                        trade_lines.append(f"  {icon} {sym}: qty={qty}, Today=₹{pnl:+.2f}")
 
                 if trade_lines:
                     lines.append("💼 <b>Positions today:</b>")
