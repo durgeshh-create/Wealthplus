@@ -1,7 +1,7 @@
 """
-snapshot.py — PS5673
+snapshot.py — RD1858
 =====================
-Writes a JSON status file to /tmp/status_ps5673.json every N minutes.
+Writes a JSON status file to /tmp/status_rd1858.json every 2 minutes.
 GitHub Actions pushes this file to the gh-pages branch so the static
 GitHub Pages dashboard can read it without any server or tunnel.
 
@@ -17,9 +17,9 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 IST           = timezone(timedelta(hours=5, minutes=30))
-SNAPSHOT_PATH = Path("/tmp/status_ps5673.json")
-ACCOUNT       = "PS5673"
-INTERVAL_SEC  = 300   # write every 5 minutes
+SNAPSHOT_PATH = Path("/tmp/status_rd1858.json")
+ACCOUNT       = "RD1858"
+INTERVAL_SEC  = 120   # write every 2 minutes (was 300 — caused >10 min lag)
 
 
 def _load_settings() -> dict:
@@ -99,10 +99,14 @@ def write_snapshot(dashboard_state: dict):
             liq_qty = liq_price = liq_val = 0
 
         # ── Williams %R + market data ─────────────────────────────────────────
+        # FIX: include both active_etfs AND bnh_symbols in WR loop
         wr_data = []
         signals = []
 
-        for sym in active_etfs:
+        all_tracked = list(active_etfs) + [s for s in bnh_symbols if s not in active_etfs]
+
+        for sym in all_tracked:
+            is_bnh = sym in bnh_symbols
             ltp = (realtime.get_ltp(sym) if realtime else None)
             ohlc = (realtime.get_ohlc(sym) if realtime else None) or {}
             prev_close = ohlc.get("close", 0)
@@ -133,31 +137,35 @@ def write_snapshot(dashboard_state: dict):
                 "williams_r": round(wr, 2) if wr is not None else None,
                 "is_held":    is_held,
                 "avg_price":  round(avg_price, 2) if avg_price else None,
+                "strategy":   "bnh" if is_bnh else "active",
             })
 
-            # Generate signals
-            if is_held and avg_price and ltp:
-                profit_pct = (ltp - avg_price) / avg_price * 100
-                if profit_pct >= profit_target:
+            # Generate signals for active ETFs
+            if not is_bnh:
+                if is_held and avg_price and ltp:
+                    profit_pct = (ltp - avg_price) / avg_price * 100
+                    if profit_pct >= profit_target:
+                        signals.append({
+                            "type":    "SELL",
+                            "symbol":  sym,
+                            "reason":  f"Profit target {profit_pct:.1f}% ≥ {profit_target}%",
+                            "ltp":     round(ltp, 2),
+                            "avg":     round(avg_price, 2),
+                            "profit_pct": round(profit_pct, 2),
+                        })
+                elif not is_held and wr is not None and wr <= wr_threshold:
                     signals.append({
-                        "type":    "SELL",
-                        "symbol":  sym,
-                        "reason":  f"Profit target {profit_pct:.1f}% ≥ {profit_target}%",
-                        "ltp":     round(ltp, 2),
-                        "avg":     round(avg_price, 2),
-                        "profit_pct": round(profit_pct, 2),
+                        "type":      "BUY",
+                        "symbol":    sym,
+                        "reason":    f"W%R {wr:.1f} ≤ {wr_threshold}",
+                        "ltp":       round(ltp, 2) if ltp else None,
+                        "williams_r": round(wr, 2),
                     })
-            elif not is_held and wr is not None and wr <= wr_threshold:
-                signals.append({
-                    "type":      "BUY",
-                    "symbol":    sym,
-                    "reason":    f"W%R {wr:.1f} ≤ {wr_threshold}",
-                    "ltp":       round(ltp, 2) if ltp else None,
-                    "williams_r": round(wr, 2),
-                })
 
         # ── Slot summary ──────────────────────────────────────────────────────
+        # FIX: count slots used across active ETFs only (BNH is separate strategy)
         slots_used = len([s for s in active_etfs if s in held_set])
+        bnh_held   = len([s for s in bnh_symbols if s in held_set])
 
         # ── Today's orders ────────────────────────────────────────────────────
         orders = []
@@ -204,11 +212,12 @@ def write_snapshot(dashboard_state: dict):
                 "pct":      round(liq_val / total_value * 100, 2) if total_value else 0,
             },
             "slots": {
-                "total":     slots_count,
-                "used":      slots_used,
-                "available": max(0, slots_count - slots_used),
+                "total":       slots_count,
+                "used":        slots_used,
+                "available":   max(0, slots_count - slots_used),
                 "active_etfs": active_etfs,
                 "bnh_symbols": bnh_symbols,
+                "bnh_held":    bnh_held,
             },
             "holdings":   holdings,
             "williams_r": wr_data,
@@ -233,7 +242,7 @@ def write_snapshot(dashboard_state: dict):
 
 def start_snapshot_thread(dashboard_state: dict):
     """
-    Start background thread that writes /tmp/status_ps5673.json every 5 minutes.
+    Start background thread that writes /tmp/status_rd1858.json every 2 minutes.
     Returns immediately. Thread is daemon so it dies with the process.
     """
     def _loop():
@@ -243,6 +252,6 @@ def start_snapshot_thread(dashboard_state: dict):
             time.sleep(INTERVAL_SEC)
             write_snapshot(dashboard_state)
 
-    t = threading.Thread(target=_loop, daemon=True, name="SnapshotWriter-PS5673")
+    t = threading.Thread(target=_loop, daemon=True, name="SnapshotWriter-RD1858")
     t.start()
     print(f"  → Snapshot writer started (every {INTERVAL_SEC//60} min → {SNAPSHOT_PATH}) ✅")
