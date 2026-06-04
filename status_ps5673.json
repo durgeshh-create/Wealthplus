@@ -1,14 +1,14 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-06-04 10:41:58 IST",
+  "timestamp": "2026-06-04 10:43:58 IST",
   "bot_running": true,
-  "total_value": 9367893.21,
-  "today_pnl": 63.99,
+  "total_value": 9367224.59,
+  "today_pnl": 51.03,
   "today_pnl_pct": 0.0,
   "liquidcase": {
     "quantity": 79151,
-    "price": 114.38,
-    "value": 9053291.38,
+    "price": 114.37,
+    "value": 9052499.87,
     "pct": 96.64
   },
   "slots": {
@@ -34,50 +34,50 @@
       "symbol": "BANKBEES",
       "quantity": 34,
       "avg": 550.41,
-      "ltp": 559.97,
-      "value": 19038.98,
-      "pnl": 325.1,
-      "pnl_pct": 1.74,
+      "ltp": 559.76,
+      "value": 19031.84,
+      "pnl": 317.96,
+      "pnl_pct": 1.7,
       "strategy": "active"
     },
     {
       "symbol": "GOLDBEES",
       "quantity": 547,
       "avg": 127.75,
-      "ltp": 128.42,
-      "value": 70245.74,
-      "pnl": 368.23,
-      "pnl_pct": 0.53,
+      "ltp": 128.52,
+      "value": 70300.44,
+      "pnl": 422.93,
+      "pnl_pct": 0.61,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
       "quantity": 26,
       "avg": 748.0,
-      "ltp": 757.8,
-      "value": 19702.8,
-      "pnl": 254.8,
-      "pnl_pct": 1.31,
+      "ltp": 757.57,
+      "value": 19696.82,
+      "pnl": 248.82,
+      "pnl_pct": 1.28,
       "strategy": "active"
     },
     {
       "symbol": "MID150BEES",
       "quantity": 721,
       "avg": 227.48,
-      "ltp": 230.89,
-      "value": 166471.69,
-      "pnl": 2461.49,
-      "pnl_pct": 1.5,
+      "ltp": 230.93,
+      "value": 166500.53,
+      "pnl": 2490.33,
+      "pnl_pct": 1.52,
       "strategy": "bnh"
     },
     {
       "symbol": "SILVERBEES",
       "quantity": 159,
       "avg": 250.1,
-      "ltp": 246.18,
-      "value": 39142.62,
-      "pnl": -623.53,
-      "pnl_pct": -1.57,
+      "ltp": 246.51,
+      "value": 39195.09,
+      "pnl": -571.06,
+      "pnl_pct": -1.44,
       "strategy": "active"
     }
   ],
@@ -93,68 +93,76 @@
     },
     {
       "symbol": "GOLDBEES",
-      "ltp": 128.42,
-      "change_pct": 0.61,
-      "williams_r": -80.41,
+      "ltp": 128.52,
+      "change_pct": 0.69,
+      "williams_r": -79.2,
       "is_held": true,
       "avg_price": 127.75,
       "strategy": "active"
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 246.18,
-      "change_pct": -0.25,
-      "williams_r": -93.88,
+      "ltp": 246.51,
+      "change_pct": -0.11,
+      "williams_r": -92.0,
       "is_held": true,
       "avg_price": 247.97,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 757.8,
-      "change_pct": 0.53,
-      "williams_r": -44.2,
+      "ltp": 757.57,
+      "change_pct": 0.5,
+      "williams_r": -44.64,
       "is_held": true,
       "avg_price": 748.0,
       "strategy": "active"
     },
     {
       "symbol": "MINDSPACE-RR",
-      "ltp": 459.0,
-      "change_pct": -0.27,
-      "williams_r": -74.54,
+      "ltp": 458.5,
+      "change_pct": -0.38,
+      "williams_r": -77.43,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 429.93,
+      "ltp": 429.9,
       "change_pct": -0.47,
-      "williams_r": -44.46,
+      "williams_r": -44.6,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 559.97,
-      "change_pct": 0.05,
-      "williams_r": -50.0,
+      "ltp": 559.76,
+      "change_pct": 0.02,
+      "williams_r": -50.75,
       "is_held": true,
       "avg_price": 550.41,
       "strategy": "active"
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 230.89,
-      "change_pct": 0.46,
-      "williams_r": -55.17,
+      "ltp": 230.93,
+      "change_pct": 0.48,
+      "williams_r": -54.86,
       "is_held": true,
       "avg_price": 227.48,
       "strategy": "bnh"
     }
   ],
-  "signals": [],
+  "signals": [
+    {
+      "type": "BUY",
+      "symbol": "MINDSPACE-RR",
+      "reason": "W%R -77.4 \u2264 -75.0",
+      "ltp": 458.5,
+      "williams_r": -77.43
+    }
+  ],
   "orders": []
 }
