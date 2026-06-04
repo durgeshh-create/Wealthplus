@@ -12,6 +12,13 @@ on:
 permissions:
   contents: write
 
+# Prevent gh-pages push conflicts when Session 1 is still finalising while
+# Session 2 bootstraps. cancel-in-progress: false keeps both sessions alive —
+# the second one simply queues until the first releases the lock.
+concurrency:
+  group: wealthalgo-ghpages
+  cancel-in-progress: false
+
 jobs:
 
   # ────────────────────────────────────────────────────────────────────────────
