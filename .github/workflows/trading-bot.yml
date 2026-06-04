@@ -114,13 +114,13 @@ jobs:
               git worktree add /tmp/gh-pages-rd1858 gh-pages 2>/dev/null || \
                 git worktree add /tmp/gh-pages-rd1858 --orphan gh-pages
             fi
-            python3 -c "
+python3 - <<'PYEOF'
 import json, pathlib
 p = pathlib.Path('/tmp/status_rd1858.json')
 d = json.loads(p.read_text())
 d['bot_running'] = False
 p.write_text(json.dumps(d, indent=2))
-"
+PYEOF
             cp /tmp/status_rd1858.json /tmp/gh-pages-rd1858/status_rd1858.json
             cd /tmp/gh-pages-rd1858
             git add status_rd1858.json
@@ -238,13 +238,13 @@ p.write_text(json.dumps(d, indent=2))
               git worktree add /tmp/gh-pages-ps5673 gh-pages 2>/dev/null || \
                 git worktree add /tmp/gh-pages-ps5673 --orphan gh-pages
             fi
-            python3 -c "
+python3 - <<'PYEOF'
 import json, pathlib
 p = pathlib.Path('/tmp/status_ps5673.json')
 d = json.loads(p.read_text())
 d['bot_running'] = False
 p.write_text(json.dumps(d, indent=2))
-"
+PYEOF
             cp /tmp/status_ps5673.json /tmp/gh-pages-ps5673/status_ps5673.json
             cd /tmp/gh-pages-ps5673
             git add status_ps5673.json
