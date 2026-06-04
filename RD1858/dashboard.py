@@ -360,7 +360,9 @@ def check_and_execute_signals(signal_generator, executor):
 
         # ── Sell time gate ────────────────────────────────────────────────────
         if not anytime_mode:
-            now_t = _dt.now().time()
+            from datetime import timezone as _tz_d, timedelta as _td_d
+            _IST_d = _tz_d(_td_d(hours=5, minutes=30))
+            now_t = _dt.now(_IST_d).time()
             sell_window_end = _dtime(sell_exec_time.hour,
                                      min(sell_exec_time.minute + 1, 59))
             in_sell_window  = sell_exec_time <= now_t <= sell_window_end
