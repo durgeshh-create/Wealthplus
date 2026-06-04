@@ -699,6 +699,7 @@ def main():
             "portfolio_tracker":  backend["portfolio"],
             "realtime_manager":   backend["realtime"],
             "historical_manager": backend["historical"],
+            "order_manager":      backend["orders"],   # FIX: required for Today's Orders
         }
         start_snapshot_thread(_snap_state)
     except Exception as _snap_err:
