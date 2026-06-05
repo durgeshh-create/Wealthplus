@@ -182,7 +182,16 @@ class StrategyExecutor:
             # ── quantities ──────────────────────────────────────
             etf_qty = int(budget / etf_price)
             if etf_qty <= 0:
-                logger.error(f"Budget ₹{budget:.2f} too small for 1 unit of {symbol} @ ₹{etf_price:.2f}")
+                # Distinguish: was this a per-stock cap hit, or a genuine budget problem?
+                if max_cash_stock > 0 and budget < etf_price:
+                    deployed = self._get_cash_deployed(symbol, etf_price)
+                    logger.warning(
+                        f"⚠️ {symbol}: per-stock cap effectively reached — "
+                        f"remaining capacity ₹{budget:.2f} < 1 unit @ ₹{etf_price:.2f} "
+                        f"(deployed ₹{deployed:.0f} of ₹{max_cash_stock:.0f} max)"
+                    )
+                else:
+                    logger.error(f"Budget ₹{budget:.2f} too small for 1 unit of {symbol} @ ₹{etf_price:.2f}")
                 return False
 
             # Apply max_qty_per_trade cap

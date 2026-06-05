@@ -382,14 +382,18 @@ class SignalGenerator:
                 )
                 return False
 
-        # Sufficient LIQUIDCASE
+        # Sufficient funds: block only if LIQUIDCASE is completely empty.
+        # The executor's smart_buy uses available cash first, then sells only the
+        # LIQUIDCASE shortfall — so a low LIQUIDCASE value alone is not a reason
+        # to skip. The executor will raise "Insufficient funds" if combined
+        # cash + LIQUIDCASE genuinely can't cover the transaction.
         max_tx = self._get_max_cash_per_transaction()
         liq_price = self.realtime.get_ltp(LIQUIDCASE_SYMBOL)
         if max_tx > 0 and liq_price and liq_price > 0:
             liq_value = self.portfolio.liquidcase_quantity * liq_price
-            if liq_value < max_tx:
+            if liq_value <= 0:
                 logger.debug(
-                    f"Skip {symbol}: LIQUIDCASE ₹{liq_value:.0f} < tx ₹{max_tx:.0f}"
+                    f"Skip {symbol}: LIQUIDCASE is empty (₹{liq_value:.0f}) — no buffer to fund buy"
                 )
                 return False
 
