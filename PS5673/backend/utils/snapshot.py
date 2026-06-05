@@ -320,6 +320,31 @@ def write_snapshot(dashboard_state: dict):
         except Exception:
             pass
 
+        # ── Market indices (NIFTY 50, INDIA VIX) ─────────────────────────────
+        indices = {}
+        try:
+            for idx_name in ("NIFTY 50", "INDIA VIX"):
+                ltp_val = realtime.get_ltp(idx_name) if realtime else None
+                ohlc_i  = (realtime.get_ohlc(idx_name) if realtime else None) or {}
+                prev_c  = ohlc_i.get("close")
+                chg     = None
+                chg_pct = None
+                if ltp_val and prev_c and float(prev_c) > 0:
+                    chg     = round(ltp_val - float(prev_c), 2)
+                    chg_pct = round(chg / float(prev_c) * 100, 2)
+                indices[idx_name] = {
+                    "ltp":        round(ltp_val, 2) if ltp_val else None,
+                    "prev_close": round(float(prev_c), 2) if prev_c else None,
+                    "change":     chg,
+                    "change_pct": chg_pct,
+                    "open":       round(float(ohlc_i["open"]), 2) if ohlc_i.get("open") else None,
+                    "high":       round(float(ohlc_i["high"]), 2) if ohlc_i.get("high") else None,
+                    "low":        round(float(ohlc_i["low"]),  2) if ohlc_i.get("low")  else None,
+                }
+        except Exception as _ie:
+            import sys as _sys
+            print(f"[snapshot] indices fetch error: {_ie}", file=_sys.stderr)
+
         # ── Build snapshot ────────────────────────────────────────────────────
         snapshot = {
             "account":     ACCOUNT,
@@ -348,6 +373,7 @@ def write_snapshot(dashboard_state: dict):
             "williams_r":       wr_data,
             "signals":          signals,
             "orders":           orders,
+            "indices":          indices,
             "available_cash":   available_cash,
             "available_margin": available_margin,
             "available_margin_note": available_margin_note,
