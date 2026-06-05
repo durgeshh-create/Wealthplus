@@ -767,8 +767,22 @@ function render(data) {
       <span><div class="ld" style="background:rgba(37,99,235,0.16);border:1px solid rgba(37,99,235,.5)"></div> B&amp;H Accumulating</span>
     </div>`;
 
-  // Today's Orders — snapshot.orders already filtered to today by the bot
-  const trades = data.orders ?? data.trades ?? [];
+  // Today's Orders — filter to today's IST date as a client-side safety net
+  // (guards against stale AMO / prior-session orders surviving in the snapshot)
+  const todayIST = new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
+  const todayStr = todayIST.getFullYear() + "-" +
+    String(todayIST.getMonth()+1).padStart(2,"0") + "-" +
+    String(todayIST.getDate()).padStart(2,"0");
+
+  const allTrades = data.orders ?? data.trades ?? [];
+  const trades = allTrades.filter(t => {
+    // Prefer exchange_timestamp (actual fill), fall back to order_timestamp
+    const exTs  = t.exchange_timestamp || "";
+    const plTs  = t.order_timestamp || t.time || "";
+    const ts    = (exTs && exTs.toLowerCase() !== "none" && exTs.toLowerCase() !== "null")
+                  ? exTs : plTs;
+    return todayStr && ts ? ts.includes(todayStr) : true; // pass-through if no date info
+  });
   document.getElementById("tr-count").textContent = trades.length + " orders today";
 
   // Today's P&L — sourced from data.today_pnl (set by the bot)
