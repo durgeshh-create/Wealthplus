@@ -316,7 +316,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
   .status.err { color: var(--danger); }
 
   /* Setup modal */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: flex; align-items: flex-start; justify-content: center; z-index: 1000; overflow-y: auto; padding-top: max(40px, 10vh); }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
   .modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; width: 480px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
   .modal h2 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; color: var(--text); }
   .modal p { font-size: 0.8rem; color: var(--muted); margin-bottom: 18px; line-height: 1.5; }
@@ -376,8 +376,8 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 </div>
 
 <!-- SET-PASSWORD MODAL (replaces browser prompt() which is blocked on gh-pages) -->
-<div class="modal-overlay" id="setpw-modal" style="display:none;z-index:10000;align-items:flex-start;padding-top:max(32px,8vh);overflow-y:auto">
-  <div class="modal" style="max-width:380px;margin-bottom:env(safe-area-inset-bottom,24px)">
+<div class="modal-overlay" id="setpw-modal" style="display:none;z-index:10000">
+  <div class="modal" style="max-width:380px">
     <h2>🔐 Set Dashboard Password</h2>
     <p>Choose a password to protect this dashboard. It is hashed and stored only in your browser.</p>
     <input id="setpw-1" type="password" placeholder="New password" autocomplete="new-password"
@@ -2208,22 +2208,14 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 <script>
 // PASSWORD GATE
 const PW_KEY='wealthalgo_pw_hash',PW_SESSION='wealthalgo_unlocked';
-
-// crypto.subtle is only available on HTTPS/localhost.
-// On plain HTTP (mobile browser, local file), it is undefined — causing silent failures.
-// We use crypto.subtle when available, and fall back to a pure-JS hash otherwise.
 async function sha256(s){
   if(window.crypto&&crypto.subtle){
     const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
     return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
   }
-  // Fallback: FNV-1a 64-bit (good enough for local dashboard password gate)
+  // Fallback for HTTP (crypto.subtle unavailable): FNV-1a
   let h1=0x811c9dc5,h2=0xc4a6b5d1;
-  for(let i=0;i<s.length;i++){
-    const c=s.charCodeAt(i);
-    h1^=c; h1=(h1>>>0)*0x01000193|0;
-    h2^=c; h2=(h2>>>0)*0x01000193|0;
-  }
+  for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1^=c;h1=(h1>>>0)*0x01000193|0;h2^=c;h2=(h2>>>0)*0x01000193|0;}
   return (h1>>>0).toString(16).padStart(8,'0')+(h2>>>0).toString(16).padStart(8,'0');
 }
 async function checkPw(){
