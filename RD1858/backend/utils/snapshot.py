@@ -247,14 +247,19 @@ def write_snapshot(dashboard_state: dict):
                     timeout=10,
                 )
                 if mresp.status_code == 200:
-                    mdata    = mresp.json()
-                    equity   = mdata.get("data", {}).get("equity", {})
-                    avail    = equity.get("available", {})
-                    net_bal  = float(avail.get("cash", 0) or 0)
-                    live_bal = float(avail.get("live_balance", 0) or 0)
-                    open_bal = float(avail.get("opening_balance", 0) or 0)
-                    available_cash   = round(net_bal if net_bal > 0 else open_bal, 2)
-                    available_margin = round(live_bal if live_bal > 0 else available_cash, 2)
+                    mdata      = mresp.json()
+                    equity     = mdata.get("data", {}).get("equity", {})
+                    avail      = equity.get("available", {})
+                    utilised   = equity.get("utilised",  {})
+                    net_bal    = float(avail.get("cash", 0)             or 0)  # settled cash (== opening_balance)
+                    open_bal   = float(avail.get("opening_balance", 0) or 0)
+                    collateral = float(avail.get("collateral", 0)       or 0)  # pledged securities margin
+                    debits     = float(utilised.get("debits", 0)        or 0)  # margin used by open positions
+                    # Available Cash = settled cash (opening_balance is most reliable; fall back to cash field)
+                    available_cash   = round(open_bal if open_bal > 0 else net_bal, 2)
+                    # Available Margin = collateral − used margin + available cash
+                    # Matches kite.zerodha.com/funds exactly (same as RD1858 routes.py formula)
+                    available_margin = round(collateral - debits + available_cash, 2)
         except Exception:
             pass
 
