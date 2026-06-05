@@ -240,14 +240,21 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .pw-logo{font-family:var(--head);font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px}
 .pw-sub{font-size:11px;color:var(--muted);margin-bottom:24px;letter-spacing:.06em;text-transform:uppercase}
 .pw-input-wrap{position:relative;margin-bottom:12px}
-.pw-input-wrap input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:10px 40px 10px 14px;color:var(--text);font-size:14px;font-family:var(--head);transition:border-color .15s}
+.pw-input-wrap input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:10px 40px 10px 14px;color:var(--text);font-size:14px;font-family:var(--head);transition:border-color .15s;box-sizing:border-box}
 .pw-input-wrap input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
 .pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0}
 .pw-btn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:14px;font-family:var(--head);font-weight:700;cursor:pointer;transition:opacity .15s;margin-top:2px}
 .pw-btn:hover{opacity:.88}
-.pw-err{font-size:11px;color:#f87171;margin-top:10px;min-height:16px}
+.pw-msg{font-size:11px;margin-top:10px;min-height:16px}
+.pw-msg.err{color:#f87171}.pw-msg.ok{color:#4ade80}
 .pw-hint{font-size:10px;color:var(--muted);margin-top:14px;line-height:1.5}
 .pw-set-link{color:var(--accent);cursor:pointer;text-decoration:underline}
+#pw-setmode{display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:16px;text-align:left}
+#pw-setmode label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;margin-top:8px}
+#pw-setmode input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--text);font-size:13px;box-sizing:border-box;margin-bottom:2px}
+#pw-setmode input:focus{outline:none;border-color:var(--accent)}
+#pw-setmode .pw-btn{margin-top:10px}
+#pw-setmode .pw-cancel{width:100%;padding:8px;background:none;border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:12px;cursor:pointer;margin-top:6px}
 /* Top-level nav tabs */
 .nav-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 16px}
 .nav-tab{padding:10px 18px;font-family:var(--head);font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;user-select:none}
@@ -365,29 +372,31 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
   <div class="pw-box">
     <div class="pw-logo">&#9889; WealthAlgo</div>
     <div class="pw-sub">Private Dashboard</div>
-    <div class="pw-input-wrap">
-      <input type="password" id="pw-input" placeholder="Password" autofocus onkeydown="if(event.key==='Enter')checkPw()">
-      <button class="pw-eye" onclick="togglePwEye()" title="Show/hide">&#128065;</button>
-    </div>
-    <button class="pw-btn" onclick="checkPw()">Unlock &#8594;</button>
-    <div class="pw-err" id="pw-err"></div>
-    <div class="pw-hint">First time? <span class="pw-set-link" onclick="showSetPw()">Set a password</span></div>
-  </div>
-</div>
 
-<!-- SET-PASSWORD MODAL (replaces browser prompt() which is blocked on gh-pages) -->
-<div class="modal-overlay" id="setpw-modal" style="display:none;z-index:10000">
-  <div class="modal" style="max-width:380px">
-    <h2>🔐 Set Dashboard Password</h2>
-    <p>Choose a password to protect this dashboard. It is hashed and stored only in your browser.</p>
-    <input id="setpw-1" type="password" placeholder="New password" autocomplete="new-password"
-           onkeydown="if(event.key==='Enter')document.getElementById('setpw-2').focus()">
-    <input id="setpw-2" type="password" placeholder="Confirm password" autocomplete="new-password"
-           onkeydown="if(event.key==='Enter')confirmSetPw()">
-    <div id="setpw-err" style="color:var(--red);font-size:11px;min-height:16px;margin-bottom:6px"></div>
-    <button class="btn-primary" onclick="confirmSetPw()">Save Password →</button>
-    <button class="btn-primary" onclick="document.getElementById('setpw-modal').style.display='none'"
-            style="background:var(--bg3);color:var(--muted2);border:1px solid var(--border);margin-top:8px">Cancel</button>
+    <!-- Unlock form -->
+    <div id="pw-unlockmode">
+      <div class="pw-input-wrap">
+        <input type="password" id="pw-input" placeholder="Password" autofocus
+               onkeydown="if(event.key==='Enter')checkPw()">
+        <button class="pw-eye" onclick="togglePwEye()" title="Show/hide">&#128065;</button>
+      </div>
+      <button class="pw-btn" onclick="checkPw()">Unlock &#8594;</button>
+      <div class="pw-msg err" id="pw-err"></div>
+      <div class="pw-hint">First time? <span class="pw-set-link" onclick="showSetMode()">Set a password</span></div>
+    </div>
+
+    <!-- Set-password form (inline, same overlay, no z-index conflict) -->
+    <div id="pw-setmode">
+      <label for="sp-1">New password</label>
+      <input type="password" id="sp-1" placeholder="New password" autocomplete="new-password"
+             onkeydown="if(event.key==='Enter')document.getElementById('sp-2').focus()">
+      <label for="sp-2">Confirm password</label>
+      <input type="password" id="sp-2" placeholder="Confirm password" autocomplete="new-password"
+             onkeydown="if(event.key==='Enter')confirmSetPw()">
+      <div class="pw-msg" id="sp-err"></div>
+      <button class="pw-btn" onclick="confirmSetPw()">Save Password &#8594;</button>
+      <button class="pw-cancel" onclick="hideSetMode()">&#8592; Back to login</button>
+    </div>
   </div>
 </div>
 
@@ -2206,55 +2215,72 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 </div>
 
 <script>
-// PASSWORD GATE
-const PW_KEY='wealthalgo_pw_hash',PW_SESSION='wealthalgo_unlocked';
+// PASSWORD GATE — self-contained, no separate modal, no z-index conflicts
+const PW_KEY='wealthalgo_pw_hash', PW_SESSION='wealthalgo_unlocked';
+
+// sha256 with HTTP fallback (crypto.subtle only available on HTTPS/localhost)
 async function sha256(s){
-  if(window.crypto&&crypto.subtle){
+  if(window.crypto && crypto.subtle){
     const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
     return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
   }
-  // Fallback for HTTP (crypto.subtle unavailable): FNV-1a
+  // FNV-1a fallback for plain HTTP
   let h1=0x811c9dc5,h2=0xc4a6b5d1;
   for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1^=c;h1=(h1>>>0)*0x01000193|0;h2^=c;h2=(h2>>>0)*0x01000193|0;}
   return (h1>>>0).toString(16).padStart(8,'0')+(h2>>>0).toString(16).padStart(8,'0');
 }
-async function checkPw(){
-  const v=document.getElementById('pw-input').value;
-  if(!v){pwErr('Enter your password.');return;}
-  const stored=localStorage.getItem(PW_KEY);
-  if(!stored){pwErr('No password set yet. Click "Set a password" below.');return;}
-  const h=await sha256(v);
-  if(h===stored){sessionStorage.setItem(PW_SESSION,'1');document.getElementById('pw-overlay').style.display='none';onUnlocked();}
-  else{pwErr('Incorrect password.');document.getElementById('pw-input').select();}
-}
-function pwErr(m){document.getElementById('pw-err').textContent=m;}
+
+function pwMsg(id,msg,type){const el=document.getElementById(id);if(el){el.textContent=msg;el.className='pw-msg '+(type||'');}}
 function togglePwEye(){const i=document.getElementById('pw-input');i.type=i.type==='password'?'text':'password';}
 
-// ✅ FIX: replaced prompt()-based password set with inline modal.
-// prompt() is blocked by browsers on cross-origin / GitHub Pages iframes.
-function showSetPw(){
-  document.getElementById('setpw-1').value='';
-  document.getElementById('setpw-2').value='';
-  document.getElementById('setpw-err').textContent='';
-  document.getElementById('setpw-modal').style.display='flex';
+async function checkPw(){
+  const v=document.getElementById('pw-input').value.trim();
+  if(!v){pwMsg('pw-err','Enter your password.','err');return;}
+  const stored=localStorage.getItem(PW_KEY);
+  if(!stored){pwMsg('pw-err','No password set — click "Set a password" below.','err');return;}
+  const h=await sha256(v);
+  if(h===stored){
+    sessionStorage.setItem(PW_SESSION,'1');
+    document.getElementById('pw-overlay').style.display='none';
+    onUnlocked();
+  } else {
+    pwMsg('pw-err','Incorrect password.','err');
+    document.getElementById('pw-input').select();
+  }
 }
-function confirmSetPw(){
-  const p1=document.getElementById('setpw-1').value;
-  const p2=document.getElementById('setpw-2').value;
-  const errEl=document.getElementById('setpw-err');
-  if(!p1){errEl.textContent='Please enter a password.';return;}
-  if(p1!==p2){errEl.textContent='Passwords do not match.';return;}
-  if(p1.length<4){errEl.textContent='Password must be at least 4 characters.';return;}
-  sha256(p1).then(h=>{
-    localStorage.setItem(PW_KEY,h);
-    document.getElementById('setpw-modal').style.display='none';
-    pwErr('✅ Password saved! Use it to unlock the dashboard next time.');
-  });
+
+function showSetMode(){
+  document.getElementById('sp-1').value='';
+  document.getElementById('sp-2').value='';
+  pwMsg('sp-err','','');
+  document.getElementById('pw-unlockmode').style.display='none';
+  document.getElementById('pw-setmode').style.display='block';
+  document.getElementById('sp-1').focus();
 }
+function hideSetMode(){
+  document.getElementById('pw-setmode').style.display='none';
+  document.getElementById('pw-unlockmode').style.display='block';
+  pwMsg('pw-err','','');
+}
+async function confirmSetPw(){
+  const p1=document.getElementById('sp-1').value;
+  const p2=document.getElementById('sp-2').value;
+  if(!p1){pwMsg('sp-err','Enter a password.','err');return;}
+  if(p1.length<4){pwMsg('sp-err','At least 4 characters.','err');return;}
+  if(p1!==p2){pwMsg('sp-err','Passwords do not match.','err');return;}
+  const h=await sha256(p1);
+  localStorage.setItem(PW_KEY,h);
+  hideSetMode();
+  pwMsg('pw-err','✅ Password saved — now use it to unlock.','ok');
+  document.getElementById('pw-input').value='';
+  document.getElementById('pw-input').focus();
+}
+
 function lockDashboard(){
   sessionStorage.removeItem(PW_SESSION);
   document.getElementById('pw-input').value='';
-  document.getElementById('pw-err').textContent='';
+  pwMsg('pw-err','','');
+  hideSetMode();
   document.getElementById('pw-overlay').style.display='flex';
   clearTimeout(timer);
 }
