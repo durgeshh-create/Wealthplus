@@ -651,7 +651,7 @@ function render(data) {
   cashEl.className   = "sc-val" + (cash != null && cash > 0 ? " pos" : "");
   document.getElementById("s-cash-sub").textContent = cash != null ? "Settled · CNC-ready" : "Unavailable";
 
-  // Available Margin (total incl. collateral) — avail['live_balance'] from Zerodha
+  // Available Margin (total incl. collateral) — collateral − debits + available_cash from Zerodha margins API
   const margin = data.available_margin ?? null;
   const marginEl = document.getElementById("s-margin");
   marginEl.textContent = margin != null ? fmtL(margin) : "—";
