@@ -1,0 +1,329 @@
+name: WealthAlgo
+
+on:
+  schedule:
+    # Session 1: 09:00 AM to 12:30 PM IST (03:30 AM to 07:00 AM UTC) -> 210 mins
+    - cron: '30 3 * * 1-5'
+    # Session 2: 12:35 PM to 03:30 PM IST (07:05 AM to 10:00 AM UTC) -> 175 mins
+    # ✅ FIX: shifted 5 min later so Session 1's 200-min timeout (ends ~06:50 UTC)
+    #         always clears before Session 2 is scheduled. Without this gap,
+    #         GitHub queues Session 2 behind Session 1 in the concurrency group
+    #         and silently drops it if the queue slot expires.
+    - cron: '5 7 * * 1-5'
+  workflow_dispatch:           # Manual trigger from GitHub Actions UI
+
+# Workflow-level permissions — required for gh-pages push from Actions
+permissions:
+  contents: write
+
+# ✅ FIX: Removed single top-level concurrency group.
+# Each job now carries its own concurrency group (defined inline) so that
+# Session 2 (07:05 UTC) never contends with a still-running Session 1 job
+# for the same concurrency slot. The gh-pages push lock is retained per-job.
+
+jobs:
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # bootstrap-ghpages — runs first, ensures dashboard.html is always on gh-pages
+  # ────────────────────────────────────────────────────────────────────────────
+  bootstrap-ghpages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: bootstrap-ghpages-${{ github.run_id }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name  "WealthAlgo Bot"
+          git config user.email "bot@wealthalgo.local"
+
+      - name: Push dashboard.html to gh-pages root
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO:      ${{ github.repository }}
+        run: |
+          git fetch origin gh-pages 2>/dev/null || true
+          git worktree add /tmp/ghp gh-pages 2>/dev/null || \
+            git worktree add /tmp/ghp --orphan gh-pages
+
+          # dashboard.html source: prefer main branch, fall back to gh-pages itself
+          if [ -f settings-editor/dashboard.html ]; then
+            cp settings-editor/dashboard.html /tmp/ghp/dashboard.html
+          elif [ -f /tmp/ghp/dashboard.html ]; then
+            echo "dashboard.html already on gh-pages, no copy needed"
+          else
+            echo "ERROR: dashboard.html not found in main or gh-pages" && exit 1
+          fi
+
+          cd /tmp/ghp
+          git add dashboard.html
+          git diff --cached --quiet && echo "dashboard.html unchanged, skipping commit" || \
+            git commit -m "deploy dashboard.html $(date -u +'%Y-%m-%d')"
+          for _retry in 1 2 3; do
+            git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+            git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
+            sleep 3
+          done
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # RD1858 — runs in parallel with PS5673, after bootstrap
+  # ────────────────────────────────────────────────────────────────────────────
+  RD1858:
+    needs: bootstrap-ghpages
+    runs-on: ubuntu-latest
+    timeout-minutes: 210
+    # ✅ FIX: own concurrency group per run — won't block Session 2 from starting
+    concurrency:
+      group: rd1858-bot-${{ github.run_id }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: rd1858-${{ hashFiles('RD1858/requirements.txt') }}
+          restore-keys: rd1858-
+
+      - name: Restore enctoken cache (RD1858)
+        uses: actions/cache/restore@v4
+        with:
+          path: RD1858/config/enctoken.json
+          key: enctoken-rd1858-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            enctoken-rd1858-${{ github.run_id }}-
+            enctoken-rd1858-
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r RD1858/requirements.txt
+          pip install playwright pyotp
+
+      - name: Install Playwright Chromium browser
+        run: playwright install chromium --with-deps
+
+      - name: Configure git for gh-pages push
+        run: |
+          git config user.name  "WealthAlgo Bot"
+          git config user.email "bot@wealthalgo.local"
+          git fetch origin gh-pages 2>/dev/null || echo "gh-pages branch not yet created"
+
+      - name: Run RD1858 bot + live snapshot pusher
+        working-directory: RD1858
+        timeout-minutes: 185
+        env:
+          KITE_USER_ID:        ${{ secrets.RD1858_USER_ID }}
+          KITE_PASSWORD:       ${{ secrets.RD1858_PASSWORD }}
+          KITE_TOTP_SECRET:    ${{ secrets.RD1858_TOTP_SECRET }}
+          TELEGRAM_BOT_TOKEN:  ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:    ${{ secrets.TELEGRAM_CHAT_ID }}
+          BOT_PORT:            "5000"
+          PYTHONIOENCODING:    utf-8
+          PYTHONUTF8:          "1"
+          GITHUB_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO:             ${{ github.repository }}
+        run: |
+          (
+            cd "$GITHUB_WORKSPACE"
+            while true; do
+              sleep 120
+              if [ -f /tmp/status_rd1858.json ]; then
+                git fetch origin gh-pages 2>/dev/null || true
+                if [ ! -d /tmp/gh-pages-rd1858 ]; then
+                  git worktree add /tmp/gh-pages-rd1858 gh-pages 2>/dev/null || git worktree add /tmp/gh-pages-rd1858 --orphan gh-pages
+                fi
+                cp /tmp/status_rd1858.json /tmp/gh-pages-rd1858/status_rd1858.json
+                cd /tmp/gh-pages-rd1858
+                git add status_rd1858.json
+                if ! git diff --cached --quiet; then
+                  git commit -m "rd1858 snapshot $(date -u +'%H:%M UTC')"
+                  for _retry in 1 2 3; do
+                    git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+                    git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
+                    sleep 3
+                  done
+                fi
+                cd "$GITHUB_WORKSPACE"
+              fi
+            done
+          ) &
+          PUSHER_PID=$!
+
+          python cloud_launcher.py
+          BOT_EXIT=$?
+
+          kill $PUSHER_PID 2>/dev/null || true
+
+          if [ -f /tmp/status_rd1858.json ]; then
+            cd "$GITHUB_WORKSPACE"
+            git fetch origin gh-pages 2>/dev/null || true
+            if [ ! -d /tmp/gh-pages-rd1858 ]; then
+              git worktree add /tmp/gh-pages-rd1858 gh-pages 2>/dev/null || git worktree add /tmp/gh-pages-rd1858 --orphan gh-pages
+            fi
+            printf 'import json, pathlib\np = pathlib.Path("/tmp/status_rd1858.json")\nd = json.loads(p.read_text())\nd["bot_running"] = False\np.write_text(json.dumps(d, indent=2))\n' > /tmp/set_offline_rd1858.py
+            python3 /tmp/set_offline_rd1858.py
+            cp /tmp/status_rd1858.json /tmp/gh-pages-rd1858/status_rd1858.json
+            cd /tmp/gh-pages-rd1858
+            git add status_rd1858.json
+            git diff --cached --quiet || git commit -m "rd1858 final $(date -u +'%H:%M UTC')"
+            for _retry in 1 2 3; do
+              git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+              git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
+              sleep 3
+            done
+          fi
+
+          exit $BOT_EXIT
+
+      - name: Save enctoken cache (RD1858)
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: RD1858/config/enctoken.json
+          key: enctoken-rd1858-${{ github.run_id }}-${{ github.run_attempt }}
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # PS5673 — runs in parallel with RD1858, after bootstrap
+  # ────────────────────────────────────────────────────────────────────────────
+  PS5673:
+    needs: bootstrap-ghpages
+    runs-on: ubuntu-latest
+    timeout-minutes: 210
+    # ✅ FIX: own concurrency group per run — won't block Session 2 from starting
+    concurrency:
+      group: ps5673-bot-${{ github.run_id }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ps5673-${{ hashFiles('PS5673/requirements.txt') }}
+          restore-keys: ps5673-
+
+      - name: Restore enctoken cache (PS5673)
+        uses: actions/cache/restore@v4
+        with:
+          path: PS5673/config/enctoken.json
+          key: enctoken-ps5673-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            enctoken-ps5673-${{ github.run_id }}-
+            enctoken-ps5673-
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r PS5673/requirements.txt
+          pip install playwright pyotp
+
+      - name: Install Playwright Chromium browser
+        run: playwright install chromium --with-deps
+
+      - name: Configure git for gh-pages push
+        run: |
+          git config user.name  "WealthAlgo Bot"
+          git config user.email "bot@wealthalgo.local"
+          git fetch origin gh-pages 2>/dev/null || echo "gh-pages branch not yet created"
+
+      - name: Run PS5673 bot + live snapshot pusher
+        working-directory: PS5673
+        timeout-minutes: 185
+        env:
+          KITE_USER_ID:        ${{ secrets.PS5673_USER_ID }}
+          KITE_PASSWORD:       ${{ secrets.PS5673_PASSWORD }}
+          KITE_TOTP_SECRET:    ${{ secrets.PS5673_TOTP_SECRET }}
+          TELEGRAM_BOT_TOKEN:  ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:    ${{ secrets.TELEGRAM_CHAT_ID }}
+          BOT_PORT:            "5001"
+          PYTHONIOENCODING:    utf-8
+          PYTHONUTF8:          "1"
+          GITHUB_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO:             ${{ github.repository }}
+        run: |
+          (
+            cd "$GITHUB_WORKSPACE"
+            while true; do
+              sleep 120
+              if [ -f /tmp/status_ps5673.json ]; then
+                git fetch origin gh-pages 2>/dev/null || true
+                if [ ! -d /tmp/gh-pages-ps5673 ]; then
+                  git worktree add /tmp/gh-pages-ps5673 gh-pages 2>/dev/null || git worktree add /tmp/gh-pages-ps5673 --orphan gh-pages
+                fi
+                cp /tmp/status_ps5673.json /tmp/gh-pages-ps5673/status_ps5673.json
+                cd /tmp/gh-pages-ps5673
+                git add status_ps5673.json
+                if ! git diff --cached --quiet; then
+                  git commit -m "ps5673 snapshot $(date -u +'%H:%M UTC')"
+                  for _retry in 1 2 3; do
+                    git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+                    git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
+                    sleep 3
+                  done
+                fi
+                cd "$GITHUB_WORKSPACE"
+              fi
+            done
+          ) &
+          PUSHER_PID=$!
+
+          python cloud_launcher.py
+          BOT_EXIT=$?
+
+          kill $PUSHER_PID 2>/dev/null || true
+
+          if [ -f /tmp/status_ps5673.json ]; then
+            cd "$GITHUB_WORKSPACE"
+            git fetch origin gh-pages 2>/dev/null || true
+            if [ ! -d /tmp/gh-pages-ps5673 ]; then
+              git worktree add /tmp/gh-pages-ps5673 gh-pages 2>/dev/null || git worktree add /tmp/gh-pages-ps5673 --orphan gh-pages
+            fi
+            printf 'import json, pathlib\np = pathlib.Path("/tmp/status_ps5673.json")\nd = json.loads(p.read_text())\nd["bot_running"] = False\np.write_text(json.dumps(d, indent=2))\n' > /tmp/set_offline_ps5673.py
+            python3 /tmp/set_offline_ps5673.py
+            cp /tmp/status_ps5673.json /tmp/gh-pages-ps5673/status_ps5673.json
+            cd /tmp/gh-pages-ps5673
+            git add status_ps5673.json
+            git diff --cached --quiet || git commit -m "ps5673 final $(date -u +'%H:%M UTC')"
+            for _retry in 1 2 3; do
+              git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+              git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
+              sleep 3
+            done
+          fi
+
+          exit $BOT_EXIT
+
+      - name: Save enctoken cache (PS5673)
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: PS5673/config/enctoken.json
+          key: enctoken-ps5673-${{ github.run_id }}-${{ github.run_attempt }}
