@@ -263,7 +263,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 <main>
   <div class="stat-grid">
     <div class="sc"><div class="sc-label">Portfolio Value</div><div class="sc-val" id="s-total">—</div><div class="sc-sub" id="s-total-sub">—</div></div>
-    <div class="sc g"><div class="sc-label">Available Cash</div><div class="sc-val" id="s-cash">—</div><div class="sc-sub" id="s-cash-sub">Settled, CNC-ready</div></div>
+    <div class="sc g"><div class="sc-label">Available Cash</div><div class="sc-val" id="s-cash">—</div><div class="sc-sub" id="s-cash-sub">Settled · CNC-ready</div></div>
     <div class="sc a"><div class="sc-label">Available Margin</div><div class="sc-val" id="s-margin">—</div><div class="sc-sub" id="s-margin-sub">Incl. collateral</div></div>
     <div class="sc b"><div class="sc-label">LIQUIDCASE</div><div class="sc-val" id="s-liq">—</div><div class="sc-sub" id="s-liq-sub">—</div></div>
     <div class="sc"><div class="sc-label">Slots Used</div><div class="sc-val" id="s-slots">—</div><div class="sc-sub" id="s-slots-sub">—</div></div>
@@ -271,23 +271,36 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
   </div>
 
   <div class="two-col">
-    <!-- Holdings -->
-    <div class="panel">
-      <div class="ph">
-        <span class="pt">Holdings</span>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div id="h-pnl-wrap" style="display:none;text-align:right">
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Total P&amp;L</div>
-            <span id="h-total-pnl" style="font-family:var(--head);font-size:14px;font-weight:700">—</span>
+    <!-- Holdings + Positions stacked in left column -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="panel">
+        <div class="ph">
+          <span class="pt">Holdings</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="h-pnl-wrap" style="display:none;text-align:right">
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Total P&amp;L</div>
+              <span id="h-total-pnl" style="font-family:var(--head);font-size:14px;font-weight:700">—</span>
+            </div>
+            <span class="pb" id="h-count">—</span>
           </div>
-          <span class="pb" id="h-count">—</span>
+        </div>
+        <div class="scroll">
+          <table class="tbl">
+            <thead><tr><th>Symbol</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>Cur. Val</th><th>P&amp;L</th></tr></thead>
+            <tbody id="h-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+          </table>
         </div>
       </div>
-      <div class="scroll">
-        <table class="tbl">
-          <thead><tr><th>Symbol</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>Cur. Val</th><th>P&amp;L</th></tr></thead>
-          <tbody id="h-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
-        </table>
+
+      <!-- Positions panel -->
+      <div class="panel">
+        <div class="ph"><span class="pt">Today's Positions</span><span class="pb" id="pos-count">—</span></div>
+        <div class="scroll">
+          <table class="tbl">
+            <thead><tr><th>Symbol</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>Unrealised</th><th>Realised</th></tr></thead>
+            <tbody id="pos-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -631,18 +644,18 @@ function render(data) {
   document.getElementById("s-slots-sub").textContent = `${slots.available ?? 0} slots free`;
   document.getElementById("s-sigs").textContent    = sigs.length;
 
-  // Available Cash card (settled cash, usable for CNC buys)
+  // Available Cash (settled, CNC-ready) — avail['cash'] from Zerodha margins API
   const cash = data.available_cash ?? null;
   const cashEl = document.getElementById("s-cash");
   cashEl.textContent = cash != null ? fmtL(cash) : "—";
-  cashEl.className   = cash != null && cash > 0 ? "sc-val pos" : "sc-val";
-  document.getElementById("s-cash-sub").textContent = cash != null ? "Settled, CNC-ready" : "Unavailable";
+  cashEl.className   = "sc-val" + (cash != null && cash > 0 ? " pos" : "");
+  document.getElementById("s-cash-sub").textContent = cash != null ? "Settled · CNC-ready" : "Unavailable";
 
-  // Available Margin card (total incl. collateral/pledged)
+  // Available Margin (total incl. collateral) — avail['live_balance'] from Zerodha
   const margin = data.available_margin ?? null;
   const marginEl = document.getElementById("s-margin");
   marginEl.textContent = margin != null ? fmtL(margin) : "—";
-  marginEl.className   = margin != null && margin > 0 ? "sc-val pos" : "sc-val";
+  marginEl.className   = "sc-val" + (margin != null && margin > 0 ? " pos" : "");
   document.getElementById("s-margin-sub").textContent = margin != null ? "Incl. collateral" : "Unavailable";
 
   // Holdings — build a lookup map for cur val in slot matrix
@@ -678,6 +691,23 @@ function render(data) {
   } else {
     hPnlWrap.style.display = "none";
   }
+
+  // Today's Positions
+  const positions = data.positions ?? [];
+  document.getElementById("pos-count").textContent = positions.length + " positions";
+  const pb = document.getElementById("pos-body");
+  pb.innerHTML = positions.length ? positions.map(p => {
+    const unr = p.unrealised ?? p.pnl ?? 0;
+    const rel = p.realised ?? 0;
+    return `<tr>
+      <td><span class="sym">${p.symbol}</span>${p.product ? `<span class="tag tag-a" style="font-size:8px">${p.product}</span>` : ""}</td>
+      <td>${p.quantity > 0 ? "+" : ""}${p.quantity}</td>
+      <td style="color:var(--muted2)">${fmtR(p.avg)}</td>
+      <td>${fmtR(p.ltp)}</td>
+      <td class="${unr >= 0 ? 'pos' : 'neg'}">${unr >= 0 ? "+" : ""}${fmtL(unr)}</td>
+      <td class="${rel >= 0 ? 'pos' : 'neg'}">${rel >= 0 ? "+" : ""}${fmtL(rel)}</td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="6" class="empty">No open positions today</td></tr>`;
 
   // Cash bar (deployed capital)
   const holdVal = holdings.reduce((a,h) => a + (h.value||0), 0);
