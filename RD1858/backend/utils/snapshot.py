@@ -236,8 +236,8 @@ def write_snapshot(dashboard_state: dict):
             pass
 
         # ── Available Cash + Margin ───────────────────────────────────────────
-        available_cash   = None   # settled cash only — usable for CNC buys
-        available_margin = None   # total margin incl. collateral/pledged
+        available_cash   = None
+        available_margin = None
         try:
             order_mgr = dashboard_state.get("order_manager")
             if order_mgr and hasattr(order_mgr, "auth") and order_mgr.auth:
@@ -253,10 +253,32 @@ def write_snapshot(dashboard_state: dict):
                     net_bal  = float(avail.get("cash", 0) or 0)
                     live_bal = float(avail.get("live_balance", 0) or 0)
                     open_bal = float(avail.get("opening_balance", 0) or 0)
-                    available_cash = round(
-                        net_bal if net_bal > 0 else open_bal, 2
-                    )
-                    available_margin = round(live_bal, 2) if live_bal > 0 else available_cash
+                    available_cash   = round(net_bal if net_bal > 0 else open_bal, 2)
+                    available_margin = round(live_bal if live_bal > 0 else available_cash, 2)
+        except Exception:
+            pass
+
+        # ── Today's Net Positions ─────────────────────────────────────────────
+        positions_data = []
+        try:
+            if portfolio and hasattr(portfolio, "positions"):
+                for pos in (portfolio.positions.get("net", []) or []):
+                    sym = pos.get("tradingsymbol", "")
+                    qty = int(pos.get("quantity", 0) or 0)
+                    if qty == 0:
+                        continue
+                    positions_data.append({
+                        "symbol":       sym,
+                        "quantity":     qty,
+                        "avg":          round(float(pos.get("average_price", 0) or 0), 2),
+                        "ltp":          round(float(pos.get("last_price", 0) or 0), 2),
+                        "pnl":          round(float(pos.get("pnl", 0) or 0), 2),
+                        "unrealised":   round(float(pos.get("unrealised", 0) or 0), 2),
+                        "realised":     round(float(pos.get("realised", 0) or 0), 2),
+                        "buy_qty":      int(pos.get("buy_quantity", 0) or 0),
+                        "sell_qty":     int(pos.get("sell_quantity", 0) or 0),
+                        "product":      pos.get("product", ""),
+                    })
         except Exception:
             pass
 
@@ -284,6 +306,7 @@ def write_snapshot(dashboard_state: dict):
                 "bnh_held":    bnh_held,
             },
             "holdings":         holdings,
+            "positions":        positions_data,
             "williams_r":       wr_data,
             "signals":          signals,
             "orders":           orders,
