@@ -24,7 +24,7 @@ permissions:
 jobs:
 
   # ────────────────────────────────────────────────────────────────────────────
-  # bootstrap-ghpages — runs first, ensures dashboard.html is always on gh-pages
+  # bootstrap-ghpages — runs first, ensures index.html is always on gh-pages
   # ────────────────────────────────────────────────────────────────────────────
   bootstrap-ghpages:
     runs-on: ubuntu-latest
@@ -44,7 +44,7 @@ jobs:
           git config user.name  "WealthAlgo Bot"
           git config user.email "bot@wealthalgo.local"
 
-      - name: Push dashboard.html to gh-pages root
+      - name: Push index.html to gh-pages root
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO:      ${{ github.repository }}
@@ -53,19 +53,21 @@ jobs:
           git worktree add /tmp/ghp gh-pages 2>/dev/null || \
             git worktree add /tmp/ghp --orphan gh-pages
 
-          # dashboard.html source: prefer main branch, fall back to gh-pages itself
-          if [ -f settings-editor/dashboard.html ]; then
-            cp settings-editor/dashboard.html /tmp/ghp/dashboard.html
-          elif [ -f /tmp/ghp/dashboard.html ]; then
-            echo "dashboard.html already on gh-pages, no copy needed"
+          # index.html source: prefer settings-editor/, fall back to gh-pages itself
+          if [ -f settings-editor/index.html ]; then
+            cp settings-editor/index.html /tmp/ghp/index.html
+          elif [ -f settings-editor/dashboard.html ]; then
+            cp settings-editor/dashboard.html /tmp/ghp/index.html
+          elif [ -f /tmp/ghp/index.html ]; then
+            echo "index.html already on gh-pages, no copy needed"
           else
-            echo "ERROR: dashboard.html not found in main or gh-pages" && exit 1
+            echo "ERROR: index.html not found in main or gh-pages" && exit 1
           fi
 
           cd /tmp/ghp
-          git add dashboard.html
-          git diff --cached --quiet && echo "dashboard.html unchanged, skipping commit" || \
-            git commit -m "deploy dashboard.html $(date -u +'%Y-%m-%d')"
+          git add index.html
+          git diff --cached --quiet && echo "index.html unchanged, skipping commit" || \
+            git commit -m "deploy index.html $(date -u +'%Y-%m-%d')"
           for _retry in 1 2 3; do
             git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
             git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
