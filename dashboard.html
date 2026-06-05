@@ -349,6 +349,22 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
   </div>
 </div>
 
+<!-- SET-PASSWORD MODAL (replaces browser prompt() which is blocked on gh-pages) -->
+<div class="modal-overlay" id="setpw-modal" style="display:none;z-index:9995">
+  <div class="modal" style="max-width:380px">
+    <h2>🔐 Set Dashboard Password</h2>
+    <p>Choose a password to protect this dashboard. It is hashed and stored only in your browser.</p>
+    <input id="setpw-1" type="password" placeholder="New password" autocomplete="new-password"
+           onkeydown="if(event.key==='Enter')document.getElementById('setpw-2').focus()">
+    <input id="setpw-2" type="password" placeholder="Confirm password" autocomplete="new-password"
+           onkeydown="if(event.key==='Enter')confirmSetPw()">
+    <div id="setpw-err" style="color:var(--red);font-size:11px;min-height:16px;margin-bottom:6px"></div>
+    <button class="btn-primary" onclick="confirmSetPw()">Save Password →</button>
+    <button class="btn-primary" onclick="document.getElementById('setpw-modal').style.display='none'"
+            style="background:var(--bg3);color:var(--muted2);border:1px solid var(--border);margin-top:8px">Cancel</button>
+  </div>
+</div>
+
 <!-- GITHUB SETUP MODAL -->
 <div class="modal-overlay" id="setup-modal" style="display:none;z-index:9990">
   <div class="modal">
@@ -358,8 +374,17 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
     <input id="cfg-owner" placeholder="GitHub username  (e.g. durgeshh-create)" autocomplete="off">
     <input id="cfg-repo"  placeholder="Repository name  (e.g. Wealthplus)" autocomplete="off">
     <input id="cfg-token" type="password" placeholder="GitHub Personal Access Token (needs repo scope)" autocomplete="off">
-    <button class="btn-primary" onclick="saveConfig()">Connect &#8594;</button>
-    <p class="muted">GitHub &#8594; Settings &#8594; Developer settings &#8594; Personal access tokens &#8594; Tokens (classic) &#8594; Generate &#8594; tick <b>repo</b> &#8594; copy here.</p>
+    <div id="cfg-test-status" style="font-size:11px;min-height:16px;margin-bottom:6px;color:var(--muted)"></div>
+    <button class="btn-primary" onclick="saveConfig()">Connect →</button>
+    <button class="btn-primary" onclick="testGitHubToken()"
+            style="background:var(--bg3);color:var(--muted2);border:1px solid var(--border);margin-top:8px">
+      🔍 Test Token
+    </button>
+    <p class="muted">GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate → tick <b>repo</b> → copy here.</p>
+    <p class="muted" style="margin-top:6px">
+      If you see a 401 error, your token may have expired.
+      <a href="https://github.com/settings/tokens" target="_blank" style="color:var(--accent)">Generate a new one →</a>
+    </p>
   </div>
 </div>
 
@@ -1933,9 +1958,14 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 
   </main>
   <div class="actions">
-    <button class="btn-save" id="btn-save" onclick="saveSettings()" disabled>&#128190; Save to GitHub</button>
+    <button class="btn-save" id="btn-save" onclick="saveSettings()" disabled>💾 Save to GitHub</button>
     <span class="status" id="save-status">Load settings first</span>
-    <span style="margin-left:auto;font-size:.72rem;color:var(--muted)" id="last-loaded"></span>
+    <span style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <span style="font-size:.72rem;color:var(--muted)" id="last-loaded"></span>
+      <button onclick="document.getElementById('setup-modal').style.display='flex'"
+              style="font-size:11px;padding:5px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;cursor:pointer;color:var(--muted2)"
+              title="Update GitHub token or repo">⚙ GitHub Config</button>
+    </span>
   </div>
 </div>
 
@@ -2146,10 +2176,28 @@ async function checkPw(){
 }
 function pwErr(m){document.getElementById('pw-err').textContent=m;}
 function togglePwEye(){const i=document.getElementById('pw-input');i.type=i.type==='password'?'text':'password';}
+
+// ✅ FIX: replaced prompt()-based password set with inline modal.
+// prompt() is blocked by browsers on cross-origin / GitHub Pages iframes.
 function showSetPw(){
-  const p1=prompt('Set a new dashboard password:');if(!p1)return;
-  const p2=prompt('Confirm password:');if(p1!==p2){alert('Passwords do not match.');return;}
-  sha256(p1).then(h=>{localStorage.setItem(PW_KEY,h);alert('Password saved! Use it to unlock the dashboard.');});
+  document.getElementById('setpw-1').value='';
+  document.getElementById('setpw-2').value='';
+  document.getElementById('setpw-err').textContent='';
+  document.getElementById('setpw-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('setpw-1').focus(),50);
+}
+function confirmSetPw(){
+  const p1=document.getElementById('setpw-1').value;
+  const p2=document.getElementById('setpw-2').value;
+  const errEl=document.getElementById('setpw-err');
+  if(!p1){errEl.textContent='Please enter a password.';return;}
+  if(p1!==p2){errEl.textContent='Passwords do not match.';return;}
+  if(p1.length<4){errEl.textContent='Password must be at least 4 characters.';return;}
+  sha256(p1).then(h=>{
+    localStorage.setItem(PW_KEY,h);
+    document.getElementById('setpw-modal').style.display='none';
+    pwErr('✅ Password saved! Use it to unlock the dashboard next time.');
+  });
 }
 function lockDashboard(){
   sessionStorage.removeItem(PW_SESSION);
@@ -2160,7 +2208,14 @@ function lockDashboard(){
 }
 function onUnlocked(){
   refreshAll();
-  if(hasCfg()){const c=getCfg();document.getElementById('cfg-owner').value=c.owner||'';document.getElementById('cfg-repo').value=c.repo||'';}
+  if(hasCfg()){
+    const c=getCfg();
+    document.getElementById('cfg-owner').value=c.owner||'';
+    document.getElementById('cfg-repo').value=c.repo||'';
+    // ✅ FIX: update placeholder so setup modal shows token is already saved
+    const tokenInput=document.getElementById('cfg-token');
+    if(tokenInput && c.token) tokenInput.placeholder='Token saved — paste a new one to replace it';
+  }
 }
 
 // NAV TABS
@@ -2623,11 +2678,49 @@ let _bnhSym     = [];
 function getCfg()  { return JSON.parse(localStorage.getItem('wealthalgo_cfg') || '{}'); }
 function hasCfg()  { const c = getCfg(); return c.owner && c.repo && c.token; }
 
+// ── Test GitHub Token ─────────────────────────────────────────────────────────
+async function testGitHubToken() {
+  const owner    = document.getElementById('cfg-owner').value.trim();
+  const repo     = document.getElementById('cfg-repo').value.trim();
+  const rawToken = document.getElementById('cfg-token').value.trim();
+  const token    = rawToken || getCfg().token || '';
+  const statusEl = document.getElementById('cfg-test-status');
+  if (!token) { statusEl.textContent = '⚠ Paste a token first.'; statusEl.style.color='var(--amber)'; return; }
+  statusEl.textContent = 'Testing…'; statusEl.style.color = 'var(--muted)';
+  try {
+    // Hit /user to validate token, then /repos to validate repo access
+    const r1 = await fetch('https://api.github.com/user', {
+      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!r1.ok) throw new Error(`Token invalid — GitHub returned ${r1.status}. Generate a new token with "repo" scope.`);
+    const user = await r1.json();
+    if (owner && repo) {
+      const r2 = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+        headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (!r2.ok) throw new Error(`Repo ${owner}/${repo} not found or token lacks repo scope (${r2.status}).`);
+    }
+    statusEl.textContent = `✅ Token valid — authenticated as ${user.login}`;
+    statusEl.style.color = 'var(--green)';
+  } catch(e) {
+    statusEl.textContent = '❌ ' + e.message;
+    statusEl.style.color = 'var(--red)';
+  }
+}
+
 function saveConfig() {
   const owner = document.getElementById('cfg-owner').value.trim();
   const repo  = document.getElementById('cfg-repo').value.trim();
-  const token = document.getElementById('cfg-token').value.trim();
-  if (!owner || !repo || !token) { alert('Please fill all three fields.'); return; }
+  const rawToken = document.getElementById('cfg-token').value.trim();
+  // ✅ FIX: if user left token field blank (just updating owner/repo, or re-opening
+  // modal after token was already saved), preserve the previously stored token
+  // rather than wiping it.  Blank field = "keep existing"; new value = "replace".
+  const existing = getCfg();
+  const token = rawToken || existing.token || '';
+  if (!owner || !repo || !token) {
+    alert('Please fill GitHub username, repo name, and Personal Access Token.');
+    return;
+  }
   localStorage.setItem('wealthalgo_cfg', JSON.stringify({owner, repo, token}));
   document.getElementById('setup-modal').style.display = 'none';
   _settingsLoaded = true;
