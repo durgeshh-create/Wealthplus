@@ -376,8 +376,8 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 </div>
 
 <!-- SET-PASSWORD MODAL (replaces browser prompt() which is blocked on gh-pages) -->
-<div class="modal-overlay" id="setpw-modal" style="display:none;z-index:9995;padding-bottom:max(24px,env(safe-area-inset-bottom))">
-  <div class="modal" style="max-width:380px;margin-bottom:24px">
+<div class="modal-overlay" id="setpw-modal" style="display:none;z-index:10000;align-items:flex-start;padding-top:max(32px,8vh);overflow-y:auto">
+  <div class="modal" style="max-width:380px;margin-bottom:env(safe-area-inset-bottom,24px)">
     <h2>🔐 Set Dashboard Password</h2>
     <p>Choose a password to protect this dashboard. It is hashed and stored only in your browser.</p>
     <input id="setpw-1" type="password" placeholder="New password" autocomplete="new-password"
@@ -2208,7 +2208,24 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 <script>
 // PASSWORD GATE
 const PW_KEY='wealthalgo_pw_hash',PW_SESSION='wealthalgo_unlocked';
-async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+
+// crypto.subtle is only available on HTTPS/localhost.
+// On plain HTTP (mobile browser, local file), it is undefined — causing silent failures.
+// We use crypto.subtle when available, and fall back to a pure-JS hash otherwise.
+async function sha256(s){
+  if(window.crypto&&crypto.subtle){
+    const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
+    return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+  }
+  // Fallback: FNV-1a 64-bit (good enough for local dashboard password gate)
+  let h1=0x811c9dc5,h2=0xc4a6b5d1;
+  for(let i=0;i<s.length;i++){
+    const c=s.charCodeAt(i);
+    h1^=c; h1=(h1>>>0)*0x01000193|0;
+    h2^=c; h2=(h2>>>0)*0x01000193|0;
+  }
+  return (h1>>>0).toString(16).padStart(8,'0')+(h2>>>0).toString(16).padStart(8,'0');
+}
 async function checkPw(){
   const v=document.getElementById('pw-input').value;
   if(!v){pwErr('Enter your password.');return;}
@@ -2227,14 +2244,7 @@ function showSetPw(){
   document.getElementById('setpw-1').value='';
   document.getElementById('setpw-2').value='';
   document.getElementById('setpw-err').textContent='';
-  const modal=document.getElementById('setpw-modal');
-  modal.style.display='flex';
-  // On mobile, focus() inside setTimeout breaks the user-gesture chain
-  // (iOS Safari silently ignores it). Focus directly — or skip on touch devices.
-  const isTouchDevice=('ontouchstart' in window)||navigator.maxTouchPoints>0;
-  if(!isTouchDevice){
-    setTimeout(()=>document.getElementById('setpw-1').focus(),50);
-  }
+  document.getElementById('setpw-modal').style.display='flex';
 }
 function confirmSetPw(){
   const p1=document.getElementById('setpw-1').value;
