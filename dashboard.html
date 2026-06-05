@@ -226,7 +226,6 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 <main>
   <div class="stat-grid">
     <div class="sc"><div class="sc-label">Portfolio Value</div><div class="sc-val" id="s-total">—</div><div class="sc-sub" id="s-total-sub">—</div></div>
-    <div class="sc" id="s-pnl-card"><div class="sc-label">Today's P&L</div><div class="sc-val" id="s-pnl">—</div><div class="sc-sub" id="s-pnl-pct">—</div></div>
     <div class="sc b"><div class="sc-label">LIQUIDCASE</div><div class="sc-val" id="s-liq">—</div><div class="sc-sub" id="s-liq-sub">—</div></div>
     <div class="sc"><div class="sc-label">Slots Used</div><div class="sc-val" id="s-slots">—</div><div class="sc-sub" id="s-slots-sub">—</div></div>
     <div class="sc"><div class="sc-label">Active Signals</div><div class="sc-val" id="s-sigs">—</div><div class="sc-sub">BUY / SELL triggers</div></div>
@@ -240,15 +239,35 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
         <table class="tbl">
           <thead><tr><th>Symbol</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>P&L</th></tr></thead>
           <tbody id="h-body"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+          <tfoot id="h-foot" style="display:none">
+            <tr style="border-top:2px solid var(--border2);background:var(--bg3)">
+              <td colspan="4" style="padding:8px 15px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2);font-weight:600">Total P&amp;L</td>
+              <td style="padding:8px 15px;text-align:right;font-family:var(--head);font-size:14px;font-weight:700" id="h-total-pnl">—</td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>
 
-    <!-- Signals + Cash stacked -->
+    <!-- Signals + Today's Orders + Cash stacked -->
     <div style="display:flex;flex-direction:column;gap:14px">
       <div class="panel">
         <div class="ph"><span class="pt">Active Signals</span><span class="pb" id="sig-count">—</span></div>
         <div class="scroll" id="sig-body"><div class="empty">Loading…</div></div>
+      </div>
+      <!-- Today's Orders moved here, above Funds -->
+      <div class="panel">
+        <div class="ph">
+          <span class="pt">Today's Orders</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="text-align:right">
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)" id="s-pnl-label">Today's P&amp;L</div>
+              <span id="s-pnl-inline" style="font-family:var(--head);font-size:14px;font-weight:700">—</span>
+            </div>
+            <span class="pb" id="tr-count">—</span>
+          </div>
+        </div>
+        <div class="scroll" id="tr-body"><div class="empty">Loading…</div></div>
       </div>
       <div class="panel">
         <div class="ph"><span class="pt">Funds</span><span class="pb" id="cash-note">—</span></div>
@@ -279,18 +298,14 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
       </div>
     </div>
 
-    <!-- Today's Orders (from snapshot) -->
+    <!-- Slot matrix moved here to fill the space -->
     <div class="panel">
-      <div class="ph"><span class="pt">Today's Orders</span><span class="pb" id="tr-count">—</span></div>
-      <div class="scroll" id="tr-body"><div class="empty">Loading…</div></div>
+      <div class="ph"><span class="pt">Slot Matrix</span><span style="font-size:10px;color:var(--muted)">Active strategy + Dip Accumulator (B&amp;H)</span></div>
+      <div class="slots-wrap" id="slots-wrap"><div class="empty">Loading…</div></div>
     </div>
   </div>
 
-  <!-- Slot matrix -->
-  <div class="panel">
-    <div class="ph"><span class="pt">Slot Matrix</span><span style="font-size:10px;color:var(--muted)">Active strategy + Dip Accumulator (B&amp;H)</span></div>
-    <div class="slots-wrap" id="slots-wrap"><div class="empty">Loading…</div></div>
-  </div>
+
 </main>
 
 <script>
@@ -384,14 +399,6 @@ function render(data) {
   // Stat cards
   document.getElementById("s-total").textContent     = fmtL(tv);
   document.getElementById("s-total-sub").textContent = `across all positions`;
-  const pnlEl = document.getElementById("s-pnl");
-  pnlEl.textContent = (pnl >= 0 ? "+" : "") + fmtL(Math.abs(pnl) < 0.01 ? 0 : pnl);
-  pnlEl.className   = "sc-val " + (pnl > 0 ? "pos" : pnl < 0 ? "neg" : "");
-  document.getElementById("s-pnl-pct").textContent =
-    (Math.abs(pnlPct) < 0.001 && !data.bot_running)
-      ? (data.timestamp ? "as of " + data.timestamp.slice(11,16) + " IST" : "last session")
-      : fmtPct(pnlPct);
-  document.getElementById("s-pnl-card").className  = "sc " + (pnl > 0 ? "g" : pnl < 0 ? "r" : "");
   document.getElementById("s-liq").textContent     = fmtL(liq.value);
   document.getElementById("s-liq-sub").textContent = `${liq.quantity ?? 0} units · ${liq.pct ?? 0}%`;
   document.getElementById("s-slots").textContent   = `${slots.used ?? 0}/${slots.total ?? 0}`;
@@ -410,6 +417,19 @@ function render(data) {
       <td>${fmtR(h.ltp)}</td>
       <td class="${h.pnl>=0?'pos':'neg'}">${(h.pnl>=0?"+":"")}${fmtL(h.pnl)}<br><span style="font-size:10px;opacity:.7">${fmtPct(h.pnl_pct)}</span></td>
     </tr>`).join("") : `<tr><td colspan="5" class="empty">No holdings</td></tr>`;
+
+  // Holdings Total P&L footer
+  const hFoot = document.getElementById("h-foot");
+  const totalPnlEl = document.getElementById("h-total-pnl");
+  if (holdings.length) {
+    const totalPnl = holdings.reduce((sum, h) => sum + (h.pnl ?? 0), 0);
+    const totalPnlPct = tv > 0 ? (totalPnl / (tv - totalPnl)) * 100 : 0;
+    hFoot.style.display = "";
+    totalPnlEl.textContent = (totalPnl >= 0 ? "+" : "") + fmtL(totalPnl) + "  " + fmtPct(totalPnlPct);
+    totalPnlEl.className = totalPnl > 0 ? "pos" : totalPnl < 0 ? "neg" : "";
+  } else {
+    hFoot.style.display = "none";
+  }
 
   // Cash bar (deployed capital)
   const holdVal = holdings.reduce((a,h) => a + (h.value||0), 0);
@@ -509,6 +529,22 @@ function render(data) {
   // Today's Orders — snapshot.orders already filtered to today by the bot
   const trades = data.orders ?? data.trades ?? [];
   document.getElementById("tr-count").textContent = trades.length + " orders today";
+
+  // Today's P&L — use data.today_pnl (realised + unrealised for the session)
+  const pnlInline = document.getElementById("s-pnl-inline");
+  const pnlLabelEl = document.getElementById("s-pnl-label");
+  const pnlLabel  = data.bot_running !== false ? "Today's P&L" : "Last Session P&L";
+  if (pnlLabelEl) pnlLabelEl.textContent = pnlLabel;
+  if (pnl !== 0 || data.today_pnl !== undefined) {
+    const pnlDisplay = (pnl >= 0 ? "+" : "") + fmtL(Math.abs(pnl) < 0.01 ? 0 : pnl)
+      + (Math.abs(pnlPct) >= 0.001 ? "  " + fmtPct(pnlPct) : "");
+    pnlInline.textContent = pnlDisplay;
+    pnlInline.className   = pnl > 0 ? "pos" : pnl < 0 ? "neg" : "";
+    pnlInline.title       = pnlLabel;
+  } else {
+    pnlInline.textContent = "—";
+    pnlInline.className   = "";
+  }
   const trb = document.getElementById("tr-body");
   trb.innerHTML = trades.length ? trades.map(t => {
     const ok  = t.status === "COMPLETE";
@@ -609,10 +645,6 @@ async function refreshAll() {
   }
 
   // ── P&L label — clarify when showing last-session values ─────────────────
-  const pnlLabel = document.querySelector("#s-pnl-card .sc-label");
-  if (pnlLabel) {
-    pnlLabel.textContent = botOn ? "Today's P&L" : "Last Session P&L";
-  }
 
   const now = new Date();
   const tsText = "Refreshed " + now.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
