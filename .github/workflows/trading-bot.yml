@@ -2,8 +2,8 @@ name: WealthAlgo
 
 on:
   schedule:
-    # Session 1: 09:15 AM to 12:30 PM IST (03:45 AM to 07:00 AM UTC) -> 195 mins
-    - cron: '45 3 * * 1-5'
+    # Session 1: 09:00 AM to 12:30 PM IST (03:30 AM to 07:00 AM UTC) -> 210 mins
+    - cron: '30 3 * * 1-5'
     # Session 2: 12:30 PM to 03:30 PM IST (07:00 AM to 10:00 AM UTC) -> 180 mins
     - cron: '0 7 * * 1-5'
   workflow_dispatch:           # Manual trigger from GitHub Actions UI
