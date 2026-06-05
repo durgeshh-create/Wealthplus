@@ -235,8 +235,9 @@ def write_snapshot(dashboard_state: dict):
         except Exception:
             pass
 
-        # ── Available Margin ──────────────────────────────────────────────────
-        available_margin = None
+        # ── Available Cash + Margin ───────────────────────────────────────────
+        available_cash   = None   # settled cash only — usable for CNC buys
+        available_margin = None   # total margin incl. collateral/pledged
         try:
             order_mgr = dashboard_state.get("order_manager")
             if order_mgr and hasattr(order_mgr, "auth") and order_mgr.auth:
@@ -246,15 +247,16 @@ def write_snapshot(dashboard_state: dict):
                     timeout=10,
                 )
                 if mresp.status_code == 200:
-                    mdata  = mresp.json()
-                    equity = mdata.get("data", {}).get("equity", {})
-                    avail  = equity.get("available", {})
+                    mdata    = mresp.json()
+                    equity   = mdata.get("data", {}).get("equity", {})
+                    avail    = equity.get("available", {})
                     net_bal  = float(avail.get("cash", 0) or 0)
                     live_bal = float(avail.get("live_balance", 0) or 0)
                     open_bal = float(avail.get("opening_balance", 0) or 0)
-                    available_margin = round(
-                        net_bal if net_bal > 0 else (live_bal if live_bal > 0 else open_bal), 2
+                    available_cash = round(
+                        net_bal if net_bal > 0 else open_bal, 2
                     )
+                    available_margin = round(live_bal, 2) if live_bal > 0 else available_cash
         except Exception:
             pass
 
@@ -285,6 +287,7 @@ def write_snapshot(dashboard_state: dict):
             "williams_r":       wr_data,
             "signals":          signals,
             "orders":           orders,
+            "available_cash":   available_cash,
             "available_margin": available_margin,
         }
 
