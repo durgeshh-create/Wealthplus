@@ -611,6 +611,11 @@ class SignalGenerator:
             if symbol in self.recently_bought:
                 del self.recently_bought[symbol]
             self._attempted_today.discard(symbol)
+            # ✅ FIX Bug-1: clear _pending_exec so _get_avg_buy_price and
+            # _get_buys_today are not inflated for the rest of the session.
+            if symbol in self._pending_exec:
+                del self._pending_exec[symbol]
+                logger.debug(f"🔄 {symbol}: pending_exec cleared on allow_retry")
         else:
             # Order outcome uncertain — clear cooldown but keep session latch
             # (prevents duplicate orders if broker silently accepted)

@@ -336,7 +336,7 @@ class StrategyExecutor:
                     _sys.exit(2)   # exit code 2 = auth failure → launcher re-logins
                 else:
                     self.signal_generator.unlock_symbol(symbol, success=False)
-            return False
+            return False, err_str
 
     def _get_cash_deployed(self, symbol: str, current_price: float) -> float:
         """Current market value deployed in a symbol (qty * avg_price)."""
@@ -364,6 +364,25 @@ class StrategyExecutor:
         log_separator(logger, f"EXECUTING {'AUTOMATED' if is_automated else 'MANUAL'} SELL: {symbol}")
 
         try:
+            # ✅ FIX Bug-3: soft sell gate — mirrors the buy gate in get_due_buys().
+            # Sells placed after 15:25 result in ETF proceeds arriving T+0 but the
+            # LIQUIDCASE buy leg queuing as AMO (next session), leaving cash unparked
+            # overnight.  We allow manual (is_automated=False) sells through always.
+            if is_automated:
+                from datetime import time as _dtime
+                from backend.strategy.signal_generator import _now_ist as _now_sell
+                _now_t = _now_sell().time()
+                _SELL_CLOSE = _dtime(15, 25)
+                _SELL_OPEN  = _dtime(9, 15)
+                if not (_SELL_OPEN <= _now_t <= _SELL_CLOSE):
+                    logger.info(
+                        f"⏸ Automated SELL {symbol} blocked — outside 09:15–15:25 IST "
+                        f"({_now_t.strftime('%H:%M')}). Will retry next cycle."
+                    )
+                    if self.signal_generator:
+                        self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=True)
+                    return False, "Outside market hours"
+
             etf_qty = self.portfolio.get_quantity_held(symbol)
             if etf_qty <= 0:
                 logger.error(f"No {symbol} held to sell")
