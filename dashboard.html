@@ -447,13 +447,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       <div class="panel">
         <div class="ph">
           <span class="pt">Today's Orders</span>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div style="text-align:right">
-              <div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)" id="s-pnl-label">Today's P&amp;L</div>
-              <span id="s-pnl-inline" style="font-family:var(--head);font-size:14px;font-weight:700">—</span>
-            </div>
-            <span class="pb" id="tr-count">—</span>
-          </div>
+          <span class="pb" id="tr-count">—</span>
         </div>
         <div class="scroll" id="tr-body"><div class="empty">Loading…</div></div>
       </div>
@@ -2170,12 +2164,16 @@ function onUnlocked(){
 }
 
 // NAV TABS
-function switchNavTab(tab){
+function switchNavTab(tab) {
   document.querySelectorAll('.nav-tab').forEach(el=>el.classList.toggle('active',el.id==='ntab-'+tab));
   document.querySelectorAll('.nav-tab-pane').forEach(el=>el.classList.toggle('active',el.id==='pane-'+tab));
   if(tab==='settings'){
-    if(!hasCfg())document.getElementById('setup-modal').style.display='flex';
-    else if(!_settingsLoaded)loadSettings();
+    if(!hasCfg()){
+      document.getElementById('setup-modal').style.display='flex';
+    } else if(!_settingsLoaded){
+      _settingsLoaded=true;
+      loadSettings();
+    }
   }
 }
 
@@ -2632,6 +2630,7 @@ function saveConfig() {
   if (!owner || !repo || !token) { alert('Please fill all three fields.'); return; }
   localStorage.setItem('wealthalgo_cfg', JSON.stringify({owner, repo, token}));
   document.getElementById('setup-modal').style.display = 'none';
+  _settingsLoaded = true;
   loadSettings();
 }
 
@@ -2812,22 +2811,24 @@ function setStatus(msg, cls) {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+// Pre-fill config inputs if already configured; do NOT load settings on page
+// load — loading is deferred until the user opens the Settings tab.
 if (hasCfg()) {
   document.getElementById('setup-modal').style.display = 'none';
-  // Pre-fill config inputs in case user opens modal again
   const cfg = getCfg();
   document.getElementById('cfg-owner').value = cfg.owner || '';
   document.getElementById('cfg-repo').value  = cfg.repo  || '';
-  loadSettings();
 } else {
-  document.getElementById('setup-modal').style.display = 'flex';
   setStatus('Configure GitHub connection first', '');
 }
 
 
-// Wrap loadSettings to track load
-const _origLS=loadSettings;
-async function loadSettings(){_settingsLoaded=true;return _origLS();}
+// Reset _settingsLoaded when instance is switched so next tab open reloads
+const _origSwitchInstance = switchInstance;
+function switchInstance(inst) {
+  _settingsLoaded = false;
+  return _origSwitchInstance(inst);
+}
 
 // BOOT
 if(sessionStorage.getItem(PW_SESSION)==='1'){document.getElementById('pw-overlay').style.display='none';onUnlocked();}
