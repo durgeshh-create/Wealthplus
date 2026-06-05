@@ -204,8 +204,18 @@ def write_snapshot(dashboard_state: dict):
                     raw_orders = resp.json().get("data", []) or []
                     today_str = datetime.now(IST).strftime("%Y-%m-%d")
                     for o in raw_orders:
-                        ts = o.get("order_timestamp") or o.get("exchange_timestamp") or ""
-                        ts_str = str(ts)
+                        # ✅ FIX: prefer exchange_timestamp (actual fill date) over
+                        # order_timestamp (placement time — may be yesterday for AMO
+                        # orders placed the prior evening).  Accept the order only if
+                        # at least one of the two timestamps matches today's IST date.
+                        # This prevents yesterday's AMO / evening orders from bleeding
+                        # into "Today's Orders" before the market opens next morning.
+                        exch_ts  = str(o.get("exchange_timestamp") or "")
+                        place_ts = str(o.get("order_timestamp")    or "")
+                        # Use exchange_timestamp when available (non-empty & non-"None")
+                        primary_ts = exch_ts if exch_ts and exch_ts.lower() not in ("", "none", "null") else place_ts
+                        ts_str = primary_ts
+                        # Only include if today's date appears in the chosen timestamp
                         if today_str not in ts_str:
                             continue
                         sym = o.get("tradingsymbol", "")
