@@ -263,6 +263,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 <main>
   <div class="stat-grid">
     <div class="sc"><div class="sc-label">Portfolio Value</div><div class="sc-val" id="s-total">—</div><div class="sc-sub" id="s-total-sub">—</div></div>
+    <div class="sc g"><div class="sc-label">Available Margin</div><div class="sc-val" id="s-margin">—</div><div class="sc-sub" id="s-margin-sub">Live cash balance</div></div>
     <div class="sc b"><div class="sc-label">LIQUIDCASE</div><div class="sc-val" id="s-liq">—</div><div class="sc-sub" id="s-liq-sub">—</div></div>
     <div class="sc"><div class="sc-label">Slots Used</div><div class="sc-val" id="s-slots">—</div><div class="sc-sub" id="s-slots-sub">—</div></div>
     <div class="sc"><div class="sc-label">Active Signals</div><div class="sc-val" id="s-sigs">—</div><div class="sc-sub">BUY / SELL triggers</div></div>
@@ -628,6 +629,13 @@ function render(data) {
   document.getElementById("s-slots").textContent   = `${slots.used ?? 0}/${slots.total ?? 0}`;
   document.getElementById("s-slots-sub").textContent = `${slots.available ?? 0} slots free`;
   document.getElementById("s-sigs").textContent    = sigs.length;
+
+  // Available Margin card
+  const margin = data.available_margin ?? null;
+  const marginEl = document.getElementById("s-margin");
+  marginEl.textContent = margin != null ? fmtL(margin) : "—";
+  marginEl.className   = margin != null && margin > 0 ? "sc-val pos" : "sc-val";
+  document.getElementById("s-margin-sub").textContent = margin != null ? "Live cash balance" : "Unavailable";
 
   // Holdings — build a lookup map for cur val in slot matrix
   const holdings = data.holdings ?? [];
