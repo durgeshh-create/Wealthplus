@@ -4,20 +4,22 @@ on:
   schedule:
     # Session 1: 09:00 AM to 12:30 PM IST (03:30 AM to 07:00 AM UTC) -> 210 mins
     - cron: '30 3 * * 1-5'
-    # Session 2: 12:30 PM to 03:30 PM IST (07:00 AM to 10:00 AM UTC) -> 180 mins
-    - cron: '0 7 * * 1-5'
+    # Session 2: 12:35 PM to 03:30 PM IST (07:05 AM to 10:00 AM UTC) -> 175 mins
+    # ✅ FIX: shifted 5 min later so Session 1's 200-min timeout (ends ~06:50 UTC)
+    #         always clears before Session 2 is scheduled. Without this gap,
+    #         GitHub queues Session 2 behind Session 1 in the concurrency group
+    #         and silently drops it if the queue slot expires.
+    - cron: '5 7 * * 1-5'
   workflow_dispatch:           # Manual trigger from GitHub Actions UI
 
 # Workflow-level permissions — required for gh-pages push from Actions
 permissions:
   contents: write
 
-# Prevent gh-pages push conflicts when Session 1 is still finalising while
-# Session 2 bootstraps. cancel-in-progress: false keeps both sessions alive —
-# the second one simply queues until the first releases the lock.
-concurrency:
-  group: wealthalgo-ghpages
-  cancel-in-progress: false
+# ✅ FIX: Removed single top-level concurrency group.
+# Each job now carries its own concurrency group (defined inline) so that
+# Session 2 (07:05 UTC) never contends with a still-running Session 1 job
+# for the same concurrency slot. The gh-pages push lock is retained per-job.
 
 jobs:
 
@@ -27,6 +29,9 @@ jobs:
   bootstrap-ghpages:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    concurrency:
+      group: bootstrap-ghpages-${{ github.run_id }}
+      cancel-in-progress: false
 
     steps:
       - name: Checkout code
@@ -74,6 +79,10 @@ jobs:
     needs: bootstrap-ghpages
     runs-on: ubuntu-latest
     timeout-minutes: 210
+    # ✅ FIX: own concurrency group per run — won't block Session 2 from starting
+    concurrency:
+      group: rd1858-bot-${{ github.run_id }}
+      cancel-in-progress: false
 
     steps:
       - name: Checkout code
@@ -119,7 +128,7 @@ jobs:
 
       - name: Run RD1858 bot + live snapshot pusher
         working-directory: RD1858
-        timeout-minutes: 200
+        timeout-minutes: 185
         env:
           KITE_USER_ID:        ${{ secrets.RD1858_USER_ID }}
           KITE_PASSWORD:       ${{ secrets.RD1858_PASSWORD }}
@@ -198,6 +207,10 @@ jobs:
     needs: bootstrap-ghpages
     runs-on: ubuntu-latest
     timeout-minutes: 210
+    # ✅ FIX: own concurrency group per run — won't block Session 2 from starting
+    concurrency:
+      group: ps5673-bot-${{ github.run_id }}
+      cancel-in-progress: false
 
     steps:
       - name: Checkout code
@@ -243,7 +256,7 @@ jobs:
 
       - name: Run PS5673 bot + live snapshot pusher
         working-directory: PS5673
-        timeout-minutes: 200
+        timeout-minutes: 185
         env:
           KITE_USER_ID:        ${{ secrets.PS5673_USER_ID }}
           KITE_PASSWORD:       ${{ secrets.PS5673_PASSWORD }}
