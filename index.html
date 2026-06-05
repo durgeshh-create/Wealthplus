@@ -330,6 +330,32 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
     header { flex-direction: column; gap: 10px; align-items: flex-start; }
   }
 
+/* ── market ticker bar ── */
+#ticker-bar{
+  display:flex;align-items:center;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:0 20px;height:34px;position:sticky;top:53px;z-index:99;
+  box-shadow:0 1px 3px rgba(0,0,0,0.04);
+}
+.ticker-item{display:flex;align-items:center;gap:8px;padding-right:14px}
+.ticker-sep{width:1px;height:16px;background:var(--border2);margin-right:14px;flex-shrink:0}
+.tick-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
+.tick-val{font-family:var(--head);font-size:14px;font-weight:800;color:var(--text);white-space:nowrap;min-width:60px}
+.tick-chg{font-family:var(--head);font-size:11px;font-weight:700;white-space:nowrap;padding:2px 7px;border-radius:4px}
+.tick-chg.pos{color:var(--green);background:var(--green-d)}
+.tick-chg.neg{color:var(--red);background:var(--red-d)}
+.tick-chg.flat{color:var(--muted);background:var(--bg3)}
+@keyframes flash-up{0%{background:rgba(22,163,74,.22)}100%{background:transparent}}
+@keyframes flash-dn{0%{background:rgba(220,38,38,.15)}100%{background:transparent}}
+.tick-flash-up{animation:flash-up .7s ease-out}
+.tick-flash-dn{animation:flash-dn .7s ease-out}
+@media(max-width:600px){
+  #ticker-bar{top:47px;padding:0 10px}
+  .ticker-item{padding-right:8px}
+  .ticker-sep{margin-right:8px}
+  .tick-val{font-size:13px;min-width:50px}
+  .tick-chg{font-size:10px;padding:1px 5px}
+}
 </style>
 </head>
 <body>
@@ -393,16 +419,34 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 <div id="offline-banner">&#128308; Bot offline &mdash; last session ended <span id="offline-ts">&mdash;</span>. P&amp;L shown is from last session.</div>
 <div id="cfg-note"></div>
 
-<!-- APP HEADER -->
-<header>
-  <div class="logo"><h1>WealthAlgo</h1><span class="sub">Live Dashboard</span></div>
-  <div class="hdr-right">
-    <div class="pill"><div class="dot" id="bot-dot"></div><span id="bot-txt">Loading&hellip;</span></div>
-    <span class="ts" id="last-ts">&mdash;</span>
-    <button class="rbtn" id="rbtn" onclick="refreshAll()">&#8635; Refresh</button>
-    <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px;margin-left:4px" title="Lock">&#128274;</button>
+<!-- APP HEADER -->\n<header>
+  <div class=\"logo\"><h1>WealthAlgo</h1><span class=\"sub\">Live Dashboard</span></div>
+  <div class=\"hdr-right\">
+    <div class=\"pill\"><div class=\"dot\" id=\"bot-dot\"></div><span id=\"bot-txt\">Loading&hellip;</span></div>
+    <span class=\"ts\" id=\"last-ts\">&mdash;</span>
+    <button class=\"rbtn\" id=\"rbtn\" onclick=\"refreshAll()\">&#8635; Refresh</button>
+    <button class=\"rbtn\" onclick=\"lockDashboard()\" style=\"background:var(--bg3);color:var(--muted);font-size:11px;margin-left:4px\" title=\"Lock\">&#128274;</button>
   </div>
 </header>
+
+<!-- MARKET TICKER BAR -->
+<div id=\"ticker-bar\">
+  <div class=\"ticker-item\" id=\"tick-nifty\">
+    <span class=\"tick-label\">NIFTY 50</span>
+    <span class=\"tick-val\" id=\"tick-nifty-val\">—</span>
+    <span class=\"tick-chg\" id=\"tick-nifty-chg\">—</span>
+  </div>
+  <div class=\"ticker-sep\"></div>
+  <div class=\"ticker-item\" id=\"tick-vix\">
+    <span class=\"tick-label\">INDIA VIX</span>
+    <span class=\"tick-val\" id=\"tick-vix-val\">—</span>
+    <span class=\"tick-chg\" id=\"tick-vix-chg\">—</span>
+  </div>
+  <div class=\"ticker-sep\"></div>
+  <div class=\"ticker-item\" style=\"opacity:.5;font-size:10px;color:var(--muted)\">
+    <span id=\"tick-mkt-status\">—</span>
+  </div>
+</div>
 
 <!-- NAV TABS -->
 <div class="nav-tabs">
@@ -2632,13 +2676,70 @@ async function refreshAll() {
   el.textContent = tsText;
 
   render(data);
+  renderTicker(data);
 
   clearTimeout(timer);
   timer = setTimeout(refreshAll, INTERVAL);
   startCountdown();
 }
 
-function switchAccount(acc) {
+// ── Market Ticker (NIFTY 50 + INDIA VIX) ────────────────────────────────────
+function renderTicker(data) {
+  const indices = data.indices || {};
+
+  function updateTick(idVal, idChg, info, isVix) {
+    const valEl = document.getElementById(idVal);
+    const chgEl = document.getElementById(idChg);
+    if (!info || info.ltp == null) {
+      valEl.textContent = '—';
+      chgEl.textContent = '—';
+      chgEl.className   = 'tick-chg flat';
+      return;
+    }
+    const prev = parseFloat(valEl.dataset.prev || '0');
+    const ltp  = info.ltp;
+    // Flash on price change
+    if (prev && prev !== ltp) {
+      const flashClass = ltp > prev ? 'tick-flash-up' : 'tick-flash-dn';
+      valEl.classList.remove('tick-flash-up','tick-flash-dn');
+      void valEl.offsetWidth; // reflow
+      valEl.classList.add(flashClass);
+      setTimeout(()=>valEl.classList.remove(flashClass), 700);
+    }
+    valEl.dataset.prev = ltp;
+    valEl.textContent  = isVix
+      ? ltp.toFixed(2)
+      : ltp.toLocaleString('en-IN', {maximumFractionDigits:2, minimumFractionDigits:2});
+
+    const chg    = info.change;
+    const chgPct = info.change_pct;
+    if (chg == null) { chgEl.textContent='—'; chgEl.className='tick-chg flat'; return; }
+    const sign   = chg >= 0 ? '+' : '';
+    const cls    = isVix
+      ? (chg > 0 ? 'neg' : chg < 0 ? 'pos' : 'flat')   // VIX up = bad (red), VIX down = good (green)
+      : (chg >= 0 ? 'pos' : 'neg');
+    chgEl.textContent = `${sign}${chg.toFixed(2)} (${sign}${chgPct.toFixed(2)}%)`;
+    chgEl.className   = `tick-chg ${cls}`;
+  }
+
+  updateTick('tick-nifty-val', 'tick-nifty-chg', indices['NIFTY 50'],   false);
+  updateTick('tick-vix-val',   'tick-vix-chg',   indices['INDIA VIX'],  true);
+
+  // Market status
+  const nowIST  = new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Kolkata'}));
+  const day     = nowIST.getDay();
+  const istMin  = nowIST.getHours()*60 + nowIST.getMinutes();
+  const mktOpen = day >= 1 && day <= 5 && istMin >= 555 && istMin <= 930;
+  const preOpen = day >= 1 && day <= 5 && istMin >= 540 && istMin < 555;
+  const mktEl   = document.getElementById('tick-mkt-status');
+  if (mktEl) {
+    if (preOpen)     { mktEl.textContent='🟡 Pre-open'; mktEl.style.color='var(--amber)'; }
+    else if (mktOpen){ mktEl.textContent='🟢 Market Open'; mktEl.style.color='var(--green)'; }
+    else             { mktEl.textContent='🔴 Market Closed'; mktEl.style.color='var(--muted)'; }
+  }
+}
+
+
   account = acc;
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   document.getElementById("tab-" + acc.toLowerCase()).classList.add("active");
