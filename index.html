@@ -1,0 +1,2922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WealthAlgo</title>
+<style>
+:root {
+  --bg:      #f8f9fb;
+  --bg2:     #ffffff;
+  --bg3:     #f1f5f9;
+  --border:  #e2e8f0;
+  --border2: #cbd5e1;
+  --text:    #1e293b;
+  --muted:   #64748b;
+  --muted2:  #475569;
+  --green:   #16a34a;
+  --green-d: rgba(22,163,74,0.10);
+  --red:     #dc2626;
+  --red-d:   rgba(220,38,38,0.10);
+  --amber:   #d97706;
+  --amber-d: rgba(217,119,6,0.10);
+  --blue:    #2563eb;
+  --blue-d:  rgba(37,99,235,0.08);
+  --accent:  #4f46e5;
+  --acc-d:   rgba(79,70,229,0.10);
+  --mono:    'DM Mono', monospace;
+  --head:    'Syne', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;line-height:1.6}
+
+/* ── header ── */
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.logo{display:flex;align-items:baseline;gap:10px}
+.logo h1{font-family:var(--head);font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--accent)}
+.logo .sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.hdr-right{display:flex;align-items:center;gap:14px}
+.pill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+.dot.live{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
+.dot.off{background:var(--red)}
+.dot.stale{background:var(--amber)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.ts{font-size:10px;color:var(--muted)}
+.rbtn{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--muted2);cursor:pointer;font-family:var(--mono);font-size:11px;padding:5px 12px;transition:all .15s}
+.rbtn:hover{border-color:var(--accent);color:var(--text)}
+.rbtn.spin{animation:rspin .8s linear infinite}
+@keyframes rspin{to{transform:rotate(360deg)}}
+
+/* ── tabs ── */
+.tabs{display:flex;background:var(--bg2);border-bottom:2px solid var(--border);padding:0 20px}
+.tab{padding:10px 18px;font-size:12px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-family:var(--head);font-weight:700;letter-spacing:.02em;transition:all .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── main ── */
+main{padding:18px 20px;max-width:1380px;margin:0 auto}
+
+/* ── stat cards ── */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:13px 15px;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);opacity:.5}
+.sc.g::before{background:var(--green)}
+.sc.r::before{background:var(--red)}
+.sc.b::before{background:var(--blue)}
+.sc.a::before{background:var(--amber)}
+.sc-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.sc-val{font-family:var(--head);font-size:21px;font-weight:700;color:var(--text);line-height:1.1}
+.sc-val.pos{color:var(--green)}
+.sc-val.neg{color:var(--red)}
+.sc-sub{font-size:10px;color:var(--muted);margin-top:3px}
+
+/* ── two-col ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:860px){.two-col{grid-template-columns:1fr}}
+
+/* ── mobile ── */
+@media(max-width:600px){
+  header{padding:10px 14px}
+  .logo h1{font-size:16px}
+  .logo .sub{display:none}
+  .hdr-right{gap:8px}
+  .pill{padding:3px 8px;font-size:10px}
+  .rbtn{padding:4px 9px;font-size:10px}
+  .ts{font-size:9px}
+  .tabs{padding:0 10px}
+  .tab{padding:9px 12px;font-size:11px}
+  main{padding:12px 10px}
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+  .sc{padding:10px 11px}
+  .sc-val{font-size:17px}
+  .sc-label{font-size:9px}
+  .two-col{grid-template-columns:1fr;gap:10px;margin-bottom:10px}
+  .panel{margin-bottom:10px}
+  .ph{padding:9px 12px}
+  .pt{font-size:10px}
+  .tbl th,.tbl td{padding:8px 10px;font-size:11px}
+  .sym{font-size:12px}
+  .trade-row{padding:8px 10px;gap:8px}
+  .sig-row{padding:8px 10px;gap:8px}
+  .slots-wrap{padding:10px;gap:10px}
+  .slots-grid{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px}
+  .slot{padding:7px 8px}
+  .slot-sym{font-size:10px}
+  .slot-status{font-size:8px}
+  .cash-body{padding:10px}
+  #stale-banner,#offline-banner,#cfg-note{font-size:10px;padding:6px 14px}
+  .scroll{max-height:240px}
+  .wr-bar-wrap{min-width:50px}
+}
+
+/* ── panel ── */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-bottom:1px solid var(--border)}
+.pt{font-family:var(--head);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted2)}
+.pb{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);color:var(--muted2)}
+
+/* ── table ── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl thead tr{border-bottom:1px solid var(--border2)}
+.tbl th{padding:7px 15px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:400}
+.tbl th:not(:first-child){text-align:right}
+.tbl td{padding:10px 15px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl td:not(:first-child){text-align:right}
+.tbl tr:hover td{background:rgba(79,70,229,0.03)}
+
+.sym{font-family:var(--head);font-size:13px;font-weight:700}
+.tag{display:inline-block;font-size:9px;padding:1px 6px;border-radius:3px;margin-left:5px;text-transform:uppercase;letter-spacing:.05em}
+.tag-a{background:var(--acc-d);color:var(--accent);border:1px solid rgba(99,102,241,.3)}
+.tag-b{background:var(--blue-d);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
+.pos{color:var(--green)}
+.neg{color:var(--red)}
+
+/* ── williams %r ── */
+.wr-bar-wrap{position:relative;height:5px;background:var(--bg3);border-radius:3px;min-width:70px}
+.wr-bar{position:absolute;right:0;top:0;height:100%;border-radius:3px;transition:width .4s}
+.threshold-line{position:absolute;right:20%;top:-3px;width:1px;height:11px;background:rgba(239,68,68,.5)}
+
+/* ── trades ── */
+.trade-row{display:flex;align-items:center;gap:10px;padding:9px 15px;border-bottom:1px solid var(--border)}
+.trade-row:last-child{border-bottom:none}
+.trade-row:hover{background:rgba(79,70,229,0.03)}
+.badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;letter-spacing:.05em;min-width:36px;text-align:center;flex-shrink:0}
+.b-buy{background:var(--green-d);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.b-sell{background:var(--red-d);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.b-pending{opacity:.5}
+.status-ok{color:var(--green);font-size:9px;text-transform:uppercase;letter-spacing:.06em}
+.status-rej{color:var(--red);font-size:9px;text-transform:uppercase;letter-spacing:.06em}
+.status-other{color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.06em}
+
+/* ── signals ── */
+.sig-row{display:flex;align-items:center;gap:10px;padding:9px 15px;border-bottom:1px solid var(--border)}
+.sig-row:last-child{border-bottom:none}
+
+/* ── slots ── */
+.slots-wrap{padding:14px;display:flex;flex-direction:column;gap:12px}
+.slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.slot{border-radius:6px;border:1px solid var(--border2);background:var(--bg3);padding:8px 10px;cursor:default;transition:all .2s;min-width:0}
+.slot.used{background:var(--acc-d);border-color:rgba(99,102,241,.4)}
+.slot.liq{background:var(--green-d);border-color:rgba(34,197,94,.3)}
+.slot-sym{font-family:var(--head);font-size:11px;font-weight:700;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot.used .slot-sym{color:var(--accent)}
+.slot.liq .slot-sym{color:var(--green)}
+.slot-status{font-size:9px;margin-top:2px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.slot-val{font-size:10px;margin-top:3px;font-family:var(--head);font-weight:600;color:var(--muted2)}
+.slot.used .slot-val{color:var(--accent)}
+.slot.liq .slot-val{color:var(--green)}
+.slot.bnh.held .slot-val{color:var(--blue)}
+.slot.used .slot-status{color:var(--accent);opacity:.8}
+.slot.liq .slot-status{color:var(--green);opacity:.8}
+.slot.bnh{background:rgba(37,99,235,0.08);border-color:rgba(37,99,235,.35)}
+.slot.bnh .slot-sym{color:var(--blue)}
+.slot.bnh .slot-status{color:var(--blue);opacity:.8}
+.slot.bnh.held{background:rgba(37,99,235,0.16);border-color:rgba(37,99,235,.5)}
+.slots-section-label{font-family:var(--head);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.slot-leg span{display:flex;align-items:center;gap:5px}
+.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* ── cash bar ── */
+.cash-body{padding:14px}
+.cash-bar-track{height:7px;background:var(--bg3);border-radius:4px;margin:8px 0 5px;overflow:hidden}
+.cash-bar-fill{height:100%;border-radius:4px;background:var(--green);transition:width .6s}
+.cash-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+
+/* ── scroll ── */
+.scroll{max-height:300px;overflow-y:auto}
+.scroll::-webkit-scrollbar{width:3px}
+.scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ── empty / stale ── */
+.empty{padding:28px 15px;text-align:center;color:var(--muted);font-size:12px}
+
+/* ── status banners ── */
+#stale-banner{display:none;background:#fffbeb;border-bottom:1px solid var(--amber);padding:8px 20px;font-size:11px;color:#92400e}
+#offline-banner{display:none;background:#f8fafc;border-bottom:1px solid var(--border2);padding:8px 20px;font-size:11px;color:var(--muted2)}
+
+/* ── config note ── */
+#cfg-note{display:none;background:#f8fafc;border-bottom:1px solid var(--border2);padding:10px 20px;font-size:11px;color:var(--muted2)}
+#cfg-note a{color:var(--accent);text-decoration:none}
+/* ── strategy reference ── */
+.strat-section{padding:20px 20px 6px}
+.strat-hd{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.strat-badge{font-size:10px;padding:3px 10px;border-radius:4px;font-family:var(--head);font-weight:700;letter-spacing:.04em;white-space:nowrap}
+.strat-title{font-family:var(--head);font-size:15px;font-weight:700;color:var(--text)}
+.strat-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:14px}
+@media(max-width:680px){.strat-cols{grid-template-columns:1fr}}
+.strat-col p{font-size:12px;color:var(--muted2);line-height:1.7}
+.strat-block-title{font-family:var(--head);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.strat-divider{height:1px;background:var(--border);margin:14px 0}
+.strat-strategy-divider{height:2px;background:var(--border2);margin:20px 0}
+.strat-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px}
+.strat-tbl tr{border-bottom:1px solid var(--border)}
+.strat-tbl tr:last-child{border-bottom:none}
+.strat-td-key{padding:5px 10px 5px 0;color:var(--muted2);font-weight:500;white-space:nowrap;vertical-align:top;min-width:140px}
+.strat-tbl td:last-child{padding:5px 0;color:var(--text);line-height:1.6}
+.strat-trigger-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:6px}
+.strat-trigger{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:11px 13px}
+.strat-trigger-label{font-family:var(--head);font-size:10px;font-weight:700;color:var(--accent);margin-bottom:4px;letter-spacing:.03em}
+.strat-trigger-rule{font-family:var(--mono);font-size:11px;color:var(--text);margin-bottom:5px;background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:3px 7px}
+.strat-trigger-note{font-size:11px;color:var(--muted2);line-height:1.6}
+.strat-tier-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:4px}
+@media(max-width:680px){.strat-tier-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}}
+.strat-tier{border-radius:6px;border:1px solid var(--border);padding:9px 10px;text-align:center}
+.t1{background:rgba(37,99,235,0.04);border-color:rgba(37,99,235,.15)}
+.t2{background:rgba(37,99,235,0.08);border-color:rgba(37,99,235,.25)}
+.t3{background:rgba(37,99,235,0.13);border-color:rgba(37,99,235,.35)}
+.t4{background:rgba(37,99,235,0.20);border-color:rgba(37,99,235,.45)}
+.t5{background:rgba(37,99,235,0.28);border-color:rgba(37,99,235,.55)}
+.strat-tier-wr{font-family:var(--head);font-size:11px;font-weight:700;color:var(--blue);margin-bottom:3px}
+.strat-tier-pct{font-family:var(--head);font-size:13px;font-weight:800;color:var(--text)}
+.strat-tier-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:var(--accent)}
+</style>
+<style>
+/* Password gate */
+#pw-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
+.pw-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:36px 32px;width:360px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,.25);text-align:center}
+.pw-logo{font-family:var(--head);font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px}
+.pw-sub{font-size:11px;color:var(--muted);margin-bottom:24px;letter-spacing:.06em;text-transform:uppercase}
+.pw-input-wrap{position:relative;margin-bottom:12px}
+.pw-input-wrap input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:10px 40px 10px 14px;color:var(--text);font-size:14px;font-family:var(--head);transition:border-color .15s}
+.pw-input-wrap input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0}
+.pw-btn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:14px;font-family:var(--head);font-weight:700;cursor:pointer;transition:opacity .15s;margin-top:2px}
+.pw-btn:hover{opacity:.88}
+.pw-err{font-size:11px;color:#f87171;margin-top:10px;min-height:16px}
+.pw-hint{font-size:10px;color:var(--muted);margin-top:14px;line-height:1.5}
+.pw-set-link{color:var(--accent);cursor:pointer;text-decoration:underline}
+/* Top-level nav tabs */
+.nav-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 16px}
+.nav-tab{padding:10px 18px;font-family:var(--head);font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;user-select:none}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.nav-tab-pane{display:none}
+.nav-tab-pane.active{display:block}
+/* Strategy pane overrides */
+#pane-strategy #strat-body{display:block!important}
+#pane-strategy .ph[onclick]{cursor:default;pointer-events:none}
+#pane-strategy #strat-toggle{display:none}
+/* Settings CSS */
+
+  :root {
+    --bg: #f8f9fb; --card: #ffffff; --border: #e2e6ed; --accent: #2563eb;
+    --success: #16a34a; --warning: #d97706; --danger: #dc2626;
+    --text: #1e293b; --muted: #64748b; --input-bg: #f1f5f9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; font-size: 14px; min-height: 100vh; }
+
+  header { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  header h1 { font-size: 1rem; font-weight: 700; color: var(--accent); }
+  header .subtitle { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+  .instance-tabs { display: flex; gap: 8px; }
+  .itab { padding: 6px 16px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.15s; }
+  .itab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  main { max-width: 900px; margin: 0 auto; padding: 24px 16px 80px; }
+
+  .section { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .section-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; background: #f8fafc; }
+  .section-header h2 { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent); }
+  .section-body { padding: 16px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .section-body.single { grid-template-columns: 1fr; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+  .field input, .field select { background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; color: var(--text); font-size: 0.84rem; width: 100%; transition: border-color 0.15s; }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+  .field .hint { font-size: 0.65rem; color: var(--muted); }
+
+  /* Symbol manager */
+  .sym-manager { padding: 16px 18px; }
+  .sym-group { margin-bottom: 16px; }
+  .sym-group-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 8px; }
+  .sym-row { display: flex; gap: 8px; align-items: center; }
+  .sym-row select { flex: 1; background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; color: var(--text); font-size: 0.8rem; }
+  .sym-row select:focus { outline: none; border-color: var(--accent); }
+  .btn-add { padding: 6px 14px; background: var(--accent); color: #fff; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .btn-add:hover { opacity: 0.85; }
+  .sym-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-height: 32px; padding: 6px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; background: #dbeafe; color: #1d4ed8; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: 600; border: 1px solid #bfdbfe; }
+  .chip .rm { cursor: pointer; color: var(--muted); font-size: 0.9rem; line-height: 1; }
+  .chip .rm:hover { color: var(--danger); }
+  .sym-chips-empty { font-size: 0.72rem; color: var(--muted); padding: 4px; }
+
+  /* Actions */
+  .actions { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 12px; z-index: 100; box-shadow: 0 -2px 8px rgba(0,0,0,0.06); }
+  .btn-save { padding: 9px 28px; background: var(--success); color: #fff; border: none; border-radius: 7px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
+  .btn-save:hover { opacity: 0.88; }
+  .btn-save:disabled { opacity: 0.4; cursor: default; }
+  .status { font-size: 0.78rem; color: var(--muted); }
+  .status.ok { color: var(--success); }
+  .status.err { color: var(--danger); }
+
+  /* Setup modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; width: 480px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+  .modal h2 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+  .modal p { font-size: 0.8rem; color: var(--muted); margin-bottom: 18px; line-height: 1.5; }
+  .modal input { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; color: var(--text); font-size: 0.85rem; margin-bottom: 10px; }
+  .modal input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+  .modal .btn-primary { width: 100%; padding: 10px; background: var(--accent); color: #fff; border: none; border-radius: 7px; font-size: 0.88rem; font-weight: 700; cursor: pointer; margin-top: 4px; }
+  .modal .muted { font-size: 0.68rem; color: var(--muted); margin-top: 10px; text-align: center; line-height: 1.4; }
+
+  @media (max-width: 600px) {
+    .section-body { grid-template-columns: 1fr; }
+    header { flex-direction: column; gap: 10px; align-items: flex-start; }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div id="pw-overlay">
+  <div class="pw-box">
+    <div class="pw-logo">&#9889; WealthAlgo</div>
+    <div class="pw-sub">Private Dashboard</div>
+    <div class="pw-input-wrap">
+      <input type="password" id="pw-input" placeholder="Password" autofocus onkeydown="if(event.key==='Enter')checkPw()">
+      <button class="pw-eye" onclick="togglePwEye()" title="Show/hide">&#128065;</button>
+    </div>
+    <button class="pw-btn" onclick="checkPw()">Unlock &#8594;</button>
+    <div class="pw-err" id="pw-err"></div>
+    <div class="pw-hint">First time? <span class="pw-set-link" onclick="showSetPw()">Set a password</span></div>
+  </div>
+</div>
+
+<!-- SET-PASSWORD MODAL (replaces browser prompt() which is blocked on gh-pages) -->
+<div class="modal-overlay" id="setpw-modal" style="display:none;z-index:9995">
+  <div class="modal" style="max-width:380px">
+    <h2>🔐 Set Dashboard Password</h2>
+    <p>Choose a password to protect this dashboard. It is hashed and stored only in your browser.</p>
+    <input id="setpw-1" type="password" placeholder="New password" autocomplete="new-password"
+           onkeydown="if(event.key==='Enter')document.getElementById('setpw-2').focus()">
+    <input id="setpw-2" type="password" placeholder="Confirm password" autocomplete="new-password"
+           onkeydown="if(event.key==='Enter')confirmSetPw()">
+    <div id="setpw-err" style="color:var(--red);font-size:11px;min-height:16px;margin-bottom:6px"></div>
+    <button class="btn-primary" onclick="confirmSetPw()">Save Password →</button>
+    <button class="btn-primary" onclick="document.getElementById('setpw-modal').style.display='none'"
+            style="background:var(--bg3);color:var(--muted2);border:1px solid var(--border);margin-top:8px">Cancel</button>
+  </div>
+</div>
+
+<!-- GITHUB SETUP MODAL -->
+<div class="modal-overlay" id="setup-modal" style="display:none;z-index:9990">
+  <div class="modal">
+    <h2>&#9881;&#65039; First-time setup</h2>
+    <p>Enter your GitHub details to enable reading and saving settings.json.<br>
+       Your token is stored only in your browser (localStorage) and never sent anywhere except GitHub.</p>
+    <input id="cfg-owner" placeholder="GitHub username  (e.g. durgeshh-create)" autocomplete="off">
+    <input id="cfg-repo"  placeholder="Repository name  (e.g. Wealthplus)" autocomplete="off">
+    <input id="cfg-token" type="password" placeholder="GitHub Personal Access Token (needs repo scope)" autocomplete="off">
+    <div id="cfg-test-status" style="font-size:11px;min-height:16px;margin-bottom:6px;color:var(--muted)"></div>
+    <button class="btn-primary" onclick="saveConfig()">Connect →</button>
+    <button class="btn-primary" onclick="testGitHubToken()"
+            style="background:var(--bg3);color:var(--muted2);border:1px solid var(--border);margin-top:8px">
+      🔍 Test Token
+    </button>
+    <p class="muted">GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate → tick <b>repo</b> → copy here.</p>
+    <p class="muted" style="margin-top:6px">
+      If you see a 401 error, your token may have expired.
+      <a href="https://github.com/settings/tokens" target="_blank" style="color:var(--accent)">Generate a new one →</a>
+    </p>
+  </div>
+</div>
+
+<!-- SHARED BANNERS -->
+<div id="stale-banner">&#9888; Data is stale &mdash; bot may have stopped. Last update: <span id="stale-ts">&mdash;</span></div>
+<div id="offline-banner">&#128308; Bot offline &mdash; last session ended <span id="offline-ts">&mdash;</span>. P&amp;L shown is from last session.</div>
+<div id="cfg-note"></div>
+
+<!-- APP HEADER -->
+<header>
+  <div class="logo"><h1>WealthAlgo</h1><span class="sub">Live Dashboard</span></div>
+  <div class="hdr-right">
+    <div class="pill"><div class="dot" id="bot-dot"></div><span id="bot-txt">Loading&hellip;</span></div>
+    <span class="ts" id="last-ts">&mdash;</span>
+    <button class="rbtn" id="rbtn" onclick="refreshAll()">&#8635; Refresh</button>
+    <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px;margin-left:4px" title="Lock">&#128274;</button>
+  </div>
+</header>
+
+<!-- NAV TABS -->
+<div class="nav-tabs">
+  <div class="nav-tab active" id="ntab-dashboard" onclick="switchNavTab('dashboard')">&#128202; Dashboard</div>
+  <div class="nav-tab"        id="ntab-settings"  onclick="switchNavTab('settings')">&#9881;&#65039; Settings</div>
+  <div class="nav-tab"        id="ntab-strategy"  onclick="switchNavTab('strategy')">&#128214; Strategy</div>
+</div>
+
+<!-- PANE: DASHBOARD -->
+<div class="nav-tab-pane active" id="pane-dashboard">
+  <div class="tabs">
+    <div class="tab active" id="tab-ps5673" onclick="switchAccount('PS5673')">PS5673</div>
+    <div class="tab" id="tab-rd1858" onclick="switchAccount('RD1858')">RD1858</div>
+  </div>
+  <main>
+
+  <div class="stat-grid">
+    <div class="sc"><div class="sc-label">Portfolio Value</div><div class="sc-val" id="s-total">—</div><div class="sc-sub" id="s-total-sub">—</div></div>
+    <div class="sc g"><div class="sc-label">Available Cash</div><div class="sc-val" id="s-cash">—</div><div class="sc-sub" id="s-cash-sub">Settled · CNC-ready</div></div>
+    <div class="sc a"><div class="sc-label">Available Margin</div><div class="sc-val" id="s-margin">—</div><div class="sc-sub" id="s-margin-sub">Incl. collateral</div></div>
+    <div class="sc b"><div class="sc-label">LIQUIDCASE</div><div class="sc-val" id="s-liq">—</div><div class="sc-sub" id="s-liq-sub">—</div></div>
+    <div class="sc"><div class="sc-label">Slots Used</div><div class="sc-val" id="s-slots">—</div><div class="sc-sub" id="s-slots-sub">—</div></div>
+    <div class="sc"><div class="sc-label">Active Signals</div><div class="sc-val" id="s-sigs">—</div><div class="sc-sub">BUY / SELL triggers</div></div>
+  </div>
+
+  <div class="two-col">
+    <!-- Holdings + Positions stacked in left column -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="panel">
+        <div class="ph">
+          <span class="pt">Holdings</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="h-pnl-wrap" style="display:none;text-align:right">
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Total P&amp;L</div>
+              <span id="h-total-pnl" style="font-family:var(--head);font-size:14px;font-weight:700">—</span>
+            </div>
+            <span class="pb" id="h-count">—</span>
+          </div>
+        </div>
+        <div class="scroll">
+          <table class="tbl">
+            <thead><tr><th>Symbol</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>Cur. Val</th><th>P&amp;L</th></tr></thead>
+            <tbody id="h-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Positions panel -->
+      <div class="panel">
+        <div class="ph"><span class="pt">Today's Positions</span><span class="pb" id="pos-count">—</span></div>
+        <div class="scroll">
+          <table class="tbl">
+            <thead><tr><th>Symbol</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>Unrealised</th><th>Realised</th></tr></thead>
+            <tbody id="pos-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signals + Today's Orders + Funds stacked -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="panel">
+        <div class="ph"><span class="pt">Active Signals</span><span class="pb" id="sig-count">—</span></div>
+        <div class="scroll" id="sig-body"><div class="empty">Loading…</div></div>
+      </div>
+      <!-- Today's Orders — above Funds -->
+      <div class="panel">
+        <div class="ph">
+          <span class="pt">Today's Orders</span>
+          <span class="pb" id="tr-count">—</span>
+        </div>
+        <div class="scroll" id="tr-body"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><span class="pt">Funds</span><span class="pb" id="cash-note">—</span></div>
+        <div class="cash-body">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+            <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Deployed</span>
+            <span style="font-family:var(--head);font-size:20px;font-weight:700" id="cash-deployed">—</span>
+          </div>
+          <div class="cash-bar-track"><div class="cash-bar-fill" id="cash-bar" style="width:0%"></div></div>
+          <div class="cash-labels">
+            <span>Holdings: <span id="cash-h">—</span></span>
+            <span>LIQUIDCASE: <span id="cash-l">—</span></span>
+            <span>Total: <span id="cash-t">—</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /two-col -->
+
+  <!-- Williams %R — directly below Holdings -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="ph"><span class="pt">Williams %R</span><span style="font-size:10px;color:var(--muted)">≤ −75 oversold → BUY zone</span></div>
+    <div class="scroll">
+      <table class="tbl" id="wr-tbl">
+        <tr><td colspan="4" class="empty">Loading…</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Slot Matrix full-width -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="ph"><span class="pt">Slot Matrix</span><span style="font-size:10px;color:var(--muted)">Active strategy + Dip Accumulator (B&amp;H)</span></div>
+    <div class="slots-wrap" id="slots-wrap"><div class="empty">Loading…</div></div>
+  </div>
+  </main>
+</div>
+
+<!-- PANE: SETTINGS -->
+<div class="nav-tab-pane" id="pane-settings">
+  <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-size:1rem;font-weight:700;color:var(--accent);font-family:var(--head)">&#9889; WealthAlgo Settings Editor</div>
+      <div id="hdr-subtitle" style="font-size:.72rem;color:var(--muted);margin-top:2px">Loading&hellip;</div>
+    </div>
+    <div class="instance-tabs">
+      <button class="itab active" onclick="switchInstance('RD1858')">RD1858</button>
+      <button class="itab"        onclick="switchInstance('PS5673')">PS5673</button>
+    </div>
+  </div>
+  <main id="main-content" style="max-width:900px;margin:0 auto;padding:24px 16px 100px">
+
+
+  <!-- Trading Engine -->
+  <div class="section">
+    <div class="section-header"><h2>🔧 Trading Engine</h2></div>
+    <div class="section-body">
+      <div class="field">
+        <label>Trading Mode</label>
+        <select id="s-trading_mode">
+          <option value="LIVE">LIVE</option>
+          <option value="DRY_RUN">DRY RUN (paper trading)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Order Type</label>
+        <select id="s-default_order_type">
+          <option value="LIMIT">LIMIT (Top Bid)</option>
+          <option value="MARKET">MARKET</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Execution Time</label>
+        <select id="s-buy_execution_time">
+          <option value="anytime">Anytime (No Time Gate)</option>
+          <option value="market_hours">Market Hours Only</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Cash Reserve (₹)</label>
+        <input type="number" id="s-cash_reserve" min="0" step="500">
+        <span class="hint">Minimum balance kept untouched</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Strategy -->
+  <div class="section">
+    <div class="section-header"><h2>📈 Active Strategy</h2></div>
+    <div class="section-body">
+      <div class="field">
+        <label>Profit Target (%)</label>
+        <input type="number" id="s-profit_target_pct" min="0.1" max="50" step="0.1">
+      </div>
+      <div class="field">
+        <label>Slots Count</label>
+        <input type="number" id="s-slots_count" min="1" max="10" step="1">
+        <span class="hint">Number of buy tiers per symbol</span>
+      </div>
+      <div class="field">
+        <label>Max Cash / Stock (₹)</label>
+        <input type="number" id="s-max_cash_per_stock" min="1000" step="1000">
+      </div>
+      <div class="field">
+        <label>Max Cash / Transaction (₹)</label>
+        <input type="number" id="s-max_cash_per_transaction" min="1000" step="500">
+      </div>
+      <div class="field">
+        <label>Min Price Drop (%)</label>
+        <input type="number" id="s-min_price_drop_pct" min="0" max="20" step="0.1">
+        <span class="hint">Required drop for avg-down slots</span>
+      </div>
+      <div class="field">
+        <label>W%R Threshold</label>
+        <input type="number" id="s-williams_r_threshold" min="-100" max="0" step="1">
+        <span class="hint">Buy signal threshold (e.g. -80)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dip Accumulator & Harvester -->
+  <div class="section">
+    <div class="section-header"><h2>🌊 Dip Accumulator &amp; Harvester</h2></div>
+    <div class="section-body">
+      <div class="field">
+        <label>Max Cash / ETF (₹)</label>
+        <input type="number" id="s-bnh_max_cash_per_etf" min="0" step="10000">
+      </div>
+      <div class="field">
+        <label>Max Cash / Transaction (₹)</label>
+        <input type="number" id="s-bnh_max_cash_per_transaction" min="0" step="1000">
+      </div>
+      <div class="field">
+        <label>Harvest Target (%)</label>
+        <input type="number" id="s-bnh_partial_profit_pct" min="0.1" max="50" step="0.1">
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Strategy Symbols -->
+  <div class="section">
+    <div class="section-header"><h2>🏷️ Active Strategy — Symbols</h2></div>
+    <div class="sym-manager">
+      <div class="sym-group">
+        <div class="sym-group-label">📊 ETFs</div>
+        <div class="sym-row">
+          <select id="dd-active-etf">
+            <option value="">— select ETF —</option>
+            <option value="ABSL10BANK">ABSL10BANK</option>
+            <option value="ABSLBANETF">ABSLBANETF</option>
+            <option value="ABSLMSCIN">ABSLMSCIN</option>
+            <option value="ABSLNN50ET">ABSLNN50ET</option>
+            <option value="ABSLPSE">ABSLPSE</option>
+            <option value="ALPHA">ALPHA</option>
+            <option value="ALPHAETF">ALPHAETF</option>
+            <option value="ALPL30IETF">ALPL30IETF</option>
+            <option value="AONEGOLD">AONEGOLD</option>
+            <option value="AONENIFTY">AONENIFTY</option>
+            <option value="AONESILVER">AONESILVER</option>
+            <option value="AONETMMQ50">AONETMMQ50</option>
+            <option value="AONETOTAL">AONETOTAL</option>
+            <option value="AUTOBEES">AUTOBEES</option>
+            <option value="AUTOIETF">AUTOIETF</option>
+            <option value="AXISBNKETF">AXISBNKETF</option>
+            <option value="AXISCETF">AXISCETF</option>
+            <option value="AXISGOLD">AXISGOLD</option>
+            <option value="AXISHCETF">AXISHCETF</option>
+            <option value="AXISILVER">AXISILVER</option>
+            <option value="AXISNIFTY">AXISNIFTY</option>
+            <option value="AXISTECETF">AXISTECETF</option>
+            <option value="AXISVALUE">AXISVALUE</option>
+            <option value="AXSENSEX">AXSENSEX</option>
+            <option value="BANK10ADD">BANK10ADD</option>
+            <option value="BANKADD">BANKADD</option>
+            <option value="BANKBEES">BANKBEES</option>
+            <option value="BANKBETA">BANKBETA</option>
+            <option value="BANKBETF">BANKBETF</option>
+            <option value="BANKETF">BANKETF</option>
+            <option value="BANKIETF">BANKIETF</option>
+            <option value="BANKNIFTY1">BANKNIFTY1</option>
+            <option value="BANKPSU">BANKPSU</option>
+            <option value="BBNPNBETF">BBNPNBETF</option>
+            <option value="BBNPPGOLD">BBNPPGOLD</option>
+            <option value="BFSI">BFSI</option>
+            <option value="BSE500IETF">BSE500IETF</option>
+            <option value="BSLGOLDETF">BSLGOLDETF</option>
+            <option value="BSLNIFTY">BSLNIFTY</option>
+            <option value="BSLSENETFG">BSLSENETFG</option>
+            <option value="CHEMICAL">CHEMICAL</option>
+            <option value="CHOICEGOLD">CHOICEGOLD</option>
+            <option value="COMMOIETF">COMMOIETF</option>
+            <option value="CONS">CONS</option>
+            <option value="CONSUMBEES">CONSUMBEES</option>
+            <option value="CONSUMER">CONSUMER</option>
+            <option value="CONSUMIETF">CONSUMIETF</option>
+            <option value="CPSEETF">CPSEETF</option>
+            <option value="DEFENCE">DEFENCE</option>
+            <option value="DIVIDEND">DIVIDEND</option>
+            <option value="DIVOPPBEES">DIVOPPBEES</option>
+            <option value="EBANKNIFTY">EBANKNIFTY</option>
+            <option value="ECAPINSURE">ECAPINSURE</option>
+            <option value="EGOLD">EGOLD</option>
+            <option value="ELM250">ELM250</option>
+            <option value="EMULTIMQ">EMULTIMQ</option>
+            <option value="ENERGY">ENERGY</option>
+            <option value="ENIFTY">ENIFTY</option>
+            <option value="EQUAL200">EQUAL200</option>
+            <option value="EQUAL50">EQUAL50</option>
+            <option value="EQUAL50ADD">EQUAL50ADD</option>
+            <option value="ESENSEX">ESENSEX</option>
+            <option value="ESG">ESG</option>
+            <option value="ESILVER">ESILVER</option>
+            <option value="EVIETF">EVIETF</option>
+            <option value="EVINDIA">EVINDIA</option>
+            <option value="FINIETF">FINIETF</option>
+            <option value="FLEXIADD">FLEXIADD</option>
+            <option value="FMCGADD">FMCGADD</option>
+            <option value="FMCGIETF">FMCGIETF</option>
+            <option value="GOLD1">GOLD1</option>
+            <option value="GOLD360">GOLD360</option>
+            <option value="GOLDADD">GOLDADD</option>
+            <option value="GOLDBEES">GOLDBEES</option>
+            <option value="GOLDBETA">GOLDBETA</option>
+            <option value="GOLDBND">GOLDBND</option>
+            <option value="GOLDCASE">GOLDCASE</option>
+            <option value="GOLDETF">GOLDETF</option>
+            <option value="GOLDIETF">GOLDIETF</option>
+            <option value="GROWWCAPM">GROWWCAPM</option>
+            <option value="GROWWCHEM">GROWWCHEM</option>
+            <option value="GROWWDEFNC">GROWWDEFNC</option>
+            <option value="GROWWEV">GROWWEV</option>
+            <option value="GROWWGOLD">GROWWGOLD</option>
+            <option value="GROWWHOSPI">GROWWHOSPI</option>
+            <option value="GROWWLOVOL">GROWWLOVOL</option>
+            <option value="GROWWMC150">GROWWMC150</option>
+            <option value="GROWWMETAL">GROWWMETAL</option>
+            <option value="GROWWMOM50">GROWWMOM50</option>
+            <option value="GROWWN200">GROWWN200</option>
+            <option value="GROWWNET">GROWWNET</option>
+            <option value="GROWWNIFTY">GROWWNIFTY</option>
+            <option value="GROWWNXT50">GROWWNXT50</option>
+            <option value="GROWWPOWER">GROWWPOWER</option>
+            <option value="GROWWPSE">GROWWPSE</option>
+            <option value="GROWWPSUBK">GROWWPSUBK</option>
+            <option value="GROWWRAIL">GROWWRAIL</option>
+            <option value="GROWWRLTY">GROWWRLTY</option>
+            <option value="GROWWSC250">GROWWSC250</option>
+            <option value="GROWWSLVR">GROWWSLVR</option>
+            <option value="HDFCBSE500">HDFCBSE500</option>
+            <option value="HDFCGOLD">HDFCGOLD</option>
+            <option value="HDFCGROWTH">HDFCGROWTH</option>
+            <option value="HDFCLOWVOL">HDFCLOWVOL</option>
+            <option value="HDFCMID150">HDFCMID150</option>
+            <option value="HDFCMOMENT">HDFCMOMENT</option>
+            <option value="HDFCNEXT50">HDFCNEXT50</option>
+            <option value="HDFCNIF100">HDFCNIF100</option>
+            <option value="HDFCNIFBAN">HDFCNIFBAN</option>
+            <option value="HDFCNIFIT">HDFCNIFIT</option>
+            <option value="HDFCNIFTY">HDFCNIFTY</option>
+            <option value="HDFCPSUBK">HDFCPSUBK</option>
+            <option value="HDFCPVTBAN">HDFCPVTBAN</option>
+            <option value="HDFCQUAL">HDFCQUAL</option>
+            <option value="HDFCSENSEX">HDFCSENSEX</option>
+            <option value="HDFCSILVER">HDFCSILVER</option>
+            <option value="HDFCSML250">HDFCSML250</option>
+            <option value="HDFCVALUE">HDFCVALUE</option>
+            <option value="HEALTHADD">HEALTHADD</option>
+            <option value="HEALTHCARE">HEALTHCARE</option>
+            <option value="HEALTHIETF">HEALTHIETF</option>
+            <option value="HEALTHY">HEALTHY</option>
+            <option value="HNGSNGBEES">HNGSNGBEES</option>
+            <option value="HSBCGOLD">HSBCGOLD</option>
+            <option value="ICICIB22">ICICIB22</option>
+            <option value="IDFNIFTYET">IDFNIFTYET</option>
+            <option value="INFRA">INFRA</option>
+            <option value="INFRABEES">INFRABEES</option>
+            <option value="INFRAIETF">INFRAIETF</option>
+            <option value="INTERNET">INTERNET</option>
+            <option value="IT">IT</option>
+            <option value="ITADD">ITADD</option>
+            <option value="ITBEES">ITBEES</option>
+            <option value="ITBETA">ITBETA</option>
+            <option value="ITETF">ITETF</option>
+            <option value="ITIETF">ITIETF</option>
+            <option value="IVZINGOLD">IVZINGOLD</option>
+            <option value="IVZINNIFTY">IVZINNIFTY</option>
+            <option value="JUNIORBEES">JUNIORBEES</option>
+            <option value="LICMFGOLD">LICMFGOLD</option>
+            <option value="LICNETFGSC">LICNETFGSC</option>
+            <option value="LICNETFN50">LICNETFN50</option>
+            <option value="LICNETFSEN">LICNETFSEN</option>
+            <option value="LICNFNHGP">LICNFNHGP</option>
+            <option value="LICNMID100">LICNMID100</option>
+            <option value="LOWVOL">LOWVOL</option>
+            <option value="LOWVOL1">LOWVOL1</option>
+            <option value="LOWVOLIETF">LOWVOLIETF</option>
+            <option value="MAFANG">MAFANG</option>
+            <option value="MAHKTECH">MAHKTECH</option>
+            <option value="MAKEINDIA">MAKEINDIA</option>
+            <option value="MANUFGBEES">MANUFGBEES</option>
+            <option value="MASPTOP50">MASPTOP50</option>
+            <option value="METAL">METAL</option>
+            <option value="METALIETF">METALIETF</option>
+            <option value="MID150">MID150</option>
+            <option value="MID150BEES">MID150BEES</option>
+            <option value="MID150CASE">MID150CASE</option>
+            <option value="MIDCAP">MIDCAP</option>
+            <option value="MIDCAPADD">MIDCAPADD</option>
+            <option value="MIDCAPBETA">MIDCAPBETA</option>
+            <option value="MIDCAPETF">MIDCAPETF</option>
+            <option value="MIDCAPIETF">MIDCAPIETF</option>
+            <option value="MIDQ50ADD">MIDQ50ADD</option>
+            <option value="MIDSELIETF">MIDSELIETF</option>
+            <option value="MIDSMALL">MIDSMALL</option>
+            <option value="MNC">MNC</option>
+            <option value="MOALPHA50">MOALPHA50</option>
+            <option value="MOBANK10">MOBANK10</option>
+            <option value="MOCAPITAL">MOCAPITAL</option>
+            <option value="MODEFENCE">MODEFENCE</option>
+            <option value="MOENERGY">MOENERGY</option>
+            <option value="MOGOLD">MOGOLD</option>
+            <option value="MOHEALTH">MOHEALTH</option>
+            <option value="MOINFRA">MOINFRA</option>
+            <option value="MOIPO">MOIPO</option>
+            <option value="MOLOWVOL">MOLOWVOL</option>
+            <option value="MOM100">MOM100</option>
+            <option value="MOM30IETF">MOM30IETF</option>
+            <option value="MOM50">MOM50</option>
+            <option value="MOMENTUM">MOMENTUM</option>
+            <option value="MOMENTUM30">MOMENTUM30</option>
+            <option value="MOMENTUM50">MOMENTUM50</option>
+            <option value="MOMGF">MOMGF</option>
+            <option value="MOMIDMTM">MOMIDMTM</option>
+            <option value="MOMNC">MOMNC</option>
+            <option value="MOMOMENTUM">MOMOMENTUM</option>
+            <option value="MON100">MON100</option>
+            <option value="MON50EQUAL">MON50EQUAL</option>
+            <option value="MONEXT50">MONEXT50</option>
+            <option value="MONIFTY100">MONIFTY100</option>
+            <option value="MONIFTY500">MONIFTY500</option>
+            <option value="MONQ50">MONQ50</option>
+            <option value="MOPSE">MOPSE</option>
+            <option value="MOQUALITY">MOQUALITY</option>
+            <option value="MOREALTY">MOREALTY</option>
+            <option value="MOSERVICE">MOSERVICE</option>
+            <option value="MOSILVER">MOSILVER</option>
+            <option value="MOSMALL250">MOSMALL250</option>
+            <option value="MOTOUR">MOTOUR</option>
+            <option value="MOVALUE">MOVALUE</option>
+            <option value="MSCIADD">MSCIADD</option>
+            <option value="MSCIINDIA">MSCIINDIA</option>
+            <option value="MULTICAP">MULTICAP</option>
+            <option value="NETF">NETF</option>
+            <option value="NEXT30ADD">NEXT30ADD</option>
+            <option value="NEXT50">NEXT50</option>
+            <option value="NEXT50ADD">NEXT50ADD</option>
+            <option value="NEXT50BETA">NEXT50BETA</option>
+            <option value="NEXT50ETF">NEXT50ETF</option>
+            <option value="NEXT50IETF">NEXT50IETF</option>
+            <option value="NIF100BEES">NIF100BEES</option>
+            <option value="NIF100IETF">NIF100IETF</option>
+            <option value="NIFTY1">NIFTY1</option>
+            <option value="NIFTY100EW">NIFTY100EW</option>
+            <option value="NIFTYADD">NIFTYADD</option>
+            <option value="NIFTYBEES">NIFTYBEES</option>
+            <option value="NIFTYBETA">NIFTYBETA</option>
+            <option value="NIFTYBETF">NIFTYBETF</option>
+            <option value="NIFTYCASE">NIFTYCASE</option>
+            <option value="NIFTYETF">NIFTYETF</option>
+            <option value="NIFTYIETF">NIFTYIETF</option>
+            <option value="NIFTYQLITY">NIFTYQLITY</option>
+            <option value="NV20">NV20</option>
+            <option value="NV20BEES">NV20BEES</option>
+            <option value="NV20IETF">NV20IETF</option>
+            <option value="OILIETF">OILIETF</option>
+            <option value="PHARMABEES">PHARMABEES</option>
+            <option value="PSUBANK">PSUBANK</option>
+            <option value="PSUBANKADD">PSUBANKADD</option>
+            <option value="PSUBNKBEES">PSUBNKBEES</option>
+            <option value="PSUBNKIETF">PSUBNKIETF</option>
+            <option value="PVTBANIETF">PVTBANIETF</option>
+            <option value="PVTBANKADD">PVTBANKADD</option>
+            <option value="QGOLDHALF">QGOLDHALF</option>
+            <option value="QNIFTY">QNIFTY</option>
+            <option value="QUAL30IETF">QUAL30IETF</option>
+            <option value="QUALITY30">QUALITY30</option>
+            <option value="SBIBPB">SBIBPB</option>
+            <option value="SBIETFCON">SBIETFCON</option>
+            <option value="SBIETFIT">SBIETFIT</option>
+            <option value="SBIETFPB">SBIETFPB</option>
+            <option value="SBIETFQLTY">SBIETFQLTY</option>
+            <option value="SBIMIDMOM">SBIMIDMOM</option>
+            <option value="SBINEQWETF">SBINEQWETF</option>
+            <option value="SBINMID150">SBINMID150</option>
+            <option value="SBISILVER">SBISILVER</option>
+            <option value="SELECTIPO">SELECTIPO</option>
+            <option value="SENSEXADD">SENSEXADD</option>
+            <option value="SENSEXBETA">SENSEXBETA</option>
+            <option value="SENSEXETF">SENSEXETF</option>
+            <option value="SENSEXIETF">SENSEXIETF</option>
+            <option value="SETFGOLD">SETFGOLD</option>
+            <option value="SETFNIF50">SETFNIF50</option>
+            <option value="SETFNIFBK">SETFNIFBK</option>
+            <option value="SETFNN50">SETFNN50</option>
+            <option value="SHARIABEES">SHARIABEES</option>
+            <option value="SILVER">SILVER</option>
+            <option value="SILVER1">SILVER1</option>
+            <option value="SILVER360">SILVER360</option>
+            <option value="SILVERADD">SILVERADD</option>
+            <option value="SILVERAG">SILVERAG</option>
+            <option value="SILVERBEES">SILVERBEES</option>
+            <option value="SILVERBETA">SILVERBETA</option>
+            <option value="SILVERBND">SILVERBND</option>
+            <option value="SILVERCASE">SILVERCASE</option>
+            <option value="SILVERIETF">SILVERIETF</option>
+            <option value="SMALL250">SMALL250</option>
+            <option value="SMALLADD">SMALLADD</option>
+            <option value="SMALLCAP">SMALLCAP</option>
+            <option value="SML100CASE">SML100CASE</option>
+            <option value="SNXT30BEES">SNXT30BEES</option>
+            <option value="SNXT50BETA">SNXT50BETA</option>
+            <option value="TATAGOLD">TATAGOLD</option>
+            <option value="TATSILV">TATSILV</option>
+            <option value="TECH">TECH</option>
+            <option value="TNIDETF">TNIDETF</option>
+            <option value="TOP100CASE">TOP100CASE</option>
+            <option value="TOP10ADD">TOP10ADD</option>
+            <option value="TOP15IETF">TOP15IETF</option>
+            <option value="TOP20">TOP20</option>
+            <option value="TWCGOLDETF">TWCGOLDETF</option>
+            <option value="UNIONGOLD">UNIONGOLD</option>
+            <option value="VAL30IETF">VAL30IETF</option>
+            <option value="VALUE">VALUE</option>
+          </select>
+          <button class="btn-add" onclick="addSym('active','etf')">+ Add</button>
+        </div>
+      </div>
+      <div class="sym-group">
+        <div class="sym-group-label">🏦 NIFTY 200 Stocks</div>
+        <div class="sym-row">
+          <select id="dd-active-n200">
+            <option value="">— select stock —</option>
+            <option value="360ONE">360ONE</option>
+            <option value="ABB">ABB</option>
+            <option value="ABCAPITAL">ABCAPITAL</option>
+            <option value="ADANIENSOL">ADANIENSOL</option>
+            <option value="ADANIENT">ADANIENT</option>
+            <option value="ADANIGREEN">ADANIGREEN</option>
+            <option value="ADANIPORTS">ADANIPORTS</option>
+            <option value="ADANIPOWER">ADANIPOWER</option>
+            <option value="ALKEM">ALKEM</option>
+            <option value="AMBUJACEM">AMBUJACEM</option>
+            <option value="APLAPOLLO">APLAPOLLO</option>
+            <option value="APOLLOHOSP">APOLLOHOSP</option>
+            <option value="ASHOKLEY">ASHOKLEY</option>
+            <option value="ASIANPAINT">ASIANPAINT</option>
+            <option value="ASTRAL">ASTRAL</option>
+            <option value="ATGL">ATGL</option>
+            <option value="AUBANK">AUBANK</option>
+            <option value="AUROPHARMA">AUROPHARMA</option>
+            <option value="AXISBANK">AXISBANK</option>
+            <option value="BAJAJ-AUTO">BAJAJ-AUTO</option>
+            <option value="BAJAJFINSV">BAJAJFINSV</option>
+            <option value="BAJAJHLDNG">BAJAJHLDNG</option>
+            <option value="BAJFINANCE">BAJFINANCE</option>
+            <option value="BANKBARODA">BANKBARODA</option>
+            <option value="BANKINDIA">BANKINDIA</option>
+            <option value="BDL">BDL</option>
+            <option value="BEL">BEL</option>
+            <option value="BHARATFORG">BHARATFORG</option>
+            <option value="BHARTIARTL">BHARTIARTL</option>
+            <option value="BHEL">BHEL</option>
+            <option value="BIOCON">BIOCON</option>
+            <option value="BLUESTARCO">BLUESTARCO</option>
+            <option value="BOSCHLTD">BOSCHLTD</option>
+            <option value="BPCL">BPCL</option>
+            <option value="BRITANNIA">BRITANNIA</option>
+            <option value="BSE">BSE</option>
+            <option value="CANBK">CANBK</option>
+            <option value="CGPOWER">CGPOWER</option>
+            <option value="CHOLAFIN">CHOLAFIN</option>
+            <option value="CIPLA">CIPLA</option>
+            <option value="COALINDIA">COALINDIA</option>
+            <option value="COCHINSHIP">COCHINSHIP</option>
+            <option value="COFORGE">COFORGE</option>
+            <option value="COLPAL">COLPAL</option>
+            <option value="CONCOR">CONCOR</option>
+            <option value="COROMANDEL">COROMANDEL</option>
+            <option value="CUMMINSIND">CUMMINSIND</option>
+            <option value="DABUR">DABUR</option>
+            <option value="DIVISLAB">DIVISLAB</option>
+            <option value="DIXON">DIXON</option>
+            <option value="DLF">DLF</option>
+            <option value="DMART">DMART</option>
+            <option value="DRREDDY">DRREDDY</option>
+            <option value="EICHERMOT">EICHERMOT</option>
+            <option value="ENRIN">ENRIN</option>
+            <option value="ETERNAL">ETERNAL</option>
+            <option value="EXIDEIND">EXIDEIND</option>
+            <option value="FEDERALBNK">FEDERALBNK</option>
+            <option value="FORTIS">FORTIS</option>
+            <option value="GAIL">GAIL</option>
+            <option value="GLENMARK">GLENMARK</option>
+            <option value="GMRAIRPORT">GMRAIRPORT</option>
+            <option value="GODFRYPHLP">GODFRYPHLP</option>
+            <option value="GODREJCP">GODREJCP</option>
+            <option value="GODREJPROP">GODREJPROP</option>
+            <option value="GRASIM">GRASIM</option>
+            <option value="GROWW">GROWW</option>
+            <option value="GVT&D">GVT&D</option>
+            <option value="HAL">HAL</option>
+            <option value="HAVELLS">HAVELLS</option>
+            <option value="HCLTECH">HCLTECH</option>
+            <option value="HDFCAMC">HDFCAMC</option>
+            <option value="HDFCBANK">HDFCBANK</option>
+            <option value="HDFCLIFE">HDFCLIFE</option>
+            <option value="HEROMOTOCO">HEROMOTOCO</option>
+            <option value="HINDALCO">HINDALCO</option>
+            <option value="HINDPETRO">HINDPETRO</option>
+            <option value="HINDUNILVR">HINDUNILVR</option>
+            <option value="HINDZINC">HINDZINC</option>
+            <option value="HUDCO">HUDCO</option>
+            <option value="HYUNDAI">HYUNDAI</option>
+            <option value="ICICIAMC">ICICIAMC</option>
+            <option value="ICICIBANK">ICICIBANK</option>
+            <option value="ICICIGI">ICICIGI</option>
+            <option value="IDEA">IDEA</option>
+            <option value="IDFCFIRSTB">IDFCFIRSTB</option>
+            <option value="INDHOTEL">INDHOTEL</option>
+            <option value="INDIANB">INDIANB</option>
+            <option value="INDIGO">INDIGO</option>
+            <option value="INDUSINDBK">INDUSINDBK</option>
+            <option value="INDUSTOWER">INDUSTOWER</option>
+            <option value="INFY">INFY</option>
+            <option value="IOC">IOC</option>
+            <option value="IRCTC">IRCTC</option>
+            <option value="IREDA">IREDA</option>
+            <option value="IRFC">IRFC</option>
+            <option value="ITC">ITC</option>
+            <option value="JINDALSTEL">JINDALSTEL</option>
+            <option value="JIOFIN">JIOFIN</option>
+            <option value="JSWENERGY">JSWENERGY</option>
+            <option value="JSWSTEEL">JSWSTEEL</option>
+            <option value="JUBLFOOD">JUBLFOOD</option>
+            <option value="KALYANKJIL">KALYANKJIL</option>
+            <option value="KEI">KEI</option>
+            <option value="KOTAKBANK">KOTAKBANK</option>
+            <option value="KPITTECH">KPITTECH</option>
+            <option value="LAURUSLABS">LAURUSLABS</option>
+            <option value="LENSKART">LENSKART</option>
+            <option value="LGEINDIA">LGEINDIA</option>
+            <option value="LICHSGFIN">LICHSGFIN</option>
+            <option value="LODHA">LODHA</option>
+            <option value="LT">LT</option>
+            <option value="LTF">LTF</option>
+            <option value="LTM">LTM</option>
+            <option value="LUPIN">LUPIN</option>
+            <option value="M&M">M&M</option>
+            <option value="M&MFIN">M&MFIN</option>
+            <option value="MANKIND">MANKIND</option>
+            <option value="MARICO">MARICO</option>
+            <option value="MARUTI">MARUTI</option>
+            <option value="MAXHEALTH">MAXHEALTH</option>
+            <option value="MAZDOCK">MAZDOCK</option>
+            <option value="MCX">MCX</option>
+            <option value="MFSL">MFSL</option>
+            <option value="MOTHERSON">MOTHERSON</option>
+            <option value="MOTILALOFS">MOTILALOFS</option>
+            <option value="MPHASIS">MPHASIS</option>
+            <option value="MRF">MRF</option>
+            <option value="MUTHOOTFIN">MUTHOOTFIN</option>
+            <option value="NATIONALUM">NATIONALUM</option>
+            <option value="NAUKRI">NAUKRI</option>
+            <option value="NESTLEIND">NESTLEIND</option>
+            <option value="NHPC">NHPC</option>
+            <option value="NMDC">NMDC</option>
+            <option value="NTPC">NTPC</option>
+            <option value="NYKAA">NYKAA</option>
+            <option value="OBEROIRLTY">OBEROIRLTY</option>
+            <option value="OFSS">OFSS</option>
+            <option value="OIL">OIL</option>
+            <option value="ONGC">ONGC</option>
+            <option value="PAGEIND">PAGEIND</option>
+            <option value="PATANJALI">PATANJALI</option>
+            <option value="PAYTM">PAYTM</option>
+            <option value="PERSISTENT">PERSISTENT</option>
+            <option value="PFC">PFC</option>
+            <option value="PHOENIXLTD">PHOENIXLTD</option>
+            <option value="PIDILITIND">PIDILITIND</option>
+            <option value="PIIND">PIIND</option>
+            <option value="PNB">PNB</option>
+            <option value="POLICYBZR">POLICYBZR</option>
+            <option value="POLYCAB">POLYCAB</option>
+            <option value="POWERGRID">POWERGRID</option>
+            <option value="POWERINDIA">POWERINDIA</option>
+            <option value="PREMIERENE">PREMIERENE</option>
+            <option value="PRESTIGE">PRESTIGE</option>
+            <option value="RADICO">RADICO</option>
+            <option value="RECLTD">RECLTD</option>
+            <option value="RELIANCE">RELIANCE</option>
+            <option value="RVNL">RVNL</option>
+            <option value="SAIL">SAIL</option>
+            <option value="SBICARD">SBICARD</option>
+            <option value="SBILIFE">SBILIFE</option>
+            <option value="SBIN">SBIN</option>
+            <option value="SHREECEM">SHREECEM</option>
+            <option value="SHRIRAMFIN">SHRIRAMFIN</option>
+            <option value="SIEMENS">SIEMENS</option>
+            <option value="SOLARINDS">SOLARINDS</option>
+            <option value="SRF">SRF</option>
+            <option value="SUNPHARMA">SUNPHARMA</option>
+            <option value="SUPREMEIND">SUPREMEIND</option>
+            <option value="SUZLON">SUZLON</option>
+            <option value="SWIGGY">SWIGGY</option>
+            <option value="TATACAP">TATACAP</option>
+            <option value="TATACOMM">TATACOMM</option>
+            <option value="TATACONSUM">TATACONSUM</option>
+            <option value="TATAELXSI">TATAELXSI</option>
+            <option value="TATAINVEST">TATAINVEST</option>
+            <option value="TATAPOWER">TATAPOWER</option>
+            <option value="TATASTEEL">TATASTEEL</option>
+            <option value="TCS">TCS</option>
+            <option value="TECHM">TECHM</option>
+            <option value="TIINDIA">TIINDIA</option>
+            <option value="TITAN">TITAN</option>
+            <option value="TMCV">TMCV</option>
+            <option value="TMPV">TMPV</option>
+            <option value="TORNTPHARM">TORNTPHARM</option>
+            <option value="TRENT">TRENT</option>
+            <option value="TVSMOTOR">TVSMOTOR</option>
+            <option value="ULTRACEMCO">ULTRACEMCO</option>
+            <option value="UNIONBANK">UNIONBANK</option>
+            <option value="UNITDSPR">UNITDSPR</option>
+            <option value="UPL">UPL</option>
+            <option value="VBL">VBL</option>
+            <option value="VEDL">VEDL</option>
+            <option value="VMM">VMM</option>
+            <option value="VOLTAS">VOLTAS</option>
+            <option value="WAAREEENER">WAAREEENER</option>
+            <option value="WIPRO">WIPRO</option>
+            <option value="YESBANK">YESBANK</option>
+            <option value="ZYDUSLIFE">ZYDUSLIFE</option>
+          </select>
+          <button class="btn-add" onclick="addSym('active','n200')">+ Add</button>
+        </div>
+      </div>
+      <div class="sym-group">
+        <div class="sym-group-label">📈 NIFTY MIDCAP 150</div>
+        <div class="sym-row">
+          <select id="dd-active-mid150">
+            <option value="">— select stock —</option>
+            <option value="360ONE">360ONE</option>
+            <option value="3MINDIA">3MINDIA</option>
+            <option value="ABBOTINDIA">ABBOTINDIA</option>
+            <option value="ABCAPITAL">ABCAPITAL</option>
+            <option value="ACC">ACC</option>
+            <option value="AIAENG">AIAENG</option>
+            <option value="AIIL">AIIL</option>
+            <option value="AJANTPHARM">AJANTPHARM</option>
+            <option value="ALKEM">ALKEM</option>
+            <option value="ANTHEM">ANTHEM</option>
+            <option value="APARINDS">APARINDS</option>
+            <option value="APLAPOLLO">APLAPOLLO</option>
+            <option value="APOLLOTYRE">APOLLOTYRE</option>
+            <option value="ASHOKLEY">ASHOKLEY</option>
+            <option value="ASTRAL">ASTRAL</option>
+            <option value="ATGL">ATGL</option>
+            <option value="AUBANK">AUBANK</option>
+            <option value="AUROPHARMA">AUROPHARMA</option>
+            <option value="AWL">AWL</option>
+            <option value="BAJAJHFL">BAJAJHFL</option>
+            <option value="BALKRISIND">BALKRISIND</option>
+            <option value="BANKINDIA">BANKINDIA</option>
+            <option value="BDL">BDL</option>
+            <option value="BERGEPAINT">BERGEPAINT</option>
+            <option value="BHARATFORG">BHARATFORG</option>
+            <option value="BHARTIHEXA">BHARTIHEXA</option>
+            <option value="BHEL">BHEL</option>
+            <option value="BIOCON">BIOCON</option>
+            <option value="BLUESTARCO">BLUESTARCO</option>
+            <option value="BSE">BSE</option>
+            <option value="COCHINSHIP">COCHINSHIP</option>
+            <option value="COFORGE">COFORGE</option>
+            <option value="COLPAL">COLPAL</option>
+            <option value="CONCOR">CONCOR</option>
+            <option value="COROMANDEL">COROMANDEL</option>
+            <option value="CRISIL">CRISIL</option>
+            <option value="DABUR">DABUR</option>
+            <option value="DALBHARAT">DALBHARAT</option>
+            <option value="DIXON">DIXON</option>
+            <option value="ENDURANCE">ENDURANCE</option>
+            <option value="ESCORTS">ESCORTS</option>
+            <option value="EXIDEIND">EXIDEIND</option>
+            <option value="FEDERALBNK">FEDERALBNK</option>
+            <option value="FLUOROCHEM">FLUOROCHEM</option>
+            <option value="FORTIS">FORTIS</option>
+            <option value="GICRE">GICRE</option>
+            <option value="GLAXO">GLAXO</option>
+            <option value="GLENMARK">GLENMARK</option>
+            <option value="GMRAIRPORT">GMRAIRPORT</option>
+            <option value="GODFRYPHLP">GODFRYPHLP</option>
+            <option value="GODREJIND">GODREJIND</option>
+            <option value="GODREJPROP">GODREJPROP</option>
+            <option value="GROWW">GROWW</option>
+            <option value="GVT&D">GVT&D</option>
+            <option value="HAVELLS">HAVELLS</option>
+            <option value="HDBFS">HDBFS</option>
+            <option value="HEROMOTOCO">HEROMOTOCO</option>
+            <option value="HEXT">HEXT</option>
+            <option value="HINDPETRO">HINDPETRO</option>
+            <option value="HONAUT">HONAUT</option>
+            <option value="HUDCO">HUDCO</option>
+            <option value="ICICIAMC">ICICIAMC</option>
+            <option value="ICICIGI">ICICIGI</option>
+            <option value="ICICIPRULI">ICICIPRULI</option>
+            <option value="IDEA">IDEA</option>
+            <option value="IDFCFIRSTB">IDFCFIRSTB</option>
+            <option value="INDIANB">INDIANB</option>
+            <option value="INDUSINDBK">INDUSINDBK</option>
+            <option value="INDUSTOWER">INDUSTOWER</option>
+            <option value="IPCALAB">IPCALAB</option>
+            <option value="IRCTC">IRCTC</option>
+            <option value="IREDA">IREDA</option>
+            <option value="ITCHOTELS">ITCHOTELS</option>
+            <option value="JKCEMENT">JKCEMENT</option>
+            <option value="JSL">JSL</option>
+            <option value="JSWENERGY">JSWENERGY</option>
+            <option value="JSWINFRA">JSWINFRA</option>
+            <option value="JUBLFOOD">JUBLFOOD</option>
+            <option value="KALYANKJIL">KALYANKJIL</option>
+            <option value="KEI">KEI</option>
+            <option value="KPITTECH">KPITTECH</option>
+            <option value="KPRMILL">KPRMILL</option>
+            <option value="LAURUSLABS">LAURUSLABS</option>
+            <option value="LENSKART">LENSKART</option>
+            <option value="LGEINDIA">LGEINDIA</option>
+            <option value="LICHSGFIN">LICHSGFIN</option>
+            <option value="LICI">LICI</option>
+            <option value="LINDEINDIA">LINDEINDIA</option>
+            <option value="LLOYDSME">LLOYDSME</option>
+            <option value="LTF">LTF</option>
+            <option value="LTTS">LTTS</option>
+            <option value="LUPIN">LUPIN</option>
+            <option value="M&MFIN">M&MFIN</option>
+            <option value="MAHABANK">MAHABANK</option>
+            <option value="MANKIND">MANKIND</option>
+            <option value="MARICO">MARICO</option>
+            <option value="MCX">MCX</option>
+            <option value="MEDANTA">MEDANTA</option>
+            <option value="MFSL">MFSL</option>
+            <option value="MOTILALOFS">MOTILALOFS</option>
+            <option value="MPHASIS">MPHASIS</option>
+            <option value="MRF">MRF</option>
+            <option value="NAM-INDIA">NAM-INDIA</option>
+            <option value="NATIONALUM">NATIONALUM</option>
+            <option value="NAUKRI">NAUKRI</option>
+            <option value="NHPC">NHPC</option>
+            <option value="NIACL">NIACL</option>
+            <option value="NLCINDIA">NLCINDIA</option>
+            <option value="NMDC">NMDC</option>
+            <option value="NTPCGREEN">NTPCGREEN</option>
+            <option value="NYKAA">NYKAA</option>
+            <option value="OBEROIRLTY">OBEROIRLTY</option>
+            <option value="OFSS">OFSS</option>
+            <option value="OIL">OIL</option>
+            <option value="PAGEIND">PAGEIND</option>
+            <option value="PATANJALI">PATANJALI</option>
+            <option value="PAYTM">PAYTM</option>
+            <option value="PERSISTENT">PERSISTENT</option>
+            <option value="PETRONET">PETRONET</option>
+            <option value="PHOENIXLTD">PHOENIXLTD</option>
+            <option value="PIIND">PIIND</option>
+            <option value="POLICYBZR">POLICYBZR</option>
+            <option value="POLYCAB">POLYCAB</option>
+            <option value="POWERINDIA">POWERINDIA</option>
+            <option value="PREMIERENE">PREMIERENE</option>
+            <option value="PRESTIGE">PRESTIGE</option>
+            <option value="RADICO">RADICO</option>
+            <option value="RVNL">RVNL</option>
+            <option value="SAIL">SAIL</option>
+            <option value="SBICARD">SBICARD</option>
+            <option value="SCHAEFFLER">SCHAEFFLER</option>
+            <option value="SJVN">SJVN</option>
+            <option value="SRF">SRF</option>
+            <option value="SUNDARMFIN">SUNDARMFIN</option>
+            <option value="SUPREMEIND">SUPREMEIND</option>
+            <option value="SUZLON">SUZLON</option>
+            <option value="SWIGGY">SWIGGY</option>
+            <option value="TATACOMM">TATACOMM</option>
+            <option value="TATAELXSI">TATAELXSI</option>
+            <option value="TATAINVEST">TATAINVEST</option>
+            <option value="THERMAX">THERMAX</option>
+            <option value="TIINDIA">TIINDIA</option>
+            <option value="TORNTPOWER">TORNTPOWER</option>
+            <option value="UBL">UBL</option>
+            <option value="UNOMINDA">UNOMINDA</option>
+            <option value="UPL">UPL</option>
+            <option value="VMM">VMM</option>
+            <option value="VOLTAS">VOLTAS</option>
+            <option value="WAAREEENER">WAAREEENER</option>
+            <option value="YESBANK">YESBANK</option>
+          </select>
+          <button class="btn-add" onclick="addSym('active','mid150')">+ Add</button>
+        </div>
+      </div>
+      <div class="sym-group-label" style="margin-top:12px;">Current symbols</div>
+      <div class="sym-chips" id="chips-active"><span class="sym-chips-empty">None added</span></div>
+    </div>
+  </div>
+
+  <!-- Dip Accumulator Symbols -->
+  <div class="section">
+    <div class="section-header"><h2>🏷️ Dip Accumulator — Symbols</h2></div>
+    <div class="sym-manager">
+      <div class="sym-group">
+        <div class="sym-group-label">📊 ETFs</div>
+        <div class="sym-row">
+          <select id="dd-bnh-etf">
+            <option value="">— select ETF —</option>
+            <option value="ABSL10BANK">ABSL10BANK</option>
+            <option value="ABSLBANETF">ABSLBANETF</option>
+            <option value="ABSLMSCIN">ABSLMSCIN</option>
+            <option value="ABSLNN50ET">ABSLNN50ET</option>
+            <option value="ABSLPSE">ABSLPSE</option>
+            <option value="ALPHA">ALPHA</option>
+            <option value="ALPHAETF">ALPHAETF</option>
+            <option value="ALPL30IETF">ALPL30IETF</option>
+            <option value="AONEGOLD">AONEGOLD</option>
+            <option value="AONENIFTY">AONENIFTY</option>
+            <option value="AONESILVER">AONESILVER</option>
+            <option value="AONETMMQ50">AONETMMQ50</option>
+            <option value="AONETOTAL">AONETOTAL</option>
+            <option value="AUTOBEES">AUTOBEES</option>
+            <option value="AUTOIETF">AUTOIETF</option>
+            <option value="AXISBNKETF">AXISBNKETF</option>
+            <option value="AXISCETF">AXISCETF</option>
+            <option value="AXISGOLD">AXISGOLD</option>
+            <option value="AXISHCETF">AXISHCETF</option>
+            <option value="AXISILVER">AXISILVER</option>
+            <option value="AXISNIFTY">AXISNIFTY</option>
+            <option value="AXISTECETF">AXISTECETF</option>
+            <option value="AXISVALUE">AXISVALUE</option>
+            <option value="AXSENSEX">AXSENSEX</option>
+            <option value="BANK10ADD">BANK10ADD</option>
+            <option value="BANKADD">BANKADD</option>
+            <option value="BANKBEES">BANKBEES</option>
+            <option value="BANKBETA">BANKBETA</option>
+            <option value="BANKBETF">BANKBETF</option>
+            <option value="BANKETF">BANKETF</option>
+            <option value="BANKIETF">BANKIETF</option>
+            <option value="BANKNIFTY1">BANKNIFTY1</option>
+            <option value="BANKPSU">BANKPSU</option>
+            <option value="BBNPNBETF">BBNPNBETF</option>
+            <option value="BBNPPGOLD">BBNPPGOLD</option>
+            <option value="BFSI">BFSI</option>
+            <option value="BSE500IETF">BSE500IETF</option>
+            <option value="BSLGOLDETF">BSLGOLDETF</option>
+            <option value="BSLNIFTY">BSLNIFTY</option>
+            <option value="BSLSENETFG">BSLSENETFG</option>
+            <option value="CHEMICAL">CHEMICAL</option>
+            <option value="CHOICEGOLD">CHOICEGOLD</option>
+            <option value="COMMOIETF">COMMOIETF</option>
+            <option value="CONS">CONS</option>
+            <option value="CONSUMBEES">CONSUMBEES</option>
+            <option value="CONSUMER">CONSUMER</option>
+            <option value="CONSUMIETF">CONSUMIETF</option>
+            <option value="CPSEETF">CPSEETF</option>
+            <option value="DEFENCE">DEFENCE</option>
+            <option value="DIVIDEND">DIVIDEND</option>
+            <option value="DIVOPPBEES">DIVOPPBEES</option>
+            <option value="EBANKNIFTY">EBANKNIFTY</option>
+            <option value="ECAPINSURE">ECAPINSURE</option>
+            <option value="EGOLD">EGOLD</option>
+            <option value="ELM250">ELM250</option>
+            <option value="EMULTIMQ">EMULTIMQ</option>
+            <option value="ENERGY">ENERGY</option>
+            <option value="ENIFTY">ENIFTY</option>
+            <option value="EQUAL200">EQUAL200</option>
+            <option value="EQUAL50">EQUAL50</option>
+            <option value="EQUAL50ADD">EQUAL50ADD</option>
+            <option value="ESENSEX">ESENSEX</option>
+            <option value="ESG">ESG</option>
+            <option value="ESILVER">ESILVER</option>
+            <option value="EVIETF">EVIETF</option>
+            <option value="EVINDIA">EVINDIA</option>
+            <option value="FINIETF">FINIETF</option>
+            <option value="FLEXIADD">FLEXIADD</option>
+            <option value="FMCGADD">FMCGADD</option>
+            <option value="FMCGIETF">FMCGIETF</option>
+            <option value="GOLD1">GOLD1</option>
+            <option value="GOLD360">GOLD360</option>
+            <option value="GOLDADD">GOLDADD</option>
+            <option value="GOLDBEES">GOLDBEES</option>
+            <option value="GOLDBETA">GOLDBETA</option>
+            <option value="GOLDBND">GOLDBND</option>
+            <option value="GOLDCASE">GOLDCASE</option>
+            <option value="GOLDETF">GOLDETF</option>
+            <option value="GOLDIETF">GOLDIETF</option>
+            <option value="GROWWCAPM">GROWWCAPM</option>
+            <option value="GROWWCHEM">GROWWCHEM</option>
+            <option value="GROWWDEFNC">GROWWDEFNC</option>
+            <option value="GROWWEV">GROWWEV</option>
+            <option value="GROWWGOLD">GROWWGOLD</option>
+            <option value="GROWWHOSPI">GROWWHOSPI</option>
+            <option value="GROWWLOVOL">GROWWLOVOL</option>
+            <option value="GROWWMC150">GROWWMC150</option>
+            <option value="GROWWMETAL">GROWWMETAL</option>
+            <option value="GROWWMOM50">GROWWMOM50</option>
+            <option value="GROWWN200">GROWWN200</option>
+            <option value="GROWWNET">GROWWNET</option>
+            <option value="GROWWNIFTY">GROWWNIFTY</option>
+            <option value="GROWWNXT50">GROWWNXT50</option>
+            <option value="GROWWPOWER">GROWWPOWER</option>
+            <option value="GROWWPSE">GROWWPSE</option>
+            <option value="GROWWPSUBK">GROWWPSUBK</option>
+            <option value="GROWWRAIL">GROWWRAIL</option>
+            <option value="GROWWRLTY">GROWWRLTY</option>
+            <option value="GROWWSC250">GROWWSC250</option>
+            <option value="GROWWSLVR">GROWWSLVR</option>
+            <option value="HDFCBSE500">HDFCBSE500</option>
+            <option value="HDFCGOLD">HDFCGOLD</option>
+            <option value="HDFCGROWTH">HDFCGROWTH</option>
+            <option value="HDFCLOWVOL">HDFCLOWVOL</option>
+            <option value="HDFCMID150">HDFCMID150</option>
+            <option value="HDFCMOMENT">HDFCMOMENT</option>
+            <option value="HDFCNEXT50">HDFCNEXT50</option>
+            <option value="HDFCNIF100">HDFCNIF100</option>
+            <option value="HDFCNIFBAN">HDFCNIFBAN</option>
+            <option value="HDFCNIFIT">HDFCNIFIT</option>
+            <option value="HDFCNIFTY">HDFCNIFTY</option>
+            <option value="HDFCPSUBK">HDFCPSUBK</option>
+            <option value="HDFCPVTBAN">HDFCPVTBAN</option>
+            <option value="HDFCQUAL">HDFCQUAL</option>
+            <option value="HDFCSENSEX">HDFCSENSEX</option>
+            <option value="HDFCSILVER">HDFCSILVER</option>
+            <option value="HDFCSML250">HDFCSML250</option>
+            <option value="HDFCVALUE">HDFCVALUE</option>
+            <option value="HEALTHADD">HEALTHADD</option>
+            <option value="HEALTHCARE">HEALTHCARE</option>
+            <option value="HEALTHIETF">HEALTHIETF</option>
+            <option value="HEALTHY">HEALTHY</option>
+            <option value="HNGSNGBEES">HNGSNGBEES</option>
+            <option value="HSBCGOLD">HSBCGOLD</option>
+            <option value="ICICIB22">ICICIB22</option>
+            <option value="IDFNIFTYET">IDFNIFTYET</option>
+            <option value="INFRA">INFRA</option>
+            <option value="INFRABEES">INFRABEES</option>
+            <option value="INFRAIETF">INFRAIETF</option>
+            <option value="INTERNET">INTERNET</option>
+            <option value="IT">IT</option>
+            <option value="ITADD">ITADD</option>
+            <option value="ITBEES">ITBEES</option>
+            <option value="ITBETA">ITBETA</option>
+            <option value="ITETF">ITETF</option>
+            <option value="ITIETF">ITIETF</option>
+            <option value="IVZINGOLD">IVZINGOLD</option>
+            <option value="IVZINNIFTY">IVZINNIFTY</option>
+            <option value="JUNIORBEES">JUNIORBEES</option>
+            <option value="LICMFGOLD">LICMFGOLD</option>
+            <option value="LICNETFGSC">LICNETFGSC</option>
+            <option value="LICNETFN50">LICNETFN50</option>
+            <option value="LICNETFSEN">LICNETFSEN</option>
+            <option value="LICNFNHGP">LICNFNHGP</option>
+            <option value="LICNMID100">LICNMID100</option>
+            <option value="LOWVOL">LOWVOL</option>
+            <option value="LOWVOL1">LOWVOL1</option>
+            <option value="LOWVOLIETF">LOWVOLIETF</option>
+            <option value="MAFANG">MAFANG</option>
+            <option value="MAHKTECH">MAHKTECH</option>
+            <option value="MAKEINDIA">MAKEINDIA</option>
+            <option value="MANUFGBEES">MANUFGBEES</option>
+            <option value="MASPTOP50">MASPTOP50</option>
+            <option value="METAL">METAL</option>
+            <option value="METALIETF">METALIETF</option>
+            <option value="MID150">MID150</option>
+            <option value="MID150BEES">MID150BEES</option>
+            <option value="MID150CASE">MID150CASE</option>
+            <option value="MIDCAP">MIDCAP</option>
+            <option value="MIDCAPADD">MIDCAPADD</option>
+            <option value="MIDCAPBETA">MIDCAPBETA</option>
+            <option value="MIDCAPETF">MIDCAPETF</option>
+            <option value="MIDCAPIETF">MIDCAPIETF</option>
+            <option value="MIDQ50ADD">MIDQ50ADD</option>
+            <option value="MIDSELIETF">MIDSELIETF</option>
+            <option value="MIDSMALL">MIDSMALL</option>
+            <option value="MNC">MNC</option>
+            <option value="MOALPHA50">MOALPHA50</option>
+            <option value="MOBANK10">MOBANK10</option>
+            <option value="MOCAPITAL">MOCAPITAL</option>
+            <option value="MODEFENCE">MODEFENCE</option>
+            <option value="MOENERGY">MOENERGY</option>
+            <option value="MOGOLD">MOGOLD</option>
+            <option value="MOHEALTH">MOHEALTH</option>
+            <option value="MOINFRA">MOINFRA</option>
+            <option value="MOIPO">MOIPO</option>
+            <option value="MOLOWVOL">MOLOWVOL</option>
+            <option value="MOM100">MOM100</option>
+            <option value="MOM30IETF">MOM30IETF</option>
+            <option value="MOM50">MOM50</option>
+            <option value="MOMENTUM">MOMENTUM</option>
+            <option value="MOMENTUM30">MOMENTUM30</option>
+            <option value="MOMENTUM50">MOMENTUM50</option>
+            <option value="MOMGF">MOMGF</option>
+            <option value="MOMIDMTM">MOMIDMTM</option>
+            <option value="MOMNC">MOMNC</option>
+            <option value="MOMOMENTUM">MOMOMENTUM</option>
+            <option value="MON100">MON100</option>
+            <option value="MON50EQUAL">MON50EQUAL</option>
+            <option value="MONEXT50">MONEXT50</option>
+            <option value="MONIFTY100">MONIFTY100</option>
+            <option value="MONIFTY500">MONIFTY500</option>
+            <option value="MONQ50">MONQ50</option>
+            <option value="MOPSE">MOPSE</option>
+            <option value="MOQUALITY">MOQUALITY</option>
+            <option value="MOREALTY">MOREALTY</option>
+            <option value="MOSERVICE">MOSERVICE</option>
+            <option value="MOSILVER">MOSILVER</option>
+            <option value="MOSMALL250">MOSMALL250</option>
+            <option value="MOTOUR">MOTOUR</option>
+            <option value="MOVALUE">MOVALUE</option>
+            <option value="MSCIADD">MSCIADD</option>
+            <option value="MSCIINDIA">MSCIINDIA</option>
+            <option value="MULTICAP">MULTICAP</option>
+            <option value="NETF">NETF</option>
+            <option value="NEXT30ADD">NEXT30ADD</option>
+            <option value="NEXT50">NEXT50</option>
+            <option value="NEXT50ADD">NEXT50ADD</option>
+            <option value="NEXT50BETA">NEXT50BETA</option>
+            <option value="NEXT50ETF">NEXT50ETF</option>
+            <option value="NEXT50IETF">NEXT50IETF</option>
+            <option value="NIF100BEES">NIF100BEES</option>
+            <option value="NIF100IETF">NIF100IETF</option>
+            <option value="NIFTY1">NIFTY1</option>
+            <option value="NIFTY100EW">NIFTY100EW</option>
+            <option value="NIFTYADD">NIFTYADD</option>
+            <option value="NIFTYBEES">NIFTYBEES</option>
+            <option value="NIFTYBETA">NIFTYBETA</option>
+            <option value="NIFTYBETF">NIFTYBETF</option>
+            <option value="NIFTYCASE">NIFTYCASE</option>
+            <option value="NIFTYETF">NIFTYETF</option>
+            <option value="NIFTYIETF">NIFTYIETF</option>
+            <option value="NIFTYQLITY">NIFTYQLITY</option>
+            <option value="NV20">NV20</option>
+            <option value="NV20BEES">NV20BEES</option>
+            <option value="NV20IETF">NV20IETF</option>
+            <option value="OILIETF">OILIETF</option>
+            <option value="PHARMABEES">PHARMABEES</option>
+            <option value="PSUBANK">PSUBANK</option>
+            <option value="PSUBANKADD">PSUBANKADD</option>
+            <option value="PSUBNKBEES">PSUBNKBEES</option>
+            <option value="PSUBNKIETF">PSUBNKIETF</option>
+            <option value="PVTBANIETF">PVTBANIETF</option>
+            <option value="PVTBANKADD">PVTBANKADD</option>
+            <option value="QGOLDHALF">QGOLDHALF</option>
+            <option value="QNIFTY">QNIFTY</option>
+            <option value="QUAL30IETF">QUAL30IETF</option>
+            <option value="QUALITY30">QUALITY30</option>
+            <option value="SBIBPB">SBIBPB</option>
+            <option value="SBIETFCON">SBIETFCON</option>
+            <option value="SBIETFIT">SBIETFIT</option>
+            <option value="SBIETFPB">SBIETFPB</option>
+            <option value="SBIETFQLTY">SBIETFQLTY</option>
+            <option value="SBIMIDMOM">SBIMIDMOM</option>
+            <option value="SBINEQWETF">SBINEQWETF</option>
+            <option value="SBINMID150">SBINMID150</option>
+            <option value="SBISILVER">SBISILVER</option>
+            <option value="SELECTIPO">SELECTIPO</option>
+            <option value="SENSEXADD">SENSEXADD</option>
+            <option value="SENSEXBETA">SENSEXBETA</option>
+            <option value="SENSEXETF">SENSEXETF</option>
+            <option value="SENSEXIETF">SENSEXIETF</option>
+            <option value="SETFGOLD">SETFGOLD</option>
+            <option value="SETFNIF50">SETFNIF50</option>
+            <option value="SETFNIFBK">SETFNIFBK</option>
+            <option value="SETFNN50">SETFNN50</option>
+            <option value="SHARIABEES">SHARIABEES</option>
+            <option value="SILVER">SILVER</option>
+            <option value="SILVER1">SILVER1</option>
+            <option value="SILVER360">SILVER360</option>
+            <option value="SILVERADD">SILVERADD</option>
+            <option value="SILVERAG">SILVERAG</option>
+            <option value="SILVERBEES">SILVERBEES</option>
+            <option value="SILVERBETA">SILVERBETA</option>
+            <option value="SILVERBND">SILVERBND</option>
+            <option value="SILVERCASE">SILVERCASE</option>
+            <option value="SILVERIETF">SILVERIETF</option>
+            <option value="SMALL250">SMALL250</option>
+            <option value="SMALLADD">SMALLADD</option>
+            <option value="SMALLCAP">SMALLCAP</option>
+            <option value="SML100CASE">SML100CASE</option>
+            <option value="SNXT30BEES">SNXT30BEES</option>
+            <option value="SNXT50BETA">SNXT50BETA</option>
+            <option value="TATAGOLD">TATAGOLD</option>
+            <option value="TATSILV">TATSILV</option>
+            <option value="TECH">TECH</option>
+            <option value="TNIDETF">TNIDETF</option>
+            <option value="TOP100CASE">TOP100CASE</option>
+            <option value="TOP10ADD">TOP10ADD</option>
+            <option value="TOP15IETF">TOP15IETF</option>
+            <option value="TOP20">TOP20</option>
+            <option value="TWCGOLDETF">TWCGOLDETF</option>
+            <option value="UNIONGOLD">UNIONGOLD</option>
+            <option value="VAL30IETF">VAL30IETF</option>
+            <option value="VALUE">VALUE</option>
+          </select>
+          <button class="btn-add" onclick="addSym('bnh','etf')">+ Add</button>
+        </div>
+      </div>
+      <div class="sym-group">
+        <div class="sym-group-label">🏦 NIFTY 200 Stocks</div>
+        <div class="sym-row">
+          <select id="dd-bnh-n200">
+            <option value="">— select stock —</option>
+            <option value="360ONE">360ONE</option>
+            <option value="ABB">ABB</option>
+            <option value="ABCAPITAL">ABCAPITAL</option>
+            <option value="ADANIENSOL">ADANIENSOL</option>
+            <option value="ADANIENT">ADANIENT</option>
+            <option value="ADANIGREEN">ADANIGREEN</option>
+            <option value="ADANIPORTS">ADANIPORTS</option>
+            <option value="ADANIPOWER">ADANIPOWER</option>
+            <option value="ALKEM">ALKEM</option>
+            <option value="AMBUJACEM">AMBUJACEM</option>
+            <option value="APLAPOLLO">APLAPOLLO</option>
+            <option value="APOLLOHOSP">APOLLOHOSP</option>
+            <option value="ASHOKLEY">ASHOKLEY</option>
+            <option value="ASIANPAINT">ASIANPAINT</option>
+            <option value="ASTRAL">ASTRAL</option>
+            <option value="ATGL">ATGL</option>
+            <option value="AUBANK">AUBANK</option>
+            <option value="AUROPHARMA">AUROPHARMA</option>
+            <option value="AXISBANK">AXISBANK</option>
+            <option value="BAJAJ-AUTO">BAJAJ-AUTO</option>
+            <option value="BAJAJFINSV">BAJAJFINSV</option>
+            <option value="BAJAJHLDNG">BAJAJHLDNG</option>
+            <option value="BAJFINANCE">BAJFINANCE</option>
+            <option value="BANKBARODA">BANKBARODA</option>
+            <option value="BANKINDIA">BANKINDIA</option>
+            <option value="BDL">BDL</option>
+            <option value="BEL">BEL</option>
+            <option value="BHARATFORG">BHARATFORG</option>
+            <option value="BHARTIARTL">BHARTIARTL</option>
+            <option value="BHEL">BHEL</option>
+            <option value="BIOCON">BIOCON</option>
+            <option value="BLUESTARCO">BLUESTARCO</option>
+            <option value="BOSCHLTD">BOSCHLTD</option>
+            <option value="BPCL">BPCL</option>
+            <option value="BRITANNIA">BRITANNIA</option>
+            <option value="BSE">BSE</option>
+            <option value="CANBK">CANBK</option>
+            <option value="CGPOWER">CGPOWER</option>
+            <option value="CHOLAFIN">CHOLAFIN</option>
+            <option value="CIPLA">CIPLA</option>
+            <option value="COALINDIA">COALINDIA</option>
+            <option value="COCHINSHIP">COCHINSHIP</option>
+            <option value="COFORGE">COFORGE</option>
+            <option value="COLPAL">COLPAL</option>
+            <option value="CONCOR">CONCOR</option>
+            <option value="COROMANDEL">COROMANDEL</option>
+            <option value="CUMMINSIND">CUMMINSIND</option>
+            <option value="DABUR">DABUR</option>
+            <option value="DIVISLAB">DIVISLAB</option>
+            <option value="DIXON">DIXON</option>
+            <option value="DLF">DLF</option>
+            <option value="DMART">DMART</option>
+            <option value="DRREDDY">DRREDDY</option>
+            <option value="EICHERMOT">EICHERMOT</option>
+            <option value="ENRIN">ENRIN</option>
+            <option value="ETERNAL">ETERNAL</option>
+            <option value="EXIDEIND">EXIDEIND</option>
+            <option value="FEDERALBNK">FEDERALBNK</option>
+            <option value="FORTIS">FORTIS</option>
+            <option value="GAIL">GAIL</option>
+            <option value="GLENMARK">GLENMARK</option>
+            <option value="GMRAIRPORT">GMRAIRPORT</option>
+            <option value="GODFRYPHLP">GODFRYPHLP</option>
+            <option value="GODREJCP">GODREJCP</option>
+            <option value="GODREJPROP">GODREJPROP</option>
+            <option value="GRASIM">GRASIM</option>
+            <option value="GROWW">GROWW</option>
+            <option value="GVT&D">GVT&D</option>
+            <option value="HAL">HAL</option>
+            <option value="HAVELLS">HAVELLS</option>
+            <option value="HCLTECH">HCLTECH</option>
+            <option value="HDFCAMC">HDFCAMC</option>
+            <option value="HDFCBANK">HDFCBANK</option>
+            <option value="HDFCLIFE">HDFCLIFE</option>
+            <option value="HEROMOTOCO">HEROMOTOCO</option>
+            <option value="HINDALCO">HINDALCO</option>
+            <option value="HINDPETRO">HINDPETRO</option>
+            <option value="HINDUNILVR">HINDUNILVR</option>
+            <option value="HINDZINC">HINDZINC</option>
+            <option value="HUDCO">HUDCO</option>
+            <option value="HYUNDAI">HYUNDAI</option>
+            <option value="ICICIAMC">ICICIAMC</option>
+            <option value="ICICIBANK">ICICIBANK</option>
+            <option value="ICICIGI">ICICIGI</option>
+            <option value="IDEA">IDEA</option>
+            <option value="IDFCFIRSTB">IDFCFIRSTB</option>
+            <option value="INDHOTEL">INDHOTEL</option>
+            <option value="INDIANB">INDIANB</option>
+            <option value="INDIGO">INDIGO</option>
+            <option value="INDUSINDBK">INDUSINDBK</option>
+            <option value="INDUSTOWER">INDUSTOWER</option>
+            <option value="INFY">INFY</option>
+            <option value="IOC">IOC</option>
+            <option value="IRCTC">IRCTC</option>
+            <option value="IREDA">IREDA</option>
+            <option value="IRFC">IRFC</option>
+            <option value="ITC">ITC</option>
+            <option value="JINDALSTEL">JINDALSTEL</option>
+            <option value="JIOFIN">JIOFIN</option>
+            <option value="JSWENERGY">JSWENERGY</option>
+            <option value="JSWSTEEL">JSWSTEEL</option>
+            <option value="JUBLFOOD">JUBLFOOD</option>
+            <option value="KALYANKJIL">KALYANKJIL</option>
+            <option value="KEI">KEI</option>
+            <option value="KOTAKBANK">KOTAKBANK</option>
+            <option value="KPITTECH">KPITTECH</option>
+            <option value="LAURUSLABS">LAURUSLABS</option>
+            <option value="LENSKART">LENSKART</option>
+            <option value="LGEINDIA">LGEINDIA</option>
+            <option value="LICHSGFIN">LICHSGFIN</option>
+            <option value="LODHA">LODHA</option>
+            <option value="LT">LT</option>
+            <option value="LTF">LTF</option>
+            <option value="LTM">LTM</option>
+            <option value="LUPIN">LUPIN</option>
+            <option value="M&M">M&M</option>
+            <option value="M&MFIN">M&MFIN</option>
+            <option value="MANKIND">MANKIND</option>
+            <option value="MARICO">MARICO</option>
+            <option value="MARUTI">MARUTI</option>
+            <option value="MAXHEALTH">MAXHEALTH</option>
+            <option value="MAZDOCK">MAZDOCK</option>
+            <option value="MCX">MCX</option>
+            <option value="MFSL">MFSL</option>
+            <option value="MOTHERSON">MOTHERSON</option>
+            <option value="MOTILALOFS">MOTILALOFS</option>
+            <option value="MPHASIS">MPHASIS</option>
+            <option value="MRF">MRF</option>
+            <option value="MUTHOOTFIN">MUTHOOTFIN</option>
+            <option value="NATIONALUM">NATIONALUM</option>
+            <option value="NAUKRI">NAUKRI</option>
+            <option value="NESTLEIND">NESTLEIND</option>
+            <option value="NHPC">NHPC</option>
+            <option value="NMDC">NMDC</option>
+            <option value="NTPC">NTPC</option>
+            <option value="NYKAA">NYKAA</option>
+            <option value="OBEROIRLTY">OBEROIRLTY</option>
+            <option value="OFSS">OFSS</option>
+            <option value="OIL">OIL</option>
+            <option value="ONGC">ONGC</option>
+            <option value="PAGEIND">PAGEIND</option>
+            <option value="PATANJALI">PATANJALI</option>
+            <option value="PAYTM">PAYTM</option>
+            <option value="PERSISTENT">PERSISTENT</option>
+            <option value="PFC">PFC</option>
+            <option value="PHOENIXLTD">PHOENIXLTD</option>
+            <option value="PIDILITIND">PIDILITIND</option>
+            <option value="PIIND">PIIND</option>
+            <option value="PNB">PNB</option>
+            <option value="POLICYBZR">POLICYBZR</option>
+            <option value="POLYCAB">POLYCAB</option>
+            <option value="POWERGRID">POWERGRID</option>
+            <option value="POWERINDIA">POWERINDIA</option>
+            <option value="PREMIERENE">PREMIERENE</option>
+            <option value="PRESTIGE">PRESTIGE</option>
+            <option value="RADICO">RADICO</option>
+            <option value="RECLTD">RECLTD</option>
+            <option value="RELIANCE">RELIANCE</option>
+            <option value="RVNL">RVNL</option>
+            <option value="SAIL">SAIL</option>
+            <option value="SBICARD">SBICARD</option>
+            <option value="SBILIFE">SBILIFE</option>
+            <option value="SBIN">SBIN</option>
+            <option value="SHREECEM">SHREECEM</option>
+            <option value="SHRIRAMFIN">SHRIRAMFIN</option>
+            <option value="SIEMENS">SIEMENS</option>
+            <option value="SOLARINDS">SOLARINDS</option>
+            <option value="SRF">SRF</option>
+            <option value="SUNPHARMA">SUNPHARMA</option>
+            <option value="SUPREMEIND">SUPREMEIND</option>
+            <option value="SUZLON">SUZLON</option>
+            <option value="SWIGGY">SWIGGY</option>
+            <option value="TATACAP">TATACAP</option>
+            <option value="TATACOMM">TATACOMM</option>
+            <option value="TATACONSUM">TATACONSUM</option>
+            <option value="TATAELXSI">TATAELXSI</option>
+            <option value="TATAINVEST">TATAINVEST</option>
+            <option value="TATAPOWER">TATAPOWER</option>
+            <option value="TATASTEEL">TATASTEEL</option>
+            <option value="TCS">TCS</option>
+            <option value="TECHM">TECHM</option>
+            <option value="TIINDIA">TIINDIA</option>
+            <option value="TITAN">TITAN</option>
+            <option value="TMCV">TMCV</option>
+            <option value="TMPV">TMPV</option>
+            <option value="TORNTPHARM">TORNTPHARM</option>
+            <option value="TRENT">TRENT</option>
+            <option value="TVSMOTOR">TVSMOTOR</option>
+            <option value="ULTRACEMCO">ULTRACEMCO</option>
+            <option value="UNIONBANK">UNIONBANK</option>
+            <option value="UNITDSPR">UNITDSPR</option>
+            <option value="UPL">UPL</option>
+            <option value="VBL">VBL</option>
+            <option value="VEDL">VEDL</option>
+            <option value="VMM">VMM</option>
+            <option value="VOLTAS">VOLTAS</option>
+            <option value="WAAREEENER">WAAREEENER</option>
+            <option value="WIPRO">WIPRO</option>
+            <option value="YESBANK">YESBANK</option>
+            <option value="ZYDUSLIFE">ZYDUSLIFE</option>
+          </select>
+          <button class="btn-add" onclick="addSym('bnh','n200')">+ Add</button>
+        </div>
+      </div>
+      <div class="sym-group">
+        <div class="sym-group-label">📈 NIFTY MIDCAP 150</div>
+        <div class="sym-row">
+          <select id="dd-bnh-mid150">
+            <option value="">— select stock —</option>
+            <option value="360ONE">360ONE</option>
+            <option value="3MINDIA">3MINDIA</option>
+            <option value="ABBOTINDIA">ABBOTINDIA</option>
+            <option value="ABCAPITAL">ABCAPITAL</option>
+            <option value="ACC">ACC</option>
+            <option value="AIAENG">AIAENG</option>
+            <option value="AIIL">AIIL</option>
+            <option value="AJANTPHARM">AJANTPHARM</option>
+            <option value="ALKEM">ALKEM</option>
+            <option value="ANTHEM">ANTHEM</option>
+            <option value="APARINDS">APARINDS</option>
+            <option value="APLAPOLLO">APLAPOLLO</option>
+            <option value="APOLLOTYRE">APOLLOTYRE</option>
+            <option value="ASHOKLEY">ASHOKLEY</option>
+            <option value="ASTRAL">ASTRAL</option>
+            <option value="ATGL">ATGL</option>
+            <option value="AUBANK">AUBANK</option>
+            <option value="AUROPHARMA">AUROPHARMA</option>
+            <option value="AWL">AWL</option>
+            <option value="BAJAJHFL">BAJAJHFL</option>
+            <option value="BALKRISIND">BALKRISIND</option>
+            <option value="BANKINDIA">BANKINDIA</option>
+            <option value="BDL">BDL</option>
+            <option value="BERGEPAINT">BERGEPAINT</option>
+            <option value="BHARATFORG">BHARATFORG</option>
+            <option value="BHARTIHEXA">BHARTIHEXA</option>
+            <option value="BHEL">BHEL</option>
+            <option value="BIOCON">BIOCON</option>
+            <option value="BLUESTARCO">BLUESTARCO</option>
+            <option value="BSE">BSE</option>
+            <option value="COCHINSHIP">COCHINSHIP</option>
+            <option value="COFORGE">COFORGE</option>
+            <option value="COLPAL">COLPAL</option>
+            <option value="CONCOR">CONCOR</option>
+            <option value="COROMANDEL">COROMANDEL</option>
+            <option value="CRISIL">CRISIL</option>
+            <option value="DABUR">DABUR</option>
+            <option value="DALBHARAT">DALBHARAT</option>
+            <option value="DIXON">DIXON</option>
+            <option value="ENDURANCE">ENDURANCE</option>
+            <option value="ESCORTS">ESCORTS</option>
+            <option value="EXIDEIND">EXIDEIND</option>
+            <option value="FEDERALBNK">FEDERALBNK</option>
+            <option value="FLUOROCHEM">FLUOROCHEM</option>
+            <option value="FORTIS">FORTIS</option>
+            <option value="GICRE">GICRE</option>
+            <option value="GLAXO">GLAXO</option>
+            <option value="GLENMARK">GLENMARK</option>
+            <option value="GMRAIRPORT">GMRAIRPORT</option>
+            <option value="GODFRYPHLP">GODFRYPHLP</option>
+            <option value="GODREJIND">GODREJIND</option>
+            <option value="GODREJPROP">GODREJPROP</option>
+            <option value="GROWW">GROWW</option>
+            <option value="GVT&D">GVT&D</option>
+            <option value="HAVELLS">HAVELLS</option>
+            <option value="HDBFS">HDBFS</option>
+            <option value="HEROMOTOCO">HEROMOTOCO</option>
+            <option value="HEXT">HEXT</option>
+            <option value="HINDPETRO">HINDPETRO</option>
+            <option value="HONAUT">HONAUT</option>
+            <option value="HUDCO">HUDCO</option>
+            <option value="ICICIAMC">ICICIAMC</option>
+            <option value="ICICIGI">ICICIGI</option>
+            <option value="ICICIPRULI">ICICIPRULI</option>
+            <option value="IDEA">IDEA</option>
+            <option value="IDFCFIRSTB">IDFCFIRSTB</option>
+            <option value="INDIANB">INDIANB</option>
+            <option value="INDUSINDBK">INDUSINDBK</option>
+            <option value="INDUSTOWER">INDUSTOWER</option>
+            <option value="IPCALAB">IPCALAB</option>
+            <option value="IRCTC">IRCTC</option>
+            <option value="IREDA">IREDA</option>
+            <option value="ITCHOTELS">ITCHOTELS</option>
+            <option value="JKCEMENT">JKCEMENT</option>
+            <option value="JSL">JSL</option>
+            <option value="JSWENERGY">JSWENERGY</option>
+            <option value="JSWINFRA">JSWINFRA</option>
+            <option value="JUBLFOOD">JUBLFOOD</option>
+            <option value="KALYANKJIL">KALYANKJIL</option>
+            <option value="KEI">KEI</option>
+            <option value="KPITTECH">KPITTECH</option>
+            <option value="KPRMILL">KPRMILL</option>
+            <option value="LAURUSLABS">LAURUSLABS</option>
+            <option value="LENSKART">LENSKART</option>
+            <option value="LGEINDIA">LGEINDIA</option>
+            <option value="LICHSGFIN">LICHSGFIN</option>
+            <option value="LICI">LICI</option>
+            <option value="LINDEINDIA">LINDEINDIA</option>
+            <option value="LLOYDSME">LLOYDSME</option>
+            <option value="LTF">LTF</option>
+            <option value="LTTS">LTTS</option>
+            <option value="LUPIN">LUPIN</option>
+            <option value="M&MFIN">M&MFIN</option>
+            <option value="MAHABANK">MAHABANK</option>
+            <option value="MANKIND">MANKIND</option>
+            <option value="MARICO">MARICO</option>
+            <option value="MCX">MCX</option>
+            <option value="MEDANTA">MEDANTA</option>
+            <option value="MFSL">MFSL</option>
+            <option value="MOTILALOFS">MOTILALOFS</option>
+            <option value="MPHASIS">MPHASIS</option>
+            <option value="MRF">MRF</option>
+            <option value="NAM-INDIA">NAM-INDIA</option>
+            <option value="NATIONALUM">NATIONALUM</option>
+            <option value="NAUKRI">NAUKRI</option>
+            <option value="NHPC">NHPC</option>
+            <option value="NIACL">NIACL</option>
+            <option value="NLCINDIA">NLCINDIA</option>
+            <option value="NMDC">NMDC</option>
+            <option value="NTPCGREEN">NTPCGREEN</option>
+            <option value="NYKAA">NYKAA</option>
+            <option value="OBEROIRLTY">OBEROIRLTY</option>
+            <option value="OFSS">OFSS</option>
+            <option value="OIL">OIL</option>
+            <option value="PAGEIND">PAGEIND</option>
+            <option value="PATANJALI">PATANJALI</option>
+            <option value="PAYTM">PAYTM</option>
+            <option value="PERSISTENT">PERSISTENT</option>
+            <option value="PETRONET">PETRONET</option>
+            <option value="PHOENIXLTD">PHOENIXLTD</option>
+            <option value="PIIND">PIIND</option>
+            <option value="POLICYBZR">POLICYBZR</option>
+            <option value="POLYCAB">POLYCAB</option>
+            <option value="POWERINDIA">POWERINDIA</option>
+            <option value="PREMIERENE">PREMIERENE</option>
+            <option value="PRESTIGE">PRESTIGE</option>
+            <option value="RADICO">RADICO</option>
+            <option value="RVNL">RVNL</option>
+            <option value="SAIL">SAIL</option>
+            <option value="SBICARD">SBICARD</option>
+            <option value="SCHAEFFLER">SCHAEFFLER</option>
+            <option value="SJVN">SJVN</option>
+            <option value="SRF">SRF</option>
+            <option value="SUNDARMFIN">SUNDARMFIN</option>
+            <option value="SUPREMEIND">SUPREMEIND</option>
+            <option value="SUZLON">SUZLON</option>
+            <option value="SWIGGY">SWIGGY</option>
+            <option value="TATACOMM">TATACOMM</option>
+            <option value="TATAELXSI">TATAELXSI</option>
+            <option value="TATAINVEST">TATAINVEST</option>
+            <option value="THERMAX">THERMAX</option>
+            <option value="TIINDIA">TIINDIA</option>
+            <option value="TORNTPOWER">TORNTPOWER</option>
+            <option value="UBL">UBL</option>
+            <option value="UNOMINDA">UNOMINDA</option>
+            <option value="UPL">UPL</option>
+            <option value="VMM">VMM</option>
+            <option value="VOLTAS">VOLTAS</option>
+            <option value="WAAREEENER">WAAREEENER</option>
+            <option value="YESBANK">YESBANK</option>
+          </select>
+          <button class="btn-add" onclick="addSym('bnh','mid150')">+ Add</button>
+        </div>
+      </div>
+      <div class="sym-group-label" style="margin-top:12px;">Current symbols</div>
+      <div class="sym-chips" id="chips-bnh"><span class="sym-chips-empty">None added</span></div>
+    </div>
+  </div>
+
+
+  </main>
+  <div class="actions">
+    <button class="btn-save" id="btn-save" onclick="saveSettings()" disabled>💾 Save to GitHub</button>
+    <span class="status" id="save-status">Load settings first</span>
+    <span style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <span style="font-size:.72rem;color:var(--muted)" id="last-loaded"></span>
+      <button onclick="document.getElementById('setup-modal').style.display='flex'"
+              style="font-size:11px;padding:5px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;cursor:pointer;color:var(--muted2)"
+              title="Update GitHub token or repo">⚙ GitHub Config</button>
+    </span>
+  </div>
+</div>
+
+<!-- PANE: STRATEGY -->
+<div class="nav-tab-pane" id="pane-strategy">
+  <main style="max-width:1380px;margin:0 auto;padding:18px 20px 40px">
+    <div class="panel" id="strategy-ref" style="margin-bottom:0">
+      <div class="ph"><span class="pt">Strategy Reference</span></div>
+      <div id="strat-body">
+
+
+      <!-- Active Strategy -->
+      <div class="strat-section">
+        <div class="strat-hd">
+          <span class="strat-badge" style="background:var(--acc-d);color:var(--accent);border:1px solid rgba(99,102,241,.3)">Active Strategy</span>
+          <span class="strat-title">ETF Momentum Dip Buyer</span>
+        </div>
+
+        <div class="strat-cols">
+          <div class="strat-col">
+            <div class="strat-block-title">OBJECTIVE</div>
+            <p>Systematically accumulate oversold ETF positions at market dips and exit once a target profit is reached, deploying LIQUIDCASE (a liquid debt ETF) as a float rather than holding idle cash. Every rupee is always working: either in an ETF position or in LIQUIDCASE earning carry.</p>
+          </div>
+
+          <div class="strat-col">
+            <div class="strat-block-title">UNIVERSE</div>
+            <p>A curated basket of NSE-listed ETFs configured in <code>active_etfs</code> (currently: MON100, GOLDBEES, SILVERBEES, JUNIORBEES, MINDSPACE-RR, EMBASSY-RR, BANKBEES). No symbol may appear in both Active and Dip Accumulator lists — validated at settings save.</p>
+          </div>
+        </div>
+
+        <div class="strat-divider"></div>
+
+        <div class="strat-block-title">BUY ENTRY — THREE TRIGGERS (any one fires)</div>
+        <div class="strat-trigger-grid">
+          <div class="strat-trigger">
+            <div class="strat-trigger-label">Trigger A — Deep Oversold</div>
+            <div class="strat-trigger-rule">W%R(14) ≤ <code>williams_r_threshold</code> (default −75)</div>
+            <div class="strat-trigger-note">No price-drop confirmation required. A deeply oversold W%R alone is sufficient to fire a first-slot entry.</div>
+          </div>
+          <div class="strat-trigger">
+            <div class="strat-trigger-label">Trigger B — Moderate Oversold + Drop</div>
+            <div class="strat-trigger-rule">W%R(14) ≤ −60 AND price fell ≥ <code>min_price_drop_pct</code>% from prior close</div>
+            <div class="strat-trigger-note">Catches the zone between −60 and the threshold where oversold alone isn't decisive; a confirmed price drop adds conviction.</div>
+          </div>
+          <div class="strat-trigger">
+            <div class="strat-trigger-label">Trigger C — Gap Filler</div>
+            <div class="strat-trigger-rule">W%R(14) ≤ −75 AND price fell ≥ <code>min_price_drop_pct</code>%</div>
+            <div class="strat-trigger-note">Fills the gap when the threshold is set tighter (e.g. −80) and Triggers A/B both miss a symbol at W%R −78 with a small drop.</div>
+          </div>
+        </div>
+
+        <div class="strat-divider"></div>
+
+        <div class="strat-cols">
+          <div class="strat-col">
+            <div class="strat-block-title">SLOT SYSTEM (position scaling)</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Slot 1 (first entry)</td><td>Any trigger fires, symbol not yet held, no prior buy today. Fires immediately or at scheduled time.</td></tr>
+              <tr><td class="strat-td-key">Slot 2 + (averaging down)</td><td>Symbol already held AND live price ≥ <code>min_price_drop_pct</code>% below blended avg buy price AND any trigger still active. Same flat % required for every additional slot — not cumulative.</td></tr>
+              <tr><td class="strat-td-key">Max slots</td><td><code>slots_count</code> buys per symbol per day (default 5). Counter resets at midnight; avg price persists across sessions.</td></tr>
+              <tr><td class="strat-td-key">Cooldown</td><td>5-minute lockout after each confirmed buy. One execution attempt per symbol per session (prevents duplicate orders if confirmation lags).</td></tr>
+            </table>
+          </div>
+
+          <div class="strat-col">
+            <div class="strat-block-title">SELL EXIT</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Trigger</td><td>Live price ≥ <code>profit_target_pct</code>% above blended avg buy price (default 3%).</td></tr>
+              <tr><td class="strat-td-key">Quantity</td><td>Full position — all held units sold in one order.</td></tr>
+              <tr><td class="strat-td-key">Proceeds recycled</td><td>ETF sell proceeds → LIQUIDCASE BUY (top-bid LIMIT). Cash is never left idle.</td></tr>
+              <tr><td class="strat-td-key">Reset</td><td>profit_target_pct and test_quantity reset to their saved defaults after each successful sell.</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="strat-divider"></div>
+
+        <div class="strat-cols">
+          <div class="strat-col">
+            <div class="strat-block-title">ORDER MECHANICS</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Buy sizing</td><td>Budget = <code>max_cash_per_transaction</code>. ETF qty = floor(budget / LTP). If max_qty_per_trade is set, quantity is further capped.</td></tr>
+              <tr><td class="strat-td-key">Funding</td><td>Spendable cash used first; LIQUIDCASE sold only for the shortfall (ceil division). Cash reserve of ₹<code>cash_reserve</code> is always protected.</td></tr>
+              <tr><td class="strat-td-key">Order type</td><td>LIMIT by default — BUY at top-bid, SELL at top-ask from market depth. Falls back to LTP if depth is unavailable.</td></tr>
+              <tr><td class="strat-td-key">Market hours gate</td><td>Buy execution blocked outside 09:15–15:25 IST. AMO auto-retry fires if a regular order is rejected outside hours.</td></tr>
+              <tr><td class="strat-td-key">Cash guard</td><td>Zerodha margin polled up to 45 s after LIQUIDCASE sell before placing the ETF buy, ensuring proceeds are credited first.</td></tr>
+            </table>
+          </div>
+          <div class="strat-col">
+            <div class="strat-block-title">RISK CONTROLS</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Per-stock cap</td><td><code>max_cash_per_stock</code>: total deployed per symbol never exceeds this. Guards against over-concentration in a single ETF.</td></tr>
+              <tr><td class="strat-td-key">LIQUIDCASE floor</td><td>If LIQUIDCASE value &lt; <code>max_cash_per_transaction</code>, no new buy is queued — ensures float is never depleted below one transaction size.</td></tr>
+              <tr><td class="strat-td-key">Dry-run mode</td><td>All orders logged but not placed. Simulates full execution logic including LIQUIDCASE swaps.</td></tr>
+              <tr><td class="strat-td-key">Auth watchdog</td><td>Any HTTP 403 from Zerodha triggers an exit-2 signal to the launcher, which re-authenticates and resumes automatically.</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="strat-divider"></div>
+        <div class="strat-block-title">INDICATOR — Williams %R (14-period daily)</div>
+        <p style="font-size:12px;color:var(--muted2);line-height:1.7;margin-top:6px">
+          W%R = −100 × (Highest High<sub>14</sub> − Close) / (Highest High<sub>14</sub> − Lowest Low<sub>14</sub>).
+          Ranges from 0 (overbought) to −100 (oversold). Today's candle is formed live using intraday high/low/LTP so the signal updates in real time through the session. Historical period uses daily OHLCV; the live candle replaces the incomplete current bar.
+        </p>
+      </div>
+
+      <div class="strat-divider strat-strategy-divider"></div>
+
+      <!-- Dip Accumulator Strategy -->
+      <div class="strat-section">
+        <div class="strat-hd">
+          <span class="strat-badge" style="background:var(--blue-d);color:var(--blue);border:1px solid rgba(59,130,246,.3)">Dip Accumulator (B&amp;H)</span>
+          <span class="strat-title">Long-Term Position Builder via Tiered Dip Buying</span>
+        </div>
+
+        <div class="strat-cols">
+          <div class="strat-col">
+            <div class="strat-block-title">OBJECTIVE</div>
+            <p>Build a long-term accumulation position in broad-market index ETFs (e.g. MID150BEES) by buying in proportionally larger tranches the deeper the price falls, measured by Williams %R oversold depth. Partial profits are harvested periodically to recycle capital while maintaining the core holding.</p>
+          </div>
+          <div class="strat-col">
+            <div class="strat-block-title">UNIVERSE</div>
+            <p>Symbols listed in <code>bnh_symbols</code> (currently: MID150BEES). Each symbol runs its own independent state, tier-firing set, and trade log. Multiple symbols supported simultaneously, each with separate caps and slot tracking.</p>
+          </div>
+        </div>
+
+        <div class="strat-divider"></div>
+
+        <div class="strat-block-title">5-TIER EXPONENTIAL SIZING — buy bigger the deeper the dip</div>
+        <div class="strat-tier-grid">
+          <div class="strat-tier t1"><div class="strat-tier-wr">W%R ≤ −60</div><div class="strat-tier-pct">5% of max ETF cap</div><div class="strat-tier-lbl">Tier 1 — Probe</div></div>
+          <div class="strat-tier t2"><div class="strat-tier-wr">W%R ≤ −70</div><div class="strat-tier-pct">10% of max ETF cap</div><div class="strat-tier-lbl">Tier 2 — Build</div></div>
+          <div class="strat-tier t3"><div class="strat-tier-wr">W%R ≤ −80</div><div class="strat-tier-pct">20% of max ETF cap</div><div class="strat-tier-lbl">Tier 3 — Add</div></div>
+          <div class="strat-tier t4"><div class="strat-tier-wr">W%R ≤ −90</div><div class="strat-tier-pct">30% of max ETF cap</div><div class="strat-tier-lbl">Tier 4 — Load</div></div>
+          <div class="strat-tier t5"><div class="strat-tier-wr">W%R ≤ −95</div><div class="strat-tier-pct">35% of max ETF cap</div><div class="strat-tier-lbl">Tier 5 — Max Load</div></div>
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px">Each tier fires at most once per dip cycle. Tiers re-arm when W%R recovers above −40 (dip cycle reset). Total allocation across all five tiers = 100% of <code>bnh_max_cash_per_etf</code>.</p>
+
+        <div class="strat-divider"></div>
+
+        <div class="strat-cols">
+          <div class="strat-col">
+            <div class="strat-block-title">BUY ENTRY CONDITIONS</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Signal</td><td>Daily W%R(14) ≤ −60 (oversold threshold, hardcoded for BnH).</td></tr>
+              <tr><td class="strat-td-key">Subsequent buys</td><td>Live price must be ≥ 0.5% below current avg buy price before adding. Prevents buying into a position that has recovered.</td></tr>
+              <tr><td class="strat-td-key">Execution time</td><td>Checks every 15 s. Fires at 3:15 PM IST by default, or anytime if <code>buy_execution_time = "anytime"</code>.</td></tr>
+              <tr><td class="strat-td-key">Per-symbol cap</td><td>Cumulative deployed per symbol capped at <code>bnh_max_cash_per_etf</code> (₹10L). Per-transaction capped at <code>bnh_max_cash_per_transaction</code> (₹30K).</td></tr>
+              <tr><td class="strat-td-key">One buy per day</td><td><code>buy_attempted_today</code> flag prevents multiple entries in the same session. Resets at midnight.</td></tr>
+            </table>
+          </div>
+
+          <div class="strat-col">
+            <div class="strat-block-title">PARTIAL PROFIT HARVEST</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Trigger</td><td>Live P&amp;L ≥ <code>bnh_partial_profit_pct</code>% (currently 7%) above blended avg buy price.</td></tr>
+              <tr><td class="strat-td-key">Quantity</td><td>50% of held position sold — core holding preserved for further accumulation.</td></tr>
+              <tr><td class="strat-td-key">Cooldown</td><td>30-day lock after each harvest. Prevents churning the position in a volatile recovery.</td></tr>
+              <tr><td class="strat-td-key">Order type</td><td>LIMIT at top-ask from market depth; falls back to LTP if depth unavailable.</td></tr>
+              <tr><td class="strat-td-key">No full sell</td><td>Unlike Active Strategy, BnH does not sell the full position at a fixed profit target. The position is held indefinitely and only partially trimmed.</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="strat-divider"></div>
+
+        <div class="strat-cols">
+          <div class="strat-col">
+            <div class="strat-block-title">EXECUTION &amp; FUNDING</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Funding source</td><td>Available cash used first; LIQUIDCASE sold for any shortfall, same smart-buy flow as Active Strategy.</td></tr>
+              <tr><td class="strat-td-key">Order type</td><td>LIMIT at top-ask (BUY) / top-bid (SELL) from depth. Shared <code>default_order_type</code> setting.</td></tr>
+              <tr><td class="strat-td-key">Thread</td><td>Runs in a dedicated background thread (<code>BnHEngine</code>), independent of the main signal loop. Each symbol checked every 15 s.</td></tr>
+            </table>
+          </div>
+          <div class="strat-col">
+            <div class="strat-block-title">KEY DIFFERENCES FROM ACTIVE STRATEGY</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Hold duration</td><td>Indefinite vs. Active's fixed profit-target exit.</td></tr>
+              <tr><td class="strat-td-key">Sell behaviour</td><td>Partial harvest (50%) only vs. Active's full position exit.</td></tr>
+              <tr><td class="strat-td-key">Position sizing</td><td>Exponential tier fractions vs. Active's flat per-transaction budget.</td></tr>
+              <tr><td class="strat-td-key">Oversold threshold</td><td>Fixed −60 (BnH) vs. configurable <code>williams_r_threshold</code> (Active).</td></tr>
+              <tr><td class="strat-td-key">Symbol exclusivity</td><td>No symbol may be in both lists — enforced at settings save.</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// PASSWORD GATE
+const PW_KEY='wealthalgo_pw_hash',PW_SESSION='wealthalgo_unlocked';
+async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+async function checkPw(){
+  const v=document.getElementById('pw-input').value;
+  if(!v){pwErr('Enter your password.');return;}
+  const stored=localStorage.getItem(PW_KEY);
+  if(!stored){pwErr('No password set yet. Click "Set a password" below.');return;}
+  const h=await sha256(v);
+  if(h===stored){sessionStorage.setItem(PW_SESSION,'1');document.getElementById('pw-overlay').style.display='none';onUnlocked();}
+  else{pwErr('Incorrect password.');document.getElementById('pw-input').select();}
+}
+function pwErr(m){document.getElementById('pw-err').textContent=m;}
+function togglePwEye(){const i=document.getElementById('pw-input');i.type=i.type==='password'?'text':'password';}
+
+// ✅ FIX: replaced prompt()-based password set with inline modal.
+// prompt() is blocked by browsers on cross-origin / GitHub Pages iframes.
+function showSetPw(){
+  document.getElementById('setpw-1').value='';
+  document.getElementById('setpw-2').value='';
+  document.getElementById('setpw-err').textContent='';
+  document.getElementById('setpw-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('setpw-1').focus(),50);
+}
+function confirmSetPw(){
+  const p1=document.getElementById('setpw-1').value;
+  const p2=document.getElementById('setpw-2').value;
+  const errEl=document.getElementById('setpw-err');
+  if(!p1){errEl.textContent='Please enter a password.';return;}
+  if(p1!==p2){errEl.textContent='Passwords do not match.';return;}
+  if(p1.length<4){errEl.textContent='Password must be at least 4 characters.';return;}
+  sha256(p1).then(h=>{
+    localStorage.setItem(PW_KEY,h);
+    document.getElementById('setpw-modal').style.display='none';
+    pwErr('✅ Password saved! Use it to unlock the dashboard next time.');
+  });
+}
+function lockDashboard(){
+  sessionStorage.removeItem(PW_SESSION);
+  document.getElementById('pw-input').value='';
+  document.getElementById('pw-err').textContent='';
+  document.getElementById('pw-overlay').style.display='flex';
+  clearTimeout(timer);
+}
+function onUnlocked(){
+  refreshAll();
+  if(hasCfg()){
+    const c=getCfg();
+    document.getElementById('cfg-owner').value=c.owner||'';
+    document.getElementById('cfg-repo').value=c.repo||'';
+    // ✅ FIX: update placeholder so setup modal shows token is already saved
+    const tokenInput=document.getElementById('cfg-token');
+    if(tokenInput && c.token) tokenInput.placeholder='Token saved — paste a new one to replace it';
+  }
+}
+
+// NAV TABS
+function switchNavTab(tab) {
+  document.querySelectorAll('.nav-tab').forEach(el=>el.classList.toggle('active',el.id==='ntab-'+tab));
+  document.querySelectorAll('.nav-tab-pane').forEach(el=>el.classList.toggle('active',el.id==='pane-'+tab));
+  if(tab==='settings'){
+    if(!hasCfg()){
+      document.getElementById('setup-modal').style.display='flex';
+    } else if(!_settingsLoaded){
+      _settingsLoaded=true;
+      loadSettings();
+    }
+  }
+}
+
+// DASHBOARD JS
+
+// ── Config ────────────────────────────────────────────────────────────────────
+// IMPORTANT: replace YOUR-USERNAME and YOUR-REPO with your actual GitHub values.
+// Example: if your repo is github.com/john/Wealthplus then:
+//   BASE = "https://john.github.io/Wealthplus"
+const BASE = "https://durgeshh-create.github.io/Wealthplus/";
+
+const URLS = {
+  PS5673: BASE + "/status_ps5673.json",
+  RD1858: BASE + "/status_rd1858.json",
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let account = "PS5673";
+let timer   = null;
+let countdown = 0;
+let countdownTimer = null;
+const INTERVAL = 30000;   // auto-refresh every 30s
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const fmtL = n => {
+  if (n == null || isNaN(n)) return "—";
+  const a = Math.abs(n);
+  if (a >= 100000) return "₹" + (n/100000).toFixed(2) + "L";
+  if (a >= 1000)   return "₹" + (n/1000).toFixed(1) + "K";
+  return "₹" + n.toFixed(0);
+};
+const fmtR  = n => n == null ? "—" : "₹" + n.toLocaleString("en-IN");
+const fmtPct = n => n == null ? "—" : (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
+const wrCol  = v => v == null ? "#6b7280" : v <= -75 ? "#22c55e" : v <= -55 ? "#f59e0b" : "#6b7280";
+const wrBarW = v => v == null ? 0 : ((v + 100) / 100) * 100;
+const tStr   = ts => {
+  if (!ts) return "—";
+  const d = new Date(ts);
+  return isNaN(d) ? ts.slice(11,16) : d.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:true});
+};
+
+// Parse "2026-06-04 09:17:39 IST" → correct UTC Date object
+// ✅ FIX: old code did manual localOffset−istOffset arithmetic which breaks
+// whenever the browser's local timezone differs from IST (e.g. UTC runners,
+// non-IST users), causing ageMin to be wildly wrong and the stale banner to
+// fire even on fresh data.  Correct approach: strip the label, append "+05:30"
+// so the JS Date parser treats it unambiguously as IST regardless of locale.
+function parseSnapTs(ts) {
+  if (!ts) return NaN;
+  const cleaned = ts
+    .replace(/ IST$/,  '')   // remove trailing "IST" label
+    .replace(/ \+0530$/, '') // remove "+0530" if present
+    .trim();
+  // "2026-06-04 09:17:39" → "2026-06-04T09:17:39+05:30"
+  const iso = cleaned.replace(' ', 'T') + '+05:30';
+  const d = new Date(iso);
+  return isNaN(d) ? NaN : d;
+}
+
+function startCountdown() {
+  clearInterval(countdownTimer);
+  countdown = Math.round(INTERVAL / 1000);
+  const el = document.getElementById("last-ts");
+  countdownTimer = setInterval(() => {
+    countdown--;
+    if (countdown <= 0) {
+      clearInterval(countdownTimer);
+    } else {
+      const base = el.dataset.base || "";
+      el.textContent = base + (base ? "  ·  " : "") + `next in ${countdown}s`;
+    }
+  }, 1000);
+}
+
+function setDot(state) {
+  const d = document.getElementById("bot-dot");
+  const t = document.getElementById("bot-txt");
+  d.className = "dot " + state;
+  t.textContent = {live:"Live ✓", off:"Offline", stale:"Stale"}[state] || "—";
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render(data) {
+  const pnl    = data.today_pnl   ?? 0;
+  const pnlPct = data.today_pnl_pct ?? 0;
+  const tv     = data.total_value  ?? 0;
+  const liq    = data.liquidcase   ?? {};
+  const slots  = data.slots        ?? {};
+  const sigs   = data.signals      ?? [];
+
+  // Stat cards
+  document.getElementById("s-total").textContent     = fmtL(tv);
+  document.getElementById("s-total-sub").textContent = `across all positions`;
+  document.getElementById("s-liq").textContent     = fmtL(liq.value);
+  document.getElementById("s-liq-sub").textContent = `${liq.quantity ?? 0} units · ${liq.pct ?? 0}%`;
+  document.getElementById("s-slots").textContent   = `${slots.used ?? 0}/${slots.total ?? 0}`;
+  document.getElementById("s-slots-sub").textContent = `${slots.available ?? 0} slots free`;
+  document.getElementById("s-sigs").textContent    = sigs.length;
+
+  // Available Cash (settled, CNC-ready) — avail['cash'] from Zerodha margins API
+  const cash = data.available_cash ?? null;
+  const cashEl = document.getElementById("s-cash");
+  cashEl.textContent = cash != null ? fmtL(cash) : "—";
+  cashEl.className   = "sc-val" + (cash != null && cash > 0 ? " pos" : "");
+  document.getElementById("s-cash-sub").textContent = cash != null ? "Settled · CNC-ready" : "Unavailable";
+
+  // Available Margin (total incl. collateral) — avail['live_balance'] from Zerodha
+  const margin = data.available_margin ?? null;
+  const marginEl = document.getElementById("s-margin");
+  marginEl.textContent = margin != null ? fmtL(margin) : "—";
+  marginEl.className   = "sc-val" + (margin != null && margin > 0 ? " pos" : "");
+  document.getElementById("s-margin-sub").textContent = margin != null ? "Incl. collateral" : "Unavailable";
+
+  // Holdings — build a lookup map for cur val in slot matrix
+  const holdings = data.holdings ?? [];
+  const holdingMap = {}; // symbol → holding object
+  holdings.forEach(h => { holdingMap[h.symbol] = h; });
+
+  document.getElementById("h-count").textContent = holdings.length + " positions";
+  const hb = document.getElementById("h-body");
+  hb.innerHTML = holdings.length ? holdings.map(h => {
+    const curVal = (h.ltp != null && h.quantity != null) ? h.quantity * h.ltp : (h.value ?? null);
+    return `
+    <tr>
+      <td><span class="sym">${h.symbol}</span><span class="tag ${h.strategy==='bnh'?'tag-b':'tag-a'}">${h.strategy}</span></td>
+      <td>${h.quantity}</td>
+      <td style="color:var(--muted2)">${fmtR(h.avg)}</td>
+      <td>${fmtR(h.ltp)}</td>
+      <td style="color:var(--muted2)">${curVal != null ? fmtL(curVal) : "—"}</td>
+      <td class="${h.pnl>=0?'pos':'neg'}">${(h.pnl>=0?"+":"")}${fmtL(h.pnl)}<br><span style="font-size:10px;opacity:.7">${fmtPct(h.pnl_pct)}</span></td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="6" class="empty">No holdings</td></tr>`;
+
+  // Holdings Total P&L — shown in panel header
+  const hPnlWrap = document.getElementById("h-pnl-wrap");
+  const totalPnlEl = document.getElementById("h-total-pnl");
+  if (holdings.length) {
+    const totalPnl = holdings.reduce((sum, h) => sum + (h.pnl ?? 0), 0);
+    const costBasis = holdings.reduce((sum, h) => sum + ((h.avg ?? 0) * (h.quantity ?? 0)), 0);
+    const totalPnlPct = costBasis > 0 ? (totalPnl / costBasis) * 100 : 0;
+    hPnlWrap.style.display = "";
+    totalPnlEl.textContent = (totalPnl >= 0 ? "+" : "") + fmtL(totalPnl) + "  " + fmtPct(totalPnlPct);
+    totalPnlEl.className = totalPnl > 0 ? "pos" : totalPnl < 0 ? "neg" : "";
+  } else {
+    hPnlWrap.style.display = "none";
+  }
+
+  // Today's Positions
+  const positions = data.positions ?? [];
+  document.getElementById("pos-count").textContent = positions.length + " positions";
+  const pb = document.getElementById("pos-body");
+  pb.innerHTML = positions.length ? positions.map(p => {
+    const unr = p.unrealised ?? p.pnl ?? 0;
+    const rel = p.realised ?? 0;
+    return `<tr>
+      <td><span class="sym">${p.symbol}</span>${p.product ? `<span class="tag tag-a" style="font-size:8px">${p.product}</span>` : ""}</td>
+      <td>${p.quantity > 0 ? "+" : ""}${p.quantity}</td>
+      <td style="color:var(--muted2)">${fmtR(p.avg)}</td>
+      <td>${fmtR(p.ltp)}</td>
+      <td class="${unr >= 0 ? 'pos' : 'neg'}">${unr >= 0 ? "+" : ""}${fmtL(unr)}</td>
+      <td class="${rel >= 0 ? 'pos' : 'neg'}">${rel >= 0 ? "+" : ""}${fmtL(rel)}</td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="6" class="empty">No open positions today</td></tr>`;
+
+  // Cash bar (deployed capital)
+  const holdVal = holdings.reduce((a,h) => a + (h.value||0), 0);
+  const liqVal  = liq.value ?? 0;
+  const total   = holdVal + liqVal;
+  const depPct  = total > 0 ? (holdVal / total * 100) : 0;
+  document.getElementById("cash-deployed").textContent = fmtL(holdVal);
+  document.getElementById("cash-bar").style.width      = depPct + "%";
+  document.getElementById("cash-h").textContent        = fmtL(holdVal);
+  document.getElementById("cash-l").textContent        = fmtL(liqVal);
+  document.getElementById("cash-t").textContent        = fmtL(total);
+  document.getElementById("cash-note").textContent     = Math.round(depPct) + "% deployed";
+
+  // Signals
+  document.getElementById("sig-count").textContent = sigs.length + " signals";
+  const sb = document.getElementById("sig-body");
+  sb.innerHTML = sigs.length ? sigs.map(s => `
+    <div class="sig-row">
+      <span class="badge ${s.type==='BUY'?'b-buy':'b-sell'}">${s.type}</span>
+      <div style="flex:1">
+        <div class="sym">${s.symbol}</div>
+        <div style="font-size:11px;color:var(--muted2)">${s.reason||""}</div>
+      </div>
+      <div style="text-align:right;font-size:12px">
+        ${s.ltp ? fmtR(s.ltp) : "—"}
+        ${s.williams_r != null ? `<br><span style="font-size:10px;color:var(--green)">W%R ${s.williams_r}</span>` : ""}
+        ${s.profit_pct != null ? `<br><span style="font-size:10px;color:var(--green)">+${s.profit_pct}%</span>` : ""}
+      </div>
+    </div>`).join("") : `<div class="empty">No active signals</div>`;
+
+  // Williams %R
+  const wr = (data.williams_r ?? []).slice().sort((a,b) => (a.williams_r??0) - (b.williams_r??0));
+  const wt = document.getElementById("wr-tbl");
+  wt.innerHTML = wr.length ? wr.map(item => {
+    const v   = item.williams_r;
+    const col = wrCol(v);
+    const bw  = wrBarW(v);
+    const sig = v != null && v <= -75 ? `<span style="color:var(--green);font-size:10px">OVERSOLD</span>`
+              : v != null && v <= -55 ? `<span style="color:var(--amber);font-size:10px">WATCH</span>`
+              : `<span style="color:var(--muted);font-size:10px">NEUTRAL</span>`;
+    const held = item.is_held ? `<span style="font-size:9px;color:var(--accent);margin-left:4px">●</span>` : "";
+    const bnhTag = item.strategy === "bnh" ? `<span class="tag tag-b" style="margin-left:4px">B&H</span>` : "";
+    const chg  = item.change_pct;
+    const chgS = chg != null ? `<span style="color:${chg>=0?'var(--green)':'var(--red)'};font-size:10px">${chg>=0?"+":""}${chg.toFixed(2)}%</span>` : "";
+    return `<tr>
+      <td><div class="sym">${item.symbol}${held}${bnhTag}</div><div style="font-size:10px;color:var(--muted2)">${item.ltp ? fmtR(item.ltp) : "—"} ${chgS}</div></td>
+      <td style="width:100px;padding-right:8px">
+        <div class="wr-bar-wrap"><div class="wr-bar" style="width:${bw}%;background:${col}"></div><div class="threshold-line"></div></div>
+      </td>
+      <td style="text-align:right;font-size:12px;color:${col};width:52px">${v != null ? v.toFixed(1) : "—"}</td>
+      <td style="text-align:right;width:68px">${sig}</td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="4" class="empty">No market data</td></tr>`;
+
+  // Slot matrix — active strategy + dip accumulator (BNH) sections
+  const allEtfs = slots.active_etfs ?? [];
+  const bnhSyms = slots.bnh_symbols ?? [];
+  const heldSet = new Set(holdings.map(h => h.symbol));
+  const sw = document.getElementById("slots-wrap");
+
+  const activeBlocks = allEtfs.map(sym => {
+    const u = heldSet.has(sym);
+    const h = holdingMap[sym];
+    const curVal = u && h ? ((h.ltp != null && h.quantity != null) ? h.quantity * h.ltp : (h.value ?? null)) : null;
+    const curValStr = curVal != null ? `<div class="slot-val">${fmtL(curVal)}</div>` : "";
+    return `<div class="slot ${u?'used':''}" title="${sym}">
+      <div class="slot-sym">${sym}</div>
+      <div class="slot-status">${u ? "● Holding" : "○ Empty"}</div>
+      ${curValStr}
+    </div>`;
+  });
+  const liqBlock = `<div class="slot liq" title="LIQUIDCASE">
+    <div class="slot-sym">LIQUIDCASE</div>
+    <div class="slot-status">● Buffer</div>
+    ${liq.value != null ? `<div class="slot-val">${fmtL(liq.value)}</div>` : ""}
+  </div>`;
+
+  const bnhBlocks = bnhSyms.map(sym => {
+    const u = heldSet.has(sym);
+    const h = holdingMap[sym];
+    const curVal = u && h ? ((h.ltp != null && h.quantity != null) ? h.quantity * h.ltp : (h.value ?? null)) : null;
+    const curValStr = curVal != null ? `<div class="slot-val">${fmtL(curVal)}</div>` : "";
+    return `<div class="slot bnh ${u?'held':''}" title="${sym}">
+      <div class="slot-sym">${sym}</div>
+      <div class="slot-status">${u ? "● Accumulating" : "○ Watching"}</div>
+      ${curValStr}
+    </div>`;
+  });
+
+  sw.innerHTML = `
+    <div>
+      <div class="slots-section-label">Active Strategy</div>
+      <div class="slots-grid">${activeBlocks.join("")}${liqBlock}</div>
+    </div>
+    ${bnhBlocks.length ? `<div>
+      <div class="slots-section-label">Dip Accumulator (B&amp;H)</div>
+      <div class="slots-grid">${bnhBlocks.join("")}</div>
+    </div>` : ""}
+    <div class="slot-leg">
+      <span><div class="ld" style="background:var(--acc-d);border:1px solid rgba(99,102,241,.4)"></div> Active Holding</span>
+      <span><div class="ld" style="background:var(--bg3);border:1px solid var(--border2)"></div> Empty</span>
+      <span><div class="ld" style="background:var(--green-d);border:1px solid rgba(34,197,94,.3)"></div> LIQUIDCASE buffer</span>
+      <span><div class="ld" style="background:rgba(37,99,235,0.16);border:1px solid rgba(37,99,235,.5)"></div> B&amp;H Accumulating</span>
+    </div>`;
+
+  // Today's Orders — filter to today's IST date as a client-side safety net
+  // (guards against stale AMO / prior-session orders surviving in the snapshot)
+  const todayIST = new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
+  const todayStr = todayIST.getFullYear() + "-" +
+    String(todayIST.getMonth()+1).padStart(2,"0") + "-" +
+    String(todayIST.getDate()).padStart(2,"0");
+
+  const allTrades = data.orders ?? data.trades ?? [];
+  const trades = allTrades.filter(t => {
+    // Prefer exchange_timestamp (actual fill), fall back to order_timestamp
+    const exTs  = t.exchange_timestamp || "";
+    const plTs  = t.order_timestamp || t.time || "";
+    const ts    = (exTs && exTs.toLowerCase() !== "none" && exTs.toLowerCase() !== "null")
+                  ? exTs : plTs;
+    return todayStr && ts ? ts.includes(todayStr) : true; // pass-through if no date info
+  });
+  document.getElementById("tr-count").textContent = trades.length + " orders today";
+
+  // Today's P&L — sourced from data.today_pnl (set by the bot)
+  const pnlInline  = document.getElementById("s-pnl-inline");
+  const pnlLabelEl = document.getElementById("s-pnl-label");
+  if (pnlLabelEl) pnlLabelEl.textContent = (data.bot_running !== false) ? "Today's P&L" : "Last Session P&L";
+  const pnlDisplay = (pnl >= 0 ? "+" : "") + fmtL(Math.abs(pnl) < 0.01 ? 0 : pnl)
+    + (Math.abs(pnlPct) >= 0.001 ? "  " + fmtPct(pnlPct) : "");
+  pnlInline.textContent = pnlDisplay;
+  pnlInline.className   = pnl > 0 ? "pos" : pnl < 0 ? "neg" : "";
+  const trb = document.getElementById("tr-body");
+  trb.innerHTML = trades.length ? trades.map(t => {
+    const ok  = t.status === "COMPLETE";
+    const rej = t.status === "REJECTED";
+    const sym = t.tradingsymbol || t.symbol || "—";
+    const typ = t.transaction_type || t.type || "—";
+    const qty = t.filled_quantity ?? t.quantity ?? "—";
+    const px  = t.average_price ?? t.price ?? null;
+    const val = (qty !== "—" && px) ? qty * px : null;
+    return `<div class="trade-row">
+      <span class="badge ${typ==='BUY'?'b-buy':'b-sell'} ${ok?'':'b-pending'}">${typ}</span>
+      <div style="flex:1">
+        <div class="sym">${sym}</div>
+        <div style="font-size:11px;color:var(--muted2)">${qty} units · ${px ? fmtR(px) : "—"}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px">${val ? fmtL(val) : "—"}</div>
+        <div class="${ok?'status-ok':rej?'status-rej':'status-other'}">${t.status || "—"}</div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);white-space:nowrap;margin-left:6px">${tStr(t.order_timestamp||t.time)}</div>
+    </div>`;
+  }).join("") : `<div class="empty">No orders executed today<br><span style="font-size:11px;color:var(--muted)">Orders appear once the bot pushes a snapshot</span></div>`;
+}
+
+// ── Fetch + refresh ───────────────────────────────────────────────────────────
+async function refreshAll() {
+  const btn = document.getElementById("rbtn");
+  btn.classList.add("spin");
+
+  const url = URLS[account] + "?t=" + Date.now();
+  let data = null;
+  let fetchErr = null;
+
+  try {
+    const res = await fetch(url, {signal: AbortSignal.timeout(12000)});
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    data = await res.json();
+  } catch(e) {
+    fetchErr = e.message;
+  }
+
+  btn.classList.remove("spin");
+
+  if (!data) {
+    setDot("off");
+    document.getElementById("last-ts").textContent = "Cannot reach snapshot";
+    document.getElementById("stale-banner").style.display = "none";
+
+    // Show helpful config note if URL not changed from placeholder
+    if (url.includes("YOUR-USERNAME")) {
+      document.getElementById("cfg-note").style.display = "block";
+      document.getElementById("cfg-note").innerHTML =
+        `ℹ Open <code>docs/index.html</code> and replace <code>YOUR-USERNAME</code> and <code>YOUR-REPO</code> ` +
+        `on line 3 of the script with your GitHub username and repository name. ` +
+        `Then push to the <code>gh-pages</code> branch.`;
+    }
+    clearTimeout(timer);
+    timer = setTimeout(refreshAll, INTERVAL);
+    return;
+  }
+
+  document.getElementById("cfg-note").style.display = "none";
+
+  // ── Parse snapshot timestamp "2026-06-04 09:17:39 IST" ───────────────────
+  const snapTs  = data.timestamp ?? "";
+  const snapDate = parseSnapTs(snapTs);
+  const ageMin  = !isNaN(snapDate) ? (Date.now() - snapDate.getTime()) / 60000 : 999;
+  const botOn   = data.bot_running !== false;
+
+  // ── Market-hours awareness (IST 09:15–15:30 Mon–Fri) ─────────────────────
+  const nowIST    = new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
+  const dayOfWeek = nowIST.getDay();           // 0=Sun,6=Sat
+  const istMin    = nowIST.getHours()*60 + nowIST.getMinutes();
+  const isMarketHours = dayOfWeek >= 1 && dayOfWeek <= 5
+                     && istMin >= 555   // 09:15
+                     && istMin <= 930;  // 15:30
+  // Only flag stale during market hours when bot should be pushing data
+  // Snapshot writes every 2 min + GH Actions pushes every 2 min = ~4 min max lag; 7 min gives headroom
+  const isStale = botOn && isMarketHours && ageMin > 7;
+
+  // ── Dot + banners ─────────────────────────────────────────────────────────
+  const staleBanner   = document.getElementById("stale-banner");
+  const offlineBanner = document.getElementById("offline-banner");
+  staleBanner.style.display   = "none";
+  offlineBanner.style.display = "none";
+
+  if (!botOn) {
+    setDot("off");
+    // Show soft offline banner with last-session timestamp
+    offlineBanner.style.display = "block";
+    document.getElementById("offline-ts").textContent = snapTs || "unknown";
+  } else if (isStale) {
+    setDot("stale");
+    staleBanner.style.display = "block";
+    document.getElementById("stale-ts").textContent = snapTs;
+  } else {
+    setDot("live");
+  }
+
+  // ── P&L label handled inside render() via s-pnl-label ──────────────────────
+
+  const now = new Date();
+  const tsText = "Refreshed " + now.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  const el = document.getElementById("last-ts");
+  el.dataset.base = tsText;
+  el.textContent = tsText;
+
+  render(data);
+
+  clearTimeout(timer);
+  timer = setTimeout(refreshAll, INTERVAL);
+  startCountdown();
+}
+
+function switchAccount(acc) {
+  account = acc;
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("tab-" + acc.toLowerCase()).classList.add("active");
+  clearTimeout(timer);
+  refreshAll();
+}
+
+function toggleStrategy() {
+  const body = document.getElementById("strat-body");
+  const btn  = document.getElementById("strat-toggle");
+  const open = body.style.display === "none" || body.style.display === "";
+  body.style.display = open ? "block" : "none";
+  btn.textContent    = open ? "▲ Hide" : "▼ Show";
+}
+
+document.addEventListener("DOMContentLoaded", refreshAll);
+
+
+// SETTINGS JS
+let _settingsLoaded=false;
+
+// ── Symbol lists ─────────────────────────────────────────────────────────────
+const NSE_ETF_LIST     = ["ABSL10BANK", "ABSLBANETF", "ABSLMSCIN", "ABSLNN50ET", "ABSLPSE", "ALPHA", "ALPHAETF", "ALPL30IETF", "AONEGOLD", "AONENIFTY", "AONESILVER", "AONETMMQ50", "AONETOTAL", "AUTOBEES", "AUTOIETF", "AXISBNKETF", "AXISCETF", "AXISGOLD", "AXISHCETF", "AXISILVER", "AXISNIFTY", "AXISTECETF", "AXISVALUE", "AXSENSEX", "BANK10ADD", "BANKADD", "BANKBEES", "BANKBETA", "BANKBETF", "BANKETF", "BANKIETF", "BANKNIFTY1", "BANKPSU", "BBNPNBETF", "BBNPPGOLD", "BFSI", "BSE500IETF", "BSLGOLDETF", "BSLNIFTY", "BSLSENETFG", "CHEMICAL", "CHOICEGOLD", "COMMOIETF", "CONS", "CONSUMBEES", "CONSUMER", "CONSUMIETF", "CPSEETF", "DEFENCE", "DIVIDEND", "DIVOPPBEES", "EBANKNIFTY", "ECAPINSURE", "EGOLD", "ELM250", "EMULTIMQ", "ENERGY", "ENIFTY", "EQUAL200", "EQUAL50", "EQUAL50ADD", "ESENSEX", "ESG", "ESILVER", "EVIETF", "EVINDIA", "FINIETF", "FLEXIADD", "FMCGADD", "FMCGIETF", "GOLD1", "GOLD360", "GOLDADD", "GOLDBEES", "GOLDBETA", "GOLDBND", "GOLDCASE", "GOLDETF", "GOLDIETF", "GROWWCAPM", "GROWWCHEM", "GROWWDEFNC", "GROWWEV", "GROWWGOLD", "GROWWHOSPI", "GROWWLOVOL", "GROWWMC150", "GROWWMETAL", "GROWWMOM50", "GROWWN200", "GROWWNET", "GROWWNIFTY", "GROWWNXT50", "GROWWPOWER", "GROWWPSE", "GROWWPSUBK", "GROWWRAIL", "GROWWRLTY", "GROWWSC250", "GROWWSLVR", "HDFCBSE500", "HDFCGOLD", "HDFCGROWTH", "HDFCLOWVOL", "HDFCMID150", "HDFCMOMENT", "HDFCNEXT50", "HDFCNIF100", "HDFCNIFBAN", "HDFCNIFIT", "HDFCNIFTY", "HDFCPSUBK", "HDFCPVTBAN", "HDFCQUAL", "HDFCSENSEX", "HDFCSILVER", "HDFCSML250", "HDFCVALUE", "HEALTHADD", "HEALTHCARE", "HEALTHIETF", "HEALTHY", "HNGSNGBEES", "HSBCGOLD", "ICICIB22", "IDFNIFTYET", "INFRA", "INFRABEES", "INFRAIETF", "INTERNET", "IT", "ITADD", "ITBEES", "ITBETA", "ITETF", "ITIETF", "IVZINGOLD", "IVZINNIFTY", "JUNIORBEES", "LICMFGOLD", "LICNETFGSC", "LICNETFN50", "LICNETFSEN", "LICNFNHGP", "LICNMID100", "LOWVOL", "LOWVOL1", "LOWVOLIETF", "MAFANG", "MAHKTECH", "MAKEINDIA", "MANUFGBEES", "MASPTOP50", "METAL", "METALIETF", "MID150", "MID150BEES", "MID150CASE", "MIDCAP", "MIDCAPADD", "MIDCAPBETA", "MIDCAPETF", "MIDCAPIETF", "MIDQ50ADD", "MIDSELIETF", "MIDSMALL", "MNC", "MOALPHA50", "MOBANK10", "MOCAPITAL", "MODEFENCE", "MOENERGY", "MOGOLD", "MOHEALTH", "MOINFRA", "MOIPO", "MOLOWVOL", "MOM100", "MOM30IETF", "MOM50", "MOMENTUM", "MOMENTUM30", "MOMENTUM50", "MOMGF", "MOMIDMTM", "MOMNC", "MOMOMENTUM", "MON100", "MON50EQUAL", "MONEXT50", "MONIFTY100", "MONIFTY500", "MONQ50", "MOPSE", "MOQUALITY", "MOREALTY", "MOSERVICE", "MOSILVER", "MOSMALL250", "MOTOUR", "MOVALUE", "MSCIADD", "MSCIINDIA", "MULTICAP", "NETF", "NEXT30ADD", "NEXT50", "NEXT50ADD", "NEXT50BETA", "NEXT50ETF", "NEXT50IETF", "NIF100BEES", "NIF100IETF", "NIFTY1", "NIFTY100EW", "NIFTYADD", "NIFTYBEES", "NIFTYBETA", "NIFTYBETF", "NIFTYCASE", "NIFTYETF", "NIFTYIETF", "NIFTYQLITY", "NV20", "NV20BEES", "NV20IETF", "OILIETF", "PHARMABEES", "PSUBANK", "PSUBANKADD", "PSUBNKBEES", "PSUBNKIETF", "PVTBANIETF", "PVTBANKADD", "QGOLDHALF", "QNIFTY", "QUAL30IETF", "QUALITY30", "SBIBPB", "SBIETFCON", "SBIETFIT", "SBIETFPB", "SBIETFQLTY", "SBIMIDMOM", "SBINEQWETF", "SBINMID150", "SBISILVER", "SELECTIPO", "SENSEXADD", "SENSEXBETA", "SENSEXETF", "SENSEXIETF", "SETFGOLD", "SETFNIF50", "SETFNIFBK", "SETFNN50", "SHARIABEES", "SILVER", "SILVER1", "SILVER360", "SILVERADD", "SILVERAG", "SILVERBEES", "SILVERBETA", "SILVERBND", "SILVERCASE", "SILVERIETF", "SMALL250", "SMALLADD", "SMALLCAP", "SML100CASE", "SNXT30BEES", "SNXT50BETA", "TATAGOLD", "TATSILV", "TECH", "TNIDETF", "TOP100CASE", "TOP10ADD", "TOP15IETF", "TOP20", "TWCGOLDETF", "UNIONGOLD", "VAL30IETF", "VALUE"];
+const NSE_NIFTY200     = ["360ONE", "ABB", "ABCAPITAL", "ADANIENSOL", "ADANIENT", "ADANIGREEN", "ADANIPORTS", "ADANIPOWER", "ALKEM", "AMBUJACEM", "APLAPOLLO", "APOLLOHOSP", "ASHOKLEY", "ASIANPAINT", "ASTRAL", "ATGL", "AUBANK", "AUROPHARMA", "AXISBANK", "BAJAJ-AUTO", "BAJAJFINSV", "BAJAJHLDNG", "BAJFINANCE", "BANKBARODA", "BANKINDIA", "BDL", "BEL", "BHARATFORG", "BHARTIARTL", "BHEL", "BIOCON", "BLUESTARCO", "BOSCHLTD", "BPCL", "BRITANNIA", "BSE", "CANBK", "CGPOWER", "CHOLAFIN", "CIPLA", "COALINDIA", "COCHINSHIP", "COFORGE", "COLPAL", "CONCOR", "COROMANDEL", "CUMMINSIND", "DABUR", "DIVISLAB", "DIXON", "DLF", "DMART", "DRREDDY", "EICHERMOT", "ENRIN", "ETERNAL", "EXIDEIND", "FEDERALBNK", "FORTIS", "GAIL", "GLENMARK", "GMRAIRPORT", "GODFRYPHLP", "GODREJCP", "GODREJPROP", "GRASIM", "GROWW", "GVT&D", "HAL", "HAVELLS", "HCLTECH", "HDFCAMC", "HDFCBANK", "HDFCLIFE", "HEROMOTOCO", "HINDALCO", "HINDPETRO", "HINDUNILVR", "HINDZINC", "HUDCO", "HYUNDAI", "ICICIAMC", "ICICIBANK", "ICICIGI", "IDEA", "IDFCFIRSTB", "INDHOTEL", "INDIANB", "INDIGO", "INDUSINDBK", "INDUSTOWER", "INFY", "IOC", "IRCTC", "IREDA", "IRFC", "ITC", "JINDALSTEL", "JIOFIN", "JSWENERGY", "JSWSTEEL", "JUBLFOOD", "KALYANKJIL", "KEI", "KOTAKBANK", "KPITTECH", "LAURUSLABS", "LENSKART", "LGEINDIA", "LICHSGFIN", "LODHA", "LT", "LTF", "LTM", "LUPIN", "M&M", "M&MFIN", "MANKIND", "MARICO", "MARUTI", "MAXHEALTH", "MAZDOCK", "MCX", "MFSL", "MOTHERSON", "MOTILALOFS", "MPHASIS", "MRF", "MUTHOOTFIN", "NATIONALUM", "NAUKRI", "NESTLEIND", "NHPC", "NMDC", "NTPC", "NYKAA", "OBEROIRLTY", "OFSS", "OIL", "ONGC", "PAGEIND", "PATANJALI", "PAYTM", "PERSISTENT", "PFC", "PHOENIXLTD", "PIDILITIND", "PIIND", "PNB", "POLICYBZR", "POLYCAB", "POWERGRID", "POWERINDIA", "PREMIERENE", "PRESTIGE", "RADICO", "RECLTD", "RELIANCE", "RVNL", "SAIL", "SBICARD", "SBILIFE", "SBIN", "SHREECEM", "SHRIRAMFIN", "SIEMENS", "SOLARINDS", "SRF", "SUNPHARMA", "SUPREMEIND", "SUZLON", "SWIGGY", "TATACAP", "TATACOMM", "TATACONSUM", "TATAELXSI", "TATAINVEST", "TATAPOWER", "TATASTEEL", "TCS", "TECHM", "TIINDIA", "TITAN", "TMCV", "TMPV", "TORNTPHARM", "TRENT", "TVSMOTOR", "ULTRACEMCO", "UNIONBANK", "UNITDSPR", "UPL", "VBL", "VEDL", "VMM", "VOLTAS", "WAAREEENER", "WIPRO", "YESBANK", "ZYDUSLIFE"];
+const NSE_MIDCAP150    = ["360ONE", "3MINDIA", "ABBOTINDIA", "ABCAPITAL", "ACC", "AIAENG", "AIIL", "AJANTPHARM", "ALKEM", "ANTHEM", "APARINDS", "APLAPOLLO", "APOLLOTYRE", "ASHOKLEY", "ASTRAL", "ATGL", "AUBANK", "AUROPHARMA", "AWL", "BAJAJHFL", "BALKRISIND", "BANKINDIA", "BDL", "BERGEPAINT", "BHARATFORG", "BHARTIHEXA", "BHEL", "BIOCON", "BLUESTARCO", "BSE", "COCHINSHIP", "COFORGE", "COLPAL", "CONCOR", "COROMANDEL", "CRISIL", "DABUR", "DALBHARAT", "DIXON", "ENDURANCE", "ESCORTS", "EXIDEIND", "FEDERALBNK", "FLUOROCHEM", "FORTIS", "GICRE", "GLAXO", "GLENMARK", "GMRAIRPORT", "GODFRYPHLP", "GODREJIND", "GODREJPROP", "GROWW", "GVT&D", "HAVELLS", "HDBFS", "HEROMOTOCO", "HEXT", "HINDPETRO", "HONAUT", "HUDCO", "ICICIAMC", "ICICIGI", "ICICIPRULI", "IDEA", "IDFCFIRSTB", "INDIANB", "INDUSINDBK", "INDUSTOWER", "IPCALAB", "IRCTC", "IREDA", "ITCHOTELS", "JKCEMENT", "JSL", "JSWENERGY", "JSWINFRA", "JUBLFOOD", "KALYANKJIL", "KEI", "KPITTECH", "KPRMILL", "LAURUSLABS", "LENSKART", "LGEINDIA", "LICHSGFIN", "LICI", "LINDEINDIA", "LLOYDSME", "LTF", "LTTS", "LUPIN", "M&MFIN", "MAHABANK", "MANKIND", "MARICO", "MCX", "MEDANTA", "MFSL", "MOTILALOFS", "MPHASIS", "MRF", "NAM-INDIA", "NATIONALUM", "NAUKRI", "NHPC", "NIACL", "NLCINDIA", "NMDC", "NTPCGREEN", "NYKAA", "OBEROIRLTY", "OFSS", "OIL", "PAGEIND", "PATANJALI", "PAYTM", "PERSISTENT", "PETRONET", "PHOENIXLTD", "PIIND", "POLICYBZR", "POLYCAB", "POWERINDIA", "PREMIERENE", "PRESTIGE", "RADICO", "RVNL", "SAIL", "SBICARD", "SCHAEFFLER", "SJVN", "SRF", "SUNDARMFIN", "SUPREMEIND", "SUZLON", "SWIGGY", "TATACOMM", "TATAELXSI", "TATAINVEST", "THERMAX", "TIINDIA", "TORNTPOWER", "UBL", "UNOMINDA", "UPL", "VMM", "VOLTAS", "WAAREEENER", "YESBANK"];
+const ALL_KNOWN_SYMS   = new Set([...NSE_ETF_LIST, ...NSE_NIFTY200, ...NSE_MIDCAP150]);
+
+// ── State ────────────────────────────────────────────────────────────────────
+let _instance   = 'RD1858';
+let _settings   = {};
+let _sha        = '';          // GitHub blob SHA needed for update
+let _activeSym  = [];
+let _bnhSym     = [];
+
+// ── Config (stored in localStorage) ─────────────────────────────────────────
+function getCfg()  { return JSON.parse(localStorage.getItem('wealthalgo_cfg') || '{}'); }
+function hasCfg()  { const c = getCfg(); return c.owner && c.repo && c.token; }
+
+// ── Test GitHub Token ─────────────────────────────────────────────────────────
+async function testGitHubToken() {
+  const owner    = document.getElementById('cfg-owner').value.trim();
+  const repo     = document.getElementById('cfg-repo').value.trim();
+  const rawToken = document.getElementById('cfg-token').value.trim();
+  const token    = rawToken || getCfg().token || '';
+  const statusEl = document.getElementById('cfg-test-status');
+  if (!token) { statusEl.textContent = '⚠ Paste a token first.'; statusEl.style.color='var(--amber)'; return; }
+  statusEl.textContent = 'Testing…'; statusEl.style.color = 'var(--muted)';
+  try {
+    // Hit /user to validate token, then /repos to validate repo access
+    const r1 = await fetch('https://api.github.com/user', {
+      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!r1.ok) throw new Error(`Token invalid — GitHub returned ${r1.status}. Generate a new token with "repo" scope.`);
+    const user = await r1.json();
+    if (owner && repo) {
+      const r2 = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+        headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (!r2.ok) throw new Error(`Repo ${owner}/${repo} not found or token lacks repo scope (${r2.status}).`);
+    }
+    statusEl.textContent = `✅ Token valid — authenticated as ${user.login}`;
+    statusEl.style.color = 'var(--green)';
+  } catch(e) {
+    statusEl.textContent = '❌ ' + e.message;
+    statusEl.style.color = 'var(--red)';
+  }
+}
+
+function saveConfig() {
+  const owner = document.getElementById('cfg-owner').value.trim();
+  const repo  = document.getElementById('cfg-repo').value.trim();
+  const rawToken = document.getElementById('cfg-token').value.trim();
+  // ✅ FIX: if user left token field blank (just updating owner/repo, or re-opening
+  // modal after token was already saved), preserve the previously stored token
+  // rather than wiping it.  Blank field = "keep existing"; new value = "replace".
+  const existing = getCfg();
+  const token = rawToken || existing.token || '';
+  if (!owner || !repo || !token) {
+    alert('Please fill GitHub username, repo name, and Personal Access Token.');
+    return;
+  }
+  localStorage.setItem('wealthalgo_cfg', JSON.stringify({owner, repo, token}));
+  document.getElementById('setup-modal').style.display = 'none';
+  _settingsLoaded = true;
+  loadSettings();
+}
+
+// ── Instance switch ───────────────────────────────────────────────────────────
+function switchInstance(inst) {
+  _instance = inst;
+  _settingsLoaded = false;   // ✅ reset so next Settings tab open reloads fresh
+  document.querySelectorAll('.itab').forEach(b => b.classList.toggle('active', b.textContent.trim() === inst));
+  setStatus('Switching to ' + inst + '…', '');
+  loadSettings();
+}
+
+// ── GitHub API helpers ───────────────────────────────────────────────────────
+function apiHeaders() {
+  return {
+    'Authorization': 'token ' + getCfg().token,
+    'Accept':        'application/vnd.github.v3+json',
+    'Content-Type':  'application/json',
+  };
+}
+
+function settingsPath() {
+  return `${_instance}/config/settings.json`;
+}
+
+// ── Load settings from GitHub ─────────────────────────────────────────────────
+async function loadSettings() {
+  if (!hasCfg()) { document.getElementById('setup-modal').style.display = 'flex'; return; }
+  const cfg = getCfg();
+  setStatus('Loading…', '');
+  document.getElementById('btn-save').disabled = true;
+
+  try {
+    const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${settingsPath()}`;
+    const r   = await fetch(url, { headers: apiHeaders() });
+    if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+    const data = await r.json();
+    _sha       = data.sha;
+    const json = JSON.parse(atob(data.content.replace(/\n/g, '')));
+    _settings  = json;
+    populateForm(json);
+    document.getElementById('btn-save').disabled = false;
+    document.getElementById('last-loaded').textContent = 'Loaded ' + new Date().toLocaleTimeString();
+    document.getElementById('hdr-subtitle').textContent = `${_instance} — ${cfg.owner}/${cfg.repo}`;
+    setStatus('Settings loaded ✓', 'ok');
+  } catch(e) {
+    setStatus('Load failed: ' + e.message, 'err');
+    console.error(e);
+  }
+}
+
+// ── Populate form from settings object ───────────────────────────────────────
+function populateForm(s) {
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined) el.value = v; };
+
+  setVal('s-trading_mode',              s.trading_mode);
+  setVal('s-default_order_type',        s.default_order_type);
+  setVal('s-buy_execution_time',        s.buy_execution_time);
+  setVal('s-cash_reserve',              s.cash_reserve);
+  setVal('s-profit_target_pct',         s.profit_target_pct ?? s.default_profit_target_pct);
+  setVal('s-slots_count',               s.slots_count);
+  setVal('s-max_cash_per_stock',        s.max_cash_per_stock);
+  setVal('s-max_cash_per_transaction',  s.max_cash_per_transaction);
+  setVal('s-min_price_drop_pct',        s.min_price_drop_pct);
+  setVal('s-williams_r_threshold',      s.williams_r_threshold);
+  setVal('s-bnh_max_cash_per_etf',      s.bnh_max_cash_per_etf);
+  setVal('s-bnh_max_cash_per_transaction', s.bnh_max_cash_per_transaction);
+  setVal('s-bnh_partial_profit_pct',    s.bnh_partial_profit_pct);
+
+  _activeSym = [...(s.active_etfs  || [])];
+  _bnhSym    = [...(s.bnh_symbols  || [])];
+  renderChips('active');
+  renderChips('bnh');
+}
+
+// ── Collect form values into a settings object ────────────────────────────────
+function collectForm() {
+  const n  = id => parseFloat(document.getElementById(id)?.value) || 0;
+  const ni = id => parseInt(document.getElementById(id)?.value)   || 0;
+  const s  = id => document.getElementById(id)?.value || '';
+
+  return {
+    ..._settings,                                  // keep all existing keys
+    trading_mode:                  s('s-trading_mode'),
+    default_order_type:            s('s-default_order_type'),
+    buy_execution_time:            s('s-buy_execution_time'),
+    cash_reserve:                  n('s-cash_reserve'),
+    profit_target_pct:             n('s-profit_target_pct'),
+    default_profit_target_pct:     n('s-profit_target_pct'),
+    slots_count:                   ni('s-slots_count'),
+    max_cash_per_stock:            n('s-max_cash_per_stock'),
+    max_cash_per_transaction:      n('s-max_cash_per_transaction'),
+    min_price_drop_pct:            n('s-min_price_drop_pct'),
+    williams_r_threshold:          n('s-williams_r_threshold'),
+    bnh_max_cash_per_etf:          n('s-bnh_max_cash_per_etf'),
+    bnh_max_cash_per_transaction:  n('s-bnh_max_cash_per_transaction'),
+    bnh_partial_profit_pct:        n('s-bnh_partial_profit_pct'),
+    active_etfs:                   [..._activeSym],
+    bnh_symbols:                   [..._bnhSym],
+  };
+}
+
+// ── Save settings to GitHub ───────────────────────────────────────────────────
+async function saveSettings() {
+  const cfg = getCfg();
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  setStatus('Saving…', '');
+
+  try {
+    const updated = collectForm();
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(updated, null, 2))));
+    const now_ist = new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'});
+    const url     = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${settingsPath()}`;
+    const body    = {
+      message: `settings: ${_instance} updated via editor (${now_ist} IST)`,
+      content: content,
+      sha:     _sha,
+    };
+    const r = await fetch(url, { method: 'PUT', headers: apiHeaders(), body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+    const resp = await r.json();
+    _sha       = resp.content.sha;                  // update SHA for next save
+    _settings  = updated;
+    setStatus('✅ Saved to GitHub — bot picks up changes on next poll', 'ok');
+  } catch(e) {
+    setStatus('❌ Save failed: ' + e.message, 'err');
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── Symbol management ─────────────────────────────────────────────────────────
+function addSym(strategy, listKey) {
+  const ddId = `dd-${strategy}-${listKey}`;
+  const sel  = document.getElementById(ddId);
+  const sym  = sel?.value;
+  if (!sym) { alert('Select a symbol first.'); return; }
+
+  const arr    = strategy === 'active' ? _activeSym : _bnhSym;
+  const other  = strategy === 'active' ? _bnhSym    : _activeSym;
+  const oLabel = strategy === 'active' ? 'Dip Acc.' : 'Active';
+
+  if (arr.includes(sym))   { alert(`${sym} is already in this list.`); return; }
+  if (other.includes(sym)) { alert(`${sym} is already in ${oLabel} — a symbol can only be in one strategy.`); return; }
+
+  arr.push(sym);
+  renderChips(strategy);
+  sel.value = '';
+}
+
+function removeSym(strategy, sym) {
+  if (strategy === 'active') _activeSym = _activeSym.filter(s => s !== sym);
+  else                       _bnhSym    = _bnhSym.filter(s => s !== sym);
+  renderChips(strategy);
+}
+
+function renderChips(strategy) {
+  const arr = strategy === 'active' ? _activeSym : _bnhSym;
+  const el  = document.getElementById(`chips-${strategy}`);
+  if (!el) return;
+  if (!arr.length) {
+    el.innerHTML = '<span class="sym-chips-empty">None added</span>';
+    return;
+  }
+  el.innerHTML = arr.map(sym => `
+    <span class="chip">
+      ${sym}
+      <span class="rm" onclick="removeSym('${strategy}','${sym}')" title="Remove">✕</span>
+    </span>`).join('');
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+function setStatus(msg, cls) {
+  const el = document.getElementById('save-status');
+  el.textContent  = msg;
+  el.className    = 'status ' + (cls || '');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+// Pre-fill config inputs if already configured; do NOT load settings on page
+// load — loading is deferred until the user opens the Settings tab.
+if (hasCfg()) {
+  document.getElementById('setup-modal').style.display = 'none';
+  const cfg = getCfg();
+  document.getElementById('cfg-owner').value = cfg.owner || '';
+  document.getElementById('cfg-repo').value  = cfg.repo  || '';
+} else {
+  setStatus('Configure GitHub connection first', '');
+}
+
+
+// BOOT
+if(sessionStorage.getItem(PW_SESSION)==='1'){document.getElementById('pw-overlay').style.display='none';onUnlocked();}
+</script>
+</body>
+</html>
