@@ -2730,6 +2730,7 @@ function saveConfig() {
 // ── Instance switch ───────────────────────────────────────────────────────────
 function switchInstance(inst) {
   _instance = inst;
+  _settingsLoaded = false;   // ✅ reset so next Settings tab open reloads fresh
   document.querySelectorAll('.itab').forEach(b => b.classList.toggle('active', b.textContent.trim() === inst));
   setStatus('Switching to ' + inst + '…', '');
   loadSettings();
@@ -2915,13 +2916,6 @@ if (hasCfg()) {
   setStatus('Configure GitHub connection first', '');
 }
 
-
-// Reset _settingsLoaded when instance is switched so next tab open reloads
-const _origSwitchInstance = switchInstance;
-function switchInstance(inst) {
-  _settingsLoaded = false;
-  return _origSwitchInstance(inst);
-}
 
 // BOOT
 if(sessionStorage.getItem(PW_SESSION)==='1'){document.getElementById('pw-overlay').style.display='none';onUnlocked();}
