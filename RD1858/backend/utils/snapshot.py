@@ -236,32 +236,71 @@ def write_snapshot(dashboard_state: dict):
             pass
 
         # ── Available Cash + Margin ───────────────────────────────────────────
-        available_cash   = None
-        available_margin = None
+        # ✅ FIX: three bugs fixed here:
+        # 1. Used order_mgr.auth.session (shared with trading loop) — not thread-safe.
+        #    requests.Session is not safe for concurrent use; simultaneous order calls
+        #    can mutate headers mid-request causing 401/403 on this call.
+        #    Fix: build a fresh one-shot requests.Session with the same enctoken,
+        #    used only for this snapshot call and discarded immediately.
+        # 2. timeout=10 was too tight for GH Actions runners under load.
+        #    Fix: raised to 15 s with one automatic retry.
+        # 3. bare except: pass swallowed all errors silently.
+        #    Fix: log the reason so it appears in Actions logs; store reason string
+        #    in snapshot so dashboard can show specific error instead of "Unavailable".
+        available_cash        = None
+        available_margin      = None
+        available_margin_note = None   # surfaced to dashboard on failure
         try:
+            import requests as _req
             order_mgr = dashboard_state.get("order_manager")
             if order_mgr and hasattr(order_mgr, "auth") and order_mgr.auth:
-                from backend.core.config import Config
-                mresp = order_mgr.auth.session.get(
-                    f"{Config.ZERODHA_API_BASE}/oms/user/margins",
-                    timeout=10,
-                )
-                if mresp.status_code == 200:
-                    mdata      = mresp.json()
-                    equity     = mdata.get("data", {}).get("equity", {})
-                    avail      = equity.get("available", {})
-                    utilised   = equity.get("utilised",  {})
-                    net_bal    = float(avail.get("cash", 0)             or 0)  # settled cash (== opening_balance)
-                    open_bal   = float(avail.get("opening_balance", 0) or 0)
-                    collateral = float(avail.get("collateral", 0)       or 0)  # pledged securities margin
-                    debits     = float(utilised.get("debits", 0)        or 0)  # margin used by open positions
-                    # Available Cash = settled cash (opening_balance is most reliable; fall back to cash field)
-                    available_cash   = round(open_bal if open_bal > 0 else net_bal, 2)
-                    # Available Margin = collateral − used margin + available cash
-                    # Matches kite.zerodha.com/funds exactly (same as RD1858 routes.py formula)
-                    available_margin = round(collateral - debits + available_cash, 2)
-        except Exception:
-            pass
+                auth_mgr = order_mgr.auth
+                enctoken = getattr(auth_mgr, "enctoken", None)
+                if not enctoken:
+                    available_margin_note = "enctoken not available"
+                else:
+                    from backend.core.config import Config
+                    # ✅ FIX 1: fresh isolated session — no shared state with trading loop
+                    _snap_session = _req.Session()
+                    _snap_session.headers.update({
+                        "Authorization": f"enctoken {enctoken}",
+                        "X-Kite-Version": "3",
+                    })
+                    margins_url = f"{Config.ZERODHA_API_BASE}/oms/user/margins"
+                    mresp = None
+                    for _attempt in range(2):   # ✅ FIX 2: one retry on failure
+                        try:
+                            mresp = _snap_session.get(margins_url, timeout=15)
+                            break
+                        except _req.exceptions.Timeout:
+                            if _attempt == 0:
+                                import time as _time; _time.sleep(2)
+                            else:
+                                available_margin_note = "timeout after retry"
+                        except Exception as _e:
+                            available_margin_note = f"request error: {_e}"
+                            break
+                    if mresp is not None:
+                        if mresp.status_code == 200:
+                            mdata      = mresp.json()
+                            equity     = mdata.get("data", {}).get("equity", {})
+                            avail      = equity.get("available", {})
+                            utilised   = equity.get("utilised",  {})
+                            net_bal    = float(avail.get("cash", 0)             or 0)
+                            open_bal   = float(avail.get("opening_balance", 0) or 0)
+                            collateral = float(avail.get("collateral", 0)       or 0)
+                            debits     = float(utilised.get("debits", 0)        or 0)
+                            available_cash   = round(open_bal if open_bal > 0 else net_bal, 2)
+                            available_margin = round(collateral - debits + available_cash, 2)
+                        else:
+                            # ✅ FIX 3: surface HTTP error code to dashboard
+                            available_margin_note = f"HTTP {mresp.status_code}"
+                            import sys as _sys
+                            print(f"[snapshot] margins API error: HTTP {mresp.status_code} — {mresp.text[:200]}", file=_sys.stderr)
+        except Exception as _me:
+            available_margin_note = str(_me)[:80]
+            import sys as _sys
+            print(f"[snapshot] margins fetch exception: {_me}", file=_sys.stderr)
 
         # ── Today's Net Positions ─────────────────────────────────────────────
         positions_data = []
@@ -317,6 +356,7 @@ def write_snapshot(dashboard_state: dict):
             "orders":           orders,
             "available_cash":   available_cash,
             "available_margin": available_margin,
+            "available_margin_note": available_margin_note,
         }
 
         SNAPSHOT_PATH.write_text(json.dumps(snapshot, indent=2))
