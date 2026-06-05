@@ -316,7 +316,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
   .status.err { color: var(--danger); }
 
   /* Setup modal */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: flex; align-items: flex-start; justify-content: center; z-index: 1000; overflow-y: auto; padding-top: max(40px, 10vh); }
   .modal { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; width: 480px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
   .modal h2 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; color: var(--text); }
   .modal p { font-size: 0.8rem; color: var(--muted); margin-bottom: 18px; line-height: 1.5; }
@@ -376,8 +376,8 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 </div>
 
 <!-- SET-PASSWORD MODAL (replaces browser prompt() which is blocked on gh-pages) -->
-<div class="modal-overlay" id="setpw-modal" style="display:none;z-index:9995">
-  <div class="modal" style="max-width:380px">
+<div class="modal-overlay" id="setpw-modal" style="display:none;z-index:9995;padding-bottom:max(24px,env(safe-area-inset-bottom))">
+  <div class="modal" style="max-width:380px;margin-bottom:24px">
     <h2>🔐 Set Dashboard Password</h2>
     <p>Choose a password to protect this dashboard. It is hashed and stored only in your browser.</p>
     <input id="setpw-1" type="password" placeholder="New password" autocomplete="new-password"
@@ -2227,8 +2227,14 @@ function showSetPw(){
   document.getElementById('setpw-1').value='';
   document.getElementById('setpw-2').value='';
   document.getElementById('setpw-err').textContent='';
-  document.getElementById('setpw-modal').style.display='flex';
-  setTimeout(()=>document.getElementById('setpw-1').focus(),50);
+  const modal=document.getElementById('setpw-modal');
+  modal.style.display='flex';
+  // On mobile, focus() inside setTimeout breaks the user-gesture chain
+  // (iOS Safari silently ignores it). Focus directly — or skip on touch devices.
+  const isTouchDevice=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+  if(!isTouchDevice){
+    setTimeout(()=>document.getElementById('setpw-1').focus(),50);
+  }
 }
 function confirmSetPw(){
   const p1=document.getElementById('setpw-1').value;
