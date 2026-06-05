@@ -202,6 +202,39 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 /* ── config note ── */
 #cfg-note{display:none;background:#f8fafc;border-bottom:1px solid var(--border2);padding:10px 20px;font-size:11px;color:var(--muted2)}
 #cfg-note a{color:var(--accent);text-decoration:none}
+/* ── strategy reference ── */
+.strat-section{padding:20px 20px 6px}
+.strat-hd{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.strat-badge{font-size:10px;padding:3px 10px;border-radius:4px;font-family:var(--head);font-weight:700;letter-spacing:.04em;white-space:nowrap}
+.strat-title{font-family:var(--head);font-size:15px;font-weight:700;color:var(--text)}
+.strat-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:14px}
+@media(max-width:680px){.strat-cols{grid-template-columns:1fr}}
+.strat-col p{font-size:12px;color:var(--muted2);line-height:1.7}
+.strat-block-title{font-family:var(--head);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.strat-divider{height:1px;background:var(--border);margin:14px 0}
+.strat-strategy-divider{height:2px;background:var(--border2);margin:20px 0}
+.strat-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:6px}
+.strat-tbl tr{border-bottom:1px solid var(--border)}
+.strat-tbl tr:last-child{border-bottom:none}
+.strat-td-key{padding:5px 10px 5px 0;color:var(--muted2);font-weight:500;white-space:nowrap;vertical-align:top;min-width:140px}
+.strat-tbl td:last-child{padding:5px 0;color:var(--text);line-height:1.6}
+.strat-trigger-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:6px}
+.strat-trigger{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:11px 13px}
+.strat-trigger-label{font-family:var(--head);font-size:10px;font-weight:700;color:var(--accent);margin-bottom:4px;letter-spacing:.03em}
+.strat-trigger-rule{font-family:var(--mono);font-size:11px;color:var(--text);margin-bottom:5px;background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:3px 7px}
+.strat-trigger-note{font-size:11px;color:var(--muted2);line-height:1.6}
+.strat-tier-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:4px}
+@media(max-width:680px){.strat-tier-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}}
+.strat-tier{border-radius:6px;border:1px solid var(--border);padding:9px 10px;text-align:center}
+.t1{background:rgba(37,99,235,0.04);border-color:rgba(37,99,235,.15)}
+.t2{background:rgba(37,99,235,0.08);border-color:rgba(37,99,235,.25)}
+.t3{background:rgba(37,99,235,0.13);border-color:rgba(37,99,235,.35)}
+.t4{background:rgba(37,99,235,0.20);border-color:rgba(37,99,235,.45)}
+.t5{background:rgba(37,99,235,0.28);border-color:rgba(37,99,235,.55)}
+.strat-tier-wr{font-family:var(--head);font-size:11px;font-weight:700;color:var(--blue);margin-bottom:3px}
+.strat-tier-pct{font-family:var(--head);font-size:13px;font-weight:800;color:var(--text)}
+.strat-tier-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:1px 5px;color:var(--accent)}
 </style>
 </head>
 <body>
@@ -238,17 +271,20 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
   <div class="two-col">
     <!-- Holdings -->
     <div class="panel">
-      <div class="ph"><span class="pt">Holdings</span><span class="pb" id="h-count">—</span></div>
+      <div class="ph">
+        <span class="pt">Holdings</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div id="h-pnl-wrap" style="display:none;text-align:right">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Total P&amp;L</div>
+            <span id="h-total-pnl" style="font-family:var(--head);font-size:14px;font-weight:700">—</span>
+          </div>
+          <span class="pb" id="h-count">—</span>
+        </div>
+      </div>
       <div class="scroll">
         <table class="tbl">
-          <thead><tr><th>Symbol</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>Cur. Val</th><th>P&L</th></tr></thead>
+          <thead><tr><th>Symbol</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>Cur. Val</th><th>P&amp;L</th></tr></thead>
           <tbody id="h-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
-          <tfoot id="h-foot" style="display:none">
-            <tr style="border-top:2px solid var(--border2);background:var(--bg3)">
-              <td colspan="5" style="padding:8px 15px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2);font-weight:600">Total P&amp;L</td>
-              <td style="padding:8px 15px;text-align:right;font-family:var(--head);font-size:14px;font-weight:700" id="h-total-pnl">—</td>
-            </tr>
-          </tfoot>
         </table>
       </div>
     </div>
@@ -289,16 +325,10 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
         </div>
       </div>
     </div>
-  </div>
+  </div><!-- /two-col -->
 
-  <!-- Slot Matrix full-width — swapped above Williams %R -->
+  <!-- Williams %R — directly below Holdings -->
   <div class="panel" style="margin-bottom:14px">
-    <div class="ph"><span class="pt">Slot Matrix</span><span style="font-size:10px;color:var(--muted)">Active strategy + Dip Accumulator (B&amp;H)</span></div>
-    <div class="slots-wrap" id="slots-wrap"><div class="empty">Loading…</div></div>
-  </div>
-
-  <!-- Williams %R full-width — below Slot Matrix -->
-  <div class="panel">
     <div class="ph"><span class="pt">Williams %R</span><span style="font-size:10px;color:var(--muted)">≤ −75 oversold → BUY zone</span></div>
     <div class="scroll">
       <table class="tbl" id="wr-tbl">
@@ -306,6 +336,200 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
       </table>
     </div>
   </div>
+
+  <!-- Slot Matrix full-width -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="ph"><span class="pt">Slot Matrix</span><span style="font-size:10px;color:var(--muted)">Active strategy + Dip Accumulator (B&amp;H)</span></div>
+    <div class="slots-wrap" id="slots-wrap"><div class="empty">Loading…</div></div>
+  </div>
+  <!-- ── Strategy Reference ──────────────────────────────────────────────── -->
+  <div class="panel" id="strategy-ref" style="margin-bottom:0">
+    <div class="ph" style="cursor:pointer;user-select:none" onclick="toggleStrategy()">
+      <span class="pt">Strategy Reference</span>
+      <span id="strat-toggle" class="pb" style="font-size:11px;letter-spacing:.03em">▼ Show</span>
+    </div>
+    <div id="strat-body" style="display:none">
+
+      <!-- Active Strategy -->
+      <div class="strat-section">
+        <div class="strat-hd">
+          <span class="strat-badge" style="background:var(--acc-d);color:var(--accent);border:1px solid rgba(99,102,241,.3)">Active Strategy</span>
+          <span class="strat-title">ETF Momentum Dip Buyer</span>
+        </div>
+
+        <div class="strat-cols">
+          <div class="strat-col">
+            <div class="strat-block-title">OBJECTIVE</div>
+            <p>Systematically accumulate oversold ETF positions at market dips and exit once a target profit is reached, deploying LIQUIDCASE (a liquid debt ETF) as a float rather than holding idle cash. Every rupee is always working: either in an ETF position or in LIQUIDCASE earning carry.</p>
+          </div>
+
+          <div class="strat-col">
+            <div class="strat-block-title">UNIVERSE</div>
+            <p>A curated basket of NSE-listed ETFs configured in <code>active_etfs</code> (currently: MON100, GOLDBEES, SILVERBEES, JUNIORBEES, MINDSPACE-RR, EMBASSY-RR, BANKBEES). No symbol may appear in both Active and Dip Accumulator lists — validated at settings save.</p>
+          </div>
+        </div>
+
+        <div class="strat-divider"></div>
+
+        <div class="strat-block-title">BUY ENTRY — THREE TRIGGERS (any one fires)</div>
+        <div class="strat-trigger-grid">
+          <div class="strat-trigger">
+            <div class="strat-trigger-label">Trigger A — Deep Oversold</div>
+            <div class="strat-trigger-rule">W%R(14) ≤ <code>williams_r_threshold</code> (default −75)</div>
+            <div class="strat-trigger-note">No price-drop confirmation required. A deeply oversold W%R alone is sufficient to fire a first-slot entry.</div>
+          </div>
+          <div class="strat-trigger">
+            <div class="strat-trigger-label">Trigger B — Moderate Oversold + Drop</div>
+            <div class="strat-trigger-rule">W%R(14) ≤ −60 AND price fell ≥ <code>min_price_drop_pct</code>% from prior close</div>
+            <div class="strat-trigger-note">Catches the zone between −60 and the threshold where oversold alone isn't decisive; a confirmed price drop adds conviction.</div>
+          </div>
+          <div class="strat-trigger">
+            <div class="strat-trigger-label">Trigger C — Gap Filler</div>
+            <div class="strat-trigger-rule">W%R(14) ≤ −75 AND price fell ≥ <code>min_price_drop_pct</code>%</div>
+            <div class="strat-trigger-note">Fills the gap when the threshold is set tighter (e.g. −80) and Triggers A/B both miss a symbol at W%R −78 with a small drop.</div>
+          </div>
+        </div>
+
+        <div class="strat-divider"></div>
+
+        <div class="strat-cols">
+          <div class="strat-col">
+            <div class="strat-block-title">SLOT SYSTEM (position scaling)</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Slot 1 (first entry)</td><td>Any trigger fires, symbol not yet held, no prior buy today. Fires immediately or at scheduled time.</td></tr>
+              <tr><td class="strat-td-key">Slot 2 + (averaging down)</td><td>Symbol already held AND live price ≥ <code>min_price_drop_pct</code>% below blended avg buy price AND any trigger still active. Same flat % required for every additional slot — not cumulative.</td></tr>
+              <tr><td class="strat-td-key">Max slots</td><td><code>slots_count</code> buys per symbol per day (default 5). Counter resets at midnight; avg price persists across sessions.</td></tr>
+              <tr><td class="strat-td-key">Cooldown</td><td>5-minute lockout after each confirmed buy. One execution attempt per symbol per session (prevents duplicate orders if confirmation lags).</td></tr>
+            </table>
+          </div>
+
+          <div class="strat-col">
+            <div class="strat-block-title">SELL EXIT</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Trigger</td><td>Live price ≥ <code>profit_target_pct</code>% above blended avg buy price (default 3%).</td></tr>
+              <tr><td class="strat-td-key">Quantity</td><td>Full position — all held units sold in one order.</td></tr>
+              <tr><td class="strat-td-key">Proceeds recycled</td><td>ETF sell proceeds → LIQUIDCASE BUY (top-bid LIMIT). Cash is never left idle.</td></tr>
+              <tr><td class="strat-td-key">Reset</td><td>profit_target_pct and test_quantity reset to their saved defaults after each successful sell.</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="strat-divider"></div>
+
+        <div class="strat-cols">
+          <div class="strat-col">
+            <div class="strat-block-title">ORDER MECHANICS</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Buy sizing</td><td>Budget = <code>max_cash_per_transaction</code>. ETF qty = floor(budget / LTP). If max_qty_per_trade is set, quantity is further capped.</td></tr>
+              <tr><td class="strat-td-key">Funding</td><td>Spendable cash used first; LIQUIDCASE sold only for the shortfall (ceil division). Cash reserve of ₹<code>cash_reserve</code> is always protected.</td></tr>
+              <tr><td class="strat-td-key">Order type</td><td>LIMIT by default — BUY at top-bid, SELL at top-ask from market depth. Falls back to LTP if depth is unavailable.</td></tr>
+              <tr><td class="strat-td-key">Market hours gate</td><td>Buy execution blocked outside 09:15–15:25 IST. AMO auto-retry fires if a regular order is rejected outside hours.</td></tr>
+              <tr><td class="strat-td-key">Cash guard</td><td>Zerodha margin polled up to 45 s after LIQUIDCASE sell before placing the ETF buy, ensuring proceeds are credited first.</td></tr>
+            </table>
+          </div>
+          <div class="strat-col">
+            <div class="strat-block-title">RISK CONTROLS</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Per-stock cap</td><td><code>max_cash_per_stock</code>: total deployed per symbol never exceeds this. Guards against over-concentration in a single ETF.</td></tr>
+              <tr><td class="strat-td-key">LIQUIDCASE floor</td><td>If LIQUIDCASE value &lt; <code>max_cash_per_transaction</code>, no new buy is queued — ensures float is never depleted below one transaction size.</td></tr>
+              <tr><td class="strat-td-key">Dry-run mode</td><td>All orders logged but not placed. Simulates full execution logic including LIQUIDCASE swaps.</td></tr>
+              <tr><td class="strat-td-key">Auth watchdog</td><td>Any HTTP 403 from Zerodha triggers an exit-2 signal to the launcher, which re-authenticates and resumes automatically.</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="strat-divider"></div>
+        <div class="strat-block-title">INDICATOR — Williams %R (14-period daily)</div>
+        <p style="font-size:12px;color:var(--muted2);line-height:1.7;margin-top:6px">
+          W%R = −100 × (Highest High<sub>14</sub> − Close) / (Highest High<sub>14</sub> − Lowest Low<sub>14</sub>).
+          Ranges from 0 (overbought) to −100 (oversold). Today's candle is formed live using intraday high/low/LTP so the signal updates in real time through the session. Historical period uses daily OHLCV; the live candle replaces the incomplete current bar.
+        </p>
+      </div>
+
+      <div class="strat-divider strat-strategy-divider"></div>
+
+      <!-- Dip Accumulator Strategy -->
+      <div class="strat-section">
+        <div class="strat-hd">
+          <span class="strat-badge" style="background:var(--blue-d);color:var(--blue);border:1px solid rgba(59,130,246,.3)">Dip Accumulator (B&amp;H)</span>
+          <span class="strat-title">Long-Term Position Builder via Tiered Dip Buying</span>
+        </div>
+
+        <div class="strat-cols">
+          <div class="strat-col">
+            <div class="strat-block-title">OBJECTIVE</div>
+            <p>Build a long-term accumulation position in broad-market index ETFs (e.g. MID150BEES) by buying in proportionally larger tranches the deeper the price falls, measured by Williams %R oversold depth. Partial profits are harvested periodically to recycle capital while maintaining the core holding.</p>
+          </div>
+          <div class="strat-col">
+            <div class="strat-block-title">UNIVERSE</div>
+            <p>Symbols listed in <code>bnh_symbols</code> (currently: MID150BEES). Each symbol runs its own independent state, tier-firing set, and trade log. Multiple symbols supported simultaneously, each with separate caps and slot tracking.</p>
+          </div>
+        </div>
+
+        <div class="strat-divider"></div>
+
+        <div class="strat-block-title">5-TIER EXPONENTIAL SIZING — buy bigger the deeper the dip</div>
+        <div class="strat-tier-grid">
+          <div class="strat-tier t1"><div class="strat-tier-wr">W%R ≤ −60</div><div class="strat-tier-pct">5% of max ETF cap</div><div class="strat-tier-lbl">Tier 1 — Probe</div></div>
+          <div class="strat-tier t2"><div class="strat-tier-wr">W%R ≤ −70</div><div class="strat-tier-pct">10% of max ETF cap</div><div class="strat-tier-lbl">Tier 2 — Build</div></div>
+          <div class="strat-tier t3"><div class="strat-tier-wr">W%R ≤ −80</div><div class="strat-tier-pct">20% of max ETF cap</div><div class="strat-tier-lbl">Tier 3 — Add</div></div>
+          <div class="strat-tier t4"><div class="strat-tier-wr">W%R ≤ −90</div><div class="strat-tier-pct">30% of max ETF cap</div><div class="strat-tier-lbl">Tier 4 — Load</div></div>
+          <div class="strat-tier t5"><div class="strat-tier-wr">W%R ≤ −95</div><div class="strat-tier-pct">35% of max ETF cap</div><div class="strat-tier-lbl">Tier 5 — Max Load</div></div>
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px">Each tier fires at most once per dip cycle. Tiers re-arm when W%R recovers above −40 (dip cycle reset). Total allocation across all five tiers = 100% of <code>bnh_max_cash_per_etf</code>.</p>
+
+        <div class="strat-divider"></div>
+
+        <div class="strat-cols">
+          <div class="strat-col">
+            <div class="strat-block-title">BUY ENTRY CONDITIONS</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Signal</td><td>Daily W%R(14) ≤ −60 (oversold threshold, hardcoded for BnH).</td></tr>
+              <tr><td class="strat-td-key">Subsequent buys</td><td>Live price must be ≥ 0.5% below current avg buy price before adding. Prevents buying into a position that has recovered.</td></tr>
+              <tr><td class="strat-td-key">Execution time</td><td>Checks every 15 s. Fires at 3:15 PM IST by default, or anytime if <code>buy_execution_time = "anytime"</code>.</td></tr>
+              <tr><td class="strat-td-key">Per-symbol cap</td><td>Cumulative deployed per symbol capped at <code>bnh_max_cash_per_etf</code> (₹10L). Per-transaction capped at <code>bnh_max_cash_per_transaction</code> (₹30K).</td></tr>
+              <tr><td class="strat-td-key">One buy per day</td><td><code>buy_attempted_today</code> flag prevents multiple entries in the same session. Resets at midnight.</td></tr>
+            </table>
+          </div>
+
+          <div class="strat-col">
+            <div class="strat-block-title">PARTIAL PROFIT HARVEST</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Trigger</td><td>Live P&amp;L ≥ <code>bnh_partial_profit_pct</code>% (currently 7%) above blended avg buy price.</td></tr>
+              <tr><td class="strat-td-key">Quantity</td><td>50% of held position sold — core holding preserved for further accumulation.</td></tr>
+              <tr><td class="strat-td-key">Cooldown</td><td>30-day lock after each harvest. Prevents churning the position in a volatile recovery.</td></tr>
+              <tr><td class="strat-td-key">Order type</td><td>LIMIT at top-ask from market depth; falls back to LTP if depth unavailable.</td></tr>
+              <tr><td class="strat-td-key">No full sell</td><td>Unlike Active Strategy, BnH does not sell the full position at a fixed profit target. The position is held indefinitely and only partially trimmed.</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="strat-divider"></div>
+
+        <div class="strat-cols">
+          <div class="strat-col">
+            <div class="strat-block-title">EXECUTION &amp; FUNDING</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Funding source</td><td>Available cash used first; LIQUIDCASE sold for any shortfall, same smart-buy flow as Active Strategy.</td></tr>
+              <tr><td class="strat-td-key">Order type</td><td>LIMIT at top-ask (BUY) / top-bid (SELL) from depth. Shared <code>default_order_type</code> setting.</td></tr>
+              <tr><td class="strat-td-key">Thread</td><td>Runs in a dedicated background thread (<code>BnHEngine</code>), independent of the main signal loop. Each symbol checked every 15 s.</td></tr>
+            </table>
+          </div>
+          <div class="strat-col">
+            <div class="strat-block-title">KEY DIFFERENCES FROM ACTIVE STRATEGY</div>
+            <table class="strat-tbl">
+              <tr><td class="strat-td-key">Hold duration</td><td>Indefinite vs. Active's fixed profit-target exit.</td></tr>
+              <tr><td class="strat-td-key">Sell behaviour</td><td>Partial harvest (50%) only vs. Active's full position exit.</td></tr>
+              <tr><td class="strat-td-key">Position sizing</td><td>Exponential tier fractions vs. Active's flat per-transaction budget.</td></tr>
+              <tr><td class="strat-td-key">Oversold threshold</td><td>Fixed −60 (BnH) vs. configurable <code>williams_r_threshold</code> (Active).</td></tr>
+              <tr><td class="strat-td-key">Symbol exclusivity</td><td>No symbol may be in both lists — enforced at settings save.</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /strat-body -->
+  </div><!-- /strategy-ref panel -->
 </main>
 
 <script>
@@ -425,18 +649,18 @@ function render(data) {
     </tr>`;
   }).join("") : `<tr><td colspan="6" class="empty">No holdings</td></tr>`;
 
-  // Holdings Total P&L footer
-  const hFoot = document.getElementById("h-foot");
+  // Holdings Total P&L — shown in panel header
+  const hPnlWrap = document.getElementById("h-pnl-wrap");
   const totalPnlEl = document.getElementById("h-total-pnl");
   if (holdings.length) {
     const totalPnl = holdings.reduce((sum, h) => sum + (h.pnl ?? 0), 0);
     const costBasis = holdings.reduce((sum, h) => sum + ((h.avg ?? 0) * (h.quantity ?? 0)), 0);
     const totalPnlPct = costBasis > 0 ? (totalPnl / costBasis) * 100 : 0;
-    hFoot.style.display = "";
+    hPnlWrap.style.display = "";
     totalPnlEl.textContent = (totalPnl >= 0 ? "+" : "") + fmtL(totalPnl) + "  " + fmtPct(totalPnlPct);
     totalPnlEl.className = totalPnl > 0 ? "pos" : totalPnl < 0 ? "neg" : "";
   } else {
-    hFoot.style.display = "none";
+    hPnlWrap.style.display = "none";
   }
 
   // Cash bar (deployed capital)
@@ -675,6 +899,14 @@ function switchAccount(acc) {
   document.getElementById("tab-" + acc.toLowerCase()).classList.add("active");
   clearTimeout(timer);
   refreshAll();
+}
+
+function toggleStrategy() {
+  const body = document.getElementById("strat-body");
+  const btn  = document.getElementById("strat-toggle");
+  const open = body.style.display === "none" || body.style.display === "";
+  body.style.display = open ? "block" : "none";
+  btn.textContent    = open ? "▲ Hide" : "▼ Show";
 }
 
 document.addEventListener("DOMContentLoaded", refreshAll);
