@@ -1,14 +1,14 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-06-05 12:17:53 IST",
+  "timestamp": "2026-06-05 12:20:04 IST",
   "bot_running": true,
-  "total_value": 9450037.62,
-  "today_pnl": -1439.07,
-  "today_pnl_pct": -0.02,
+  "total_value": 9449333.8,
+  "today_pnl": -1351.38,
+  "today_pnl_pct": -0.01,
   "liquidcase": {
     "quantity": 79151,
-    "price": 114.43,
-    "value": 9057248.93,
+    "price": 114.42,
+    "value": 9056457.42,
     "pct": 95.84
   },
   "slots": {
@@ -34,20 +34,20 @@
       "symbol": "BANKBEES",
       "quantity": 34,
       "avg": 550.41,
-      "ltp": 564.25,
-      "value": 19184.5,
-      "pnl": 101.32,
-      "pnl_pct": 0.53,
+      "ltp": 564.54,
+      "value": 19194.36,
+      "pnl": 111.18,
+      "pnl_pct": 0.58,
       "strategy": "active"
     },
     {
       "symbol": "GOLDBEES",
       "quantity": 547,
       "avg": 127.75,
-      "ltp": 127.67,
-      "value": 69835.49,
-      "pnl": -454.01,
-      "pnl_pct": -0.65,
+      "ltp": 127.68,
+      "value": 69840.96,
+      "pnl": -448.54,
+      "pnl_pct": -0.64,
       "strategy": "active"
     },
     {
@@ -84,10 +84,10 @@
       "symbol": "SILVERBEES",
       "quantity": 402,
       "avg": 247.46,
-      "ltp": 242.8,
-      "value": 97605.6,
-      "pnl": -1511.52,
-      "pnl_pct": -1.52,
+      "ltp": 242.98,
+      "value": 97677.96,
+      "pnl": -1439.16,
+      "pnl_pct": -1.45,
       "strategy": "active"
     }
   ],
@@ -108,9 +108,9 @@
       "symbol": "NIFTY2660925200CE",
       "quantity": -20085,
       "avg": 1.57,
-      "ltp": 1.2,
-      "pnl": 7341.75,
-      "unrealised": 7341.75,
+      "ltp": 1.15,
+      "pnl": 8346.0,
+      "unrealised": 8346.0,
       "realised": 0.0,
       "buy_qty": 0,
       "sell_qty": 20085,
@@ -120,9 +120,9 @@
       "symbol": "SILVERBEES",
       "quantity": 2,
       "avg": 244.92,
-      "ltp": 242.6,
-      "pnl": -4.64,
-      "unrealised": -4.64,
+      "ltp": 242.98,
+      "pnl": -3.88,
+      "unrealised": -3.88,
       "realised": 0.0,
       "buy_qty": 2,
       "sell_qty": 0,
@@ -141,18 +141,18 @@
     },
     {
       "symbol": "GOLDBEES",
-      "ltp": 127.67,
-      "change_pct": -0.65,
-      "williams_r": -85.5,
+      "ltp": 127.68,
+      "change_pct": -0.64,
+      "williams_r": -85.33,
       "is_held": true,
       "avg_price": 127.75,
       "strategy": "active"
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 242.8,
-      "change_pct": -1.52,
-      "williams_r": -89.0,
+      "ltp": 242.98,
+      "change_pct": -1.45,
+      "williams_r": -87.9,
       "is_held": true,
       "avg_price": 247.45,
       "strategy": "active"
@@ -177,18 +177,18 @@
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 429.48,
-      "change_pct": 0.23,
-      "williams_r": -46.57,
+      "ltp": 429.3,
+      "change_pct": 0.19,
+      "williams_r": -47.42,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 564.25,
-      "change_pct": 0.53,
-      "williams_r": -34.74,
+      "ltp": 564.54,
+      "change_pct": 0.58,
+      "williams_r": -33.7,
       "is_held": true,
       "avg_price": 550.41,
       "strategy": "active"
@@ -204,19 +204,7 @@
     }
   ],
   "signals": [],
-  "orders": [
-    {
-      "order_id": "260605150182207",
-      "tradingsymbol": "SILVERBEES",
-      "transaction_type": "BUY",
-      "quantity": 2,
-      "filled_quantity": 2,
-      "average_price": 244.92,
-      "price": 244.92,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-05 09:27:31"
-    }
-  ],
+  "orders": [],
   "available_cash": 7466.8,
-  "available_margin": 2172425.43
+  "available_margin": 2174153.52
 }
