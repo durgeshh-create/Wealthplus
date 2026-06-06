@@ -48,6 +48,18 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 .rbtn.spin{animation:rspin .8s linear infinite}
 @keyframes rspin{to{transform:rotate(360deg)}}
 
+/* ── market ticker ── */
+.ticker-strip{display:flex;align-items:center;gap:18px;padding:0 18px;flex-shrink:0}
+.ticker-item{display:flex;align-items:center;gap:6px;font-size:11px;white-space:nowrap;cursor:default}
+.ticker-label{color:var(--muted);font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+.ticker-val{font-family:var(--mono);font-weight:700;color:var(--text);font-size:12px}
+.ticker-chg{font-size:10px;font-family:var(--mono)}
+.ticker-chg.up{color:var(--green)}
+.ticker-chg.dn{color:var(--red)}
+.ticker-sep{width:1px;height:28px;background:var(--border);opacity:.6}
+@media(max-width:860px){.ticker-strip{gap:10px;padding:0 8px}.ticker-label{display:none}.ticker-val{font-size:11px}}
+@media(max-width:600px){.ticker-strip{display:none}}
+
 /* ── tabs ── */
 .tabs{display:flex;background:var(--bg2);border-bottom:2px solid var(--border);padding:0 20px}
 .tab{padding:10px 18px;font-size:12px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-family:var(--head);font-weight:700;letter-spacing:.02em;transition:all .15s}
@@ -379,6 +391,28 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 <!-- APP HEADER -->
 <header>
   <div class="logo"><h1>WealthAlgo</h1><span class="sub">Live Dashboard</span></div>
+
+  <!-- ── Market Ticker ── -->
+  <div class="ticker-strip" id="market-ticker">
+    <div class="ticker-item" title="Nifty 50">
+      <span class="ticker-label">N50</span>
+      <span class="ticker-val" id="tk-nifty">—</span>
+      <span class="ticker-chg" id="tk-nifty-chg"></span>
+    </div>
+    <div class="ticker-sep"></div>
+    <div class="ticker-item" title="India VIX">
+      <span class="ticker-label">VIX</span>
+      <span class="ticker-val" id="tk-vix">—</span>
+      <span class="ticker-chg" id="tk-vix-chg"></span>
+    </div>
+    <div class="ticker-sep"></div>
+    <div class="ticker-item" title="GIFT Nifty">
+      <span class="ticker-label">GIFT</span>
+      <span class="ticker-val" id="tk-gift">—</span>
+      <span class="ticker-chg" id="tk-gift-chg"></span>
+    </div>
+  </div>
+
   <div class="hdr-right">
     <div class="pill"><div class="dot" id="bot-dot"></div><span id="bot-txt">Loading&hellip;</span></div>
     <span class="ts" id="last-ts">&mdash;</span>
@@ -2614,6 +2648,7 @@ async function refreshAll() {
   el.textContent = tsText;
 
   render(data);
+  updateMarketTicker(data);
 
   clearTimeout(timer);
   timer = setTimeout(refreshAll, INTERVAL);
@@ -2637,6 +2672,43 @@ function toggleStrategy() {
 }
 
 document.addEventListener("DOMContentLoaded", refreshAll);
+
+// ── Market Ticker — reads from data.indices (pushed by snapshot writer) ───────
+function updateMarketTicker(data) {
+  const indices = data?.indices || {};
+
+  function setTicker(valId, chgId, idxName, decimals) {
+    const d = indices[idxName];
+    const valEl = document.getElementById(valId);
+    const chgEl = document.getElementById(chgId);
+    if (!valEl || !chgEl) return;
+
+    if (!d || d.ltp == null) {
+      valEl.textContent = "—";
+      chgEl.textContent = "";
+      chgEl.className = "ticker-chg";
+      return;
+    }
+
+    valEl.textContent = d.ltp.toLocaleString("en-IN", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+
+    if (d.change_pct != null) {
+      const sign = d.change_pct >= 0 ? "+" : "";
+      chgEl.textContent = `${sign}${d.change_pct.toFixed(2)}%`;
+      chgEl.className = "ticker-chg " + (d.change_pct >= 0 ? "up" : "dn");
+    } else {
+      chgEl.textContent = "";
+      chgEl.className = "ticker-chg";
+    }
+  }
+
+  setTicker("tk-nifty",  "tk-nifty-chg",  "NIFTY 50",   2);
+  setTicker("tk-vix",    "tk-vix-chg",    "INDIA VIX",  2);
+  setTicker("tk-gift",   "tk-gift-chg",   "GIFT NIFTY", 2);
+}
 
 
 // SETTINGS JS
