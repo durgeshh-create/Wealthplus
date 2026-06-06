@@ -2161,8 +2161,7 @@ async function sha256(s) {
 async function checkPw() {
   const v = document.getElementById('pw-input').value;
   if (!v) { pwErr('Enter your password.'); return; }
-  if (_BAKED_HASH === '408311ba9b03d5d2d41463f1b49280625f826a70a7dc5ccd92d0b41b93b26be2' || !_BAKED_HASH) {
-    // Placeholder was never replaced — secret not set yet
+  if (!_BAKED_HASH) {
     pwErr('⚠ Password not configured. Add DASHBOARD_PW_HASH to GitHub Secrets.');
     return;
   }
