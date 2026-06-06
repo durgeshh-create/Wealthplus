@@ -21,10 +21,6 @@ SNAPSHOT_PATH = Path("/tmp/status_rd1858.json")
 ACCOUNT       = "RD1858"
 INTERVAL_SEC  = 120   # write every 2 minutes (was 300 — caused >10 min lag)
 
-# Last-known-good index values — persists across snapshot cycles so a
-# momentary WebSocket drop / reconnect gap never wipes the ticker to '—'
-_index_cache: dict = {}
-
 
 def _load_settings() -> dict:
     settings_path = Path(__file__).parent.parent.parent / "config" / "settings.json"
@@ -330,80 +326,30 @@ def write_snapshot(dashboard_state: dict):
         except Exception:
             pass
 
-        # ── Market indices — mirrors working routes.py implementation ─────
-        # Uses realtime.instrument_tokens to look up numeric token dynamically,
-        # then calls /oms/quote with EXCHANGE:TOKEN format (same as routes.py).
-        # auth_manager.session has correct headers (Authorization: enctoken X,
-        # no X-Kite-Version which would cause 400 on OMS endpoints).
-        INDEX_NAMES = ["NIFTY 50", "INDIA VIX", "GIFT NIFTY"]
+        # ── Market indices (NIFTY 50, INDIA VIX) ─────────────────────────────
         indices = {}
         try:
-            import sys as _sys
-            realtime_mgr = dashboard_state.get("realtime_manager")
-            order_mgr    = dashboard_state.get("order_manager")
-            auth_obj     = order_mgr.auth if order_mgr and hasattr(order_mgr, "auth") else None
-
-            if auth_obj and realtime_mgr and hasattr(realtime_mgr, "instrument_tokens"):
-                from backend.core.config import Config
-                base = f"{Config.ZERODHA_API_BASE}/oms/quote"
-
-                for idx_name in INDEX_NAMES:
-                    # Look up numeric token from instrument_tokens (same as routes.py)
-                    raw_token    = None
-                    idx_exchange = "NSE"
-                    with realtime_mgr._lock:
-                        for tok, tinfo in realtime_mgr.instrument_tokens.items():
-                            if tinfo.get("symbol") == idx_name:
-                                raw_token    = tok
-                                idx_exchange = tinfo.get("exchange", "NSE").upper()
-                                break
-
-                    if not raw_token:
-                        print(f"[snapshot] index {idx_name}: token not found in instrument_tokens", file=_sys.stderr)
-                        indices[idx_name] = _index_cache.get(idx_name, {})
-                        continue
-
-                    try:
-                        quote_key = f"{idx_exchange}:{raw_token}"
-                        resp = auth_obj.session.get(base, params={"i": quote_key}, timeout=6)
-                        if resp.status_code == 200:
-                            qd      = resp.json().get("data", {}).get(quote_key, {})
-                            ltp_val = qd.get("last_price")
-                            ohlc_i  = qd.get("ohlc", {})
-                            prev_c  = ohlc_i.get("close")
-                            chg = chg_pct = None
-                            if ltp_val and prev_c and float(prev_c) > 0:
-                                chg     = round(float(ltp_val) - float(prev_c), 2)
-                                chg_pct = round(chg / float(prev_c) * 100, 2)
-                            fresh = {
-                                "ltp":        round(float(ltp_val), 2) if ltp_val else None,
-                                "prev_close": round(float(prev_c),  2) if prev_c  else None,
-                                "change":     chg,
-                                "change_pct": chg_pct,
-                                "open":  round(float(ohlc_i["open"]), 2) if ohlc_i.get("open") else None,
-                                "high":  round(float(ohlc_i["high"]), 2) if ohlc_i.get("high") else None,
-                                "low":   round(float(ohlc_i["low"]),  2) if ohlc_i.get("low")  else None,
-                            }
-                            if ltp_val is not None:
-                                _index_cache[idx_name] = fresh
-                            indices[idx_name] = _index_cache.get(idx_name, fresh)
-                            print(f"[snapshot] index {idx_name}: ltp={indices[idx_name].get('ltp')} chg={chg_pct}%", file=_sys.stderr)
-                        else:
-                            print(f"[snapshot] index {idx_name} HTTP {resp.status_code}: {resp.text[:200]}", file=_sys.stderr)
-                            indices[idx_name] = _index_cache.get(idx_name, {})
-                    except Exception as _e:
-                        print(f"[snapshot] index {idx_name} error: {_e}", file=_sys.stderr)
-                        indices[idx_name] = _index_cache.get(idx_name, {})
-            else:
-                print(f"[snapshot] indices skipped: realtime={realtime_mgr is not None} auth={auth_obj is not None}", file=_sys.stderr)
-                for idx_name in INDEX_NAMES:
-                    indices[idx_name] = _index_cache.get(idx_name, {})
-
+            for idx_name in ("NIFTY 50", "INDIA VIX"):
+                ltp_val = realtime.get_ltp(idx_name) if realtime else None
+                ohlc_i  = (realtime.get_ohlc(idx_name) if realtime else None) or {}
+                prev_c  = ohlc_i.get("close")
+                chg     = None
+                chg_pct = None
+                if ltp_val and prev_c and float(prev_c) > 0:
+                    chg     = round(ltp_val - float(prev_c), 2)
+                    chg_pct = round(chg / float(prev_c) * 100, 2)
+                indices[idx_name] = {
+                    "ltp":        round(ltp_val, 2) if ltp_val else None,
+                    "prev_close": round(float(prev_c), 2) if prev_c else None,
+                    "change":     chg,
+                    "change_pct": chg_pct,
+                    "open":       round(float(ohlc_i["open"]), 2) if ohlc_i.get("open") else None,
+                    "high":       round(float(ohlc_i["high"]), 2) if ohlc_i.get("high") else None,
+                    "low":        round(float(ohlc_i["low"]),  2) if ohlc_i.get("low")  else None,
+                }
         except Exception as _ie:
             import sys as _sys
             print(f"[snapshot] indices fetch error: {_ie}", file=_sys.stderr)
-            for idx_name in ["NIFTY 50", "INDIA VIX", "GIFT NIFTY"]:
-                indices[idx_name] = _index_cache.get(idx_name, {})
 
         # ── Build snapshot ────────────────────────────────────────────────────
         snapshot = {
