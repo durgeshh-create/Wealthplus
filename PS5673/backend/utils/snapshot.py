@@ -21,6 +21,9 @@ SNAPSHOT_PATH = Path("/tmp/status_ps5673.json")
 ACCOUNT       = "PS5673"
 INTERVAL_SEC  = 120   # write every 2 minutes (was 300 — caused >10 min lag)
 
+# Last-known-good index values — survives WS reconnect gaps
+_index_cache: dict = {}
+
 
 def _load_settings() -> dict:
     settings_path = Path(__file__).parent.parent.parent / "config" / "settings.json"
@@ -320,7 +323,8 @@ def write_snapshot(dashboard_state: dict):
         except Exception:
             pass
 
-        # ── Market indices (NIFTY 50, INDIA VIX) ─────────────────────────────
+        # ── Market indices (NIFTY 50, INDIA VIX, GIFT NIFTY) ────────────────
+        # Uses _index_cache so a momentary WS drop never blanks the ticker.
         indices = {}
         try:
             for idx_name in ("NIFTY 50", "INDIA VIX", "GIFT NIFTY"):
@@ -332,7 +336,8 @@ def write_snapshot(dashboard_state: dict):
                 if ltp_val and prev_c and float(prev_c) > 0:
                     chg     = round(ltp_val - float(prev_c), 2)
                     chg_pct = round(chg / float(prev_c) * 100, 2)
-                indices[idx_name] = {
+
+                fresh = {
                     "ltp":        round(ltp_val, 2) if ltp_val else None,
                     "prev_close": round(float(prev_c), 2) if prev_c else None,
                     "change":     chg,
@@ -341,6 +346,17 @@ def write_snapshot(dashboard_state: dict):
                     "high":       round(float(ohlc_i["high"]), 2) if ohlc_i.get("high") else None,
                     "low":        round(float(ohlc_i["low"]),  2) if ohlc_i.get("low")  else None,
                 }
+
+                if ltp_val is not None:
+                    _index_cache[idx_name] = fresh
+                    indices[idx_name] = fresh
+                else:
+                    cached = _index_cache.get(idx_name)
+                    if cached:
+                        import sys as _sys
+                        print(f"[snapshot] {idx_name}: ltp=None, using cached {cached['ltp']}", file=_sys.stderr)
+                    indices[idx_name] = cached or fresh
+
         except Exception as _ie:
             import sys as _sys
             print(f"[snapshot] indices fetch error: {_ie}", file=_sys.stderr)
