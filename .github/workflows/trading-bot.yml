@@ -46,8 +46,9 @@ jobs:
 
       - name: Push index.html to gh-pages root
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO:      ${{ github.repository }}
+          GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO:            ${{ github.repository }}
+          DASHBOARD_PW_HASH:  ${{ secrets.DASHBOARD_PW_HASH }}
         run: |
           git fetch origin gh-pages 2>/dev/null || true
           git worktree add /tmp/ghp gh-pages 2>/dev/null || \
@@ -62,6 +63,14 @@ jobs:
             echo "index.html already on gh-pages, no copy needed"
           else
             echo "ERROR: index.html not found in main or gh-pages" && exit 1
+          fi
+
+          # Inject password hash from DASHBOARD_PW_HASH secret
+          if [ -n "${DASHBOARD_PW_HASH}" ]; then
+            sed -i "s|%%DASHBOARD_PW_HASH%%|${DASHBOARD_PW_HASH}|g" /tmp/ghp/index.html
+            echo "Password hash injected into index.html"
+          else
+            echo "WARNING: DASHBOARD_PW_HASH secret not set"
           fi
 
           cd /tmp/ghp
