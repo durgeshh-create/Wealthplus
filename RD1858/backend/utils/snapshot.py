@@ -330,11 +330,7 @@ def write_snapshot(dashboard_state: dict):
         except Exception:
             pass
 
-        # ── Market indices — REST API (numeric token, uses auth.session) ───
-        # IMPORTANT: /oms/quote requires the numeric instrument token as key
-        # (e.g. NSE:256265), NOT the symbol name (NSE:NIFTY 50 → HTTP 400).
-        # Uses auth.session so headers/enctoken are already correct.
-        # _index_cache ensures last-known-good values survive any REST hiccup.
+        # ── Market indices — one REST call per index (NSE:TOKEN format) ────
         INDEX_TOKENS = {
             "NIFTY 50":   "256265",
             "INDIA VIX":  "264969",
@@ -342,49 +338,45 @@ def write_snapshot(dashboard_state: dict):
         }
         indices = {}
         try:
+            import sys as _sys
             order_mgr = dashboard_state.get("order_manager")
             auth_obj  = order_mgr.auth if order_mgr and hasattr(order_mgr, "auth") else None
 
             if auth_obj and hasattr(auth_obj, "session"):
                 from backend.core.config import Config
-                # Build repeated ?i=NSE:TOKEN params — one per index
-                params = [("i", f"NSE:{tok}") for tok in INDEX_TOKENS.values()]
-                resp = auth_obj.session.get(
-                    f"{Config.ZERODHA_API_BASE}/oms/quote",
-                    params=params,
-                    timeout=8,
-                )
-                import sys as _sys
-                if resp.status_code == 200:
-                    rdata = resp.json().get("data", {})
-                    for idx_name, token in INDEX_TOKENS.items():
-                        key = f"NSE:{token}"
-                        qd  = rdata.get(key, {})
-                        ltp_val = qd.get("last_price")
-                        ohlc_i  = qd.get("ohlc", {})
-                        prev_c  = ohlc_i.get("close")
-                        chg = chg_pct = None
-                        if ltp_val and prev_c and float(prev_c) > 0:
-                            chg     = round(float(ltp_val) - float(prev_c), 2)
-                            chg_pct = round(chg / float(prev_c) * 100, 2)
-                        fresh = {
-                            "ltp":        round(float(ltp_val), 2) if ltp_val else None,
-                            "prev_close": round(float(prev_c),  2) if prev_c  else None,
-                            "change":     chg,
-                            "change_pct": chg_pct,
-                            "open":  round(float(ohlc_i["open"]), 2) if ohlc_i.get("open") else None,
-                            "high":  round(float(ohlc_i["high"]), 2) if ohlc_i.get("high") else None,
-                            "low":   round(float(ohlc_i["low"]),  2) if ohlc_i.get("low")  else None,
-                        }
-                        if ltp_val is not None:
-                            _index_cache[idx_name] = fresh
-                            indices[idx_name] = fresh
-                            print(f"[snapshot] index {idx_name}: ltp={fresh['ltp']} chg={chg_pct}%", file=_sys.stderr)
-                        else:
+                base = f"{Config.ZERODHA_API_BASE}/oms/quote"
+
+                for idx_name, token in INDEX_TOKENS.items():
+                    try:
+                        key  = f"NSE:{token}"
+                        resp = auth_obj.session.get(base, params={"i": key}, timeout=6)
+                        if resp.status_code == 200:
+                            qd      = resp.json().get("data", {}).get(key, {})
+                            ltp_val = qd.get("last_price")
+                            ohlc_i  = qd.get("ohlc", {})
+                            prev_c  = ohlc_i.get("close")
+                            chg = chg_pct = None
+                            if ltp_val and prev_c and float(prev_c) > 0:
+                                chg     = round(float(ltp_val) - float(prev_c), 2)
+                                chg_pct = round(chg / float(prev_c) * 100, 2)
+                            fresh = {
+                                "ltp":        round(float(ltp_val), 2) if ltp_val else None,
+                                "prev_close": round(float(prev_c),  2) if prev_c  else None,
+                                "change":     chg,
+                                "change_pct": chg_pct,
+                                "open":  round(float(ohlc_i["open"]), 2) if ohlc_i.get("open") else None,
+                                "high":  round(float(ohlc_i["high"]), 2) if ohlc_i.get("high") else None,
+                                "low":   round(float(ohlc_i["low"]),  2) if ohlc_i.get("low")  else None,
+                            }
+                            if ltp_val is not None:
+                                _index_cache[idx_name] = fresh
                             indices[idx_name] = _index_cache.get(idx_name, fresh)
-                else:
-                    print(f"[snapshot] index REST error: HTTP {resp.status_code} — {resp.text[:200]}", file=_sys.stderr)
-                    for idx_name in INDEX_TOKENS:
+                            print(f"[snapshot] index {idx_name}: ltp={indices[idx_name].get('ltp')} chg={chg_pct}%", file=_sys.stderr)
+                        else:
+                            print(f"[snapshot] index {idx_name} HTTP {resp.status_code}: {resp.text[:150]}", file=_sys.stderr)
+                            indices[idx_name] = _index_cache.get(idx_name, {})
+                    except Exception as _e:
+                        print(f"[snapshot] index {idx_name} error: {_e}", file=_sys.stderr)
                         indices[idx_name] = _index_cache.get(idx_name, {})
             else:
                 for idx_name in INDEX_TOKENS:
