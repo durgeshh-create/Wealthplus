@@ -338,16 +338,16 @@ def write_snapshot(dashboard_state: dict):
             order_mgr = dashboard_state.get("order_manager")
             auth_obj  = order_mgr.auth if order_mgr and hasattr(order_mgr, "auth") else None
 
+            import sys as _sys
+            print(f"[snapshot] indices: auth_obj={auth_obj is not None} has_session={hasattr(auth_obj,'session') if auth_obj else False} enctoken={bool(getattr(auth_obj,'enctoken',None)) if auth_obj else False}", file=_sys.stderr)
             if auth_obj and hasattr(auth_obj, "session"):
                 from backend.core.config import Config
                 # Build repeated ?i=NSE:TOKEN params — one per index
                 params = [("i", f"NSE:{tok}") for tok in INDEX_TOKENS.values()]
-                resp = auth_obj.session.get(
-                    f"{Config.ZERODHA_API_BASE}/oms/quote",
-                    params=params,
-                    timeout=8,
-                )
-                import sys as _sys
+                url = f"{Config.ZERODHA_API_BASE}/oms/quote"
+                print(f"[snapshot] indices REST call: {url} params={params}", file=_sys.stderr)
+                resp = auth_obj.session.get(url, params=params, timeout=8)
+                print(f"[snapshot] indices REST response: HTTP {resp.status_code} body={resp.text[:300]}", file=_sys.stderr)
                 if resp.status_code == 200:
                     rdata = resp.json().get("data", {})
                     for idx_name, token in INDEX_TOKENS.items():
