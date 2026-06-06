@@ -323,7 +323,7 @@ def write_snapshot(dashboard_state: dict):
         # ── Market indices (NIFTY 50, INDIA VIX) ─────────────────────────────
         indices = {}
         try:
-            for idx_name in ("NIFTY 50", "INDIA VIX"):
+            for idx_name in ("NIFTY 50", "INDIA VIX", "GIFT NIFTY"):
                 ltp_val = realtime.get_ltp(idx_name) if realtime else None
                 ohlc_i  = (realtime.get_ohlc(idx_name) if realtime else None) or {}
                 prev_c  = ohlc_i.get("close")
