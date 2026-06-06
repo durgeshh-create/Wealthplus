@@ -330,10 +330,10 @@ def write_snapshot(dashboard_state: dict):
         except Exception:
             pass
 
-        # ── Market indices — REST API (token-based, WS-independent) ─────────
-        # The Kite WebSocket drops every ~90s on GH Actions runners, making
-        # WS-based index ticks unreliable. REST /oms/quote?i=token:TOKEN is
-        # stable, fast (<300ms), and doesn't require WS to be alive.
+        # ── Market indices — REST API (numeric token, uses auth.session) ───
+        # IMPORTANT: /oms/quote requires the numeric instrument token as key
+        # (e.g. NSE:256265), NOT the symbol name (NSE:NIFTY 50 → HTTP 400).
+        # Uses auth.session so headers/enctoken are already correct.
         # _index_cache ensures last-known-good values survive any REST hiccup.
         INDEX_TOKENS = {
             "NIFTY 50":   "256265",
@@ -342,25 +342,19 @@ def write_snapshot(dashboard_state: dict):
         }
         indices = {}
         try:
-            import requests as _req
             order_mgr = dashboard_state.get("order_manager")
-            auth_mgr  = order_mgr.auth if order_mgr and hasattr(order_mgr, "auth") else None
-            enctoken  = getattr(auth_mgr, "enctoken", None) if auth_mgr else None
+            auth_obj  = order_mgr.auth if order_mgr and hasattr(order_mgr, "auth") else None
 
-            if enctoken:
+            if auth_obj and hasattr(auth_obj, "session"):
                 from backend.core.config import Config
-                _idx_session = _req.Session()
-                _idx_session.headers.update({
-                    "Authorization": f"enctoken {enctoken}",
-                    "X-Kite-Version": "3",
-                })
-                # Fetch all 3 indices in one REST call using numeric tokens
+                # Build repeated ?i=NSE:TOKEN params — one per index
                 params = [("i", f"NSE:{tok}") for tok in INDEX_TOKENS.values()]
-                resp = _idx_session.get(
+                resp = auth_obj.session.get(
                     f"{Config.ZERODHA_API_BASE}/oms/quote",
                     params=params,
                     timeout=8,
                 )
+                import sys as _sys
                 if resp.status_code == 200:
                     rdata = resp.json().get("data", {})
                     for idx_name, token in INDEX_TOKENS.items():
@@ -385,17 +379,14 @@ def write_snapshot(dashboard_state: dict):
                         if ltp_val is not None:
                             _index_cache[idx_name] = fresh
                             indices[idx_name] = fresh
-                            import sys as _sys
                             print(f"[snapshot] index {idx_name}: ltp={fresh['ltp']} chg={chg_pct}%", file=_sys.stderr)
                         else:
                             indices[idx_name] = _index_cache.get(idx_name, fresh)
                 else:
-                    import sys as _sys
-                    print(f"[snapshot] index REST error: HTTP {resp.status_code}", file=_sys.stderr)
+                    print(f"[snapshot] index REST error: HTTP {resp.status_code} — {resp.text[:200]}", file=_sys.stderr)
                     for idx_name in INDEX_TOKENS:
                         indices[idx_name] = _index_cache.get(idx_name, {})
             else:
-                # No enctoken — use cache if available
                 for idx_name in INDEX_TOKENS:
                     indices[idx_name] = _index_cache.get(idx_name, {})
 
