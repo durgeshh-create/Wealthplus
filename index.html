@@ -345,23 +345,6 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
     </div>
     <button class="pw-btn" onclick="checkPw()">Unlock &#8594;</button>
     <div class="pw-err" id="pw-err"></div>
-    <div class="pw-hint">First time? <span class="pw-set-link" onclick="showSetPw()">Set a password</span></div>
-  </div>
-</div>
-
-<!-- SET-PASSWORD MODAL (replaces browser prompt() which is blocked on gh-pages) -->
-<div class="modal-overlay" id="setpw-modal" style="display:none;z-index:9995">
-  <div class="modal" style="max-width:380px">
-    <h2>🔐 Set Dashboard Password</h2>
-    <p>Choose a password to protect this dashboard. It is hashed and stored only in your browser.</p>
-    <input id="setpw-1" type="password" placeholder="New password" autocomplete="new-password"
-           onkeydown="if(event.key==='Enter')document.getElementById('setpw-2').focus()">
-    <input id="setpw-2" type="password" placeholder="Confirm password" autocomplete="new-password"
-           onkeydown="if(event.key==='Enter')confirmSetPw()">
-    <div id="setpw-err" style="color:var(--red);font-size:11px;min-height:16px;margin-bottom:6px"></div>
-    <button class="btn-primary" onclick="confirmSetPw()">Save Password →</button>
-    <button class="btn-primary" onclick="document.getElementById('setpw-modal').style.display='none'"
-            style="background:var(--bg3);color:var(--muted2);border:1px solid var(--border);margin-top:8px">Cancel</button>
   </div>
 </div>
 
@@ -2163,50 +2146,51 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 
 <script>
 // PASSWORD GATE
-const PW_KEY='wealthalgo_pw_hash',PW_SESSION='wealthalgo_unlocked';
-async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
-async function checkPw(){
-  const v=document.getElementById('pw-input').value;
-  if(!v){pwErr('Enter your password.');return;}
-  const stored=localStorage.getItem(PW_KEY);
-  if(!stored){pwErr('No password set yet. Click "Set a password" below.');return;}
-  const h=await sha256(v);
-  if(h===stored){sessionStorage.setItem(PW_SESSION,'1');document.getElementById('pw-overlay').style.display='none';onUnlocked();}
-  else{pwErr('Incorrect password.');document.getElementById('pw-input').select();}
-}
-function pwErr(m){document.getElementById('pw-err').textContent=m;}
-function togglePwEye(){const i=document.getElementById('pw-input');i.type=i.type==='password'?'text':'password';}
+// The hash below is injected at deploy time by the GitHub Actions workflow
+// from the DASHBOARD_PW_HASH repository secret (SHA-256 of your password).
+// To change the password: update the secret and re-run the workflow.
+// No "Set a password" flow needed — works identically on every device.
+const _BAKED_HASH = '%%DASHBOARD_PW_HASH%%';   // replaced by workflow at deploy
+const PW_SESSION  = 'wealthalgo_unlocked';
 
-// ✅ FIX: replaced prompt()-based password set with inline modal.
-// prompt() is blocked by browsers on cross-origin / GitHub Pages iframes.
-function showSetPw(){
-  document.getElementById('setpw-1').value='';
-  document.getElementById('setpw-2').value='';
-  document.getElementById('setpw-err').textContent='';
-  document.getElementById('setpw-modal').style.display='flex';
-  setTimeout(()=>document.getElementById('setpw-1').focus(),50);
+async function sha256(s) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2,'0')).join('');
 }
-function confirmSetPw(){
-  const p1=document.getElementById('setpw-1').value;
-  const p2=document.getElementById('setpw-2').value;
-  const errEl=document.getElementById('setpw-err');
-  if(!p1){errEl.textContent='Please enter a password.';return;}
-  if(p1!==p2){errEl.textContent='Passwords do not match.';return;}
-  if(p1.length<4){errEl.textContent='Password must be at least 4 characters.';return;}
-  sha256(p1).then(h=>{
-    localStorage.setItem(PW_KEY,h);
-    document.getElementById('setpw-modal').style.display='none';
-    pwErr('✅ Password saved! Use it to unlock the dashboard next time.');
-  });
+
+async function checkPw() {
+  const v = document.getElementById('pw-input').value;
+  if (!v) { pwErr('Enter your password.'); return; }
+  if (_BAKED_HASH === '%%DASHBOARD_PW_HASH%%' || !_BAKED_HASH) {
+    // Placeholder was never replaced — secret not set yet
+    pwErr('⚠ Password not configured. Add DASHBOARD_PW_HASH to GitHub Secrets.');
+    return;
+  }
+  const h = await sha256(v);
+  if (h === _BAKED_HASH) {
+    sessionStorage.setItem(PW_SESSION, '1');
+    document.getElementById('pw-overlay').style.display = 'none';
+    onUnlocked();
+  } else {
+    pwErr('Incorrect password.');
+    document.getElementById('pw-input').select();
+  }
 }
-function lockDashboard(){
+
+function pwErr(m) { document.getElementById('pw-err').textContent = m; }
+function togglePwEye() {
+  const i = document.getElementById('pw-input');
+  i.type = i.type === 'password' ? 'text' : 'password';
+}
+function lockDashboard() {
   sessionStorage.removeItem(PW_SESSION);
-  document.getElementById('pw-input').value='';
-  document.getElementById('pw-err').textContent='';
-  document.getElementById('pw-overlay').style.display='flex';
+  document.getElementById('pw-input').value = '';
+  document.getElementById('pw-err').textContent = '';
+  document.getElementById('pw-overlay').style.display = 'flex';
   clearTimeout(timer);
 }
-function onUnlocked(){
+
+function onUnlocked() {
   refreshAll();
   if(hasCfg()){
     const c=getCfg();
