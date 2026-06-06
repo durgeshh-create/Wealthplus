@@ -46,31 +46,41 @@ jobs:
 
       - name: Push index.html to gh-pages root
         env:
-          GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO:            ${{ github.repository }}
-          DASHBOARD_PW_HASH:  ${{ secrets.DASHBOARD_PW_HASH }}
+          GITHUB_TOKEN:      ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO:           ${{ github.repository }}
+          DASHBOARD_PW_HASH: ${{ secrets.DASHBOARD_PW_HASH }}
         run: |
           git fetch origin gh-pages 2>/dev/null || true
           git worktree add /tmp/ghp gh-pages 2>/dev/null || \
             git worktree add /tmp/ghp --orphan gh-pages
 
-          # index.html source: prefer settings-editor/, fall back to gh-pages itself
+          # Source: prefer main/settings-editor/, otherwise use existing gh-pages file
           if [ -f settings-editor/index.html ]; then
+            echo "Copying index.html from main/settings-editor/"
             cp settings-editor/index.html /tmp/ghp/index.html
           elif [ -f settings-editor/dashboard.html ]; then
+            echo "Copying dashboard.html from main/settings-editor/"
             cp settings-editor/dashboard.html /tmp/ghp/index.html
           elif [ -f /tmp/ghp/index.html ]; then
-            echo "index.html already on gh-pages, no copy needed"
+            echo "index.html sourced from gh-pages"
+            # intentionally no-op here — file already at /tmp/ghp/index.html
           else
-            echo "ERROR: index.html not found in main or gh-pages" && exit 1
+            echo "ERROR: index.html not found anywhere" && exit 1
           fi
 
-          # Inject password hash from DASHBOARD_PW_HASH secret
+          # ── Inject DASHBOARD_PW_HASH secret into placeholder ────────────────
+          # Runs unconditionally so the hash is always current, even when the
+          # source file came from gh-pages (no settings-editor/ copy on main).
+          # grep guard makes this idempotent — won't corrupt an already-injected file.
           if [ -n "${DASHBOARD_PW_HASH}" ]; then
-            sed -i "s|%%DASHBOARD_PW_HASH%%|${DASHBOARD_PW_HASH}|g" /tmp/ghp/index.html
-            echo "Password hash injected into index.html"
+            if grep -q "%%DASHBOARD_PW_HASH%%" /tmp/ghp/index.html; then
+              sed -i "s|%%DASHBOARD_PW_HASH%%|${DASHBOARD_PW_HASH}|g" /tmp/ghp/index.html
+              echo "✅ Password hash injected into index.html"
+            else
+              echo "ℹ Placeholder not found in index.html — upload the latest index.html from settings-editor/"
+            fi
           else
-            echo "WARNING: DASHBOARD_PW_HASH secret not set"
+            echo "⚠ DASHBOARD_PW_HASH secret not set — password gate will show config error"
           fi
 
           cd /tmp/ghp
