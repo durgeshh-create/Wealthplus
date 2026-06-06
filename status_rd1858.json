@@ -1,15 +1,15 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-06-05 15:35:23 IST",
-  "bot_running": false,
-  "total_value": 9597035.74,
-  "today_pnl": -2578.53,
+  "timestamp": "2026-06-06 08:56:47 IST",
+  "bot_running": true,
+  "total_value": 9627064.04,
+  "today_pnl": -2747.73,
   "today_pnl_pct": -0.03,
   "liquidcase": {
     "quantity": 78529,
     "price": 114.42,
     "value": 8985288.18,
-    "pct": 93.63
+    "pct": 93.33
   },
   "slots": {
     "total": 5,
@@ -42,11 +42,11 @@
     },
     {
       "symbol": "GOLDBEES",
-      "quantity": 546,
-      "avg": 127.78,
+      "quantity": 781,
+      "avg": 127.72,
       "ltp": 127.78,
-      "value": 69767.88,
-      "pnl": -393.12,
+      "value": 99796.18,
+      "pnl": -562.32,
       "pnl_pct": -0.56,
       "strategy": "active"
     },
@@ -115,18 +115,6 @@
       "buy_qty": 0,
       "sell_qty": 17550,
       "product": "NRML"
-    },
-    {
-      "symbol": "GOLDBEES",
-      "quantity": 235,
-      "avg": 127.59,
-      "ltp": 127.78,
-      "pnl": 44.65,
-      "unrealised": 44.65,
-      "realised": 0.0,
-      "buy_qty": 235,
-      "sell_qty": 0,
-      "product": "CNC"
     }
   ],
   "williams_r": [
@@ -161,7 +149,7 @@
       "symbol": "JUNIORBEES",
       "ltp": 757.76,
       "change_pct": 0.22,
-      "williams_r": -44.28,
+      "williams_r": -50.99,
       "is_held": true,
       "avg_price": 748.0,
       "strategy": "active"
@@ -170,7 +158,7 @@
       "symbol": "MINDSPACE-RR",
       "ltp": 459.93,
       "change_pct": -0.31,
-      "williams_r": -69.16,
+      "williams_r": -80.58,
       "is_held": true,
       "avg_price": 458.27,
       "strategy": "active"
@@ -179,7 +167,7 @@
       "symbol": "EMBASSY-RR",
       "ltp": 428.2,
       "change_pct": -0.07,
-      "williams_r": -52.58,
+      "williams_r": -66.91,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -188,7 +176,7 @@
       "symbol": "BANKBEES",
       "ltp": 563.08,
       "change_pct": 0.32,
-      "williams_r": -38.91,
+      "williams_r": -38.99,
       "is_held": true,
       "avg_price": 553.2,
       "strategy": "active"
@@ -197,26 +185,14 @@
       "symbol": "MID150BEES",
       "ltp": 230.0,
       "change_pct": -0.25,
-      "williams_r": -62.08,
+      "williams_r": -73.57,
       "is_held": true,
       "avg_price": 227.88,
       "strategy": "bnh"
     }
   ],
   "signals": [],
-  "orders": [
-    {
-      "order_id": "260605191186485",
-      "tradingsymbol": "GOLDBEES",
-      "transaction_type": "BUY",
-      "quantity": 235,
-      "filled_quantity": 235,
-      "average_price": 127.59,
-      "price": 127.59,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-05 14:15:20"
-    }
-  ],
+  "orders": [],
   "indices": {
     "NIFTY 50": {
       "ltp": 23366.7,
@@ -237,7 +213,7 @@
       "low": 13.46
     }
   },
-  "available_cash": 59455.2,
-  "available_margin": 2651527.36,
+  "available_cash": 0.0,
+  "available_margin": -25102173.85,
   "available_margin_note": null
 }
