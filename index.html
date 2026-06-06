@@ -2150,7 +2150,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 // from the DASHBOARD_PW_HASH repository secret (SHA-256 of your password).
 // To change the password: update the secret and re-run the workflow.
 // No "Set a password" flow needed — works identically on every device.
-const _BAKED_HASH = '%%DASHBOARD_PW_HASH%%';   // replaced by workflow at deploy
+const _BAKED_HASH = '408311ba9b03d5d2d41463f1b49280625f826a70a7dc5ccd92d0b41b93b26be2';   // replaced by workflow at deploy
 const PW_SESSION  = 'wealthalgo_unlocked';
 
 async function sha256(s) {
@@ -2161,7 +2161,7 @@ async function sha256(s) {
 async function checkPw() {
   const v = document.getElementById('pw-input').value;
   if (!v) { pwErr('Enter your password.'); return; }
-  if (_BAKED_HASH === '%%DASHBOARD_PW_HASH%%' || !_BAKED_HASH) {
+  if (_BAKED_HASH === '408311ba9b03d5d2d41463f1b49280625f826a70a7dc5ccd92d0b41b93b26be2' || !_BAKED_HASH) {
     // Placeholder was never replaced — secret not set yet
     pwErr('⚠ Password not configured. Add DASHBOARD_PW_HASH to GitHub Secrets.');
     return;
