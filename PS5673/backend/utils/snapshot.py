@@ -323,43 +323,78 @@ def write_snapshot(dashboard_state: dict):
         except Exception:
             pass
 
-        # ── Market indices (NIFTY 50, INDIA VIX, GIFT NIFTY) ────────────────
-        # Uses _index_cache so a momentary WS drop never blanks the ticker.
+        # ── Market indices — REST API (token-based, WS-independent) ─────────
+        # The Kite WebSocket drops every ~90s on GH Actions runners, making
+        # WS-based index ticks unreliable. REST /oms/quote?i=token:TOKEN is
+        # stable, fast (<300ms), and does not require WS to be alive.
+        # _index_cache ensures last-known-good values survive any REST hiccup.
+        INDEX_TOKENS = {
+            "NIFTY 50":   "256265",
+            "INDIA VIX":  "264969",
+            "GIFT NIFTY": "291849",
+        }
         indices = {}
         try:
-            for idx_name in ("NIFTY 50", "INDIA VIX", "GIFT NIFTY"):
-                ltp_val = realtime.get_ltp(idx_name) if realtime else None
-                ohlc_i  = (realtime.get_ohlc(idx_name) if realtime else None) or {}
-                prev_c  = ohlc_i.get("close")
-                chg     = None
-                chg_pct = None
-                if ltp_val and prev_c and float(prev_c) > 0:
-                    chg     = round(ltp_val - float(prev_c), 2)
-                    chg_pct = round(chg / float(prev_c) * 100, 2)
+            import requests as _req
+            order_mgr = dashboard_state.get("order_manager")
+            auth_mgr  = order_mgr.auth if order_mgr and hasattr(order_mgr, "auth") else None
+            enctoken  = getattr(auth_mgr, "enctoken", None) if auth_mgr else None
 
-                fresh = {
-                    "ltp":        round(ltp_val, 2) if ltp_val else None,
-                    "prev_close": round(float(prev_c), 2) if prev_c else None,
-                    "change":     chg,
-                    "change_pct": chg_pct,
-                    "open":       round(float(ohlc_i["open"]), 2) if ohlc_i.get("open") else None,
-                    "high":       round(float(ohlc_i["high"]), 2) if ohlc_i.get("high") else None,
-                    "low":        round(float(ohlc_i["low"]),  2) if ohlc_i.get("low")  else None,
-                }
-
-                if ltp_val is not None:
-                    _index_cache[idx_name] = fresh
-                    indices[idx_name] = fresh
+            if enctoken:
+                from backend.core.config import Config
+                _idx_session = _req.Session()
+                _idx_session.headers.update({
+                    "Authorization": f"enctoken {enctoken}",
+                    "X-Kite-Version": "3",
+                })
+                params = [("i", f"NSE:{tok}") for tok in INDEX_TOKENS.values()]
+                resp = _idx_session.get(
+                    f"{Config.ZERODHA_API_BASE}/oms/quote",
+                    params=params,
+                    timeout=8,
+                )
+                if resp.status_code == 200:
+                    rdata = resp.json().get("data", {})
+                    for idx_name, token in INDEX_TOKENS.items():
+                        key = f"NSE:{token}"
+                        qd  = rdata.get(key, {})
+                        ltp_val = qd.get("last_price")
+                        ohlc_i  = qd.get("ohlc", {})
+                        prev_c  = ohlc_i.get("close")
+                        chg = chg_pct = None
+                        if ltp_val and prev_c and float(prev_c) > 0:
+                            chg     = round(float(ltp_val) - float(prev_c), 2)
+                            chg_pct = round(chg / float(prev_c) * 100, 2)
+                        fresh = {
+                            "ltp":        round(float(ltp_val), 2) if ltp_val else None,
+                            "prev_close": round(float(prev_c),  2) if prev_c  else None,
+                            "change":     chg,
+                            "change_pct": chg_pct,
+                            "open":  round(float(ohlc_i["open"]), 2) if ohlc_i.get("open") else None,
+                            "high":  round(float(ohlc_i["high"]), 2) if ohlc_i.get("high") else None,
+                            "low":   round(float(ohlc_i["low"]),  2) if ohlc_i.get("low")  else None,
+                        }
+                        if ltp_val is not None:
+                            _index_cache[idx_name] = fresh
+                            indices[idx_name] = fresh
+                            import sys as _sys
+                            print(f"[snapshot] index {idx_name}: ltp={fresh['ltp']} chg={chg_pct}%", file=_sys.stderr)
+                        else:
+                            indices[idx_name] = _index_cache.get(idx_name, fresh)
                 else:
-                    cached = _index_cache.get(idx_name)
-                    if cached:
-                        import sys as _sys
-                        print(f"[snapshot] {idx_name}: ltp=None, using cached {cached['ltp']}", file=_sys.stderr)
-                    indices[idx_name] = cached or fresh
+                    import sys as _sys
+                    print(f"[snapshot] index REST error: HTTP {resp.status_code}", file=_sys.stderr)
+                    for idx_name in INDEX_TOKENS:
+                        indices[idx_name] = _index_cache.get(idx_name, {})
+            else:
+                for idx_name in INDEX_TOKENS:
+                    indices[idx_name] = _index_cache.get(idx_name, {})
 
         except Exception as _ie:
             import sys as _sys
             print(f"[snapshot] indices fetch error: {_ie}", file=_sys.stderr)
+            for idx_name in INDEX_TOKENS:
+                indices[idx_name] = _index_cache.get(idx_name, {})
 
         # ── Build snapshot ────────────────────────────────────────────────────
         snapshot = {
