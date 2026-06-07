@@ -340,10 +340,43 @@ def write_snapshot(dashboard_state: dict):
         except Exception:
             pass
 
-        # ── Market indices (NIFTY 50, INDIA VIX) ─────────────────────────────
+        # ── Market indices (NIFTY 50, GIFT NIFTY, INDIA VIX) ────────────────
+        # GIFT NIFTY is not on NSE WebSocket — fetched via REST quote fallback.
+        # Quote keys: NSE:NIFTY 50, NSE:GIFT NIFTY, NSE:INDIA VIX
+        GIFT_NIFTY_QUOTE_KEY = "NSE:GIFT NIFTY"
         indices = {}
+        _gift_ltp = _gift_prev = _gift_chg = _gift_pct = None
+        try:
+            auth_mgr = dashboard_state.get("auth_manager") if dashboard_state else None
+            if auth_mgr and hasattr(auth_mgr, "session"):
+                from backend.core.config import Config as _Cfg
+                _qr = auth_mgr.session.get(
+                    f"{_Cfg.ZERODHA_API_BASE}/oms/quote",
+                    params={"i": GIFT_NIFTY_QUOTE_KEY},
+                    timeout=5
+                )
+                if _qr.status_code == 200:
+                    _qd = _qr.json().get("data", {}).get(GIFT_NIFTY_QUOTE_KEY, {})
+                    _gift_ltp  = _qd.get("last_price")
+                    _gift_prev = _qd.get("ohlc", {}).get("close")
+                    if _gift_ltp and _gift_prev and float(_gift_prev) > 0:
+                        _gift_chg  = round(float(_gift_ltp) - float(_gift_prev), 2)
+                        _gift_pct  = round(_gift_chg / float(_gift_prev) * 100, 2)
+        except Exception as _ge:
+            import sys as _sys
+            print(f"[snapshot] GIFT NIFTY quote error: {_ge}", file=_sys.stderr)
+
         try:
             for idx_name in ("NIFTY 50", "GIFT NIFTY", "INDIA VIX"):
+                if idx_name == "GIFT NIFTY":
+                    indices["GIFT NIFTY"] = {
+                        "ltp":        round(float(_gift_ltp), 2) if _gift_ltp else None,
+                        "prev_close": round(float(_gift_prev), 2) if _gift_prev else None,
+                        "change":     _gift_chg,
+                        "change_pct": _gift_pct,
+                        "open": None, "high": None, "low": None,
+                    }
+                    continue
                 ltp_val = realtime.get_ltp(idx_name) if realtime else None
                 ohlc_i  = (realtime.get_ohlc(idx_name) if realtime else None) or {}
                 prev_c  = ohlc_i.get("close")
