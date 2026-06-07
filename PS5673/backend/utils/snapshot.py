@@ -122,6 +122,7 @@ def write_snapshot(dashboard_state: dict):
 
             # LIQUIDCASE
             liq_qty   = getattr(portfolio, "liquidcase_quantity", 0)
+            liq_free  = getattr(portfolio, "liquidcase_free_quantity", liq_qty)
             liq_price = (realtime.get_ltp(LIQUIDCASE_SYMBOL) if realtime else None) or 0
             liq_val   = liq_qty * liq_price
             total_value += liq_val
@@ -369,6 +370,7 @@ def write_snapshot(dashboard_state: dict):
                               if total_value > today_pnl and total_value > 0 else 0,
             "liquidcase": {
                 "quantity": liq_qty,
+                "free_quantity": liq_free,
                 "price":    round(liq_price, 2),
                 "value":    round(liq_val, 2),
                 "pct":      round(liq_val / total_value * 100, 2) if total_value else 0,
