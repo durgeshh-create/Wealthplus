@@ -36,35 +36,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 .logo h1{font-family:var(--head);font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--accent)}
 .logo .sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
 .hdr-right{display:flex;align-items:center;gap:14px}
-
-/* ── NIFTY 50 header chip ── */
-#nifty-chip{
-  display:flex;align-items:center;gap:7px;
-  background:var(--bg3);border:1px solid var(--border);
-  border-radius:8px;padding:5px 12px;
-  flex-shrink:0;
-}
-.nchip-label{font-size:9px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.1em;color:var(--muted);white-space:nowrap}
-.nchip-val{font-family:var(--head);font-size:15px;font-weight:800;
-  color:var(--text);white-space:nowrap;min-width:72px;text-align:right;
-  transition:color .3s}
-.nchip-chg{font-family:var(--head);font-size:11px;font-weight:700;
-  white-space:nowrap;padding:2px 8px;border-radius:5px}
-.nchip-chg.pos{color:var(--green);background:rgba(22,163,74,.12)}
-.nchip-chg.neg{color:var(--red);background:rgba(220,38,38,.10)}
-.nchip-chg.flat{color:var(--muted);background:var(--bg2)}
-.nchip-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0}
-.nchip-dot.live{background:var(--green);box-shadow:0 0 5px var(--green);animation:pulse 2s infinite}
-.nchip-dot.stale{background:var(--amber,#f59e0b)}
-@keyframes nflash{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
-.nchip-val.flash{animation:nflash .5s ease-out}
-@media(max-width:680px){
-  #nifty-chip{padding:4px 8px;gap:5px}
-  .nchip-label{display:none}
-  .nchip-val{font-size:13px;min-width:58px}
-  .nchip-chg{font-size:10px;padding:1px 5px}
-}
 .pill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
 .dot.live{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
@@ -76,6 +47,13 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 .rbtn:hover{border-color:var(--accent);color:var(--text)}
 .rbtn.spin{animation:rspin .8s linear infinite}
 @keyframes rspin{to{transform:rotate(360deg)}}
+.idx-chips{display:flex;align-items:center;gap:8px;margin-right:4px}
+.idx-chip{display:flex;flex-direction:column;align-items:flex-end;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px 10px;min-width:80px;cursor:default;transition:border-color .15s}
+.idx-chip:hover{border-color:var(--accent)}
+.idx-chip .ic-name{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-family:var(--head);line-height:1.2}
+.idx-chip .ic-val{font-size:12px;font-weight:700;font-family:var(--head);color:var(--text);line-height:1.3}
+.idx-chip .ic-chg{font-size:9.5px;font-weight:600;line-height:1.2}
+.ic-chg.pos{color:var(--green)}.ic-chg.neg{color:var(--red)}.ic-chg.neu{color:var(--muted)}
 
 /* ── tabs ── */
 .tabs{display:flex;background:var(--bg2);border-bottom:2px solid var(--border);padding:0 20px}
@@ -408,16 +386,12 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 <!-- APP HEADER -->
 <header>
   <div class="logo"><h1>WealthAlgo</h1><span class="sub">Live Dashboard</span></div>
-
-  <!-- NIFTY 50 live chip — sits between title and controls -->
-  <div id="nifty-chip">
-    <span class="nchip-label">NIFTY 50</span>
-    <span class="nchip-val" id="nchip-val">—</span>
-    <span class="nchip-chg" id="nchip-chg">—</span>
-    <span class="nchip-dot" id="nchip-dot" title="Data source"></span>
-  </div>
-
   <div class="hdr-right">
+    <div class="idx-chips">
+      <div class="idx-chip" id="chip-nifty50"><span class="ic-name">NIFTY 50</span><span class="ic-val">—</span><span class="ic-chg neu">—</span></div>
+      <div class="idx-chip" id="chip-giftnifty"><span class="ic-name">GIFT NIFTY</span><span class="ic-val">—</span><span class="ic-chg neu">—</span></div>
+      <div class="idx-chip" id="chip-indiavix"><span class="ic-name">INDIA VIX</span><span class="ic-val">—</span><span class="ic-chg neu">—</span></div>
+    </div>
     <div class="pill"><div class="dot" id="bot-dot"></div><span id="bot-txt">Loading&hellip;</span></div>
     <span class="ts" id="last-ts">&mdash;</span>
     <button class="rbtn" id="rbtn" onclick="refreshAll()">&#8635; Refresh</button>
@@ -2578,6 +2552,30 @@ function render(data) {
 }
 
 // ── Fetch + refresh ───────────────────────────────────────────────────────────
+function renderIndices(indices) {
+  if (!indices) return;
+  const fmt = v => v != null ? v.toLocaleString("en-IN", {maximumFractionDigits: 2}) : "—";
+  const setChip = (id, name) => {
+    const d = indices[name];
+    const el = document.getElementById(id);
+    if (!d || !el) return;
+    const ltp = d.ltp, chg = d.change, pct = d.change_pct;
+    el.querySelector(".ic-val").textContent = ltp != null ? fmt(ltp) : "—";
+    const chgEl = el.querySelector(".ic-chg");
+    if (chg != null && pct != null) {
+      const sign = chg >= 0 ? "+" : "";
+      chgEl.textContent = `${sign}${fmt(chg)} (${sign}${pct.toFixed(2)}%)`;
+      chgEl.className = "ic-chg " + (chg > 0 ? "pos" : chg < 0 ? "neg" : "neu");
+    } else {
+      chgEl.textContent = "—";
+      chgEl.className = "ic-chg neu";
+    }
+  };
+  setChip("chip-nifty50",   "NIFTY 50");
+  setChip("chip-giftnifty", "GIFT NIFTY");
+  setChip("chip-indiavix",  "INDIA VIX");
+}
+
 async function refreshAll() {
   const btn = document.getElementById("rbtn");
   btn.classList.add("spin");
@@ -2615,6 +2613,7 @@ async function refreshAll() {
   }
 
   document.getElementById("cfg-note").style.display = "none";
+  renderIndices(data.indices);
 
   // ── Parse snapshot timestamp "2026-06-04 09:17:39 IST" ───────────────────
   const snapTs  = data.timestamp ?? "";
@@ -2661,7 +2660,6 @@ async function refreshAll() {
   el.textContent = tsText;
 
   render(data);
-  updateNiftyFromSnapshot(data);
 
   clearTimeout(timer);
   timer = setTimeout(refreshAll, INTERVAL);
@@ -2683,102 +2681,6 @@ function toggleStrategy() {
   body.style.display = open ? "block" : "none";
   btn.textContent    = open ? "▲ Hide" : "▼ Show";
 }
-
-// ── NIFTY 50 live header chip ─────────────────────────────────────────────
-// Primary: NSE India unofficial quote API (free, no auth, no CORS issues via
-//   a public proxy). Polls every 60 s during market hours, 5 min otherwise.
-// Fallback: snapshot data.indices['NIFTY 50'] pushed by the bot every 2 min.
-
-const NIFTY_PROXIES = [
-  // Multiple free CORS proxies — tried in order, first success wins
-  url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-];
-const NIFTY_NSE_URL = 'https://www.nseindia.com/api/quote-equity?symbol=NIFTY%2050&type=index';
-
-let _niftyPrev = 0;
-let _niftyPollTimer = null;
-
-function _istNow() {
-  return new Date(new Date().toLocaleString('en-US', {timeZone:'Asia/Kolkata'}));
-}
-function _marketOpen() {
-  const n = _istNow(), d = n.getDay(), m = n.getHours()*60+n.getMinutes();
-  return d >= 1 && d <= 5 && m >= 555 && m <= 930;
-}
-
-async function fetchNiftyLive() {
-  const nseUrl = NIFTY_NSE_URL;
-  for (const proxyFn of NIFTY_PROXIES) {
-    try {
-      const r   = await fetch(proxyFn(nseUrl), {signal: AbortSignal.timeout(8000)});
-      if (!r.ok) continue;
-      const raw = await r.json();
-      // allorigins wraps in {contents:...}, corsproxy returns raw
-      const txt = raw.contents ?? (typeof raw === 'string' ? raw : JSON.stringify(raw));
-      const d   = typeof txt === 'string' ? JSON.parse(txt) : txt;
-      // NSE index API: { priceInfo: { lastPrice, change, pChange } }
-      const pi  = d?.priceInfo ?? d?.data?.[0] ?? d;
-      const ltp = parseFloat(pi?.lastPrice ?? pi?.last_price ?? pi?.indexValue ?? 0);
-      const chg = parseFloat(pi?.change ?? pi?.netChange ?? 0);
-      const pct = parseFloat(pi?.pChange ?? pi?.percentChange ?? 0);
-      if (ltp > 1000) {          // sanity check — NIFTY is always > 1000
-        updateNiftyChip(ltp, chg, pct, 'live');
-        return;
-      }
-    } catch(e) { /* try next proxy */ }
-  }
-  // All proxies failed — chip stays on last known value (bot snapshot)
-}
-
-function updateNiftyChip(ltp, chg, pct, source) {
-  const valEl = document.getElementById('nchip-val');
-  const chgEl = document.getElementById('nchip-chg');
-  const dotEl = document.getElementById('nchip-dot');
-  if (!valEl) return;
-
-  const fmt = v => v.toLocaleString('en-IN', {maximumFractionDigits:2, minimumFractionDigits:2});
-
-  // Flash on price change
-  if (_niftyPrev && _niftyPrev !== ltp) {
-    valEl.classList.remove('flash');
-    void valEl.offsetWidth;
-    valEl.classList.add('flash');
-    setTimeout(() => valEl.classList.remove('flash'), 500);
-  }
-  _niftyPrev = ltp;
-
-  valEl.textContent = fmt(ltp);
-  const sign = chg >= 0 ? '+' : '';
-  chgEl.textContent = `${sign}${chg.toFixed(2)} (${sign}${pct.toFixed(2)}%)`;
-  chgEl.className   = `nchip-chg ${chg > 0 ? 'pos' : chg < 0 ? 'neg' : 'flat'}`;
-  dotEl.className   = `nchip-dot ${source === 'live' ? 'live' : 'stale'}`;
-  dotEl.title       = source === 'live' ? 'Live (NSE)' : 'From bot snapshot';
-}
-
-function scheduleNiftyPoll() {
-  clearTimeout(_niftyPollTimer);
-  const interval = _marketOpen() ? 60000 : 300000;  // 60s open, 5min closed
-  fetchNiftyLive().finally(() => {
-    _niftyPollTimer = setTimeout(scheduleNiftyPoll, interval);
-  });
-}
-
-// Called from render() to show snapshot data when live fetch hasn't run yet
-function updateNiftyFromSnapshot(data) {
-  const idx = data?.indices?.['NIFTY 50'];
-  if (!idx || idx.ltp == null) return;
-  // Only update if live source hasn't set a value yet
-  const valEl = document.getElementById('nchip-val');
-  if (valEl && (valEl.textContent === '—' || valEl.textContent === '')) {
-    updateNiftyChip(idx.ltp, idx.change ?? 0, idx.change_pct ?? 0, 'snapshot');
-  }
-}
-
-// Start polling immediately on page load
-document.addEventListener('DOMContentLoaded', () => {
-  scheduleNiftyPoll();
-});
 
 document.addEventListener("DOMContentLoaded", refreshAll);
 
