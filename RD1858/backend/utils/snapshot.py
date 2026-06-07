@@ -33,6 +33,16 @@ def _load_settings() -> dict:
     return {}
 
 
+
+def _safe_buys_today(signal_gen, sym, bnh_symbols):
+    """Safely read per-symbol buy count — never raises, returns None on any error."""
+    if signal_gen is None or sym in bnh_symbols:
+        return None
+    try:
+        return signal_gen._get_buys_today(sym)
+    except Exception:
+        return None
+
 def write_snapshot(dashboard_state: dict):
     """Build and write the full status snapshot. Never raises."""
     try:
@@ -106,7 +116,7 @@ def write_snapshot(dashboard_state: dict):
                     "pnl":      today_move,
                     "pnl_pct":  today_move_pct,
                     "strategy":   "bnh" if sym in bnh_symbols else "active",
-                    "buys_today": signal_gen._get_buys_today(sym) if signal_gen and sym not in bnh_symbols else None,
+                    "buys_today": _safe_buys_today(signal_gen, sym, bnh_symbols),
                     "max_slots":  slots_count,
                 })
 
