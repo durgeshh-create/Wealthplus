@@ -26,6 +26,7 @@ class PortfolioTracker:
         self.holdings: List[Dict] = []
         self.positions: Dict[str, List[Dict]] = {'day': [], 'net': []}
         self.liquidcase_quantity = 0
+        self.liquidcase_free_quantity = 0  # unpledged qty available to sell
         self.liquidcase_value = 0.0
         self.available_slots = Config.SLOTS_COUNT
         self.locked_symbols: set = set()
@@ -135,6 +136,7 @@ class PortfolioTracker:
         - No activity today: Use holdings only.
         """
         qty_from_holdings = 0
+        free_qty_holdings = 0   # unpledged qty from holdings
         qty_from_positions = 0
         liquidcase_avg_price = 0.0
         
@@ -146,6 +148,7 @@ class PortfolioTracker:
                 pledged_qty = int(holding.get('collateral_quantity', 0))
                 t1_qty      = int(holding.get('t1_quantity', 0))
                 qty_from_holdings = free_qty + pledged_qty + t1_qty
+                free_qty_holdings = free_qty  # only unpledged, T+0 deliverable
                 liquidcase_avg_price = float(holding.get('last_price', 0))
                 logger.info(
                     f"LIQUIDCASE (Holdings): {free_qty} free"
@@ -169,19 +172,22 @@ class PortfolioTracker:
         if qty_from_positions > 0:
             # Bought LIQUIDCASE today — Holdings may lag, add both
             self.liquidcase_quantity = qty_from_holdings + qty_from_positions
+            self.liquidcase_free_quantity = free_qty_holdings + qty_from_positions
             logger.info(f"LIQUIDCASE Total: {qty_from_holdings} (Holdings) + {qty_from_positions} (Bought) = {self.liquidcase_quantity} units")
         elif qty_from_positions < 0:
             # Sold LIQUIDCASE today — Holdings already updated intraday, use as-is
             self.liquidcase_quantity = qty_from_holdings
+            self.liquidcase_free_quantity = free_qty_holdings
             logger.info(f"LIQUIDCASE Total: {qty_from_holdings} units (Holdings updated | {qty_from_positions} sold today)")
         else:
             self.liquidcase_quantity = qty_from_holdings
+            self.liquidcase_free_quantity = free_qty_holdings
         
         # Calculate value using latest price
         self.liquidcase_value = self.liquidcase_quantity * liquidcase_avg_price
         
         if self.liquidcase_quantity > 0:
-            logger.info(f"LIQUIDCASE Total: {self.liquidcase_quantity} units = ₹{self.liquidcase_value:.2f}")
+            logger.info(f"LIQUIDCASE Total: {self.liquidcase_quantity} units (free: {self.liquidcase_free_quantity}) = ₹{self.liquidcase_value:.2f}")
     
     def _process_positions(self):
         """Process positions to identify held ETFs"""
