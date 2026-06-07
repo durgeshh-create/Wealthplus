@@ -407,8 +407,6 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
     <div class="sc g"><div class="sc-label">Available Cash</div><div class="sc-val" id="s-cash">—</div><div class="sc-sub" id="s-cash-sub">Settled · CNC-ready</div></div>
     <div class="sc a"><div class="sc-label">Available Margin</div><div class="sc-val" id="s-margin">—</div><div class="sc-sub" id="s-margin-sub">Incl. collateral</div></div>
     <div class="sc b"><div class="sc-label">LIQUIDCASE</div><div class="sc-val" id="s-liq">—</div><div class="sc-sub" id="s-liq-sub">—</div></div>
-    <div class="sc"><div class="sc-label">Slots Used</div><div class="sc-val" id="s-slots">—</div><div class="sc-sub" id="s-slots-sub">—</div></div>
-    <div class="sc"><div class="sc-label">Active Signals</div><div class="sc-val" id="s-sigs">—</div><div class="sc-sub">BUY / SELL triggers</div></div>
   </div>
 
   <div class="two-col">
@@ -427,8 +425,8 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         </div>
         <div class="scroll">
           <table class="tbl">
-            <thead><tr><th>Symbol</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>Cur. Val</th><th>P&amp;L</th></tr></thead>
-            <tbody id="h-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+            <thead><tr><th>Symbol</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>Cur. Val</th><th>Slots</th><th>P&L</th></tr></thead>
+            <tbody id="h-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -2307,9 +2305,6 @@ function render(data) {
   document.getElementById("s-total-sub").textContent = `across all positions`;
   document.getElementById("s-liq").textContent     = fmtL(liq.value);
   document.getElementById("s-liq-sub").textContent = `${liq.quantity ?? 0} units · ${liq.pct ?? 0}%`;
-  document.getElementById("s-slots").textContent   = `${slots.used ?? 0}/${slots.total ?? 0}`;
-  document.getElementById("s-slots-sub").textContent = `${slots.available ?? 0} slots free`;
-  document.getElementById("s-sigs").textContent    = sigs.length;
 
   // Available Cash (settled, CNC-ready) — avail['cash'] from Zerodha margins API
   const cash = data.available_cash ?? null;
@@ -2334,6 +2329,13 @@ function render(data) {
   const hb = document.getElementById("h-body");
   hb.innerHTML = holdings.length ? holdings.map(h => {
     const curVal = (h.ltp != null && h.quantity != null) ? h.quantity * h.ltp : (h.value ?? null);
+    // Slots: buys_today / max_slots — only for active strategy (BnH has no slot system)
+    let slotsCell = '—';
+    if (h.strategy !== 'bnh' && h.buys_today != null && h.max_slots != null) {
+      const pct  = h.buys_today / h.max_slots;
+      const cls  = pct >= 1 ? 'neg' : pct >= 0.6 ? 'amber' : 'pos';
+      slotsCell  = `<span class="${cls}" style="font-family:var(--head);font-weight:700">${h.buys_today}/${h.max_slots}</span>`;
+    }
     return `
     <tr>
       <td><span class="sym">${h.symbol}</span><span class="tag ${h.strategy==='bnh'?'tag-b':'tag-a'}">${h.strategy}</span></td>
@@ -2341,9 +2343,10 @@ function render(data) {
       <td style="color:var(--muted2)">${fmtR(h.avg)}</td>
       <td>${fmtR(h.ltp)}</td>
       <td style="color:var(--muted2)">${curVal != null ? fmtL(curVal) : "—"}</td>
+      <td style="text-align:center">${slotsCell}</td>
       <td class="${h.pnl>=0?'pos':'neg'}">${(h.pnl>=0?"+":"")}${fmtL(h.pnl)}<br><span style="font-size:10px;opacity:.7">${fmtPct(h.pnl_pct)}</span></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="6" class="empty">No holdings</td></tr>`;
+  }).join("") : `<tr><td colspan="7" class="empty">No holdings</td></tr>`;
 
   // Holdings Total P&L — shown in panel header
   const hPnlWrap = document.getElementById("h-pnl-wrap");
