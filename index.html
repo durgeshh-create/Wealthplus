@@ -2305,10 +2305,12 @@ function render(data) {
   document.getElementById("s-total-sub").textContent = `across all positions`;
   const liqFree = liq.free_quantity ?? liq.quantity ?? 0;
   const liqTotal = liq.quantity ?? 0;
+  const liqPledged = liqTotal - liqFree;
   const liqPricePerUnit = liqTotal > 0 ? (liq.value ?? 0) / liqTotal : 0;
   const liqFreeValue = liqFree * liqPricePerUnit;
+  const liqPledgedValue = liqPledged * liqPricePerUnit;
   document.getElementById("s-liq").textContent     = fmtL(liqFreeValue);
-  document.getElementById("s-liq-sub").textContent = "Not pledged";
+  document.getElementById("s-liq-sub").textContent = `Free · Pledged ${fmtL(liqPledgedValue)}`;
 
   // Available Cash (settled, CNC-ready) — avail['cash'] from Zerodha margins API
   const cash = data.available_cash ?? null;
