@@ -39,9 +39,10 @@ def write_snapshot(dashboard_state: dict):
         from backend.core.constants import LIQUIDCASE_SYMBOL
         from backend.indicators.calculator import calculate_daily_williams_r
 
-        portfolio  = dashboard_state.get("portfolio_tracker")
-        realtime   = dashboard_state.get("realtime_manager")
-        historical = dashboard_state.get("historical_manager")
+        portfolio    = dashboard_state.get("portfolio_tracker")
+        realtime     = dashboard_state.get("realtime_manager")
+        historical   = dashboard_state.get("historical_manager")
+        signal_gen   = dashboard_state.get("signal_generator")
 
         settings    = _load_settings()
         active_etfs = settings.get("active_etfs", [
@@ -104,7 +105,9 @@ def write_snapshot(dashboard_state: dict):
                     "value":    round(val, 2),
                     "pnl":      today_move,
                     "pnl_pct":  today_move_pct,
-                    "strategy": "bnh" if sym in bnh_symbols else "active",
+                    "strategy":   "bnh" if sym in bnh_symbols else "active",
+                    "buys_today": signal_gen._get_buys_today(sym) if signal_gen and sym not in bnh_symbols else None,
+                    "max_slots":  slots_count,
                 })
 
             # LIQUIDCASE
