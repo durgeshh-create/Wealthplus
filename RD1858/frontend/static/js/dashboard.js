@@ -1924,7 +1924,6 @@ const indexCache = new Map();
 function updateIndicesTicker(indices) {
     const indexMap = {
         'NIFTY 50':         'index-nifty50',
-        'GIFT NIFTY':       'index-giftnifty',
         'NIFTY MIDCAP 150': 'index-midcap150',
         'INDIA VIX':        'index-indiavix'
     };
