@@ -1,15 +1,15 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-06-08 14:56:11 IST",
+  "timestamp": "2026-06-08 14:58:12 IST",
   "bot_running": true,
-  "total_value": 9357005.01,
-  "today_pnl": -11736.37,
+  "total_value": 9356073.13,
+  "today_pnl": -11905.67,
   "today_pnl_pct": -0.13,
   "liquidcase": {
     "quantity": 76258,
     "free_quantity": 9487,
-    "price": 114.44,
-    "value": 8726965.52,
+    "price": 114.43,
+    "value": 8726202.94,
     "pct": 93.27
   },
   "slots": {
@@ -35,10 +35,10 @@
       "symbol": "BANKBEES",
       "quantity": 36,
       "avg": 553.2,
-      "ltp": 560.02,
-      "value": 20160.72,
-      "pnl": -110.16,
-      "pnl_pct": -0.54,
+      "ltp": 559.51,
+      "value": 20142.36,
+      "pnl": -128.52,
+      "pnl_pct": -0.63,
       "strategy": "active",
       "buys_today": 0,
       "max_slots": 5
@@ -47,10 +47,10 @@
       "symbol": "GOLDBEES",
       "quantity": 781,
       "avg": 127.72,
-      "ltp": 124.05,
-      "value": 96883.05,
-      "pnl": -2913.13,
-      "pnl_pct": -2.92,
+      "ltp": 124.1,
+      "value": 96922.1,
+      "pnl": -2874.08,
+      "pnl_pct": -2.88,
       "strategy": "active",
       "buys_today": 0,
       "max_slots": 5
@@ -59,10 +59,10 @@
       "symbol": "JUNIORBEES",
       "quantity": 26,
       "avg": 748.0,
-      "ltp": 749.15,
-      "value": 19477.9,
-      "pnl": -223.86,
-      "pnl_pct": -1.14,
+      "ltp": 748.55,
+      "value": 19462.3,
+      "pnl": -239.46,
+      "pnl_pct": -1.22,
       "strategy": "active",
       "buys_today": 0,
       "max_slots": 5
@@ -71,10 +71,10 @@
       "symbol": "MID150BEES",
       "quantity": 1125,
       "avg": 227.88,
-      "ltp": 228.08,
-      "value": 256590.0,
-      "pnl": -2160.0,
-      "pnl_pct": -0.83,
+      "ltp": 227.95,
+      "value": 256443.75,
+      "pnl": -2306.25,
+      "pnl_pct": -0.89,
       "strategy": "bnh",
       "buys_today": null,
       "max_slots": 5
@@ -95,10 +95,10 @@
       "symbol": "SILVERBEES",
       "quantity": 402,
       "avg": 248.54,
-      "ltp": 227.93,
-      "value": 91627.86,
-      "pnl": -6291.3,
-      "pnl_pct": -6.42,
+      "ltp": 227.86,
+      "value": 91599.72,
+      "pnl": -6319.44,
+      "pnl_pct": -6.45,
       "strategy": "active",
       "buys_today": 0,
       "max_slots": 5
@@ -205,36 +205,36 @@
   "williams_r": [
     {
       "symbol": "MON100",
-      "ltp": 330.7,
-      "change_pct": -3.46,
-      "williams_r": -43.89,
+      "ltp": 330.99,
+      "change_pct": -3.37,
+      "williams_r": -42.81,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "GOLDBEES",
-      "ltp": 124.05,
-      "change_pct": -2.92,
-      "williams_r": -95.21,
+      "ltp": 124.1,
+      "change_pct": -2.88,
+      "williams_r": -94.67,
       "is_held": true,
       "avg_price": 126.75,
       "strategy": "active"
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 227.93,
-      "change_pct": -6.42,
-      "williams_r": -91.51,
+      "ltp": 227.86,
+      "change_pct": -6.45,
+      "williams_r": -91.73,
       "is_held": true,
       "avg_price": 244.08,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 749.15,
-      "change_pct": -1.14,
-      "williams_r": -69.97,
+      "ltp": 748.55,
+      "change_pct": -1.22,
+      "williams_r": -71.3,
       "is_held": true,
       "avg_price": 748.0,
       "strategy": "active"
@@ -250,33 +250,41 @@
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 426.95,
-      "change_pct": -0.29,
-      "williams_r": -74.37,
+      "ltp": 426.58,
+      "change_pct": -0.38,
+      "williams_r": -76.58,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 560.02,
-      "change_pct": -0.54,
-      "williams_r": -49.93,
+      "ltp": 559.51,
+      "change_pct": -0.63,
+      "williams_r": -51.75,
       "is_held": true,
       "avg_price": 553.2,
       "strategy": "active"
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 228.08,
-      "change_pct": -0.83,
-      "williams_r": -78.71,
+      "ltp": 227.95,
+      "change_pct": -0.89,
+      "williams_r": -79.75,
       "is_held": true,
       "avg_price": 227.94,
       "strategy": "bnh"
     }
   ],
-  "signals": [],
+  "signals": [
+    {
+      "type": "BUY",
+      "symbol": "EMBASSY-RR",
+      "reason": "W%R -76.6 \u2264 -75.0",
+      "ltp": 426.58,
+      "williams_r": -76.58
+    }
+  ],
   "orders": [
     {
       "order_id": "260608190062007",
@@ -391,9 +399,9 @@
   ],
   "indices": {
     "NIFTY 50": {
-      "ltp": 23165.85,
+      "ltp": 23164.75,
       "prev_close": 23366.7,
-      "change": -200.85,
+      "change": -201.95,
       "change_pct": -0.86,
       "open": 23080.7,
       "high": 23267.3,
