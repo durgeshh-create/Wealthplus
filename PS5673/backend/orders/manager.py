@@ -18,6 +18,14 @@ from backend.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
+class PostSellError(RuntimeError):
+    """
+    Raised when the ETF buy fails AFTER LIQUIDCASE has already been sold.
+    Executor must NOT allow_retry=True — LIQUIDCASE is gone, cash is in account
+    and will fund the next natural execution cycle without re-selling LIQUIDCASE.
+    """
+
+
 class OrderManager:
     """Manages order placement and monitoring"""
     
@@ -522,13 +530,15 @@ class OrderManager:
             logger.error(
                 f"🚨 ORPHAN: LIQUIDCASE sold but {buy_symbol} BUY failed: {buy_msg}"
             )
-            raise RuntimeError(f"Buy failed after LIQUIDCASE sell: {buy_msg}")
+            # LIQUIDCASE already sold — raise PostSellError so executor does NOT retry
+            raise PostSellError(f"Buy failed after LIQUIDCASE sell: {buy_msg}")
 
         buy_status = self.get_order_status(buy_oid)
         if not self.monitor_order(buy_oid):
             sm = buy_status.get('status_message', '') if buy_status else ''
             logger.error(f"🚨 ORPHAN: {buy_symbol} buy incomplete after LIQUIDCASE sell")
-            raise RuntimeError(f"Buy order did not complete: {sm}")
+            # LIQUIDCASE already sold — raise PostSellError so executor does NOT retry
+            raise PostSellError(f"Buy order did not complete after LIQUIDCASE sell: {sm}")
 
         logger.info(f"✓ smart_buy complete: {buy_quantity} × {buy_symbol} @ ₹{exec_price:.2f}")
         portfolio_tracker.sync()
