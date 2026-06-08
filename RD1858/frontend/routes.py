@@ -991,7 +991,7 @@ def register_routes(app, dashboard_state):
             logger.error(f"Error fetching indices data: {e}", exc_info=True)
             return jsonify([
                 {'name': n, 'ltp': 0, 'change': 0, 'change_pct': 0, 'prev_close': 0}
-                for n in ['NIFTY 50', 'GIFT NIFTY', 'NIFTY MIDCAP 150', 'INDIA VIX']
+                for n in ['NIFTY 50', 'NIFTY MIDCAP 150', 'INDIA VIX']
             ])
 
 
