@@ -11,6 +11,15 @@ on:
     #         and silently drops it if the queue slot expires.
     - cron: '5 7 * * 1-5'
   workflow_dispatch:           # Manual trigger from GitHub Actions UI
+    inputs:
+      triggered_by:
+        description: 'Who triggered this? (manual / cronjob)'
+        required: false
+        default: 'cronjob'
+        type: choice
+        options:
+          - cronjob
+          - manual
 
 # Workflow-level permissions — required for gh-pages push from Actions
 permissions:
@@ -37,8 +46,14 @@ jobs:
       - name: Time-window guard (abort stale scheduled runs)
         run: |
           # Manual triggers always allowed
+          TRIGGERED_BY="${{ github.event.inputs.triggered_by || 'cronjob' }}"
+          echo "🔔 Triggered by: ${TRIGGERED_BY} (event: ${{ github.event_name }})"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "✅ Manual trigger — skipping time-window check"
+            if [ "${TRIGGERED_BY}" = "manual" ]; then
+              echo "✅ Manual run by user — skipping time-window check"
+            else
+              echo "✅ cron-job.org scheduled trigger — skipping time-window check"
+            fi
             exit 0
           fi
           HOUR=$(date -u +%H)
