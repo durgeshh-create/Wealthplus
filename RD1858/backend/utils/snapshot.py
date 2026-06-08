@@ -1,7 +1,7 @@
 """
-snapshot.py — PS5673
+snapshot.py — RD1858
 =====================
-Writes a JSON status file to /tmp/status_ps5673.json every 2 minutes.
+Writes a JSON status file to /tmp/status_rd1858.json every 2 minutes.
 GitHub Actions pushes this file to the gh-pages branch so the static
 GitHub Pages dashboard can read it without any server or tunnel.
 
@@ -17,8 +17,8 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 IST           = timezone(timedelta(hours=5, minutes=30))
-SNAPSHOT_PATH = Path("/tmp/status_ps5673.json")
-ACCOUNT       = "PS5673"
+SNAPSHOT_PATH = Path("/tmp/status_rd1858.json")
+ACCOUNT       = "RD1858"
 INTERVAL_SEC  = 120   # write every 2 minutes (was 300 — caused >10 min lag)
 
 
@@ -175,7 +175,7 @@ def write_snapshot(dashboard_state: dict):
                 "strategy":   "bnh" if is_bnh else "active",
             })
 
-            # Generate signals for active ETFs only (BNH is long-term hold)
+            # Generate signals for active ETFs
             if not is_bnh:
                 if is_held and avg_price and ltp:
                     profit_pct = (ltp - avg_price) / avg_price * 100
@@ -252,14 +252,18 @@ def write_snapshot(dashboard_state: dict):
         # ── Available Cash + Margin ───────────────────────────────────────────
         # ✅ FIX: three bugs fixed here:
         # 1. Used order_mgr.auth.session (shared with trading loop) — not thread-safe.
-        #    Fix: fresh one-shot requests.Session per snapshot call.
-        # 2. timeout=10 too tight on GH Actions runners under load.
-        #    Fix: 15 s with one automatic retry.
-        # 3. bare except: pass — silently swallowed all errors.
-        #    Fix: log to stderr + store reason in snapshot for dashboard display.
+        #    requests.Session is not safe for concurrent use; simultaneous order calls
+        #    can mutate headers mid-request causing 401/403 on this call.
+        #    Fix: build a fresh one-shot requests.Session with the same enctoken,
+        #    used only for this snapshot call and discarded immediately.
+        # 2. timeout=10 was too tight for GH Actions runners under load.
+        #    Fix: raised to 15 s with one automatic retry.
+        # 3. bare except: pass swallowed all errors silently.
+        #    Fix: log the reason so it appears in Actions logs; store reason string
+        #    in snapshot so dashboard can show specific error instead of "Unavailable".
         available_cash        = None
         available_margin      = None
-        available_margin_note = None
+        available_margin_note = None   # surfaced to dashboard on failure
         try:
             import requests as _req
             order_mgr = dashboard_state.get("order_manager")
@@ -270,6 +274,7 @@ def write_snapshot(dashboard_state: dict):
                     available_margin_note = "enctoken not available"
                 else:
                     from backend.core.config import Config
+                    # ✅ FIX 1: fresh isolated session — no shared state with trading loop
                     _snap_session = _req.Session()
                     _snap_session.headers.update({
                         "Authorization": f"enctoken {enctoken}",
@@ -277,7 +282,7 @@ def write_snapshot(dashboard_state: dict):
                     })
                     margins_url = f"{Config.ZERODHA_API_BASE}/oms/user/margins"
                     mresp = None
-                    for _attempt in range(2):
+                    for _attempt in range(2):   # ✅ FIX 2: one retry on failure
                         try:
                             mresp = _snap_session.get(margins_url, timeout=15)
                             break
@@ -299,9 +304,10 @@ def write_snapshot(dashboard_state: dict):
                             open_bal   = float(avail.get("opening_balance", 0) or 0)
                             collateral = float(avail.get("collateral", 0)       or 0)
                             debits     = float(utilised.get("debits", 0)        or 0)
-                            available_cash   = round(open_bal if open_bal > 0 else net_bal, 2)
+                            available_cash   = round(net_bal if net_bal > 0 else open_bal, 2)  # prefer live cash over opening balance
                             available_margin = round(collateral - debits + available_cash, 2)
                         else:
+                            # ✅ FIX 3: surface HTTP error code to dashboard
                             available_margin_note = f"HTTP {mresp.status_code}"
                             import sys as _sys
                             print(f"[snapshot] margins API error: HTTP {mresp.status_code} — {mresp.text[:200]}", file=_sys.stderr)
@@ -412,7 +418,7 @@ def write_snapshot(dashboard_state: dict):
 
 def start_snapshot_thread(dashboard_state: dict):
     """
-    Start background thread that writes /tmp/status_ps5673.json every 2 minutes.
+    Start background thread that writes /tmp/status_rd1858.json every 2 minutes.
     Returns immediately. Thread is daemon so it dies with the process.
     """
     def _loop():
@@ -422,6 +428,6 @@ def start_snapshot_thread(dashboard_state: dict):
             time.sleep(INTERVAL_SEC)
             write_snapshot(dashboard_state)
 
-    t = threading.Thread(target=_loop, daemon=True, name="SnapshotWriter-PS5673")
+    t = threading.Thread(target=_loop, daemon=True, name="SnapshotWriter-RD1858")
     t.start()
     print(f"  → Snapshot writer started (every {INTERVAL_SEC//60} min → {SNAPSHOT_PATH}) ✅")
