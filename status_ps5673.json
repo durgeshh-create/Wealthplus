@@ -1,7 +1,7 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-06-08 15:35:16 IST",
-  "bot_running": false,
+  "timestamp": "2026-06-09 03:31:27 IST",
+  "bot_running": true,
   "total_value": 9098664.6,
   "today_pnl": -11064.13,
   "today_pnl_pct": -0.12,
@@ -145,9 +145,9 @@
       "symbol": "GOLDBEES",
       "quantity": 564,
       "avg": 124.58,
-      "ltp": 124.16,
-      "pnl": -237.7,
-      "unrealised": -237.7,
+      "ltp": 124.39,
+      "pnl": -107.98,
+      "unrealised": -107.98,
       "realised": 0.0,
       "buy_qty": 564,
       "sell_qty": 0,
@@ -169,9 +169,9 @@
       "symbol": "MID150BEES",
       "quantity": 634,
       "avg": 227.86,
-      "ltp": 226.84,
-      "pnl": -643.6,
-      "unrealised": -643.6,
+      "ltp": 226.89,
+      "pnl": -611.9,
+      "unrealised": -611.9,
       "realised": 0.0,
       "buy_qty": 634,
       "sell_qty": 0,
@@ -181,9 +181,9 @@
       "symbol": "NIFTYBEES",
       "quantity": 227,
       "avg": 262.7,
-      "ltp": 262.56,
-      "pnl": -31.78,
-      "unrealised": -31.78,
+      "ltp": 262.48,
+      "pnl": -49.94,
+      "unrealised": -49.94,
       "realised": 0.0,
       "buy_qty": 227,
       "sell_qty": 0,
@@ -193,9 +193,9 @@
       "symbol": "SILVERBEES",
       "quantity": 86,
       "avg": 230.07,
-      "ltp": 227.93,
-      "pnl": -184.04,
-      "unrealised": -184.04,
+      "ltp": 228.45,
+      "pnl": -139.32,
+      "unrealised": -139.32,
       "realised": 0.0,
       "buy_qty": 86,
       "sell_qty": 0,
@@ -225,7 +225,7 @@
       "symbol": "SILVERBEES",
       "ltp": 227.93,
       "change_pct": -6.42,
-      "williams_r": -91.51,
+      "williams_r": -91.35,
       "is_held": true,
       "avg_price": 244.4,
       "strategy": "active"
@@ -243,7 +243,7 @@
       "symbol": "MINDSPACE-RR",
       "ltp": 459.94,
       "change_pct": 0.0,
-      "williams_r": -80.51,
+      "williams_r": -73.87,
       "is_held": true,
       "avg_price": 458.0,
       "strategy": "active"
@@ -252,7 +252,7 @@
       "symbol": "EMBASSY-RR",
       "ltp": 426.11,
       "change_pct": -0.49,
-      "williams_r": -79.39,
+      "williams_r": -92.94,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -280,233 +280,12 @@
     {
       "type": "BUY",
       "symbol": "EMBASSY-RR",
-      "reason": "W%R -79.4 \u2264 -75.0",
+      "reason": "W%R -92.9 \u2264 -75.0",
       "ltp": 426.11,
-      "williams_r": -79.39
+      "williams_r": -92.94
     }
   ],
-  "orders": [
-    {
-      "order_id": "260608150087185",
-      "tradingsymbol": "LIQUIDCASE",
-      "transaction_type": "SELL",
-      "quantity": 1747,
-      "filled_quantity": 1747,
-      "average_price": 114.43,
-      "price": 114.43,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 09:16:03"
-    },
-    {
-      "order_id": "260608150173277",
-      "tradingsymbol": "MID150BEES",
-      "transaction_type": "BUY",
-      "quantity": 307,
-      "filled_quantity": 0,
-      "average_price": 0,
-      "price": 227.91,
-      "status": "REJECTED",
-      "order_timestamp": "2026-06-08 09:21:28"
-    },
-    {
-      "order_id": "260608150175028",
-      "tradingsymbol": "MID150BEES",
-      "transaction_type": "BUY",
-      "quantity": 218,
-      "filled_quantity": 218,
-      "average_price": 228.02,
-      "price": 228.02,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 09:24:42"
-    },
-    {
-      "order_id": "260608150161920",
-      "tradingsymbol": "MID150BEES",
-      "transaction_type": "BUY",
-      "quantity": 351,
-      "filled_quantity": 351,
-      "average_price": 227.8,
-      "price": 227.8,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 09:20:42"
-    },
-    {
-      "order_id": "260608150317305",
-      "tradingsymbol": "LIQUIDCASE",
-      "transaction_type": "SELL",
-      "quantity": 524,
-      "filled_quantity": 524,
-      "average_price": 114.43,
-      "price": 114.43,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 09:33:49"
-    },
-    {
-      "order_id": "260608150321435",
-      "tradingsymbol": "GOLDBEES",
-      "transaction_type": "BUY",
-      "quantity": 240,
-      "filled_quantity": 240,
-      "average_price": 124.81,
-      "price": 124.81,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 09:34:18"
-    },
-    {
-      "order_id": "260608150325136",
-      "tradingsymbol": "SILVERBEES",
-      "transaction_type": "BUY",
-      "quantity": 86,
-      "filled_quantity": 86,
-      "average_price": 230.07,
-      "price": 230.07,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 09:34:44"
-    },
-    {
-      "order_id": "260608150466682",
-      "tradingsymbol": "LIQUIDCASE",
-      "transaction_type": "SELL",
-      "quantity": 2,
-      "filled_quantity": 2,
-      "average_price": 114.42,
-      "price": 0,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 09:53:31"
-    },
-    {
-      "order_id": "260608150471376",
-      "tradingsymbol": "LIQUIDCASE",
-      "transaction_type": "SELL",
-      "quantity": 2,
-      "filled_quantity": 2,
-      "average_price": 114.42,
-      "price": 0,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 09:54:19"
-    },
-    {
-      "order_id": "260608150476264",
-      "tradingsymbol": "LIQUIDCASE",
-      "transaction_type": "SELL",
-      "quantity": 2,
-      "filled_quantity": 2,
-      "average_price": 114.43,
-      "price": 0,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 09:55:07"
-    },
-    {
-      "order_id": "260608150476540",
-      "tradingsymbol": "GOLDBEES",
-      "transaction_type": "BUY",
-      "quantity": 1,
-      "filled_quantity": 1,
-      "average_price": 124.69,
-      "price": 124.69,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 09:55:10"
-    },
-    {
-      "order_id": "260608150532231",
-      "tradingsymbol": "LIQUIDCASE",
-      "transaction_type": "SELL",
-      "quantity": 172,
-      "filled_quantity": 172,
-      "average_price": 114.43,
-      "price": 0,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 10:04:14"
-    },
-    {
-      "order_id": "260608150471632",
-      "tradingsymbol": "GOLDBEES",
-      "transaction_type": "BUY",
-      "quantity": 1,
-      "filled_quantity": 1,
-      "average_price": 124.63,
-      "price": 124.63,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 09:54:22"
-    },
-    {
-      "order_id": "260608150466989",
-      "tradingsymbol": "GOLDBEES",
-      "transaction_type": "BUY",
-      "quantity": 1,
-      "filled_quantity": 1,
-      "average_price": 124.61,
-      "price": 124.61,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 09:53:34"
-    },
-    {
-      "order_id": "260608150631075",
-      "tradingsymbol": "LIQUIDCASE",
-      "transaction_type": "SELL",
-      "quantity": 172,
-      "filled_quantity": 172,
-      "average_price": 114.43,
-      "price": 0,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 10:27:35"
-    },
-    {
-      "order_id": "260608150650113",
-      "tradingsymbol": "LIQUIDCASE",
-      "transaction_type": "SELL",
-      "quantity": 172,
-      "filled_quantity": 172,
-      "average_price": 114.43,
-      "price": 0,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 10:31:53"
-    },
-    {
-      "order_id": "260608150699994",
-      "tradingsymbol": "GOLDBEES",
-      "transaction_type": "BUY",
-      "quantity": 321,
-      "filled_quantity": 321,
-      "average_price": 124.41,
-      "price": 124.41,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 10:43:57"
-    },
-    {
-      "order_id": "260608150705651",
-      "tradingsymbol": "EMBASSY-RR",
-      "transaction_type": "BUY",
-      "quantity": 70,
-      "filled_quantity": 70,
-      "average_price": 426.36,
-      "price": 426.36,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 10:45:09"
-    },
-    {
-      "order_id": "260608151223344",
-      "tradingsymbol": "LIQUIDCASE",
-      "transaction_type": "SELL",
-      "quantity": 174,
-      "filled_quantity": 174,
-      "average_price": 114.43,
-      "price": 0,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 13:45:37"
-    },
-    {
-      "order_id": "260608151485569",
-      "tradingsymbol": "MID150BEES",
-      "transaction_type": "BUY",
-      "quantity": 65,
-      "filled_quantity": 65,
-      "average_price": 227.6,
-      "price": 227.6,
-      "status": "COMPLETE",
-      "order_timestamp": "2026-06-08 15:01:03"
-    }
-  ],
+  "orders": [],
   "indices": {
     "NIFTY 50": {
       "ltp": 23123.0,
@@ -527,7 +306,7 @@
       "low": 15.79
     }
   },
-  "available_cash": 17502.55,
-  "available_margin": 2093154.83,
-  "available_margin_note": null
+  "available_cash": null,
+  "available_margin": null,
+  "available_margin_note": "HTTP 500"
 }
