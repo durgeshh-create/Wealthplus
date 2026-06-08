@@ -402,6 +402,10 @@
                 <span class="tab-icon">🗂️</span>
                 <span class="tab-label">Manage Symbols</span>
             </button>
+            <button class="tab-btn" data-tab="scanner" onclick="switchTab('scanner')">
+                <span class="tab-icon">🔍</span>
+                <span class="tab-label">Scanner</span>
+            </button>
         </div>
     </nav>
 
@@ -1181,9 +1185,8 @@
         <!-- ══════════════════════════════════════════════════════════════
              MANAGE SYMBOLS TAB
         ══════════════════════════════════════════════════════════════ -->
-        <div class="tab-pane" id="tab-symbols">
+        <div class="tab-pane" id="tab-scanner">
             <div class="sym-manage-wrap">
-
             <!-- ── Williams Scanner ──────────────────────────────────────── -->
             <div class="scanner-panel" id="scanner-panel" style="grid-column:1/-1; margin-top:0;">
                 <div class="scanner-header">
@@ -1316,6 +1319,12 @@
                 </div>
                 <div class="scn-empty" id="scn-empty" style="display:none;">No symbols matched the thresholds — market may not be oversold, or historical data not available for scanned universe.</div>
             </div>
+            </div>
+        </div>
+
+        <div class="tab-pane" id="tab-symbols">
+            <div class="sym-manage-wrap">
+            
 
                 <!-- ── Active Strategy Symbols ────────────────────────── -->
                 <div class="sym-section">
