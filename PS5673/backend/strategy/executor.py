@@ -17,6 +17,7 @@ from pathlib import Path
 
 from backend.core.config import Config
 from backend.core.constants import SIGNAL_BUY, SIGNAL_SELL, LIQUIDCASE_SYMBOL
+from backend.orders.manager import PostSellError
 from backend.utils.logger import get_logger, log_separator
 # ── Telegram trade notifications ──────────────────────────────────────────────
 try:
@@ -278,9 +279,17 @@ class StrategyExecutor:
                     buy_product='CNC',
                     cash_reserve=cash_reserve,   # keep executor & smart_buy in sync
                 )
+            except PostSellError as e:
+                # LIQUIDCASE was already sold — cash is now in account.
+                # Do NOT allow_retry: the next cycle will see the cash and buy
+                # directly without selling LIQUIDCASE again.
+                logger.error(f"✗ BUY FAILED after LIQUIDCASE sell [{symbol}]: {e}")
+                if self.signal_generator and is_automated:
+                    self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=False)
+                return False, str(e)
             except RuntimeError as e:
                 logger.error(f"✗ BUY FAILED [{symbol}]: {e}")
-                # Pre-flight failure inside smart_buy — order never reached broker
+                # Pre-flight failure — order never reached broker; allow retry
                 if self.signal_generator and is_automated:
                     self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=True)
                 return False, str(e)
