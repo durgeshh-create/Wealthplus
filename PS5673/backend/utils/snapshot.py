@@ -299,7 +299,7 @@ def write_snapshot(dashboard_state: dict):
                             open_bal   = float(avail.get("opening_balance", 0) or 0)
                             collateral = float(avail.get("collateral", 0)       or 0)
                             debits     = float(utilised.get("debits", 0)        or 0)
-                            available_cash   = round(open_bal if open_bal > 0 else net_bal, 2)
+                            available_cash   = round(net_bal if net_bal > 0 else open_bal, 2)  # prefer live cash over opening balance
                             available_margin = round(collateral - debits + available_cash, 2)
                         else:
                             available_margin_note = f"HTTP {mresp.status_code}"
