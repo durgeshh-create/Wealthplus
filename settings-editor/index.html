@@ -246,8 +246,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .scn-fg label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .scn-thresh{width:80px;padding:5px 8px;border:1px solid var(--border2);border-radius:6px;font-family:var(--mono);font-size:12px;background:var(--bg2);color:var(--text)}
 .scn-thresh:focus{outline:none;border-color:var(--accent)}
-.scn-chk-label{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:6px 0}
-.scn-univ{display:flex;flex-direction:column;gap:4px}
+.scn-chk-label{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:3px 0}
 .scn-run-btn{padding:6px 18px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-family:var(--mono);font-size:12px;font-weight:700;cursor:pointer;transition:background .15s;white-space:nowrap}
 .scn-run-btn:hover{background:#4338ca}
 .scn-run-btn:disabled{opacity:.5;cursor:not-allowed}
@@ -260,34 +259,30 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .scn-chip-both{background:#dcfce7;border-color:#86efac;color:#15803d}
 .scn-chip-daily{background:#dbeafe;border-color:#93c5fd;color:#1d4ed8}
 .scn-chip-weekly{background:#f3e8ff;border-color:#d8b4fe;color:#7e22ce}
-.scn-chip-none{background:var(--bg3);border-color:var(--border2);color:var(--muted)}
+.scn-chip-nodata{background:var(--bg3);border-color:var(--border2);color:var(--muted)}
 .scn-scanned{font-size:11px;color:var(--muted);align-self:center}
 .scn-tbl-wrap{overflow-x:auto}
 .scn-tbl{width:100%;border-collapse:collapse;font-size:12px}
 .scn-tbl th{padding:8px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
 .scn-tbl th:hover{color:var(--text)}
-.scn-tbl th.sorted{color:var(--accent)}
+.scn-tbl th.sorted-col{color:var(--accent)}
 .scn-tbl td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
 .scn-tbl tr:hover td{background:var(--bg3)}
-.scn-tbl tr.scn-row-both td{background:rgba(22,163,74,0.04)}
+.scn-tbl tr.row-both td{background:rgba(22,163,74,0.04)}
 .badge-etf{background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd;border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700}
-.badge-stk{background:#f1f5f9;color:#475569;border:1px solid var(--border2);border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700}
+.badge-n200{background:#f0fdf4;color:#15803d;border:1px solid #86efac;border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700}
+.badge-mid{background:#fef9c3;color:#92400e;border:1px solid #fde68a;border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700}
 .sig-both{color:#16a34a;font-weight:700}
 .sig-daily{color:#2563eb;font-weight:700}
 .sig-weekly{color:#7e22ce;font-weight:700}
 .sig-none{color:var(--muted)}
 .wr-val{font-family:var(--mono)}
-.wr-bad{color:#dc2626;font-weight:700}
+.wr-os{color:#dc2626;font-weight:700}
 .wr-warn{color:#d97706;font-weight:700}
 .wr-ok{color:var(--muted)}
 .dma-below{color:#dc2626}
 .dma-above{color:#16a34a}
 .scn-empty{text-align:center;padding:40px;color:var(--muted);font-size:13px}
-.scn-add-bar{display:none;align-items:center;gap:8px;padding:8px 0;margin-bottom:8px;flex-wrap:wrap}
-.scn-add-btn{padding:4px 14px;border:1px solid;border-radius:6px;font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer;background:transparent}
-.scn-add-active{border-color:var(--accent);color:var(--accent)}
-.scn-add-active:hover{background:var(--acc-d)}
-.scn-sel-count{font-size:12px;color:var(--muted)}
 </style>
 <style>
 /* Password gate */
@@ -2996,229 +2991,182 @@ if (hasCfg()) {
 if(sessionStorage.getItem(PW_SESSION)==='1'){document.getElementById('pw-overlay').style.display='none';onUnlocked();}
 
 // ── WILLIAMS SCANNER ────────────────────────────────────────────────────────
+const SCN_ETF    = ["ABSL10BANK", "ABSLBANETF", "ABSLMSCIN", "ABSLNN50ET", "ABSLPSE", "ALPHA", "ALPHAETF", "ALPL30IETF", "AONEGOLD", "AONENIFTY", "AONESILVER", "AONETMMQ50", "AONETOTAL", "AUTOBEES", "AUTOIETF", "AXISBNKETF", "AXISCETF", "AXISGOLD", "AXISHCETF", "AXISILVER", "AXISNIFTY", "AXISTECETF", "AXISVALUE", "AXSENSEX", "BANK10ADD", "BANKADD", "BANKBEES", "BANKBETA", "BANKBETF", "BANKETF", "BANKIETF", "BANKNIFTY1", "BANKPSU", "BBNPNBETF", "BBNPPGOLD", "BFSI", "BSE500IETF", "BSLGOLDETF", "BSLNIFTY", "BSLSENETFG", "CHEMICAL", "CHOICEGOLD", "COMMOIETF", "CONS", "CONSUMBEES", "CONSUMER", "CONSUMIETF", "CPSEETF", "DEFENCE", "DIVIDEND", "DIVOPPBEES", "EBANKNIFTY", "ECAPINSURE", "EGOLD", "ELM250", "EMULTIMQ", "ENERGY", "ENIFTY", "EQUAL200", "EQUAL50", "EQUAL50ADD", "ESENSEX", "ESG", "ESILVER", "EVIETF", "EVINDIA", "FINIETF", "FLEXIADD", "FMCGADD", "FMCGIETF", "GOLD1", "GOLD360", "GOLDADD", "GOLDBEES", "GOLDBETA", "GOLDBND", "GOLDCASE", "GOLDETF", "GOLDIETF", "GROWWCAPM", "GROWWCHEM", "GROWWDEFNC", "GROWWEV", "GROWWGOLD", "GROWWHOSPI", "GROWWLOVOL", "GROWWMC150", "GROWWMETAL", "GROWWMOM50", "GROWWN200", "GROWWNET", "GROWWNIFTY", "GROWWNXT50", "GROWWPOWER", "GROWWPSE", "GROWWPSUBK", "GROWWRAIL", "GROWWRLTY", "GROWWSC250", "GROWWSLVR", "HDFCBSE500", "HDFCGOLD", "HDFCGROWTH", "HDFCLOWVOL", "HDFCMID150", "HDFCMOMENT", "HDFCNEXT50", "HDFCNIF100", "HDFCNIFBAN", "HDFCNIFIT", "HDFCNIFTY", "HDFCPSUBK", "HDFCPVTBAN", "HDFCQUAL", "HDFCSENSEX", "HDFCSILVER", "HDFCSML250", "HDFCVALUE", "HEALTHADD", "HEALTHCARE", "HEALTHIETF", "HEALTHY", "HNGSNGBEES", "HSBCGOLD", "ICICIB22", "IDFNIFTYET", "INFRA", "INFRABEES", "INFRAIETF", "INTERNET", "IT", "ITADD", "ITBEES", "ITBETA", "ITETF", "ITIETF", "IVZINGOLD", "IVZINNIFTY", "JUNIORBEES", "LICMFGOLD", "LICNETFGSC", "LICNETFN50", "LICNETFSEN", "LICNFNHGP", "LICNMID100", "LOWVOL", "LOWVOL1", "LOWVOLIETF", "MAFANG", "MAHKTECH", "MAKEINDIA", "MANUFGBEES", "MASPTOP50", "METAL", "METALIETF", "MID150", "MID150BEES", "MID150CASE", "MIDCAP", "MIDCAPADD", "MIDCAPBETA", "MIDCAPETF", "MIDCAPIETF", "MIDQ50ADD", "MIDSELIETF", "MIDSMALL", "MNC", "MOALPHA50", "MOBANK10", "MOCAPITAL", "MODEFENCE", "MOENERGY", "MOGOLD", "MOHEALTH", "MOINFRA", "MOIPO", "MOLOWVOL", "MOM100", "MOM30IETF", "MOM50", "MOMENTUM", "MOMENTUM30", "MOMENTUM50", "MOMGF", "MOMIDMTM", "MOMNC", "MOMOMENTUM", "MON100", "MON50EQUAL", "MONEXT50", "MONIFTY100", "MONIFTY500", "MONQ50", "MOPSE", "MOQUALITY", "MOREALTY", "MOSERVICE", "MOSILVER", "MOSMALL250", "MOTOUR", "MOVALUE", "MSCIADD", "MSCIINDIA", "MULTICAP", "NETF", "NEXT30ADD", "NEXT50", "NEXT50ADD", "NEXT50BETA", "NEXT50ETF", "NEXT50IETF", "NIF100BEES", "NIF100IETF", "NIFTY1", "NIFTY100EW", "NIFTYADD", "NIFTYBEES", "NIFTYBETA", "NIFTYBETF", "NIFTYCASE", "NIFTYETF", "NIFTYIETF", "NIFTYQLITY", "NV20", "NV20BEES", "NV20IETF", "OILIETF", "PHARMABEES", "PSUBANK", "PSUBANKADD", "PSUBNKBEES", "PSUBNKIETF", "PVTBANIETF", "PVTBANKADD", "QGOLDHALF", "QNIFTY", "QUAL30IETF", "QUALITY30", "SBIBPB", "SBIETFCON", "SBIETFIT", "SBIETFPB", "SBIETFQLTY", "SBIMIDMOM", "SBINEQWETF", "SBINMID150", "SBISILVER", "SELECTIPO", "SENSEXADD", "SENSEXBETA", "SENSEXETF", "SENSEXIETF", "SETFGOLD", "SETFNIF50", "SETFNIFBK", "SETFNN50", "SHARIABEES", "SILVER", "SILVER1", "SILVER360", "SILVERADD", "SILVERAG", "SILVERBEES", "SILVERBETA", "SILVERBND", "SILVERCASE", "SILVERIETF", "SMALL250", "SMALLADD", "SMALLCAP", "SML100CASE", "SNXT30BEES", "SNXT50BETA", "TATAGOLD", "TATSILV", "TECH", "TNIDETF", "TOP100CASE", "TOP10ADD", "TOP15IETF", "TOP20", "TWCGOLDETF", "UNIONGOLD", "VAL30IETF", "VALUE"];
+const SCN_N200   = ["360ONE", "ABB", "ABCAPITAL", "ADANIENSOL", "ADANIENT", "ADANIGREEN", "ADANIPORTS", "ADANIPOWER", "ALKEM", "AMBUJACEM", "APLAPOLLO", "APOLLOHOSP", "ASHOKLEY", "ASIANPAINT", "ASTRAL", "ATGL", "AUBANK", "AUROPHARMA", "AXISBANK", "BAJAJ-AUTO", "BAJAJFINSV", "BAJAJHLDNG", "BAJFINANCE", "BANKBARODA", "BANKINDIA", "BDL", "BEL", "BHARATFORG", "BHARTIARTL", "BHEL", "BIOCON", "BLUESTARCO", "BOSCHLTD", "BPCL", "BRITANNIA", "BSE", "CANBK", "CGPOWER", "CHOLAFIN", "CIPLA", "COALINDIA", "COCHINSHIP", "COFORGE", "COLPAL", "CONCOR", "COROMANDEL", "CUMMINSIND", "DABUR", "DIVISLAB", "DIXON", "DLF", "DMART", "DRREDDY", "EICHERMOT", "ENRIN", "ETERNAL", "EXIDEIND", "FEDERALBNK", "FORTIS", "GAIL", "GLENMARK", "GMRAIRPORT", "GODFRYPHLP", "GODREJCP", "GODREJPROP", "GRASIM", "GROWW", "GVT&D", "HAL", "HAVELLS", "HCLTECH", "HDFCAMC", "HDFCBANK", "HDFCLIFE", "HEROMOTOCO", "HINDALCO", "HINDPETRO", "HINDUNILVR", "HINDZINC", "HUDCO", "HYUNDAI", "ICICIAMC", "ICICIBANK", "ICICIGI", "IDEA", "IDFCFIRSTB", "INDHOTEL", "INDIANB", "INDIGO", "INDUSINDBK", "INDUSTOWER", "INFY", "IOC", "IRCTC", "IREDA", "IRFC", "ITC", "JINDALSTEL", "JIOFIN", "JSWENERGY", "JSWSTEEL", "JUBLFOOD", "KALYANKJIL", "KEI", "KOTAKBANK", "KPITTECH", "LAURUSLABS", "LENSKART", "LGEINDIA", "LICHSGFIN", "LODHA", "LT", "LTF", "LTM", "LUPIN", "M&M", "M&MFIN", "MANKIND", "MARICO", "MARUTI", "MAXHEALTH", "MAZDOCK", "MCX", "MFSL", "MOTHERSON", "MOTILALOFS", "MPHASIS", "MRF", "MUTHOOTFIN", "NATIONALUM", "NAUKRI", "NESTLEIND", "NHPC", "NMDC", "NTPC", "NYKAA", "OBEROIRLTY", "OFSS", "OIL", "ONGC", "PAGEIND", "PATANJALI", "PAYTM", "PERSISTENT", "PFC", "PHOENIXLTD", "PIDILITIND", "PIIND", "PNB", "POLICYBZR", "POLYCAB", "POWERGRID", "POWERINDIA", "PREMIERENE", "PRESTIGE", "RADICO", "RECLTD", "RELIANCE", "RVNL", "SAIL", "SBICARD", "SBILIFE", "SBIN", "SHREECEM", "SHRIRAMFIN", "SIEMENS", "SOLARINDS", "SRF", "SUNPHARMA", "SUPREMEIND", "SUZLON", "SWIGGY", "TATACAP", "TATACOMM", "TATACONSUM", "TATAELXSI", "TATAINVEST", "TATAPOWER", "TATASTEEL", "TCS", "TECHM", "TIINDIA", "TITAN", "TMCV", "TMPV", "TORNTPHARM", "TRENT", "TVSMOTOR", "ULTRACEMCO", "UNIONBANK", "UNITDSPR", "UPL", "VBL", "VEDL", "VMM", "VOLTAS", "WAAREEENER", "WIPRO", "YESBANK", "ZYDUSLIFE"];
+const SCN_MID150 = ["360ONE", "3MINDIA", "ACC", "AIAENG", "APLAPOLLO", "AUBANK", "AWL", "ABBOTINDIA", "ATGL", "ABCAPITAL", "AJANTPHARM", "ALKEM", "ANTHEM", "APARINDS", "APOLLOTYRE", "ASHOKLEY", "ASTRAL", "AUROPHARMA", "AIIL", "BSE", "BAJAJHFL", "BALKRISIND", "BANKINDIA", "MAHABANK", "BERGEPAINT", "BDL", "BHARATFORG", "BHEL", "BHARTIHEXA", "GROWW", "BIOCON", "BLUESTARCO", "CRISIL", "COCHINSHIP", "COFORGE", "COLPAL", "CONCOR", "COROMANDEL", "DABUR", "DALBHARAT", "DIXON", "ENDURANCE", "ESCORTS", "EXIDEIND", "NYKAA", "FEDERALBNK", "FORTIS", "GVT&D", "GMRAIRPORT", "GICRE", "GLAXO", "GLENMARK", "MEDANTA", "GODFRYPHLP", "GODREJIND", "GODREJPROP", "FLUOROCHEM", "HDBFS", "HAVELLS", "HEROMOTOCO", "HEXT", "HINDPETRO", "POWERINDIA", "HONAUT", "HUDCO", "ICICIGI", "ICICIAMC", "ICICIPRULI", "IDFCFIRSTB", "ITCHOTELS", "INDIANB", "IRCTC", "IREDA", "INDUSTOWER", "INDUSINDBK", "NAUKRI", "IPCALAB", "JKCEMENT", "JSWENERGY", "JSWINFRA", "JSL", "JUBLFOOD", "KPRMILL", "KEI", "KPITTECH", "KALYANKJIL", "LTF", "LTTS", "LGEINDIA", "LICHSGFIN", "LAURUSLABS", "LENSKART", "LICI", "LINDEINDIA", "LLOYDSME", "LUPIN", "MRF", "M&MFIN", "MANKIND", "MARICO", "MFSL", "MOTILALOFS", "MPHASIS", "MCX", "NHPC", "NLCINDIA", "NMDC", "NTPCGREEN", "NATIONALUM", "NAM-INDIA", "OBEROIRLTY", "OIL", "PAYTM", "OFSS", "POLICYBZR", "PIIND", "PAGEIND", "PATANJALI", "PERSISTENT", "PETRONET", "PHOENIXLTD", "POLYCAB", "PREMIERENE", "PRESTIGE", "RADICO", "RVNL", "SBICARD", "SJVN", "SRF", "SCHAEFFLER", "SAIL", "SUNDARMFIN", "SUPREMEIND", "SUZLON", "SWIGGY", "TATACOMM", "TATAELXSI", "TATAINVEST", "NIACL", "THERMAX", "TORNTPOWER", "TIINDIA", "UNOMINDA", "UPL", "UBL", "VMM", "IDEA", "VOLTAS", "WAAREEENER", "YESBANK"];
+const REPO_RAW   = 'https://raw.githubusercontent.com/durgeshh-create/Wealthplus/main/RD1858/data';
 
-const SCN_ALL_SYMS    = ["360ONE", "3MINDIA", "ABB", "ABBOTINDIA", "ABCAPITAL", "ABGSEC", "ABSL10BANK", "ABSLBANETF", "ABSLLIQUID", "ABSLMSCIN", "ABSLNN50ET", "ABSLPSE", "ACC", "ADANIENSOL", "ADANIENT", "ADANIGREEN", "ADANIPORTS", "ADANIPOWER", "AIAENG", "AIIL", "AJANTPHARM", "ALKEM", "ALPHA", "ALPHAETF", "ALPL30IETF", "AMBUJACEM", "ANTHEM", "AONEGOLD", "AONELIQUID", "AONENIFTY", "AONESILVER", "AONETMMQ50", "AONETOTAL", "APARINDS", "APLAPOLLO", "APOLLOHOSP", "APOLLOTYRE", "ASHOKLEY", "ASIANPAINT", "ASTRAL", "ATGL", "AUBANK", "AUROPHARMA", "AUTOBEES", "AUTOIETF", "AWL", "AXISBANK", "AXISBNKETF", "AXISCETF", "AXISGOLD", "AXISHCETF", "AXISILVER", "AXISNIFTY", "AXISTECETF", "AXISVALUE", "AXSENSEX", "BAJAJ-AUTO", "BAJAJFINSV", "BAJAJHFL", "BAJAJHLDNG", "BAJFINANCE", "BALKRISIND", "BANK10ADD", "BANKADD", "BANKBARODA", "BANKBEES", "BANKBETA", "BANKBETF", "BANKETF", "BANKIETF", "BANKINDIA", "BANKNIFTY1", "BANKPSU", "BBETF0432", "BBNPNBETF", "BBNPPGOLD", "BDL", "BEL", "BERGEPAINT", "BFSI", "BHARATFORG", "BHARTIARTL", "BHARTIHEXA", "BHEL", "BIOCON", "BLUESTARCO", "BOSCHLTD", "BPCL", "BRITANNIA", "BSE", "BSE500IETF", "BSLGOLDETF", "BSLNIFTY", "BSLSENETFG", "CANBK", "CASHIETF", "CGPOWER", "CHEMICAL", "CHOICEGOLD", "CHOLAFIN", "CIPLA", "COALINDIA", "COCHINSHIP", "COFORGE", "COLPAL", "COMMOIETF", "CONCOR", "CONS", "CONSUMBEES", "CONSUMER", "CONSUMIETF", "COROMANDEL", "CPSEETF", "CRISIL", "CUMMINSIND", "DABUR", "DALBHARAT", "DEFENCE", "DIVIDEND", "DIVISLAB", "DIVOPPBEES", "DIXON", "DLF", "DMART", "DRREDDY", "EBANKNIFTY", "EBBETF0430", "EBBETF0431", "EBBETF0433", "ECAPINSURE", "EGOLD", "EICHERMOT", "ELIQUID", "ELM250", "EMBASSY-RR", "EMULTIMQ", "ENDURANCE", "ENERGY", "ENIFTY", "ENRIN", "EQUAL200", "EQUAL50", "EQUAL50ADD", "ESCORTS", "ESENSEX", "ESG", "ESILVER", "ETERNAL", "EVIETF", "EVINDIA", "EXIDEIND", "FEDERALBNK", "FINIETF", "FLEXIADD", "FLUOROCHEM", "FMCGADD", "FMCGIETF", "FORTIS", "GAIL", "GICRE", "GILT10BETA", "GILT5BETA", "GILT5YBEES", "GLAXO", "GLENMARK", "GMRAIRPORT", "GODFRYPHLP", "GODREJCP", "GODREJIND", "GODREJPROP", "GOLD1", "GOLD360", "GOLDADD", "GOLDBEES", "GOLDBETA", "GOLDBND", "GOLDCASE", "GOLDETF", "GOLDIETF", "GRASIM", "GROWW", "GROWWCAPM", "GROWWCHEM", "GROWWDEFNC", "GROWWEV", "GROWWGOLD", "GROWWHOSPI", "GROWWLIQID", "GROWWLOVOL", "GROWWMC150", "GROWWMETAL", "GROWWMOM50", "GROWWN200", "GROWWNET", "GROWWNIFTY", "GROWWNXT50", "GROWWPOWER", "GROWWPSE", "GROWWPSUBK", "GROWWRAIL", "GROWWRLTY", "GROWWSC250", "GROWWSLVR", "GSEC10ABSL", "GSEC10IETF", "GSEC10YEAR", "GSEC5IETF", "GVT&D", "HAL", "HAVELLS", "HCLTECH", "HDBFS", "HDFCAMC", "HDFCBANK", "HDFCBSE500", "HDFCGOLD", "HDFCGROWTH", "HDFCLIFE", "HDFCLIQUID", "HDFCLOWVOL", "HDFCMID150", "HDFCMOMENT", "HDFCNEXT50", "HDFCNIF100", "HDFCNIFBAN", "HDFCNIFIT", "HDFCNIFTY", "HDFCPSUBK", "HDFCPVTBAN", "HDFCQUAL", "HDFCSENSEX", "HDFCSILVER", "HDFCSML250", "HDFCVALUE", "HEALTHADD", "HEALTHCARE", "HEALTHIETF", "HEALTHY", "HEROMOTOCO", "HEXT", "HINDALCO", "HINDPETRO", "HINDUNILVR", "HINDZINC", "HNGSNGBEES", "HONAUT", "HSBCGOLD", "HUDCO", "HYUNDAI", "ICICIAMC", "ICICIB22", "ICICIBANK", "ICICIGI", "ICICIPRULI", "IDEA", "IDFCFIRSTB", "IDFNIFTYET", "INDHOTEL", "INDIANB", "INDIGO", "INDUSINDBK", "INDUSTOWER", "INFRA", "INFRABEES", "INFRAIETF", "INFY", "INTERNET", "IOC", "IPCALAB", "IRCTC", "IREDA", "IRFC", "IT", "ITADD", "ITBEES", "ITBETA", "ITC", "ITCHOTELS", "ITETF", "ITIETF", "IVZINGOLD", "IVZINNIFTY", "JINDALSTEL", "JIOFIN", "JKCEMENT", "JSL", "JSWENERGY", "JSWINFRA", "JSWSTEEL", "JUBLFOOD", "JUNIORBEES", "KALYANKJIL", "KEI", "KOTAKBANK", "KPITTECH", "KPRMILL", "LAURUSLABS", "LENSKART", "LGEINDIA", "LICHSGFIN", "LICI", "LICMFGOLD", "LICNETFGSC", "LICNETFN50", "LICNETFSEN", "LICNFNHGP", "LICNMID100", "LINDEINDIA", "LIQGRWBEES", "LIQUID", "LIQUID1", "LIQUIDADD", "LIQUIDBEES", "LIQUIDBETF", "LIQUIDCASE", "LIQUIDETF", "LIQUIDIETF", "LIQUIDPLUS", "LIQUIDSBI", "LIQUIDSHRI", "LLOYDSME", "LODHA", "LOWVOL", "LOWVOL1", "LOWVOLIETF", "LT", "LTF", "LTGILTBEES", "LTGILTCASE", "LTM", "LTTS", "LUPIN", "M&M", "M&MFIN", "MAFANG", "MAHABANK", "MAHKTECH", "MAKEINDIA", "MANKIND", "MANUFGBEES", "MARICO", "MARUTI", "MASPTOP50", "MAXHEALTH", "MAZDOCK", "MCX", "MEDANTA", "METAL", "METALIETF", "MFSL", "MID150", "MID150BEES", "MID150CASE", "MIDCAP", "MIDCAPADD", "MIDCAPBETA", "MIDCAPETF", "MIDCAPIETF", "MIDQ50ADD", "MIDSELIETF", "MIDSMALL", "MINDSPACE-RR", "MNC", "MOALPHA50", "MOBANK10", "MOCAPITAL", "MODEFENCE", "MOENERGY", "MOGOLD", "MOGSEC", "MOHEALTH", "MOINFRA", "MOIPO", "MOLOWVOL", "MOM100", "MOM30IETF", "MOM50", "MOMENTUM", "MOMENTUM30", "MOMENTUM50", "MOMGF", "MOMIDMTM", "MOMNC", "MOMOMENTUM", "MON100", "MON50EQUAL", "MONEXT50", "MONIFTY100", "MONIFTY500", "MONQ50", "MOPSE", "MOQUALITY", "MOREALTY", "MOSERVICE", "MOSILVER", "MOSMALL250", "MOTHERSON", "MOTILALOFS", "MOTOUR", "MOVALUE", "MPHASIS", "MRF", "MSCIADD", "MSCIINDIA", "MULTICAP", "MUTHOOTFIN", "NAM-INDIA", "NATIONALUM", "NAUKRI", "NESTLEIND", "NETF", "NEXT30ADD", "NEXT50", "NEXT50ADD", "NEXT50BETA", "NEXT50ETF", "NEXT50IETF", "NHPC", "NIACL", "NIF100BEES", "NIF100IETF", "NIFTY1", "NIFTY100EW", "NIFTYADD", "NIFTYBEES", "NIFTYBETA", "NIFTYBETF", "NIFTYCASE", "NIFTYETF", "NIFTYIETF", "NIFTYQLITY", "NLCINDIA", "NMDC", "NPBET", "NTPC", "NTPCGREEN", "NV20", "NV20BEES", "NV20IETF", "NYKAA", "OBEROIRLTY", "OFSS", "OIL", "OILIETF", "ONGC", "PAGEIND", "PATANJALI", "PAYTM", "PERSISTENT", "PETRONET", "PFC", "PHARMABEES", "PHOENIXLTD", "PIDILITIND", "PIIND", "PNB", "POLICYBZR", "POLYCAB", "POWERGRID", "POWERINDIA", "PREMIERENE", "PRESTIGE", "PSUBANK", "PSUBANKADD", "PSUBNKBEES", "PSUBNKIETF", "PVTBANIETF", "PVTBANKADD", "QGOLDHALF", "QNIFTY", "QUAL30IETF", "QUALITY30", "RADICO", "RECLTD", "RELIANCE", "RVNL", "SAIL", "SBIBPB", "SBICARD", "SBIETFCON", "SBIETFIT", "SBIETFPB", "SBIETFQLTY", "SBILIFE", "SBILIQETF", "SBIMIDMOM", "SBIN", "SBINEQWETF", "SBINMID150", "SBISILVER", "SCHAEFFLER", "SELECTIPO", "SENSEXADD", "SENSEXBETA", "SENSEXETF", "SENSEXIETF", "SETF10GILT", "SETFGOLD", "SETFNIF50", "SETFNIFBK", "SETFNN50", "SHARIABEES", "SHREECEM", "SHRIRAMFIN", "SIEMENS", "SILVER", "SILVER1", "SILVER360", "SILVERADD", "SILVERAG", "SILVERBEES", "SILVERBETA", "SILVERBND", "SILVERCASE", "SILVERIETF", "SJVN", "SMALL250", "SMALLADD", "SMALLCAP", "SML100CASE", "SNXT30BEES", "SNXT50BETA", "SOLARINDS", "SRF", "SUNDARMFIN", "SUNPHARMA", "SUPREMEIND", "SUZLON", "SWIGGY", "TATACAP", "TATACOMM", "TATACONSUM", "TATAELXSI", "TATAGOLD", "TATAINVEST", "TATAPOWER", "TATASTEEL", "TATSILV", "TCS", "TECH", "TECHM", "THERMAX", "TIINDIA", "TITAN", "TMCV", "TMPV", "TNIDETF", "TOP100CASE", "TOP10ADD", "TOP15IETF", "TOP20", "TORNTPHARM", "TORNTPOWER", "TRENT", "TVSMOTOR", "TWCGOLDETF", "UBL", "ULTRACEMCO", "UNIONBANK", "UNIONGOLD", "UNITDSPR", "UNOMINDA", "UPL", "VAL30IETF", "VALUE", "VBL", "VEDL", "VMM", "VOLTAS", "WAAREEENER", "WIPRO", "YESBANK", "ZYDUSLIFE"];
-const SCN_ETF_SYMS    = ["ABCAPITAL", "ABGSEC", "ABSL10BANK", "ABSLBANETF", "ABSLLIQUID", "ABSLMSCIN", "ABSLNN50ET", "ABSLPSE", "ALPHA", "ALPHAETF", "ALPL30IETF", "AONEGOLD", "AONELIQUID", "AONENIFTY", "AONESILVER", "AUBANK", "AUROPHARMA", "AUTOBEES", "AUTOIETF", "AXISBANK", "AXISBNKETF", "AXISCETF", "AXISGOLD", "AXISHCETF", "AXISILVER", "AXISNIFTY", "AXISTECETF", "AXISVALUE", "AXSENSEX", "BAJAJ-AUTO", "BANK10ADD", "BANKADD", "BANKBARODA", "BANKBEES", "BANKBETA", "BANKBETF", "BANKETF", "BANKIETF", "BANKINDIA", "BANKNIFTY1", "BANKPSU", "BBETF0432", "BBNPNBETF", "BBNPPGOLD", "BRITANNIA", "BSE500IETF", "BSLGOLDETF", "BSLNIFTY", "BSLSENETFG", "CASHIETF", "CHOICEGOLD", "COMMOIETF", "CONSUMBEES", "CONSUMER", "CONSUMIETF", "CPSEETF", "DEFENCE", "DIVOPPBEES", "EBANKNIFTY", "EBBETF0430", "EBBETF0431", "EBBETF0433", "EGOLD", "ELIQUID", "EMULTIMQ", "ENERGY", "ENIFTY", "EQUAL200", "EQUAL50", "EQUAL50ADD", "ESENSEX", "ESILVER", "EVIETF", "FINIETF", "FLEXIADD", "FMCGADD", "FMCGIETF", "GILT10BETA", "GILT5BETA", "GILT5YBEES", "GOLD1", "GOLD360", "GOLDADD", "GOLDBEES", "GOLDBETA", "GOLDBND", "GOLDCASE", "GOLDETF", "GOLDIETF", "GROWW", "GROWWCAPM", "GROWWCHEM", "GROWWDEFNC", "GROWWEV", "GROWWGOLD", "GROWWHOSPI", "GROWWLIQID", "GROWWLOVOL", "GROWWMC150", "GROWWMETAL", "GROWWMOM50", "GROWWN200", "GROWWNET", "GROWWNIFTY", "GROWWNXT50", "GROWWPOWER", "GROWWPSE", "GROWWPSUBK", "GROWWRAIL", "GROWWRLTY", "GROWWSC250", "GROWWSLVR", "GSEC10ABSL", "GSEC10IETF", "GSEC10YEAR", "GSEC5IETF", "HDFCAMC", "HDFCBANK", "HDFCBSE500", "HDFCGOLD", "HDFCGROWTH", "HDFCLIFE", "HDFCLIQUID", "HDFCLOWVOL", "HDFCMID150", "HDFCMOMENT", "HDFCNEXT50", "HDFCNIF100", "HDFCNIFBAN", "HDFCNIFIT", "HDFCNIFTY", "HDFCPSUBK", "HDFCPVTBAN", "HDFCQUAL", "HDFCSENSEX", "HDFCSILVER", "HDFCSML250", "HDFCVALUE", "HEALTHADD", "HEALTHCARE", "HEALTHIETF", "HEALTHY", "HNGSNGBEES", "HSBCGOLD", "ICICIAMC", "ICICIB22", "ICICIBANK", "ICICIGI", "ICICIPRULI", "IDFNIFTYET", "INFRA", "INFRABEES", "INFRAIETF", "IT", "ITADD", "ITBEES", "ITBETA", "ITC", "ITCHOTELS", "ITETF", "ITIETF", "IVZINGOLD", "IVZINNIFTY", "JSWENERGY", "JSWINFRA", "JUNIORBEES", "KOTAKBANK", "KPITTECH", "LICMFGOLD", "LICNETFGSC", "LICNETFN50", "LICNETFSEN", "LICNMID100", "LIQGRWBEES", "LIQUID", "LIQUID1", "LIQUIDADD", "LIQUIDBEES", "LIQUIDBETF", "LIQUIDCASE", "LIQUIDETF", "LIQUIDIETF", "LIQUIDPLUS", "LIQUIDSBI", "LIQUIDSHRI", "LOWVOL", "LOWVOL1", "LOWVOLIETF", "LTGILTBEES", "LTGILTCASE", "MAFANG", "MAHABANK", "MANUFGBEES", "MAXHEALTH", "METAL", "METALIETF", "MID150", "MID150BEES", "MID150CASE", "MIDCAP", "MIDCAPADD", "MIDCAPBETA", "MIDCAPETF", "MIDCAPIETF", "MIDQ50ADD", "MIDSELIETF", "MIDSMALL", "MOALPHA50", "MOBANK10", "MOCAPITAL", "MODEFENCE", "MOENERGY", "MOGOLD", "MOGSEC", "MOHEALTH", "MOINFRA", "MOLOWVOL", "MOM100", "MOM30IETF", "MOM50", "MOMENTUM", "MOMENTUM30", "MOMENTUM50", "MOMGF", "MOMIDMTM", "MOMNC", "MOMOMENTUM", "MON100", "MON50EQUAL", "MONEXT50", "MONIFTY100", "MONIFTY500", "MONQ50", "MOQUALITY", "MOREALTY", "MOSILVER", "MOSMALL250", "MOTILALOFS", "MOVALUE", "MSCIADD", "MSCIINDIA", "MULTICAP", "NETF", "NEXT30ADD", "NEXT50", "NEXT50ADD", "NEXT50BETA", "NEXT50ETF", "NEXT50IETF", "NIF100BEES", "NIF100IETF", "NIFTY1", "NIFTY100EW", "NIFTYADD", "NIFTYBEES", "NIFTYBETA", "NIFTYBETF", "NIFTYCASE", "NIFTYETF", "NIFTYIETF", "NIFTYQLITY", "NV20", "NV20BEES", "NV20IETF", "OILIETF", "PHARMABEES", "PIDILITIND", "PSUBANK", "PSUBANKADD", "PSUBNKBEES", "PSUBNKIETF", "PVTBANIETF", "PVTBANKADD", "QGOLDHALF", "QNIFTY", "QUAL30IETF", "QUALITY30", "SBIBPB", "SBICARD", "SBIETFCON", "SBIETFIT", "SBIETFPB", "SBIETFQLTY", "SBILIFE", "SBILIQETF", "SBIMIDMOM", "SBIN", "SBINEQWETF", "SBINMID150", "SBISILVER", "SENSEXADD", "SENSEXBETA", "SENSEXETF", "SENSEXIETF", "SETF10GILT", "SETFGOLD", "SETFNIF50", "SETFNIFBK", "SETFNN50", "SHARIABEES", "SILVER", "SILVER1", "SILVER360", "SILVERADD", "SILVERAG", "SILVERBEES", "SILVERBETA", "SILVERBND", "SILVERCASE", "SILVERIETF", "SMALL250", "SMALLADD", "SMALLCAP", "SML100CASE", "SNXT30BEES", "SNXT50BETA", "SUNPHARMA", "TATACAP", "TATACOMM", "TATACONSUM", "TATAELXSI", "TATAGOLD", "TATAINVEST", "TATAPOWER", "TATASTEEL", "TITAN", "TNIDETF", "TOP100CASE", "TOP10ADD", "TOP15IETF", "TWCGOLDETF", "UNIONBANK", "UNIONGOLD", "UNITDSPR", "VAL30IETF", "VALUE", "YESBANK"];
-const SCN_WEEKLY_SYMS = ["ALPHA", "BANKBEES", "CPSEETF", "GILT5YBEES", "GOLDBEES", "HDFCSML250", "ITBEES", "JUNIORBEES", "LIQUIDCASE", "LTGILTBEES", "MID150BEES", "NIFTYBEES", "PHARMABEES", "PSUBNKBEES", "SILVERBEES"];
-const REPO_RAW = 'https://raw.githubusercontent.com/durgeshh-create/Wealthplus/main/RD1858/data';
-
-let _scnResults = [];
+let _scnRows    = [];
 let _scnSortCol = 'dwr';
 let _scnSortDir = 1;
 
-async function fetchCSV(url) {
+async function _fetchCSV(url) {
   try {
     const r = await fetch(url);
     if (!r.ok) return null;
-    const txt = await r.text();
-    const rows = txt.trim().split('\n').map(l => l.trim().split(','));
-    return rows.map(r => ({
-      date:  r[0], open:  parseFloat(r[1]), high: parseFloat(r[2]),
-      low:   parseFloat(r[3]), close: parseFloat(r[4]), vol: parseFloat(r[5])
-    })).filter(r => !isNaN(r.close));
+    const lines = (await r.text()).trim().split('\n').slice(1); // skip header
+    return lines.map(l => {
+      const p = l.trim().split(',');
+      return { date:p[0], open:+p[1], high:+p[2], low:+p[3], close:+p[4] };
+    }).filter(c => !isNaN(c.close) && c.close > 0);
   } catch { return null; }
 }
 
-function calcWR(candles, period) {
+function _calcWR(candles, period) {
   if (!candles || candles.length < period) return null;
-  const slice = candles.slice(-period);
-  const hh = Math.max(...slice.map(c => c.high));
-  const ll = Math.min(...slice.map(c => c.low));
+  const sl = candles.slice(-period);
+  const hh = Math.max(...sl.map(c => c.high));
+  const ll = Math.min(...sl.map(c => c.low));
   if (hh === ll) return null;
   return ((hh - candles[candles.length-1].close) / (hh - ll)) * -100;
 }
 
-function calcDMA20(candles) {
+function _calcDMA20(candles) {
   if (!candles || candles.length < 20) return null;
-  const last20 = candles.slice(-20);
-  return last20.reduce((s, c) => s + c.close, 0) / 20;
+  return candles.slice(-20).reduce((s,c) => s+c.close, 0) / 20;
 }
 
-// Build weekly candles from daily
-function toWeekly(daily) {
-  if (!daily || !daily.length) return null;
-  const weeks = {};
+function _toWeekly(daily) {
+  if (!daily?.length) return null;
+  const wks = {};
   for (const c of daily) {
-    const d = new Date(c.date);
-    const day = d.getDay();
-    const monday = new Date(d);
-    monday.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
-    const key = monday.toISOString().slice(0,10);
-    if (!weeks[key]) weeks[key] = {date:key, open:c.open, high:c.high, low:c.low, close:c.close, vol:c.vol};
-    else {
-      weeks[key].high  = Math.max(weeks[key].high, c.high);
-      weeks[key].low   = Math.min(weeks[key].low, c.low);
-      weeks[key].close = c.close;
-      weeks[key].vol  += c.vol;
-    }
+    const d = new Date(c.date), day = d.getDay();
+    const fri = new Date(d);
+    fri.setDate(d.getDate() + (day === 0 ? 6 : 5 - (day === 6 ? -1 : day)));
+    const key = fri.toISOString().slice(0,10);
+    if (!wks[key]) wks[key] = {date:key, open:c.open, high:c.high, low:c.low, close:c.close};
+    else { wks[key].high=Math.max(wks[key].high,c.high); wks[key].low=Math.min(wks[key].low,c.low); wks[key].close=c.close; }
   }
-  return Object.values(weeks).sort((a,b) => a.date.localeCompare(b.date));
+  const arr = Object.values(wks).sort((a,b)=>a.date.localeCompare(b.date));
+  return arr.length >= 3 ? arr : null;
 }
 
-async function scanSymbol(sym, dailyT, weeklyT) {
-  const dailyUrl  = `${REPO_RAW}/daily/${sym}.csv`;
-  const weeklyUrl = `${REPO_RAW}/weekly/${sym}.csv`;
-
-  const daily = await fetchCSV(dailyUrl);
-  if (!daily || daily.length < 14) return null;
-
-  const ltp    = daily[daily.length-1].close;
-  const dwr    = calcWR(daily, 14);
-  const dma20  = calcDMA20(daily);
-
-  // Weekly: use repo file if available, else build from daily
-  let weeklyCandles = null;
-  if (SCN_WEEKLY_SYMS.includes(sym)) {
-    weeklyCandles = await fetchCSV(weeklyUrl);
-  }
-  if (!weeklyCandles || weeklyCandles.length < 3) {
-    weeklyCandles = toWeekly(daily);
-  }
-  const wwr = calcWR(weeklyCandles, Math.min(14, weeklyCandles?.length || 0));
-
-  const dailyOk  = dwr  != null && dwr  <= dailyT;
-  const weeklyOk = wwr  != null && wwr  <= weeklyT;
-  const below20  = dma20 != null && ltp < dma20;
-
-  return { sym, ltp, dwr, wwr, dma20, below20, dailyOk, weeklyOk, bothOk: dailyOk && weeklyOk };
+async function _scanOne(sym, dailyT, weeklyT) {
+  const daily = await _fetchCSV(`${REPO_RAW}/daily/${sym}.csv`);
+  if (!daily || daily.length < 20) return null;
+  const ltp   = daily[daily.length-1].close;
+  const dwr   = _calcWR(daily, 14);
+  const dma20 = _calcDMA20(daily);
+  const wkly  = _toWeekly(daily);
+  const wwr   = _calcWR(wkly, Math.min(14, wkly?.length||0));
+  const dOk   = dwr  != null && dwr  <= dailyT;
+  const wOk   = wwr  != null && wwr  <= weeklyT;
+  return { sym, ltp, dwr, wwr, dma20, below20: dma20!=null && ltp<dma20, dOk, wOk, bothOk:dOk&&wOk };
 }
 
 async function runScanner() {
-  const useEtf = document.getElementById('scn-chk-etf').checked;
-  const useStk = document.getElementById('scn-chk-stk').checked;
+  const useEtf  = document.getElementById('scn-chk-etf').checked;
+  const useN200 = document.getElementById('scn-chk-n200').checked;
+  const useMid  = document.getElementById('scn-chk-mid150').checked;
   const dailyT  = parseFloat(document.getElementById('scn-daily-t').value  || -50);
   const weeklyT = parseFloat(document.getElementById('scn-weekly-t').value || -50);
 
-  let symbols = [];
-  if (useEtf) symbols = symbols.concat(SCN_ETF_SYMS);
-  if (useStk) symbols = symbols.concat(SCN_ALL_SYMS.filter(s => !SCN_ETF_SYMS.includes(s)));
-  if (!symbols.length) { alert('Select at least one universe.'); return; }
+  let syms = [];
+  if (useEtf)  syms = syms.concat(SCN_ETF);
+  if (useN200) syms = syms.concat(SCN_N200.filter(s => !syms.includes(s)));
+  if (useMid)  syms = syms.concat(SCN_MID150.filter(s => !syms.includes(s)));
+  if (!syms.length) { alert('Select at least one universe.'); return; }
 
-  // UI loading state
+  // UI loading
   const btn = document.getElementById('scn-run-btn');
   btn.disabled = true; btn.textContent = '⏳ Scanning…';
-  document.getElementById('scn-prog-wrap').style.display = 'flex';
-  document.getElementById('scn-summary').style.display   = 'none';
-  document.getElementById('scn-results').style.display   = 'none';
-  document.getElementById('scn-empty').style.display     = 'none';
-  document.getElementById('scn-idle').style.display      = 'none';
+  ['scn-summary','scn-results','scn-empty'].forEach(id => document.getElementById(id).style.display='none');
+  document.getElementById('scn-idle').style.display='none';
+  document.getElementById('scn-prog-wrap').style.display='flex';
 
-  const fill  = document.getElementById('scn-prog-fill');
-  const lbl   = document.getElementById('scn-prog-lbl');
-  lbl.textContent = `Scanning 0 / ${symbols.length}…`;
+  const fill = document.getElementById('scn-prog-fill');
+  const lbl  = document.getElementById('scn-prog-lbl');
 
-  // Batch with concurrency=8 to avoid rate limits
-  const BATCH = 8;
-  const results = [];
-  let done = 0, noData = 0;
-
-  for (let i = 0; i < symbols.length; i += BATCH) {
-    const batch = symbols.slice(i, i + BATCH);
-    const batchRes = await Promise.all(batch.map(s => scanSymbol(s, dailyT, weeklyT)));
-    for (const r of batchRes) {
-      if (r) results.push(r);
-      else noData++;
-    }
+  const results=[]; let done=0, noData=0;
+  const BATCH=8;
+  for (let i=0; i<syms.length; i+=BATCH) {
+    const batch = syms.slice(i, i+BATCH);
+    const res   = await Promise.all(batch.map(s => _scanOne(s, dailyT, weeklyT)));
+    res.forEach(r => r ? results.push(r) : noData++);
     done += batch.length;
-    const pct = Math.round((done / symbols.length) * 100);
-    if (fill) fill.style.width = pct + '%';
-    if (lbl)  lbl.textContent = `Scanning ${done} / ${symbols.length}…`;
-    // Yield to browser
-    await new Promise(res => setTimeout(res, 0));
+    fill.style.width = Math.round(done/syms.length*100)+'%';
+    lbl.textContent  = `Scanning ${done} / ${syms.length}…`;
+    await new Promise(r => setTimeout(r, 0));
   }
 
-  _scnResults = results;
-  document.getElementById('scn-prog-wrap').style.display = 'none';
-  btn.disabled = false; btn.textContent = '▶ Run Scanner';
+  _scnRows = results;
+  document.getElementById('scn-prog-wrap').style.display='none';
+  btn.disabled=false; btn.textContent='▶ Run Scanner';
 
-  // Summary chips
-  const both   = results.filter(r => r.bothOk).length;
-  const daily  = results.filter(r => r.dailyOk && !r.weeklyOk).length;
-  const weekly = results.filter(r => r.weeklyOk && !r.dailyOk).length;
+  // Summary
+  const both=results.filter(r=>r.bothOk).length;
+  const donly=results.filter(r=>r.dOk&&!r.wOk).length;
+  const wonly=results.filter(r=>r.wOk&&!r.dOk).length;
   document.getElementById('scn-c-both').textContent   = `${both} both ✓`;
-  document.getElementById('scn-c-daily').textContent  = `${daily} daily ✓`;
-  document.getElementById('scn-c-weekly').textContent = `${weekly} weekly ✓`;
-  document.getElementById('scn-c-none').textContent   = `${noData} no data`;
-  document.getElementById('scn-scanned').textContent  = `${symbols.length} scanned · D≤${dailyT} W≤${weeklyT}`;
-  document.getElementById('scn-summary').style.display = 'flex';
-
+  document.getElementById('scn-c-daily').textContent  = `${donly} daily ✓`;
+  document.getElementById('scn-c-weekly').textContent = `${wonly} weekly ✓`;
+  document.getElementById('scn-c-nodata').textContent = `${noData} no data`;
+  document.getElementById('scn-scanned').textContent  = `${syms.length} scanned · D≤${dailyT} W≤${weeklyT}`;
+  document.getElementById('scn-summary').style.display='flex';
   renderScanResults();
 }
 
 function setScanSort(col) {
-  if (_scnSortCol === col) _scnSortDir = -_scnSortDir;
-  else { _scnSortCol = col; _scnSortDir = 1; }
+  _scnSortDir = _scnSortCol===col ? -_scnSortDir : 1;
+  _scnSortCol = col;
   ['dwr','wwr','dma'].forEach(c => {
     const th = document.getElementById('scn-th-'+c);
     if (!th) return;
-    const base = c==='dwr'?'Daily W%R':c==='wwr'?'Weekly W%R':'vs 20 DMA';
-    th.textContent = base + (c===_scnSortCol ? (_scnSortDir>0?' ↑':' ↓') : ' ↕');
-    th.className   = c===_scnSortCol ? 'sorted' : '';
+    const lbl = c==='dwr'?'Daily W%R':c==='wwr'?'Weekly W%R':'vs 20 DMA';
+    th.textContent = lbl + (c===_scnSortCol ? (_scnSortDir>0?' ↑':' ↓'):' ↕');
+    th.className   = c===_scnSortCol ? 'sorted-col' : '';
   });
   renderScanResults();
 }
 
 function renderScanResults() {
   const only20 = document.getElementById('scn-20dma').checked;
-  let rows = _scnResults.filter(r => !only20 || r.below20);
-
-  rows = rows.slice().sort((a,b) => {
-    let av, bv;
-    if (_scnSortCol==='wwr') {
-      av = a.wwr??(_scnSortDir>0?1:-101); bv = b.wwr??(_scnSortDir>0?1:-101);
-    } else if (_scnSortCol==='dma') {
-      av = a.dma20&&a.ltp ? ((a.ltp-a.dma20)/a.dma20)*100 : _scnSortDir>0?999:-999;
-      bv = b.dma20&&b.ltp ? ((b.ltp-b.dma20)/b.dma20)*100 : _scnSortDir>0?999:-999;
-    } else {
-      av = a.dwr??(_scnSortDir>0?1:-101); bv = b.dwr??(_scnSortDir>0?1:-101);
-    }
+  let rows = _scnRows.filter(r => !only20 || r.below20);
+  rows.sort((a,b) => {
+    let av,bv;
+    const fallback = _scnSortDir>0 ? 1 : -999;
+    if      (_scnSortCol==='wwr') { av=a.wwr??fallback; bv=b.wwr??fallback; }
+    else if (_scnSortCol==='dma') {
+      av=a.dma20&&a.ltp?((a.ltp-a.dma20)/a.dma20*100):fallback*999;
+      bv=b.dma20&&b.ltp?((b.ltp-b.dma20)/b.dma20*100):fallback*999;
+    } else { av=a.dwr??fallback; bv=b.dwr??fallback; }
     return _scnSortDir*(av-bv);
   });
 
-  const tbody = document.getElementById('scn-tbody');
-  const resEl = document.getElementById('scn-results');
-  const emEl  = document.getElementById('scn-empty');
-
-  if (!rows.length) {
-    resEl.style.display = 'none'; emEl.style.display = 'block'; return;
-  }
-  emEl.style.display = 'none'; resEl.style.display = 'block';
+  const tbody=document.getElementById('scn-tbody');
+  const resEl=document.getElementById('scn-results');
+  const emEl =document.getElementById('scn-empty');
+  if (!rows.length) { resEl.style.display='none'; emEl.style.display='block'; return; }
+  emEl.style.display='none'; resEl.style.display='block';
 
   tbody.innerHTML = rows.map(r => {
-    const isEtf    = SCN_ETF_SYMS.includes(r.sym);
-    const badge    = isEtf ? '<span class="badge-etf">ETF</span>' : '<span class="badge-stk">STK</span>';
-    const dwr      = r.dwr  != null ? r.dwr.toFixed(1)  : '—';
-    const wwr      = r.wwr  != null ? r.wwr.toFixed(1)  : '—';
-    const ltp      = r.ltp  != null ? '₹'+r.ltp.toFixed(2) : '—';
-    const dwrCls   = r.dwr!=null && r.dwr<=-80?'wr-bad':r.dwr!=null&&r.dwr<=-50?'wr-warn':'wr-ok';
-    const wwrCls   = r.wwr!=null && r.wwr<=-80?'wr-bad':r.wwr!=null&&r.wwr<=-50?'wr-warn':'wr-ok';
-    let dmaHtml = '—';
-    if (r.dma20!=null && r.ltp!=null) {
-      const pct = ((r.ltp-r.dma20)/r.dma20*100);
-      const ps  = (pct>=0?'+':'')+pct.toFixed(2)+'%';
-      dmaHtml = `<span class="${r.below20?'dma-below':'dma-above'}">${ps}</span>`;
+    const isEtf  = SCN_ETF.includes(r.sym);
+    const isMid  = SCN_MID150.includes(r.sym) && !SCN_N200.includes(r.sym);
+    const badge  = isEtf ? '<span class="badge-etf">ETF</span>'
+                 : isMid ? '<span class="badge-mid">MID150</span>'
+                 :          '<span class="badge-n200">N200</span>';
+    const dwr  = r.dwr  != null ? r.dwr.toFixed(1)  : '—';
+    const wwr  = r.wwr  != null ? r.wwr.toFixed(1)  : '—';
+    const ltp  = r.ltp  != null ? '₹'+r.ltp.toFixed(2) : '—';
+    const dCls = r.dwr!=null&&r.dwr<=-80?'wr-os':r.dwr!=null&&r.dwr<=-50?'wr-warn':'wr-ok';
+    const wCls = r.wwr!=null&&r.wwr<=-80?'wr-os':r.wwr!=null&&r.wwr<=-50?'wr-warn':'wr-ok';
+    let dmaHtml='—';
+    if (r.dma20!=null&&r.ltp!=null) {
+      const pct=((r.ltp-r.dma20)/r.dma20*100);
+      dmaHtml=`<span class="${r.below20?'dma-below':'dma-above'}">${(pct>=0?'+':'')+pct.toFixed(2)}%</span>`;
     }
-    let sig = '<span class="sig-none">—</span>';
-    if (r.bothOk)       sig = '<span class="sig-both">✅ Both</span>';
-    else if (r.dailyOk)  sig = '<span class="sig-daily">📉 Daily</span>';
-    else if (r.weeklyOk) sig = '<span class="sig-weekly">📊 Weekly</span>';
-
-    const rowCls = r.bothOk&&r.below20?'scn-row-both':'';
-    return `<tr class="${rowCls}">
-      <td><input type="checkbox" class="scn-row-chk" value="${r.sym}"></td>
+    let sig='<span class="sig-none">—</span>';
+    if (r.bothOk)      sig='<span class="sig-both">✅ Both</span>';
+    else if (r.dOk)    sig='<span class="sig-daily">📉 Daily</span>';
+    else if (r.wOk)    sig='<span class="sig-weekly">📊 Weekly</span>';
+    return `<tr class="${r.bothOk&&r.below20?'row-both':''}">
       <td style="font-weight:600">${r.sym}</td>
-      <td>${badge}</td>
-      <td>${ltp}</td>
-      <td class="wr-val ${dwrCls}">${dwr}</td>
-      <td class="wr-val ${wwrCls}">${wwr}</td>
-      <td>${dmaHtml}</td>
-      <td>${sig}</td>
+      <td>${badge}</td><td>${ltp}</td>
+      <td class="wr-val ${dCls}">${dwr}</td>
+      <td class="wr-val ${wCls}">${wwr}</td>
+      <td>${dmaHtml}</td><td>${sig}</td>
     </tr>`;
   }).join('');
-}
-
-function toggleAllScn(checked) {
-  document.querySelectorAll('.scn-row-chk').forEach(c => c.checked = checked);
 }
 
 </script>
@@ -3228,14 +3176,15 @@ function toggleAllScn(checked) {
 <main>
   <div style="margin-bottom:6px">
     <h2 style="font-family:var(--head);font-size:16px;font-weight:800;color:var(--accent)">🔍 Williams %R Scanner</h2>
-    <p style="font-size:11px;color:var(--muted);margin-top:2px">Scans ETFs &amp; stocks using historical CSVs from the repo · Daily W%R, Weekly W%R &amp; 20 DMA · No backend required</p>
+    <p style="font-size:11px;color:var(--muted);margin-top:2px">Reads CSVs from repo · Daily W%R(14), Weekly W%R(14) derived from daily · No backend needed</p>
   </div>
 
   <div class="scn-toolbar">
-    <div class="scn-fg scn-univ">
-      <label>Universe</label>
-      <label class="scn-chk-label"><input type="checkbox" id="scn-chk-etf" checked> 📊 ETFs</label>
-      <label class="scn-chk-label"><input type="checkbox" id="scn-chk-stk"> 🏦 Stocks</label>
+    <div class="scn-fg">
+      <label>Scan Universe</label>
+      <label class="scn-chk-label"><input type="checkbox" id="scn-chk-etf" checked> 📊 ETFs (285)</label>
+      <label class="scn-chk-label"><input type="checkbox" id="scn-chk-n200"> 🏦 NIFTY 200 (200)</label>
+      <label class="scn-chk-label"><input type="checkbox" id="scn-chk-mid150"> 📈 NIFTY MIDCAP 150 (150)</label>
     </div>
     <div class="scn-fg">
       <label>Daily W%R ≤</label>
@@ -3247,7 +3196,7 @@ function toggleAllScn(checked) {
     </div>
     <div class="scn-fg">
       <label>Filter</label>
-      <label class="scn-chk-label"><input type="checkbox" id="scn-20dma" checked> Below 20 DMA</label>
+      <label class="scn-chk-label"><input type="checkbox" id="scn-20dma" checked onchange="renderScanResults()"> Below 20 DMA</label>
     </div>
     <button class="scn-run-btn" id="scn-run-btn" onclick="runScanner()">▶ Run Scanner</button>
   </div>
@@ -3261,7 +3210,7 @@ function toggleAllScn(checked) {
     <span class="scn-chip scn-chip-both"   id="scn-c-both">0 both ✓</span>
     <span class="scn-chip scn-chip-daily"  id="scn-c-daily">0 daily ✓</span>
     <span class="scn-chip scn-chip-weekly" id="scn-c-weekly">0 weekly ✓</span>
-    <span class="scn-chip scn-chip-none"   id="scn-c-none">0 no data</span>
+    <span class="scn-chip scn-chip-nodata" id="scn-c-nodata">0 no data</span>
     <span class="scn-scanned"              id="scn-scanned"></span>
   </div>
 
@@ -3270,11 +3219,10 @@ function toggleAllScn(checked) {
       <table class="scn-tbl" id="scn-tbl">
         <thead>
           <tr>
-            <th><input type="checkbox" id="scn-chk-all" onchange="toggleAllScn(this.checked)"></th>
-            <th>Symbol</th>
+            <th onclick="setScanSort('sym')">Symbol ↕</th>
             <th>Type</th>
             <th>Last Close</th>
-            <th id="scn-th-dwr" class="sorted" onclick="setScanSort('dwr')">Daily W%R ↑</th>
+            <th id="scn-th-dwr" class="sorted-col" onclick="setScanSort('dwr')">Daily W%R ↑</th>
             <th id="scn-th-wwr" onclick="setScanSort('wwr')">Weekly W%R ↕</th>
             <th id="scn-th-dma" onclick="setScanSort('dma')">vs 20 DMA ↕</th>
             <th>Signal</th>
@@ -3284,8 +3232,8 @@ function toggleAllScn(checked) {
       </table>
     </div>
   </div>
-  <div class="scn-empty" id="scn-empty" style="display:none">No symbols matched — try relaxing the thresholds.</div>
-  <div class="scn-empty" id="scn-idle" style="display:block">Select universe and click ▶ Run Scanner to begin.</div>
+  <div class="scn-empty" id="scn-empty"  style="display:none">No symbols matched — try relaxing the thresholds.</div>
+  <div class="scn-empty" id="scn-idle"   style="display:block">Select universe and click ▶ Run Scanner to begin.</div>
 </main>
 </div>
 
