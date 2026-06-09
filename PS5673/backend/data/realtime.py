@@ -561,6 +561,12 @@ class RealtimeDataManager:
         with self._lock:
             return self.live_data.get(symbol, {}).get('top_ask')
 
+    def get_total_ask_qty(self, symbol: str) -> int:
+        """Return total quantity available on the ask (sell) side of the order book."""
+        with self._lock:
+            sell_depth = self.live_data.get(symbol, {}).get('sell_depth', [])
+            return sum(int(level.get('quantity', 0)) for level in sell_depth)
+
     def get_ohlc(self, symbol: str) -> Optional[Dict]:
         """Get OHLC data for a symbol"""
         with self._lock:
