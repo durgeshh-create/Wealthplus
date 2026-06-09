@@ -382,14 +382,18 @@ class SignalGenerator:
                 )
                 return False
 
-        # Sufficient LIQUIDCASE
+        # Sufficient funds: block only if LIQUIDCASE is completely empty.
+        # The executor's smart_buy uses available cash first, then sells only the
+        # LIQUIDCASE shortfall — so a low LIQUIDCASE value alone is not a reason
+        # to skip. The executor will raise "Insufficient funds" if combined
+        # cash + LIQUIDCASE genuinely can't cover the transaction.
         max_tx = self._get_max_cash_per_transaction()
         liq_price = self.realtime.get_ltp(LIQUIDCASE_SYMBOL)
         if max_tx > 0 and liq_price and liq_price > 0:
             liq_value = self.portfolio.liquidcase_quantity * liq_price
-            if liq_value < max_tx:
+            if liq_value <= 0:
                 logger.debug(
-                    f"Skip {symbol}: LIQUIDCASE ₹{liq_value:.0f} < tx ₹{max_tx:.0f}"
+                    f"Skip {symbol}: LIQUIDCASE is empty (₹{liq_value:.0f}) — no buffer to fund buy"
                 )
                 return False
 
@@ -586,25 +590,42 @@ class SignalGenerator:
             'type': signal_type, 'timestamp': _now_ist()
         }
 
-    def unlock_symbol(self, symbol: str, success: bool = False):
+    def unlock_symbol(self, symbol: str, success: bool = False, allow_retry: bool = False):
         """
         Release execution lock.
-        success=False (default): clear recently_bought and _attempted_today so a retry is allowed.
-        success=True           : SET recently_bought now (order placed) and keep _attempted_today —
-                                 recently_bought enforces 5-min cooldown,
-                                 _attempted_today prevents any further buy this session.
+        success=True               : Order confirmed. Set recently_bought cooldown and keep
+                                     _attempted_today — no second buy this session.
+        success=False, allow_retry=True  : Order NEVER reached broker (pre-flight failure,
+                                     e.g. insufficient funds, price unavailable). Clear all
+                                     guards so the signal can re-trigger next cycle.
+        success=False, allow_retry=False : Order submitted but outcome uncertain (confirmation
+                                     timeout, broker returned False). Keep _attempted_today
+                                     latched — do NOT re-trigger. This prevents duplicate
+                                     orders when broker accepted the order but confirmation poll
+                                     timed out. recently_bought cooldown still clears (order
+                                     may have failed) but session latch stays.
         """
         if symbol in self.executing_symbols:
             self.executing_symbols.pop(symbol)
         if success:
-            # Order placed — set cooldown NOW (was not pre-set; only set after confirmed execution)
+            # Order confirmed — set cooldown and keep session latch
             self.recently_bought[symbol] = _now_ist()
-        else:
-            # Failed execution — clear guards so next cycle can retry
+        elif allow_retry:
+            # Pre-flight failure — order never reached broker; allow full retry
             if symbol in self.recently_bought:
                 del self.recently_bought[symbol]
             self._attempted_today.discard(symbol)
-        # On success: both guards stay set — no second buy this session for this symbol.
+            # ✅ FIX Bug-1: clear _pending_exec so _get_avg_buy_price and
+            # _get_buys_today are not inflated for the rest of the session.
+            if symbol in self._pending_exec:
+                del self._pending_exec[symbol]
+                logger.debug(f"🔄 {symbol}: pending_exec cleared on allow_retry")
+        else:
+            # Order outcome uncertain — clear cooldown but keep session latch
+            # (prevents duplicate orders if broker silently accepted)
+            if symbol in self.recently_bought:
+                del self.recently_bought[symbol]
+            # _attempted_today stays set — no re-trigger this session
 
     # ── Public interface ──────────────────────────────────────────────────────
 

@@ -114,12 +114,12 @@ def send_daily_summary(backend: dict):
     """
     Build and send a Telegram end-of-day P&L summary.
     Called at 3:28 PM IST — 2 minutes before shutdown.
-    Only reports symbols managed by this bot (active_etfs + bnh_symbols + LIQUIDCASE).
+    Only reports symbols managed by this bot (active_etfs + bnh_symbols).
     Never raises — a failed summary must not affect shutdown.
     """
     try:
         lines = [
-            f"📊 <b>WealthAlgo RD1858 — Daily Summary</b>",
+            f"📊 <b>WealthAlgo RD1858 — Today's P&L Summary</b>",
             f"📅 {_ist_now()}",
             f"{'─' * 30}",
         ]
@@ -131,34 +131,69 @@ def send_daily_summary(backend: dict):
                 holdings  = portfolio.get_holdings()  if hasattr(portfolio, "get_holdings")  else []
 
                 # Only report symbols defined in settings — skip unmanaged demat holdings (e.g. NIFTYBEES)
-                system_symbols = set(Config.get_active_etfs()) | set(Config.get_bnh_symbols()) | {"LIQUIDCASE"}
+                system_symbols = set(Config.get_active_etfs()) | set(Config.get_bnh_symbols())
 
                 total_pnl = 0.0
                 trade_lines = []
                 seen_symbols: set = set()   # guard against double-counting across positions + holdings
 
+                realtime   = backend.get("realtime")
+                historical = backend.get("historical")
+
+                def _prev_close(sym):
+                    """
+                    Get previous session close for a symbol.
+                    Priority:
+                      1. WebSocket OHLC tick (ohlc.close = prev session close, only in MODE_FULL)
+                      2. Historical daily data last candle close (always available, already cached)
+                    """
+                    # Try WebSocket ohlc.close first
+                    if realtime:
+                        ohlc = realtime.get_ohlc(sym)
+                        if ohlc and ohlc.get("close") and float(ohlc["close"]) > 0:
+                            return float(ohlc["close"])
+                    # Fall back to last row of historical daily data (prev trading day close)
+                    if historical:
+                        try:
+                            df = historical.get_daily_data(sym)
+                            if df is not None and len(df) > 0:
+                                return float(df.iloc[-1]["close"])
+                        except Exception:
+                            pass
+                    return None
+
                 for pos in (positions or []):
                     sym = pos.get("tradingsymbol", pos.get("symbol", "?"))
                     if sym not in system_symbols:
-                        continue   # skip ETFs held in demat but not managed by this bot
-                    pnl = float(pos.get("pnl", pos.get("unrealised", 0)))
-                    qty = pos.get("quantity", pos.get("net_quantity", 0))
+                        continue
+                    qty = int(pos.get("quantity", pos.get("net_quantity", 0)))
+                    ltp        = float(realtime.get_ltp(sym)) if realtime else None
+                    prev_close = _prev_close(sym)
+                    if ltp and prev_close and prev_close > 0:
+                        pnl = round((ltp - prev_close) * qty, 2)
+                    else:
+                        pnl = float(pos.get("pnl", pos.get("unrealised", 0)))
                     total_pnl += pnl
                     if qty != 0:
                         icon = "🟢" if pnl >= 0 else "🔴"
-                        trade_lines.append(f"  {icon} {sym}: qty={qty}, P&L=₹{pnl:+.2f}")
+                        trade_lines.append(f"  {icon} {sym}: qty={qty}, Today=₹{pnl:+.2f}")
                     seen_symbols.add(sym)
 
                 for h in (holdings or []):
                     sym = h.get("tradingsymbol", h.get("symbol", "?"))
                     if sym not in system_symbols or sym in seen_symbols:
-                        continue   # skip unmanaged ETFs and symbols already counted from positions
-                    pnl = float(h.get("pnl", h.get("unrealised", 0)))
-                    qty = h.get("quantity", 0)
+                        continue
+                    qty = int(h.get("quantity", 0))
+                    ltp        = float(realtime.get_ltp(sym)) if realtime else float(h.get("last_price", 0) or 0)
+                    prev_close = _prev_close(sym)
+                    if ltp and prev_close and prev_close > 0:
+                        pnl = round((ltp - prev_close) * qty, 2)
+                    else:
+                        pnl = 0.0
                     total_pnl += pnl
                     if qty != 0:
                         icon = "🟢" if pnl >= 0 else "🔴"
-                        trade_lines.append(f"  {icon} {sym}: qty={qty}, P&L=₹{pnl:+.2f}")
+                        trade_lines.append(f"  {icon} {sym}: qty={qty}, Today=₹{pnl:+.2f}")
 
                 if trade_lines:
                     lines.append("💼 <b>Positions today:</b>")
@@ -211,10 +246,16 @@ def market_close_watchdog(backend: dict):
     while True:
         now_ist = datetime.now(IST)
 
-        # ── Daily P&L summary at 3:28 PM IST (2 min before shutdown) ─────────
+        # ── P&L summary 2 min before shutdown (works for both sessions) ───────
+        # Fires when within 2 minutes of SHUTDOWN_HOUR_IST:SHUTDOWN_MINUTE_IST
+        summary_min = SHUTDOWN_MINUTE_IST - 2
+        summary_hour = SHUTDOWN_HOUR_IST
+        if summary_min < 0:
+            summary_min += 60
+            summary_hour -= 1
         if (not summary_sent and
-                now_ist.hour == 15 and now_ist.minute >= 28):
-            logger.info("📊 Sending daily P&L summary to Telegram...")
+                now_ist.hour == summary_hour and now_ist.minute >= summary_min):
+            logger.info("📊 Sending P&L summary to Telegram...")
             send_daily_summary(backend)
             summary_sent = True
 
@@ -360,7 +401,9 @@ def check_and_execute_signals(signal_generator, executor):
 
         # ── Sell time gate ────────────────────────────────────────────────────
         if not anytime_mode:
-            now_t = _dt.now().time()
+            from datetime import timezone as _tz_d, timedelta as _td_d
+            _IST_d = _tz_d(_td_d(hours=5, minutes=30))
+            now_t = _dt.now(_IST_d).time()
             sell_window_end = _dtime(sell_exec_time.hour,
                                      min(sell_exec_time.minute + 1, 59))
             in_sell_window  = sell_exec_time <= now_t <= sell_window_end
@@ -400,7 +443,8 @@ def check_and_execute_signals(signal_generator, executor):
                     new_syms = set(s['symbol'] for s in buy_signals + sell_signals)
                     already  = getattr(check_and_execute_signals, '_dry_notified', set())
                     to_notify = [s for s in buy_signals + sell_signals
-                                 if s['symbol'] not in already]
+                                 if s['symbol'] not in already
+                                 and s['symbol'] != 'LIQUIDCASE']
                     if to_notify:
                         acct = os.environ.get("KITE_USER_ID", bot)
                         lines = [f"🧪 <b>WealthAlgo {acct} — DRY RUN SIGNALS</b>",
@@ -694,6 +738,21 @@ def main():
         backend["historical"],
         executor=backend["executor"],
     )
+
+    # ── Snapshot writer — writes /tmp/status_rd1858.json every 5 min ─────────
+    # GitHub Actions pushes this to gh-pages for the static dashboard.
+    try:
+        from backend.utils.snapshot import start_snapshot_thread
+        _snap_state = {
+            "portfolio_tracker":  backend["portfolio"],
+            "realtime_manager":   backend["realtime"],
+            "historical_manager": backend["historical"],
+            "order_manager":      backend["orders"],
+            "signal_generator":   backend["signals"],  # ✅ needed for per-symbol buys_today
+        }
+        start_snapshot_thread(_snap_state)
+    except Exception as _snap_err:
+        logger.warning(f"Snapshot writer not started: {_snap_err}")
 
     trading_active = True
     trading_thread = threading.Thread(

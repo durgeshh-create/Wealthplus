@@ -7,10 +7,24 @@ Smart Logging System for ETF Trading
 import logging
 import sys
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 from backend.core.config import Config
+
+_IST = timezone(timedelta(hours=5, minutes=30))
+
+
+class ISTFormatter(logging.Formatter):
+    """Logging formatter that stamps all records in IST instead of local/UTC."""
+    def converter(self, timestamp):
+        return datetime.fromtimestamp(timestamp, tz=_IST).timetuple()
+
+    def formatTime(self, record, datefmt=None):
+        dt = datetime.fromtimestamp(record.created, tz=_IST)
+        if datefmt:
+            return dt.strftime(datefmt)
+        return dt.strftime('%H:%M:%S')
 
 
 class TradingLogger:
@@ -46,14 +60,14 @@ class TradingLogger:
         # Set root logger level
         root_logger.setLevel(logging.DEBUG)
         
-        # Create formatters
-        detailed_formatter = logging.Formatter(
-            '%(asctime)s | %(levelname)-8s | %(name)-20s | %(message)s',
+        # Create formatters — all timestamps in IST
+        detailed_formatter = ISTFormatter(
+            '%(asctime)s IST | %(levelname)-8s | %(name)-20s | %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
         )
-        
-        simple_formatter = logging.Formatter(
-            '%(asctime)s | %(levelname)-8s | %(message)s',
+
+        simple_formatter = ISTFormatter(
+            '%(asctime)s IST | %(levelname)-8s | %(message)s',
             datefmt='%H:%M:%S'
         )
         
@@ -84,7 +98,7 @@ class TradingLogger:
         # Log startup
         startup_logger = logging.getLogger('SYSTEM')
         startup_logger.info("=" * 80)
-        startup_logger.info(f"ETF Trading System Started - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        startup_logger.info(f"ETF Trading System Started - {datetime.now(_IST).strftime('%Y-%m-%d %H:%M:%S IST')}")
         startup_logger.info(f"Log file: {Config.LOG_FILE}")
         startup_logger.info(f"Mode: {'DRY RUN' if Config.is_dry_run() else 'LIVE TRADING'}")
         startup_logger.info("=" * 80)

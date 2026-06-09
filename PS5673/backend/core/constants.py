@@ -12,7 +12,6 @@ LIQUIDCASE_SYMBOL = 'LIQUIDCASE'
 # Market Indices (for dashboard display)
 MARKET_INDICES = {
     'NIFTY 50':         {'exchange': 'NSE', 'segment': 'NSE-INDICES'},
-    'GIFT NIFTY':       {'exchange': 'NSE', 'segment': 'NSE-INDICES'},
     'NIFTY MIDCAP 150': {'exchange': 'NSE', 'segment': 'NSE-INDICES'},
     'INDIA VIX':        {'exchange': 'NSE', 'segment': 'NSE-INDICES'},
 }

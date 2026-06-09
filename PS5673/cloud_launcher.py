@@ -42,7 +42,7 @@ except ImportError:
     sys.exit(1)
 
 
-# ── Config ────────────────────────────────────────────────────────────────────
+# ── Config ────────────────────────────────────────────────────────────[...]
 
 USER_ID     = os.environ.get("KITE_USER_ID", "").strip()
 PASSWORD    = os.environ.get("KITE_PASSWORD", "").strip()
@@ -54,7 +54,7 @@ ENCTOKEN_FILE  = CONFIG_DIR / "enctoken.json"
 SCREENSHOT_DIR = Path("/tmp")
 
 
-# ── Telegram notifications ────────────────────────────────────────────────────
+# ── Telegram notifications ────────────────────────────────────────────────
 
 def telegram_notify(message: str):
     """Send a Telegram message. Never raises."""
@@ -80,7 +80,7 @@ def telegram_notify(message: str):
         pass
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Helpers ─────────────────────────────────────────────────────────────[...]
 
 def validate_env():
     missing = [k for k, v in {
@@ -119,6 +119,7 @@ def save_enctoken(user_id: str, enctoken: str):
 
 
 def screenshot(page, name: str):
+    """Save a debug screenshot — only call on failures to avoid wasting time."""
     for path, method in [
         (SCREENSHOT_DIR / f"kite_debug_{name}.png",  lambda p: page.screenshot(path=str(p), full_page=True)),
         (SCREENSHOT_DIR / f"kite_debug_{name}.html", lambda p: p.write_text(page.content(), encoding="utf-8")),
@@ -142,7 +143,7 @@ def try_selector(page, selectors: list, timeout: int = 5000):
     return None
 
 
-# ── Playwright login ──────────────────────────────────────────────────────────
+# ── Playwright login ────────────────────────────────────────────────────────–[...]
 
 def login_to_kite() -> str:
     print("\n[1/4] Launching headless Chrome → kite.zerodha.com ...")
@@ -164,7 +165,6 @@ def login_to_kite() -> str:
 
         page.goto("https://kite.zerodha.com", wait_until="domcontentloaded", timeout=30_000)
         page.wait_for_load_state("networkidle", timeout=15_000)
-        screenshot(page, "01_login_page")
 
         # User ID
         uid = try_selector(page, [
@@ -184,7 +184,6 @@ def login_to_kite() -> str:
             screenshot(page, "02_no_password")
             raise RuntimeError("Cannot find password field")
         pwd.fill(PASSWORD)
-        screenshot(page, "02_credentials")
 
         # Submit
         btn = try_selector(page, ['button[type="submit"]', 'button.button-orange', 'button:has-text("Login")'])
@@ -194,7 +193,6 @@ def login_to_kite() -> str:
             page.keyboard.press("Enter")
 
         time.sleep(2)
-        screenshot(page, "03_after_login")
 
         # TOTP
         totp_field = try_selector(page, [
@@ -207,9 +205,7 @@ def login_to_kite() -> str:
                 f"TOTP field not found. URL: {page.url}\n"
                 "Password may be wrong or login was blocked."
             )
-        screenshot(page, "03_totp_page")
         totp_field.fill(generate_totp())
-        screenshot(page, "03_totp_filled")
 
         try:
             s2 = page.locator('button[type="submit"], button.button-orange')
@@ -227,8 +223,6 @@ def login_to_kite() -> str:
                 print("  → On Kite ✅")
             else:
                 page.wait_for_load_state("networkidle", timeout=10_000)
-
-        screenshot(page, "04_post_login")
 
         cookies  = ctx.cookies("https://kite.zerodha.com")
         enctoken = next((c["value"] for c in cookies if c["name"] == "enctoken"), None)
@@ -263,7 +257,7 @@ def start_briefing_thread():
         print(f"  ⚠️  Could not start briefing thread: {e}")
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+# ── Main ────────────────────────────────────────────────────────────–[...]
 
 def main():
     validate_env()
@@ -349,6 +343,10 @@ def main():
     print("\n  Starting briefing scheduler...")
     start_briefing_thread()
 
+    # NOTE: snapshot writer is started inside dashboard.py (the subprocess) where
+    # portfolio_tracker, realtime_manager, historical_manager and order_manager
+    # are all available. Starting it here would use an empty dict and write useless data.
+
     # ── Notify: bot started with dynamic session info ────────────────────────
     if is_afternoon_session:
         telegram_notify(
@@ -373,7 +371,7 @@ def main():
         )
         shutdown_env_time = "12:35"
         restart_cutoff_hour = 12
-        restart_cutoff_minute = 25
+        restart_cutoff_minute = 30  # ✅ FIXED: was 25, now 30 to match 12:30 PM cutoff
 
     print(f"\n✅ Authentication complete — launching {bot_script.name} on port {BOT_PORT}...\n")
     print("=" * 60)

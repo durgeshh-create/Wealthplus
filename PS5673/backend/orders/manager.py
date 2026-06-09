@@ -18,6 +18,14 @@ from backend.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
+class PostSellError(RuntimeError):
+    """
+    Raised when the ETF buy fails AFTER LIQUIDCASE has already been sold.
+    Executor must NOT allow_retry=True — LIQUIDCASE is gone, cash is in account
+    and will fund the next natural execution cycle without re-selling LIQUIDCASE.
+    """
+
+
 class OrderManager:
     """Manages order placement and monitoring"""
     
@@ -310,12 +318,35 @@ class OrderManager:
             margins  = response.json()
             equity   = margins.get('data', {}).get('equity', {})
             avail    = equity.get('available', {})
-            live_bal = float(avail.get('live_balance', 0))
-            net_bal  = float(avail.get('cash', 0))
-            # live_balance is 0 outside market hours; 'cash' (net) reflects the
-            # full settled balance. Use whichever is larger.
-            cash = max(live_bal, net_bal)
-            logger.debug(f"Available cash: live=₹{live_bal:,.2f} net=₹{net_bal:,.2f} → ₹{cash:,.2f}")
+            live_bal    = float(avail.get('live_balance', 0))
+            net_bal     = float(avail.get('cash', 0))
+            adhoc_bal   = float(avail.get('adhoc_margin', 0))
+            opening_bal = float(avail.get('opening_balance', 0))
+
+            # ── Which field to use ────────────────────────────────────────────
+            # live_balance: includes pledged collateral/securities margin.
+            #               Suitable for F&O/MIS but NOT for CNC delivery buys —
+            #               Zerodha will NOT allow collateral to fund fresh CNC
+            #               purchases, causing "Insufficient funds" rejections even
+            #               when live_balance appears high enough.
+            #
+            # cash (net_bal): settled cash balance only — this is the true liquid
+            #                 cash available for CNC (delivery) purchases.
+            #                 May be 0 before market open until recalculated.
+            #
+            # Rule: prefer cash (net_bal) for CNC accuracy.
+            # Fall back to live_balance, then opening_balance if both are zero.
+            if net_bal > 0:
+                cash = net_bal
+            elif live_bal > 0:
+                cash = live_bal
+            else:
+                cash = opening_bal
+
+            logger.info(
+                f"Available cash: live=₹{live_bal:,.2f} net(cash)=₹{net_bal:,.2f} "
+                f"opening=₹{opening_bal:,.2f} adhoc=₹{adhoc_bal:,.2f} → using ₹{cash:,.2f}"
+            )
             return cash
         except RuntimeError:
             raise   # let the caller (smart_buy) propagate this to the UI
@@ -439,9 +470,55 @@ class OrderManager:
 
         logger.info(f"✓ LIQUIDCASE sell complete: {liq_to_sell} units @ ₹{liq_price:.2f}")
 
-        # Now buy the ETF
+        # ── Wait for Zerodha to credit sale proceeds into available cash ──────
+        # Zerodha does NOT update available margin instantly after a CNC sell.
+        # Placing the ETF buy too quickly causes "Insufficient funds" even though
+        # the LIQUIDCASE was sold successfully.  Poll until cash reflects the
+        # full cost of the ETF buy (up to 45s), then add a small safety pause.
+        #
+        # FIX: compare against total_cost (what the buy actually needs) rather
+        # than a computed floor from the pre-sale balance — the old floor could
+        # be satisfied before Zerodha's OMS had actually credited the margin,
+        # because the margins API and the OMS margin engine update independently.
         import time as _time
-        _time.sleep(1)   # brief pause to let funds settle
+        _poll_wait  = 0
+        _poll_limit = 45  # increased from 15s — Zerodha CNC margin can lag 20-30s
+        _last_cash  = avail_cash
+        while _poll_wait < _poll_limit:
+            _time.sleep(1)
+            _poll_wait += 1
+            try:
+                refreshed_cash = self.get_available_cash()
+                logger.debug(
+                    f"[smart_buy] Margin poll {_poll_wait}/{_poll_limit}: "
+                    f"cash=₹{refreshed_cash:,.2f} (need ≥ ₹{total_cost:,.2f})"
+                )
+                _last_cash = refreshed_cash
+                if refreshed_cash >= total_cost:
+                    logger.info(
+                        f"✅ Margin updated after {_poll_wait}s: "
+                        f"₹{refreshed_cash:,.2f} ≥ ₹{total_cost:,.2f} — proceeding to buy"
+                    )
+                    break
+            except Exception:
+                pass  # margin API hiccup — keep waiting
+        else:
+            # Poll timed out — check one final time before deciding to abort
+            try:
+                _last_cash = self.get_available_cash()
+            except Exception:
+                pass
+            if _last_cash < total_cost:
+                raise RuntimeError(
+                    f"Margin not credited after {_poll_limit}s: "
+                    f"available ₹{_last_cash:,.2f} < required ₹{total_cost:,.2f}. "
+                    f"LIQUIDCASE was sold ({liq_to_sell} units) — check broker account."
+                )
+            logger.warning(
+                f"⚠️ Margin poll timed out at {_poll_limit}s but cash ₹{_last_cash:,.2f} "
+                f"now covers cost ₹{total_cost:,.2f} — proceeding to buy"
+            )
+        # ─────────────────────────────────────────────────────────────────────
 
         buy_oid, buy_msg = self.place_order(
             buy_symbol, 'BUY', buy_quantity,
@@ -453,13 +530,15 @@ class OrderManager:
             logger.error(
                 f"🚨 ORPHAN: LIQUIDCASE sold but {buy_symbol} BUY failed: {buy_msg}"
             )
-            raise RuntimeError(f"Buy failed after LIQUIDCASE sell: {buy_msg}")
+            # LIQUIDCASE already sold — raise PostSellError so executor does NOT retry
+            raise PostSellError(f"Buy failed after LIQUIDCASE sell: {buy_msg}")
 
         buy_status = self.get_order_status(buy_oid)
         if not self.monitor_order(buy_oid):
             sm = buy_status.get('status_message', '') if buy_status else ''
             logger.error(f"🚨 ORPHAN: {buy_symbol} buy incomplete after LIQUIDCASE sell")
-            raise RuntimeError(f"Buy order did not complete: {sm}")
+            # LIQUIDCASE already sold — raise PostSellError so executor does NOT retry
+            raise PostSellError(f"Buy order did not complete after LIQUIDCASE sell: {sm}")
 
         logger.info(f"✓ smart_buy complete: {buy_quantity} × {buy_symbol} @ ₹{exec_price:.2f}")
         portfolio_tracker.sync()
@@ -490,8 +569,11 @@ class OrderManager:
                 return False, f"Failed to fetch margin data: HTTP {response.status_code}"
             
             margins_data = response.json()
-            equity_margin = margins_data.get('data', {}).get('equity', {})
-            available_margin = float(equity_margin.get('available', {}).get('live_balance', 0))
+            avail_data = margins_data.get('data', {}).get('equity', {}).get('available', {})
+            net_bal     = float(avail_data.get('cash', 0))
+            live_bal    = float(avail_data.get('live_balance', 0))
+            opening_bal = float(avail_data.get('opening_balance', 0))
+            available_margin = net_bal if net_bal > 0 else (live_bal if live_bal > 0 else opening_bal)
             
             if available_margin < required_value:
                 msg = f"Insufficient funds: Need ₹{required_value:.2f}, have ₹{available_margin:.2f}"

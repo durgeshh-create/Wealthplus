@@ -79,13 +79,20 @@ class TradingBot:
             logger.info("Waiting for market data...")
             time.sleep(5)
             
-            # Portfolio
+            # Portfolio — retry up to 5 times with backoff (handles transient
+            # Zerodha rejections immediately after a mid-session restart)
             logger.info("Syncing portfolio...")
             self.portfolio = PortfolioTracker(self.auth)
-            if not self.portfolio.sync():
-                logger.error("Failed to sync portfolio")
-                return False
-            logger.info("✓ Portfolio synced")
+            _synced = False
+            for _attempt in range(1, 6):
+                if self.portfolio.sync():
+                    _synced = True
+                    break
+                logger.warning(f"Portfolio sync attempt {_attempt}/5 failed — retrying in 10s...")
+                time.sleep(10)
+            if not _synced:
+                logger.error("Failed to sync portfolio after 5 attempts — proceeding with empty state")
+            logger.info("✓ Portfolio synced" if _synced else "⚠️ Starting with empty portfolio state")
             
             # Orders
             self.orders = OrderManager(self.auth)

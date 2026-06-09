@@ -991,7 +991,7 @@ def register_routes(app, dashboard_state):
             logger.error(f"Error fetching indices data: {e}", exc_info=True)
             return jsonify([
                 {'name': n, 'ltp': 0, 'change': 0, 'change_pct': 0, 'prev_close': 0}
-                for n in ['NIFTY 50', 'GIFT NIFTY', 'NIFTY MIDCAP 150', 'INDIA VIX']
+                for n in ['NIFTY 50', 'NIFTY MIDCAP 150', 'INDIA VIX']
             ])
 
 
@@ -2254,8 +2254,8 @@ def register_routes(app, dashboard_state):
             api_cash        = float(available.get('cash')            or 0)   # == opening_balance
             debits          = float(utilised.get('debits', 0)        or 0)
 
-            # Available Cash = opening balance (settled cash, before today's activity)
-            available_cash = opening_balance if opening_balance > 0 else api_cash
+            # Available Cash = live_balance — matches what Kite displays
+            available_cash = live_balance if live_balance > 0 else (opening_balance if opening_balance > 0 else api_cash)
 
             # Available Margin = Total Collateral − Used Margin + Available Cash
             used_margin      = debits
