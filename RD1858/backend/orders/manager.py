@@ -489,46 +489,62 @@ class OrderManager:
         # be satisfied before Zerodha's OMS had actually credited the margin,
         # because the margins API and the OMS margin engine update independently.
         import time as _time
+        # ── Poll live_balance (not net_bal/cash) ─────────────────────────────
+        # After a CNC sell, Zerodha updates live_balance intraday to reflect
+        # sale proceeds — but net_bal/cash only updates at T+1 settlement.
+        # get_available_cash() uses net_bal so it never sees intraday proceeds.
+        # We poll live_balance directly here so the poll actually converges.
+        # Threshold: live_balance must cover total_cost + cash_reserve (raw).
         _poll_wait  = 0
-        _poll_limit = 90  # increased from 45s — Zerodha CNC margin can lag up to 60s
+        _poll_limit = 90
         _last_cash  = avail_cash
-        while _poll_wait < _poll_limit:
-            _time.sleep(1)
-            _poll_wait += 1
+        _need       = total_cost + cash_reserve   # raw cash needed (no reserve deducted)
+
+        def _fetch_live_balance():
             try:
-                refreshed_cash = self.get_available_cash()
-                logger.debug(
-                    f"[smart_buy] Margin poll {_poll_wait}/{_poll_limit}: "
-                    f"cash=₹{refreshed_cash:,.2f} (need ≥ ₹{total_cost:,.2f})"
+                r = self.auth.session.get(
+                    f"{Config.ZERODHA_API_BASE}/oms/user/margins", timeout=10
                 )
-                _last_cash = refreshed_cash
-                # get_available_cash() returns raw cash; total_cost is net of reserve.
-                # Add cash_reserve back so we compare apples-to-apples.
-                if refreshed_cash >= total_cost + cash_reserve:
+                if r.status_code != 200:
+                    return None
+                avail = r.json().get("data", {}).get("equity", {}).get("available", {})
+                lb = float(avail.get("live_balance", 0) or 0)
+                nb = float(avail.get("cash", 0) or 0)
+                # live_balance reflects intraday CNC proceeds; cash does not.
+                return lb if lb > 0 else nb
+            except Exception:
+                return None
+
+        while _poll_wait < _poll_limit:
+            _time.sleep(2)
+            _poll_wait += 2
+            refreshed = _fetch_live_balance()
+            if refreshed is not None:
+                _last_cash = refreshed
+                logger.debug(
+                    f"[smart_buy] Margin poll {_poll_wait}/{_poll_limit}s: "
+                    f"live_balance=₹{refreshed:,.2f} (need ≥ ₹{_need:,.2f})"
+                )
+                if refreshed >= _need:
                     logger.info(
                         f"✅ Margin updated after {_poll_wait}s: "
-                        f"₹{refreshed_cash:,.2f} ≥ ₹{total_cost + cash_reserve:,.2f} — proceeding to buy"
+                        f"₹{refreshed:,.2f} ≥ ₹{_need:,.2f} — proceeding to buy"
                     )
                     break
-            except Exception:
-                pass  # margin API hiccup — keep waiting
         else:
-            # Poll timed out — check one final time before deciding to abort
-            try:
-                _last_cash = self.get_available_cash()
-            except Exception:
-                pass
-            if _last_cash < total_cost + cash_reserve:
-                # LIQUIDCASE already sold — PostSellError prevents retry from
-                # selling LIQUIDCASE again. Cash will reflect by next cycle.
+            # Poll timed out — one final check
+            refreshed = _fetch_live_balance()
+            if refreshed is not None:
+                _last_cash = refreshed
+            if _last_cash < _need:
                 raise PostSellError(
                     f"Margin not credited after {_poll_limit}s: "
-                    f"available ₹{_last_cash:,.2f} < required ₹{total_cost:,.2f}. "
+                    f"live_balance ₹{_last_cash:,.2f} < required ₹{_need:,.2f}. "
                     f"LIQUIDCASE was sold ({liq_to_sell} units) — cash should credit shortly."
                 )
             logger.warning(
-                f"⚠️ Margin poll timed out at {_poll_limit}s but cash ₹{_last_cash:,.2f} "
-                f"now covers cost ₹{total_cost:,.2f} — proceeding to buy"
+                f"⚠️ Margin poll timed out at {_poll_limit}s but live_balance "
+                f"₹{_last_cash:,.2f} now covers ₹{_need:,.2f} — proceeding to buy"
             )
         # ─────────────────────────────────────────────────────────────────────
 
