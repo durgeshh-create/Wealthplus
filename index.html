@@ -145,6 +145,8 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 .wr-bar-wrap{position:relative;height:5px;background:var(--bg3);border-radius:3px;min-width:70px}
 .wr-bar{position:absolute;right:0;top:0;height:100%;border-radius:3px;transition:width .4s}
 .threshold-line{position:absolute;right:20%;top:-3px;width:1px;height:11px;background:rgba(239,68,68,.5)}
+/* Override global .tbl right-align for WR table specifically */
+#wr-tbl th, #wr-tbl td{text-align:left !important}
 
 /* ── trades ── */
 .trade-row{display:flex;align-items:center;gap:10px;padding:9px 15px;border-bottom:1px solid var(--border)}
