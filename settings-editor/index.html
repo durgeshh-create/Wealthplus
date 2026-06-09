@@ -2355,9 +2355,9 @@ function render(data) {
   const holdingMap = {}; // symbol → holding object
   holdings.forEach(h => { holdingMap[h.symbol] = h; });
 
-  document.getElementById("h-count").textContent = holdings.length + " positions";
+  const _hcount = document.getElementById("h-count"); if(_hcount) _hcount.textContent = holdings.length + " positions";
   const hb = document.getElementById("h-body");
-  hb.innerHTML = holdings.length ? holdings.map(h => {
+  if (hb) { hb.innerHTML = holdings.length ? holdings.map(h => {
     const curVal = (h.ltp != null && h.quantity != null) ? h.quantity * h.ltp : (h.value ?? null);
     // Slots: buys_today / max_slots — only for active strategy (BnH has no slot system)
     let slotsCell = '—';
@@ -2376,21 +2376,7 @@ function render(data) {
       <td style="text-align:center">${slotsCell}</td>
       <td class="${h.pnl>=0?'pos':'neg'}">${(h.pnl>=0?"+":"")}${fmtL(h.pnl)}<br><span style="font-size:10px;opacity:.7">${fmtPct(h.pnl_pct)}</span></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="7" class="empty">No holdings</td></tr>`;
-
-  // Holdings Total P&L — shown in panel header
-  const hPnlWrap = document.getElementById("h-pnl-wrap");
-  const totalPnlEl = document.getElementById("h-total-pnl");
-  if (holdings.length) {
-    const totalPnl = holdings.reduce((sum, h) => sum + (h.pnl ?? 0), 0);
-    const costBasis = holdings.reduce((sum, h) => sum + ((h.avg ?? 0) * (h.quantity ?? 0)), 0);
-    const totalPnlPct = costBasis > 0 ? (totalPnl / costBasis) * 100 : 0;
-    hPnlWrap.style.display = "";
-    totalPnlEl.textContent = (totalPnl >= 0 ? "+" : "") + fmtL(totalPnl) + "  " + fmtPct(totalPnlPct);
-    totalPnlEl.className = totalPnl > 0 ? "pos" : totalPnl < 0 ? "neg" : "";
-  } else {
-    hPnlWrap.style.display = "none";
-  }
+  }).join("") : `<tr><td colspan="7" class="empty">No holdings</td></tr>`; }
 
   // Today's Positions
   const positions = data.positions ?? [];
@@ -2414,12 +2400,12 @@ function render(data) {
   const liqVal  = liq.value ?? 0;
   const total   = holdVal + liqVal;
   const depPct  = total > 0 ? (holdVal / total * 100) : 0;
-  document.getElementById("cash-deployed").textContent = fmtL(holdVal);
-  document.getElementById("cash-bar").style.width      = depPct + "%";
-  document.getElementById("cash-h").textContent        = fmtL(holdVal);
-  document.getElementById("cash-l").textContent        = fmtL(liqVal);
-  document.getElementById("cash-t").textContent        = fmtL(total);
-  document.getElementById("cash-note").textContent     = Math.round(depPct) + "% deployed";
+  const _cd=document.getElementById("cash-deployed"); if(_cd) _cd.textContent=fmtL(holdVal);
+  const _cb=document.getElementById("cash-bar"); if(_cb) _cb.style.width=depPct+"%";
+  const _ch=document.getElementById("cash-h"); if(_ch) _ch.textContent=fmtL(holdVal);
+  const _cl=document.getElementById("cash-l"); if(_cl) _cl.textContent=fmtL(liqVal);
+  const _ct=document.getElementById("cash-t"); if(_ct) _ct.textContent=fmtL(total);
+  const _cn=document.getElementById("cash-note"); if(_cn) _cn.textContent=Math.round(depPct)+"% deployed";
 
   // Signals
   document.getElementById("sig-count").textContent = sigs.length + " signals";
@@ -2559,7 +2545,7 @@ function render(data) {
                   ? exTs : plTs;
     return todayStr && ts ? ts.includes(todayStr) : true; // pass-through if no date info
   });
-  document.getElementById("tr-count").textContent = trades.length + " orders today";
+  const _trc=document.getElementById("tr-count"); if(_trc) _trc.textContent=trades.length+" orders today";
 
   // Today's P&L — sourced from data.today_pnl (set by the bot)
   const pnlInline  = document.getElementById("s-pnl-inline");
@@ -2570,7 +2556,7 @@ function render(data) {
   pnlInline.textContent = pnlDisplay;
   pnlInline.className   = pnl > 0 ? "pos" : pnl < 0 ? "neg" : "";
   const trb = document.getElementById("tr-body");
-  trb.innerHTML = trades.length ? trades.map(t => {
+  if(trb) trb.innerHTML = trades.length ? trades.map(t => {
     const ok  = t.status === "COMPLETE";
     const rej = t.status === "REJECTED";
     const sym = t.tradingsymbol || t.symbol || "—";
