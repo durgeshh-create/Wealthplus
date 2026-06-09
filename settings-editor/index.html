@@ -107,10 +107,11 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
   .trade-row{padding:8px 10px;gap:8px}
   .sig-row{padding:8px 10px;gap:8px}
   .slots-wrap{padding:10px;gap:10px}
-  .slots-grid{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px}
+  .slots-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px}
   .slot{padding:7px 8px}
   .slot-sym{font-size:10px}
   .slot-status{font-size:8px}
+  .slot-pnl{font-size:8px}
   .cash-body{padding:10px}
   #stale-banner,#offline-banner,#cfg-note{font-size:10px;padding:6px 14px}
   .scroll{max-height:240px}
@@ -163,23 +164,28 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 
 /* ── slots ── */
 .slots-wrap{padding:14px;display:flex;flex-direction:column;gap:12px}
-.slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
 .slot{border-radius:6px;border:1px solid var(--border2);background:var(--bg3);padding:8px 10px;cursor:default;transition:all .2s;min-width:0}
 .slot.used{background:var(--acc-d);border-color:rgba(99,102,241,.4)}
 .slot.liq{background:var(--green-d);border-color:rgba(34,197,94,.3)}
-.slot-sym{font-family:var(--head);font-size:11px;font-weight:700;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Line 1: symbol + holding value side-by-side */
+.slot-line1{display:flex;align-items:baseline;justify-content:space-between;gap:4px;min-width:0}
+.slot-sym{font-family:var(--head);font-size:11px;font-weight:700;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:1}
 .slot.used .slot-sym{color:var(--accent)}
 .slot.liq .slot-sym{color:var(--green)}
-.slot-status{font-size:9px;margin-top:2px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-.slot-val{font-size:10px;margin-top:3px;font-family:var(--head);font-weight:600;color:var(--muted2)}
+.slot-val{font-size:10px;font-family:var(--head);font-weight:600;color:var(--muted2);white-space:nowrap;flex-shrink:0}
 .slot.used .slot-val{color:var(--accent)}
 .slot.liq .slot-val{color:var(--green)}
 .slot.bnh.held .slot-val{color:var(--blue)}
+/* Line 2: slots counter (active) or status label + P&L */
+.slot-line2{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-top:4px;min-width:0}
+.slot-status{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);white-space:nowrap}
 .slot.used .slot-status{color:var(--accent);opacity:.8}
 .slot.liq .slot-status{color:var(--green);opacity:.8}
+.slot.bnh .slot-status{color:var(--blue);opacity:.8}
+.slot-pnl{font-size:9px;font-family:var(--head);font-weight:600;white-space:nowrap;flex-shrink:0}
 .slot.bnh{background:rgba(37,99,235,0.08);border-color:rgba(37,99,235,.35)}
 .slot.bnh .slot-sym{color:var(--blue)}
-.slot.bnh .slot-status{color:var(--blue);opacity:.8}
 .slot.bnh.held{background:rgba(37,99,235,0.16);border-color:rgba(37,99,235,.5)}
 .slots-section-label{font-family:var(--head);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
 .slot-leg span{display:flex;align-items:center;gap:5px}
@@ -510,7 +516,13 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
     <div class="ph"><span class="pt">Williams %R</span><span style="font-size:10px;color:var(--muted)">≤ −75 oversold → BUY zone</span></div>
     <div class="scroll">
       <table class="tbl" id="wr-tbl">
-        <tr><td colspan="4" class="empty">Loading…</td></tr>
+        <thead><tr>
+          <th style="text-align:left">Symbol / Price</th>
+          <th style="text-align:left;width:90px">W%R Bar</th>
+          <th style="text-align:left;width:48px">Value</th>
+          <th style="text-align:left;width:72px">Signal</th>
+        </tr></thead>
+        <tbody id="wr-tbl-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -2426,7 +2438,7 @@ function render(data) {
 
   // Williams %R
   const wr = (data.williams_r ?? []).slice().sort((a,b) => (a.williams_r??0) - (b.williams_r??0));
-  const wt = document.getElementById("wr-tbl");
+  const wt = document.getElementById("wr-tbl-body");
   wt.innerHTML = wr.length ? wr.map(item => {
     const v   = item.williams_r;
     const col = wrCol(v);
@@ -2440,11 +2452,11 @@ function render(data) {
     const chgS = chg != null ? `<span style="color:${chg>=0?'var(--green)':'var(--red)'};font-size:10px">${chg>=0?"+":""}${chg.toFixed(2)}%</span>` : "";
     return `<tr>
       <td><div class="sym">${item.symbol}${held}${bnhTag}</div><div style="font-size:10px;color:var(--muted2)">${item.ltp ? fmtR(item.ltp) : "—"} ${chgS}</div></td>
-      <td style="width:100px;padding-right:8px">
+      <td style="width:90px;padding-right:6px">
         <div class="wr-bar-wrap"><div class="wr-bar" style="width:${bw}%;background:${col}"></div><div class="threshold-line"></div></div>
       </td>
-      <td style="text-align:right;font-size:12px;color:${col};width:52px">${v != null ? v.toFixed(1) : "—"}</td>
-      <td style="text-align:right;width:68px">${sig}</td>
+      <td style="text-align:left;font-size:12px;color:${col};width:48px;padding-right:4px">${v != null ? v.toFixed(1) : "—"}</td>
+      <td style="text-align:left;width:72px">${sig}</td>
     </tr>`;
   }).join("") : `<tr><td colspan="4" class="empty">No market data</td></tr>`;
 
@@ -2472,44 +2484,51 @@ function render(data) {
     const u = heldSet.has(sym);
     const h = holdingMap[sym];
     const curVal = u && h ? ((h.ltp != null && h.quantity != null) ? h.quantity * h.ltp : (h.value ?? null)) : null;
-    const curValStr = curVal != null ? `<div class="slot-val">${fmtL(curVal)}</div>` : "";
-    // Slots available
-    let slotsHtml = "";
+
+    // Line 1: SYMBOL  Holding ₹X.XXL
+    const line1Val = curVal != null ? `<span class="slot-val">${fmtL(curVal)}</span>` : "";
+
+    // Line 2: slots counter (left) + P&L (right)
+    let slotsLabel = u ? "● Holding" : "○ Empty";
     if (u && h && h.buys_today != null && h.max_slots != null) {
       const pct = h.buys_today / h.max_slots;
       const cls = pct >= 1 ? "neg" : pct >= 0.6 ? "amber" : "pos";
-      slotsHtml = `<div style="font-size:10px;margin-top:3px"><span class="${cls}" style="font-weight:700">${h.buys_today}/${h.max_slots}</span> <span style="color:var(--muted);font-size:9px">slots</span></div>`;
+      slotsLabel = `<span class="${cls}" style="font-weight:700">${h.buys_today}/${h.max_slots}</span> <span style="color:var(--muted)">slots</span>`;
     }
-    // P&L per holding
     let pnlHtml = "";
     if (u && h && h.pnl != null) {
-      pnlHtml = `<div style="font-size:10px;font-weight:600;margin-top:2px;font-family:var(--head)" class="${h.pnl>=0?'pos':'neg'}">${h.pnl>=0?"+":""}${fmtL(h.pnl)} <span style="font-size:9px;opacity:.8">${fmtPct(h.pnl_pct)}</span></div>`;
+      const pnlCls = h.pnl >= 0 ? "pos" : "neg";
+      pnlHtml = `<span class="slot-pnl ${pnlCls}">${h.pnl>=0?"+":""}${fmtL(h.pnl)} <span style="opacity:.75">${fmtPct(h.pnl_pct)}</span></span>`;
     }
+
     return `<div class="slot ${u?'used':''}" title="${sym}">
-      <div class="slot-sym">${sym}</div>
-      <div class="slot-status">${u ? "● Holding" : "○ Empty"}</div>
-      ${curValStr}${slotsHtml}${pnlHtml}
+      <div class="slot-line1"><span class="slot-sym">${sym}</span>${line1Val}</div>
+      <div class="slot-line2"><span class="slot-status">${slotsLabel}</span>${pnlHtml}</div>
     </div>`;
   });
   const liqBlock = `<div class="slot liq" title="LIQUIDCASE">
-    <div class="slot-sym">LIQUIDCASE</div>
-    <div class="slot-status">● Buffer</div>
-    ${liq.value != null ? `<div class="slot-val">${fmtL(liq.value)}</div>` : ""}
+    <div class="slot-line1"><span class="slot-sym">LIQUIDCASE</span>${liq.value != null ? `<span class="slot-val">${fmtL(liq.value)}</span>` : ""}</div>
+    <div class="slot-line2"><span class="slot-status">● Buffer</span></div>
   </div>`;
 
   const bnhBlocks = bnhSyms.map(sym => {
     const u = heldSet.has(sym);
     const h = holdingMap[sym];
     const curVal = u && h ? ((h.ltp != null && h.quantity != null) ? h.quantity * h.ltp : (h.value ?? null)) : null;
-    const curValStr = curVal != null ? `<div class="slot-val">${fmtL(curVal)}</div>` : "";
+
+    // Line 1: SYMBOL  Holding ₹X.XXL
+    const line1Val = curVal != null ? `<span class="slot-val">${fmtL(curVal)}</span>` : "";
+
+    // Line 2: status (left) + P&L (right)
     let pnlHtml = "";
     if (u && h && h.pnl != null) {
-      pnlHtml = `<div style="font-size:10px;font-weight:600;margin-top:2px;font-family:var(--head)" class="${h.pnl>=0?'pos':'neg'}">${h.pnl>=0?"+":""}${fmtL(h.pnl)} <span style="font-size:9px;opacity:.8">${fmtPct(h.pnl_pct)}</span></div>`;
+      const pnlCls = h.pnl >= 0 ? "pos" : "neg";
+      pnlHtml = `<span class="slot-pnl ${pnlCls}">${h.pnl>=0?"+":""}${fmtL(h.pnl)} <span style="opacity:.75">${fmtPct(h.pnl_pct)}</span></span>`;
     }
+
     return `<div class="slot bnh ${u?'held':''}" title="${sym}">
-      <div class="slot-sym">${sym}</div>
-      <div class="slot-status">${u ? "● Accumulating" : "○ Watching"}</div>
-      ${curValStr}${pnlHtml}
+      <div class="slot-line1"><span class="slot-sym">${sym}</span>${line1Val}</div>
+      <div class="slot-line2"><span class="slot-status">${u ? "● Accumulating" : "○ Watching"}</span>${pnlHtml}</div>
     </div>`;
   });
 
