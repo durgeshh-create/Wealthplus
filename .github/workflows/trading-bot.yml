@@ -223,21 +223,21 @@ jobs:
             while true; do
               sleep 120
               if [ -f /tmp/status_rd1858.json ]; then
-                git fetch origin gh-pages 2>/dev/null || true
-                if [ ! -d /tmp/gh-pages-rd1858 ]; then
-                  git worktree add /tmp/gh-pages-rd1858 gh-pages 2>/dev/null || git worktree add /tmp/gh-pages-rd1858 --orphan gh-pages
+                # Reset worktree each cycle to avoid stale rebase state
+                if [ -d /tmp/gh-pages-rd1858 ]; then
+                  git worktree remove --force /tmp/gh-pages-rd1858 2>/dev/null || true
                 fi
+                git fetch origin gh-pages 2>/dev/null || true
+                git worktree add /tmp/gh-pages-rd1858 gh-pages 2>/dev/null || true
                 cp /tmp/status_rd1858.json /tmp/gh-pages-rd1858/status_rd1858.json
                 cd /tmp/gh-pages-rd1858
                 git add status_rd1858.json
-                if ! git diff --cached --quiet; then
-                  git commit -m "rd1858 snapshot $(date -u +'%H:%M UTC')"
-                  for _retry in 1 2 3; do
-                    git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
-                    git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
-                    sleep 3
-                  done
-                fi
+                git commit -m "rd1858 snapshot $(date -u +'%H:%M UTC')" 2>/dev/null || true
+                for _retry in 1 2 3 4 5; do
+                  git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+                  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
+                  sleep $((RANDOM % 10 + 3))
+                done
                 cd "$GITHUB_WORKSPACE"
               fi
             done
@@ -351,21 +351,21 @@ jobs:
             while true; do
               sleep 120
               if [ -f /tmp/status_ps5673.json ]; then
-                git fetch origin gh-pages 2>/dev/null || true
-                if [ ! -d /tmp/gh-pages-ps5673 ]; then
-                  git worktree add /tmp/gh-pages-ps5673 gh-pages 2>/dev/null || git worktree add /tmp/gh-pages-ps5673 --orphan gh-pages
+                # Reset worktree each cycle to avoid stale rebase state
+                if [ -d /tmp/gh-pages-ps5673 ]; then
+                  git worktree remove --force /tmp/gh-pages-ps5673 2>/dev/null || true
                 fi
+                git fetch origin gh-pages 2>/dev/null || true
+                git worktree add /tmp/gh-pages-ps5673 gh-pages 2>/dev/null || true
                 cp /tmp/status_ps5673.json /tmp/gh-pages-ps5673/status_ps5673.json
                 cd /tmp/gh-pages-ps5673
                 git add status_ps5673.json
-                if ! git diff --cached --quiet; then
-                  git commit -m "ps5673 snapshot $(date -u +'%H:%M UTC')"
-                  for _retry in 1 2 3; do
-                    git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
-                    git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
-                    sleep 3
-                  done
-                fi
+                git commit -m "ps5673 snapshot $(date -u +'%H:%M UTC')" 2>/dev/null || true
+                for _retry in 1 2 3 4 5; do
+                  git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+                  git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
+                  sleep $((RANDOM % 10 + 3))
+                done
                 cd "$GITHUB_WORKSPACE"
               fi
             done
