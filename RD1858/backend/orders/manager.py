@@ -438,7 +438,11 @@ class OrderManager:
         if not liq_price or liq_price <= 0:
             raise RuntimeError("Cannot get LIQUIDCASE price for shortfall calculation")
 
-        liq_to_sell = math.ceil(shortfall / liq_price)
+        # ✅ FIX: add 2% buffer to shortfall to account for:
+        # 1. LIQUIDCASE MARKET sell executing slightly below LTP
+        # 2. MON100/ETF price moving up between calculation and order placement
+        # 3. Zerodha margins API lag causing available cash to appear lower
+        liq_to_sell = math.ceil((shortfall * 1.02) / liq_price)
         liq_held    = portfolio_tracker.liquidcase_quantity
 
         if liq_to_sell > liq_held:
@@ -486,7 +490,7 @@ class OrderManager:
         # because the margins API and the OMS margin engine update independently.
         import time as _time
         _poll_wait  = 0
-        _poll_limit = 45  # increased from 15s — Zerodha CNC margin can lag 20-30s
+        _poll_limit = 90  # increased from 45s — Zerodha CNC margin can lag up to 60s
         _last_cash  = avail_cash
         while _poll_wait < _poll_limit:
             _time.sleep(1)
