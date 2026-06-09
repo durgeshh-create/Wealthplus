@@ -255,7 +255,24 @@ class OrderManager:
             time.sleep(1)
             waited += 1
         
-        logger.warning(f"Order monitoring timeout after {max_wait}s")
+        logger.warning(f"Order monitoring timeout after {max_wait}s — doing final status check")
+        # Order may have completed just after the polling window closed.
+        # One extra check before declaring failure to avoid false orphan errors.
+        for _ in range(3):
+            time.sleep(2)
+            final_status = self.get_order_status(order_id)
+            if final_status:
+                status = final_status.get('status')
+                if status == ORDER_STATUS_COMPLETE:
+                    avg_price = final_status.get('average_price', 0)
+                    symbol    = final_status.get('symbol', '')
+                    logger.info(f"✓ Order COMPLETE (caught after timeout): {symbol} @ ₹{avg_price}")
+                    return True
+                elif status in [ORDER_STATUS_CANCELLED, ORDER_STATUS_REJECTED]:
+                    msg = final_status.get('status_message', '')
+                    logger.error(f"✗ Order {status} (confirmed after timeout): {msg}")
+                    return False
+        logger.error(f"Order {order_id} still not complete after {max_wait + 6}s — giving up")
         return False
     
     def cancel_order(self, order_id: str) -> bool:
@@ -547,11 +564,21 @@ class OrderManager:
                 f"₹{_last_cash:,.2f} now covers ₹{_need:,.2f} — proceeding to buy"
             )
         # ─────────────────────────────────────────────────────────────────────
+        # After LIQUIDCASE sell + margin poll (up to 90s), the limit price
+        # captured before the poll is stale — market has moved. Force MARKET
+        # so the fill is guaranteed and we don't orphan the cash.
+        _actual_order_type  = 'MARKET'
+        _actual_limit_price = None
+        if buy_order_type != 'MARKET':
+            logger.info(
+                f"[smart_buy] Overriding {buy_order_type} → MARKET after LIQUIDCASE sell "
+                f"(limit price ₹{buy_limit_price} is stale after margin poll delay)"
+            )
 
         buy_oid, buy_msg = self.place_order(
             buy_symbol, 'BUY', buy_quantity,
-            order_type=buy_order_type,
-            price=buy_limit_price,
+            order_type=_actual_order_type,
+            price=_actual_limit_price,
             product=buy_product,
         )
         if not buy_oid:
@@ -562,7 +589,7 @@ class OrderManager:
             raise PostSellError(f"Buy failed after LIQUIDCASE sell: {buy_msg}")
 
         buy_status = self.get_order_status(buy_oid)
-        if not self.monitor_order(buy_oid):
+        if not self.monitor_order(buy_oid, max_wait=60):
             sm = buy_status.get('status_message', '') if buy_status else ''
             logger.error(f"🚨 ORPHAN: {buy_symbol} buy incomplete after LIQUIDCASE sell")
             # LIQUIDCASE already sold — raise PostSellError so executor does NOT retry
