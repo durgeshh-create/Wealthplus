@@ -201,6 +201,22 @@ class StrategyExecutor:
                 logger.warning(f"⚠️ Qty capped: {etf_qty} → {max_qty} (max_qty_per_trade)")
                 etf_qty = max_qty
 
+            # ── Ask-side liquidity check ───────────────────────────────────
+            # ETFs like MON100 can have only buyers and no sellers — placing a
+            # MARKET BUY into an empty ask side causes the order to hang open
+            # indefinitely or fill at a terrible stale price.
+            # Skip the buy if there is no ask quantity in the order book.
+            if hasattr(self.realtime, 'get_total_ask_qty'):
+                ask_qty = self.realtime.get_total_ask_qty(symbol)
+                if ask_qty == 0:
+                    logger.warning(
+                        f"⚠️ Skipping BUY {symbol}: no sellers in order book (ask qty = 0). "
+                        f"Will retry next cycle when liquidity returns."
+                    )
+                    if self.signal_generator and is_automated:
+                        self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=True)
+                    return False, "No ask-side liquidity"
+
             etf_cost   = etf_qty * etf_price
             avail_cash = self.orders.get_available_cash()
 
