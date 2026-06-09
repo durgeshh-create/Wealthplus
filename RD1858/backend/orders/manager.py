@@ -502,10 +502,12 @@ class OrderManager:
                     f"cash=₹{refreshed_cash:,.2f} (need ≥ ₹{total_cost:,.2f})"
                 )
                 _last_cash = refreshed_cash
-                if refreshed_cash >= total_cost:
+                # get_available_cash() returns raw cash; total_cost is net of reserve.
+                # Add cash_reserve back so we compare apples-to-apples.
+                if refreshed_cash >= total_cost + cash_reserve:
                     logger.info(
                         f"✅ Margin updated after {_poll_wait}s: "
-                        f"₹{refreshed_cash:,.2f} ≥ ₹{total_cost:,.2f} — proceeding to buy"
+                        f"₹{refreshed_cash:,.2f} ≥ ₹{total_cost + cash_reserve:,.2f} — proceeding to buy"
                     )
                     break
             except Exception:
@@ -516,11 +518,13 @@ class OrderManager:
                 _last_cash = self.get_available_cash()
             except Exception:
                 pass
-            if _last_cash < total_cost:
-                raise RuntimeError(
+            if _last_cash < total_cost + cash_reserve:
+                # LIQUIDCASE already sold — PostSellError prevents retry from
+                # selling LIQUIDCASE again. Cash will reflect by next cycle.
+                raise PostSellError(
                     f"Margin not credited after {_poll_limit}s: "
                     f"available ₹{_last_cash:,.2f} < required ₹{total_cost:,.2f}. "
-                    f"LIQUIDCASE was sold ({liq_to_sell} units) — check broker account."
+                    f"LIQUIDCASE was sold ({liq_to_sell} units) — cash should credit shortly."
                 )
             logger.warning(
                 f"⚠️ Margin poll timed out at {_poll_limit}s but cash ₹{_last_cash:,.2f} "
