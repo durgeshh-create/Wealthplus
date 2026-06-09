@@ -1,7 +1,7 @@
 """
-snapshot.py — PS5673
+snapshot.py — RD1858
 =====================
-Writes a JSON status file to /tmp/status_ps5673.json every 2 minutes.
+Writes a JSON status file to /tmp/status_rd1858.json every 2 minutes.
 GitHub Actions pushes this file to the gh-pages branch so the static
 GitHub Pages dashboard can read it without any server or tunnel.
 
@@ -17,8 +17,8 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 IST           = timezone(timedelta(hours=5, minutes=30))
-SNAPSHOT_PATH = Path("/tmp/status_ps5673.json")
-ACCOUNT       = "PS5673"
+SNAPSHOT_PATH = Path("/tmp/status_rd1858.json")
+ACCOUNT       = "RD1858"
 INTERVAL_SEC  = 120   # write every 2 minutes (was 300 — caused >10 min lag)
 
 
@@ -431,7 +431,7 @@ def write_snapshot(dashboard_state: dict):
 
 def start_snapshot_thread(dashboard_state: dict):
     """
-    Start background thread that writes /tmp/status_ps5673.json every 2 minutes.
+    Start background thread that writes /tmp/status_rd1858.json every 2 minutes.
     Returns immediately. Thread is daemon so it dies with the process.
     """
     def _loop():
@@ -444,6 +444,6 @@ def start_snapshot_thread(dashboard_state: dict):
                 print(f"[snapshot] write_snapshot crashed — will retry next cycle: {_loop_err}", file=_sys.stderr)
             time.sleep(INTERVAL_SEC)
 
-    t = threading.Thread(target=_loop, daemon=True, name="SnapshotWriter-PS5673")
+    t = threading.Thread(target=_loop, daemon=True, name="SnapshotWriter-RD1858")
     t.start()
     print(f"  → Snapshot writer started (every {INTERVAL_SEC//60} min → {SNAPSHOT_PATH}) ✅")
