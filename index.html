@@ -466,26 +466,8 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
   </div>
 
   <div class="two-col">
-    <!-- Holdings + Positions stacked in left column -->
+    <!-- Positions stacked in left column -->
     <div style="display:flex;flex-direction:column;gap:14px">
-      <div class="panel">
-        <div class="ph">
-          <span class="pt">Holdings</span>
-          <div style="display:flex;align-items:center;gap:8px">
-            <div id="h-pnl-wrap" style="display:none;text-align:right">
-              <div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Total P&amp;L</div>
-              <span id="h-total-pnl" style="font-family:var(--head);font-size:14px;font-weight:700">—</span>
-            </div>
-            <span class="pb" id="h-count">—</span>
-          </div>
-        </div>
-        <div class="scroll">
-          <table class="tbl">
-            <thead><tr><th>Symbol</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>Cur. Val</th><th>Slots</th><th>P&L</th></tr></thead>
-            <tbody id="h-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
 
       <!-- Positions panel -->
       <div class="panel">
@@ -505,33 +487,25 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <div class="ph"><span class="pt">Active Signals</span><span class="pb" id="sig-count">—</span></div>
         <div class="scroll" id="sig-body"><div class="empty">Loading…</div></div>
       </div>
-      <!-- Today's Orders — above Funds -->
-      <div class="panel">
-        <div class="ph">
-          <span class="pt">Today's Orders</span>
-          <span class="pb" id="tr-count">—</span>
-        </div>
-        <div class="scroll" id="tr-body"><div class="empty">Loading…</div></div>
-      </div>
-      <div class="panel">
-        <div class="ph"><span class="pt">Funds</span><span class="pb" id="cash-note">—</span></div>
-        <div class="cash-body">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
-            <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Deployed</span>
-            <span style="font-family:var(--head);font-size:20px;font-weight:700" id="cash-deployed">—</span>
-          </div>
-          <div class="cash-bar-track"><div class="cash-bar-fill" id="cash-bar" style="width:0%"></div></div>
-          <div class="cash-labels">
-            <span>Holdings: <span id="cash-h">—</span></span>
-            <span>LIQUIDCASE: <span id="cash-l">—</span></span>
-            <span>Total: <span id="cash-t">—</span></span>
-          </div>
-        </div>
-      </div>
     </div>
   </div><!-- /two-col -->
 
-  <!-- Williams %R — directly below Holdings -->
+  <!-- Slot Matrix full-width — moved above Williams %R -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="ph">
+      <span class="pt">Slot Matrix</span>
+      <div style="display:flex;align-items:center;gap:16px">
+        <span style="font-size:10px;color:var(--muted)">Active strategy + Dip Accumulator (B&amp;H)</span>
+        <div id="sm-pnl-wrap" style="display:none;text-align:right">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Total P&amp;L</div>
+          <span id="sm-total-pnl" style="font-family:var(--head);font-size:14px;font-weight:700">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="slots-wrap" id="slots-wrap"><div class="empty">Loading…</div></div>
+  </div>
+
+  <!-- Williams %R -->
   <div class="panel" style="margin-bottom:14px">
     <div class="ph"><span class="pt">Williams %R</span><span style="font-size:10px;color:var(--muted)">≤ −75 oversold → BUY zone</span></div>
     <div class="scroll">
@@ -539,12 +513,6 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <tr><td colspan="4" class="empty">Loading…</td></tr>
       </table>
     </div>
-  </div>
-
-  <!-- Slot Matrix full-width -->
-  <div class="panel" style="margin-bottom:14px">
-    <div class="ph"><span class="pt">Slot Matrix</span><span style="font-size:10px;color:var(--muted)">Active strategy + Dip Accumulator (B&amp;H)</span></div>
-    <div class="slots-wrap" id="slots-wrap"><div class="empty">Loading…</div></div>
   </div>
   </main>
 </div>
@@ -2387,9 +2355,9 @@ function render(data) {
   const holdingMap = {}; // symbol → holding object
   holdings.forEach(h => { holdingMap[h.symbol] = h; });
 
-  document.getElementById("h-count").textContent = holdings.length + " positions";
+  const _hcount = document.getElementById("h-count"); if(_hcount) _hcount.textContent = holdings.length + " positions";
   const hb = document.getElementById("h-body");
-  hb.innerHTML = holdings.length ? holdings.map(h => {
+  if (hb) { hb.innerHTML = holdings.length ? holdings.map(h => {
     const curVal = (h.ltp != null && h.quantity != null) ? h.quantity * h.ltp : (h.value ?? null);
     // Slots: buys_today / max_slots — only for active strategy (BnH has no slot system)
     let slotsCell = '—';
@@ -2408,21 +2376,7 @@ function render(data) {
       <td style="text-align:center">${slotsCell}</td>
       <td class="${h.pnl>=0?'pos':'neg'}">${(h.pnl>=0?"+":"")}${fmtL(h.pnl)}<br><span style="font-size:10px;opacity:.7">${fmtPct(h.pnl_pct)}</span></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="7" class="empty">No holdings</td></tr>`;
-
-  // Holdings Total P&L — shown in panel header
-  const hPnlWrap = document.getElementById("h-pnl-wrap");
-  const totalPnlEl = document.getElementById("h-total-pnl");
-  if (holdings.length) {
-    const totalPnl = holdings.reduce((sum, h) => sum + (h.pnl ?? 0), 0);
-    const costBasis = holdings.reduce((sum, h) => sum + ((h.avg ?? 0) * (h.quantity ?? 0)), 0);
-    const totalPnlPct = costBasis > 0 ? (totalPnl / costBasis) * 100 : 0;
-    hPnlWrap.style.display = "";
-    totalPnlEl.textContent = (totalPnl >= 0 ? "+" : "") + fmtL(totalPnl) + "  " + fmtPct(totalPnlPct);
-    totalPnlEl.className = totalPnl > 0 ? "pos" : totalPnl < 0 ? "neg" : "";
-  } else {
-    hPnlWrap.style.display = "none";
-  }
+  }).join("") : `<tr><td colspan="7" class="empty">No holdings</td></tr>`; }
 
   // Today's Positions
   const positions = data.positions ?? [];
@@ -2446,12 +2400,12 @@ function render(data) {
   const liqVal  = liq.value ?? 0;
   const total   = holdVal + liqVal;
   const depPct  = total > 0 ? (holdVal / total * 100) : 0;
-  document.getElementById("cash-deployed").textContent = fmtL(holdVal);
-  document.getElementById("cash-bar").style.width      = depPct + "%";
-  document.getElementById("cash-h").textContent        = fmtL(holdVal);
-  document.getElementById("cash-l").textContent        = fmtL(liqVal);
-  document.getElementById("cash-t").textContent        = fmtL(total);
-  document.getElementById("cash-note").textContent     = Math.round(depPct) + "% deployed";
+  const _cd=document.getElementById("cash-deployed"); if(_cd) _cd.textContent=fmtL(holdVal);
+  const _cb=document.getElementById("cash-bar"); if(_cb) _cb.style.width=depPct+"%";
+  const _ch=document.getElementById("cash-h"); if(_ch) _ch.textContent=fmtL(holdVal);
+  const _cl=document.getElementById("cash-l"); if(_cl) _cl.textContent=fmtL(liqVal);
+  const _ct=document.getElementById("cash-t"); if(_ct) _ct.textContent=fmtL(total);
+  const _cn=document.getElementById("cash-note"); if(_cn) _cn.textContent=Math.round(depPct)+"% deployed";
 
   // Signals
   document.getElementById("sig-count").textContent = sigs.length + " signals";
@@ -2500,15 +2454,41 @@ function render(data) {
   const heldSet = new Set(holdings.map(h => h.symbol));
   const sw = document.getElementById("slots-wrap");
 
+  // Total P&L in Slot Matrix header
+  if (holdings.length) {
+    const totalPnl    = holdings.reduce((s,h) => s+(h.pnl??0), 0);
+    const costBasis   = holdings.reduce((s,h) => s+((h.avg??0)*(h.quantity??0)), 0);
+    const totalPnlPct = costBasis > 0 ? (totalPnl/costBasis*100) : 0;
+    const smWrap = document.getElementById("sm-pnl-wrap");
+    const smPnl  = document.getElementById("sm-total-pnl");
+    if (smWrap && smPnl) {
+      smWrap.style.display = "";
+      smPnl.textContent = (totalPnl>=0?"+":"") + fmtL(totalPnl) + "  " + fmtPct(totalPnlPct);
+      smPnl.className   = totalPnl>0?"pos":totalPnl<0?"neg":"";
+    }
+  }
+
   const activeBlocks = allEtfs.map(sym => {
     const u = heldSet.has(sym);
     const h = holdingMap[sym];
     const curVal = u && h ? ((h.ltp != null && h.quantity != null) ? h.quantity * h.ltp : (h.value ?? null)) : null;
     const curValStr = curVal != null ? `<div class="slot-val">${fmtL(curVal)}</div>` : "";
+    // Slots available
+    let slotsHtml = "";
+    if (u && h && h.buys_today != null && h.max_slots != null) {
+      const pct = h.buys_today / h.max_slots;
+      const cls = pct >= 1 ? "neg" : pct >= 0.6 ? "amber" : "pos";
+      slotsHtml = `<div style="font-size:10px;margin-top:3px"><span class="${cls}" style="font-weight:700">${h.buys_today}/${h.max_slots}</span> <span style="color:var(--muted);font-size:9px">slots</span></div>`;
+    }
+    // P&L per holding
+    let pnlHtml = "";
+    if (u && h && h.pnl != null) {
+      pnlHtml = `<div style="font-size:10px;font-weight:600;margin-top:2px;font-family:var(--head)" class="${h.pnl>=0?'pos':'neg'}">${h.pnl>=0?"+":""}${fmtL(h.pnl)} <span style="font-size:9px;opacity:.8">${fmtPct(h.pnl_pct)}</span></div>`;
+    }
     return `<div class="slot ${u?'used':''}" title="${sym}">
       <div class="slot-sym">${sym}</div>
       <div class="slot-status">${u ? "● Holding" : "○ Empty"}</div>
-      ${curValStr}
+      ${curValStr}${slotsHtml}${pnlHtml}
     </div>`;
   });
   const liqBlock = `<div class="slot liq" title="LIQUIDCASE">
@@ -2522,10 +2502,14 @@ function render(data) {
     const h = holdingMap[sym];
     const curVal = u && h ? ((h.ltp != null && h.quantity != null) ? h.quantity * h.ltp : (h.value ?? null)) : null;
     const curValStr = curVal != null ? `<div class="slot-val">${fmtL(curVal)}</div>` : "";
+    let pnlHtml = "";
+    if (u && h && h.pnl != null) {
+      pnlHtml = `<div style="font-size:10px;font-weight:600;margin-top:2px;font-family:var(--head)" class="${h.pnl>=0?'pos':'neg'}">${h.pnl>=0?"+":""}${fmtL(h.pnl)} <span style="font-size:9px;opacity:.8">${fmtPct(h.pnl_pct)}</span></div>`;
+    }
     return `<div class="slot bnh ${u?'held':''}" title="${sym}">
       <div class="slot-sym">${sym}</div>
       <div class="slot-status">${u ? "● Accumulating" : "○ Watching"}</div>
-      ${curValStr}
+      ${curValStr}${pnlHtml}
     </div>`;
   });
 
@@ -2561,7 +2545,7 @@ function render(data) {
                   ? exTs : plTs;
     return todayStr && ts ? ts.includes(todayStr) : true; // pass-through if no date info
   });
-  document.getElementById("tr-count").textContent = trades.length + " orders today";
+  const _trc=document.getElementById("tr-count"); if(_trc) _trc.textContent=trades.length+" orders today";
 
   // Today's P&L — sourced from data.today_pnl (set by the bot)
   const pnlInline  = document.getElementById("s-pnl-inline");
@@ -2572,7 +2556,7 @@ function render(data) {
   pnlInline.textContent = pnlDisplay;
   pnlInline.className   = pnl > 0 ? "pos" : pnl < 0 ? "neg" : "";
   const trb = document.getElementById("tr-body");
-  trb.innerHTML = trades.length ? trades.map(t => {
+  if(trb) trb.innerHTML = trades.length ? trades.map(t => {
     const ok  = t.status === "COMPLETE";
     const rej = t.status === "REJECTED";
     const sym = t.tradingsymbol || t.symbol || "—";
