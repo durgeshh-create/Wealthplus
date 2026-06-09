@@ -306,22 +306,6 @@ def write_snapshot(dashboard_state: dict):
                             import sys as _sys
                             print(f"[snapshot] margins token refresh failed: {_re}", file=_sys.stderr)
 
-                    # ✅ FIX: on 403 TokenException, refresh token from browser (CDP)
-                    # and retry once — handles user logging into Kite web mid-session.
-                    if mresp is not None and mresp.status_code == 403:
-                        try:
-                            refreshed = auth_mgr.handle_session_expiry()
-                            if refreshed:
-                                new_enc = getattr(auth_mgr, "enctoken", None)
-                                if new_enc and new_enc != enctoken:
-                                    _snap_session.headers.update({"Authorization": f"enctoken {new_enc}"})
-                                    mresp = _snap_session.get(margins_url, timeout=15)
-                                    import sys as _sys
-                                    print("[snapshot] margins token refreshed via CDP — retrying ✅", file=_sys.stderr)
-                        except Exception as _re:
-                            import sys as _sys
-                            print(f"[snapshot] margins token refresh failed: {_re}", file=_sys.stderr)
-
                     if mresp is not None:
                         if mresp.status_code == 200:
                             mdata      = mresp.json()
@@ -452,10 +436,13 @@ def start_snapshot_thread(dashboard_state: dict):
     """
     def _loop():
         # Write immediately on start so dashboard has data right away
-        write_snapshot(dashboard_state)
         while True:
+            try:
+                write_snapshot(dashboard_state)
+            except Exception as _loop_err:
+                import sys as _sys
+                print(f"[snapshot] write_snapshot crashed — will retry next cycle: {_loop_err}", file=_sys.stderr)
             time.sleep(INTERVAL_SEC)
-            write_snapshot(dashboard_state)
 
     t = threading.Thread(target=_loop, daemon=True, name="SnapshotWriter-PS5673")
     t.start()
