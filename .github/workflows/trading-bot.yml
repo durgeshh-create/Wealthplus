@@ -172,7 +172,6 @@ jobs:
           git config user.email "bot@wealthalgo.local"
           git fetch origin gh-pages 2>/dev/null || echo "gh-pages branch not yet created"
 
-
       - name: Seed / refresh daily CSVs (RD1858)
         working-directory: RD1858
         timeout-minutes: 20
@@ -190,7 +189,7 @@ jobs:
           GH_REPO:      ${{ github.repository }}
         run: |
           cd "$GITHUB_WORKSPACE"
-          git add RD1858/data/daily/*.csv 2>/dev/null || true
+          git add --force RD1858/data/daily/*.csv 2>/dev/null || true
           if ! git diff --cached --quiet; then
             COUNT=$(git diff --cached --name-only | wc -l)
             git commit -m "seed: update ${COUNT} CSVs (RD1858) $(date -u +'%Y-%m-%d')"
@@ -331,38 +330,6 @@ jobs:
           git config user.name  "WealthAlgo Bot"
           git config user.email "bot@wealthalgo.local"
           git fetch origin gh-pages 2>/dev/null || echo "gh-pages branch not yet created"
-
-
-      - name: Seed / refresh daily CSVs (PS5673)
-        working-directory: PS5673
-        timeout-minutes: 20
-        env:
-          PYTHONIOENCODING: utf-8
-          PYTHONUTF8:       "1"
-        run: |
-          echo "📥 Seeding stale CSVs for PS5673…"
-          python seed_csvs.py || echo "⚠️ Seed failed — continuing with existing CSVs"
-
-      - name: Commit updated CSVs to repo (PS5673)
-        timeout-minutes: 5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO:      ${{ github.repository }}
-        run: |
-          cd "$GITHUB_WORKSPACE"
-          git add PS5673/data/daily/*.csv 2>/dev/null || true
-          if ! git diff --cached --quiet; then
-            COUNT=$(git diff --cached --name-only | wc -l)
-            git commit -m "seed: update ${COUNT} CSVs (PS5673) $(date -u +'%Y-%m-%d')"
-            for _retry in 1 2 3; do
-              git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" main 2>/dev/null || true
-              git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" main && break
-              sleep 5
-            done
-            echo "✅ CSVs committed and pushed"
-          else
-            echo "ℹ️ No CSV changes to commit"
-          fi
 
       - name: Run PS5673 bot + live snapshot pusher
         working-directory: PS5673
