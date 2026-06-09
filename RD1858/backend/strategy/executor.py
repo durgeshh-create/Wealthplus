@@ -211,10 +211,10 @@ class StrategyExecutor:
                 if ask_qty == 0:
                     logger.warning(
                         f"⚠️ Skipping BUY {symbol}: no sellers in order book (ask qty = 0). "
-                        f"Will retry next cycle when liquidity returns."
+                        f"Buy skipped for this session."
                     )
                     if self.signal_generator and is_automated:
-                        self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=True)
+                        self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=False)
                     return False, "No ask-side liquidity"
 
             etf_cost   = etf_qty * etf_price
