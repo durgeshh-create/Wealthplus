@@ -20,7 +20,9 @@ from io import StringIO
 # ── Config ────────────────────────────────────────────────────────────────────
 ACCOUNT_DIR  = Path(__file__).parent
 CONFIG_DIR   = ACCOUNT_DIR / 'config'
-DAILY_DIR    = ACCOUNT_DIR / 'data' / 'daily'
+# Always use RD1858/data/daily as the shared CSV store
+REPO_ROOT    = Path(__file__).parent.parent  # up from RD1858/
+DAILY_DIR    = REPO_ROOT / 'RD1858' / 'data' / 'daily'
 ENCTOKEN_FILE = CONFIG_DIR / 'enctoken.json'
 
 API_BASE     = 'https://kite.zerodha.com/oms'
