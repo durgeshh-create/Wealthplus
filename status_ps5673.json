@@ -1,9 +1,9 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-06-09 09:05:58 IST",
+  "timestamp": "2026-06-09 09:07:59 IST",
   "bot_running": true,
-  "total_value": 9361937.08,
-  "today_pnl": 0.0,
+  "total_value": 9362079.1,
+  "today_pnl": 142.02,
   "today_pnl_pct": 0.0,
   "liquidcase": {
     "quantity": 76184,
@@ -47,10 +47,10 @@
       "symbol": "EMBASSY-RR",
       "quantity": 70,
       "avg": 426.36,
-      "ltp": 426.11,
-      "value": 29827.7,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
+      "ltp": 427.5,
+      "value": 29925.0,
+      "pnl": 97.3,
+      "pnl_pct": 0.33,
       "strategy": "active",
       "buys_today": 0,
       "max_slots": 5
@@ -95,10 +95,10 @@
       "symbol": "MINDSPACE-RR",
       "quantity": 43,
       "avg": 458.0,
-      "ltp": 459.94,
-      "value": 19777.42,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
+      "ltp": 460.98,
+      "value": 19822.14,
+      "pnl": 44.72,
+      "pnl_pct": 0.23,
       "strategy": "active",
       "buys_today": 0,
       "max_slots": 5
@@ -181,18 +181,18 @@
     },
     {
       "symbol": "MINDSPACE-RR",
-      "ltp": 459.94,
-      "change_pct": 0.0,
-      "williams_r": -73.87,
+      "ltp": 460.98,
+      "change_pct": 0.23,
+      "williams_r": -64.47,
       "is_held": true,
       "avg_price": 458.0,
       "strategy": "active"
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 426.11,
-      "change_pct": 0.0,
-      "williams_r": -92.94,
+      "ltp": 427.5,
+      "change_pct": 0.33,
+      "williams_r": -83.22,
       "is_held": true,
       "avg_price": 426.36,
       "strategy": "active"
@@ -220,13 +220,13 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 23267.9,
+      "ltp": 23259.05,
       "prev_close": 23123.0,
-      "change": 144.9,
-      "change_pct": 0.63,
-      "open": null,
-      "high": null,
-      "low": null
+      "change": 136.05,
+      "change_pct": 0.59,
+      "open": 23259.05,
+      "high": 23259.05,
+      "low": 23259.05
     },
     "INDIA VIX": {
       "ltp": 17.03,
@@ -238,7 +238,7 @@
       "low": null
     }
   },
-  "available_cash": 17383.6,
-  "available_margin": -18589140.39,
-  "available_margin_note": null
+  "available_cash": null,
+  "available_margin": null,
+  "available_margin_note": "HTTP 403"
 }
