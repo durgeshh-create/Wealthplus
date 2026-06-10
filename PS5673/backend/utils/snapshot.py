@@ -122,7 +122,7 @@ def write_snapshot(dashboard_state: dict):
                     "today_pnl":     today_move,
                     "today_pnl_pct": today_move_pct,
                     "strategy":   "bnh" if sym in bnh_symbols else "active",
-                    "buys_today": _safe_buys_today(signal_gen, sym, bnh_symbols),
+                    "buys_today": max(_safe_buys_today(signal_gen, sym, bnh_symbols), 1),  # held = min 1 slot occupied
                     "max_slots":  slots_count,
                 })
 
