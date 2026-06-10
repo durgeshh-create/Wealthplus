@@ -2458,9 +2458,12 @@ function render(data) {
                : `<span style="font-size:14px;opacity:.25">⚪</span>`;
     return `<tr>
       <td><div class="sym">${item.symbol}${held}${bnhTag}</div><div style="font-size:10px;color:var(--muted2)">${item.ltp ? fmtR(item.ltp) : "—"} ${chgS}</div></td>
-      <td style="text-align:center;width:48px">${bulb}</td>
+      <td style="width:90px;padding-right:6px">
+        <div class="wr-bar-wrap"><div class="wr-bar" style="width:${bw}%;background:${col}"></div><div class="threshold-line"></div></div>
+      </td>
       <td style="text-align:left;font-size:12px;color:${col};width:48px;padding-right:4px">${v != null ? v.toFixed(1) : "—"}</td>
       <td style="text-align:left;width:72px">${sig}</td>
+      <td style="text-align:center;width:48px">${bulb}</td>
     </tr>`;
   }).join("") : `<tr><td colspan="4" class="empty">No market data</td></tr>`;
 
@@ -2469,10 +2472,10 @@ function render(data) {
   const bnhSyms = slots.bnh_symbols ?? [];
   const heldSet = new Set(holdings.map(h => h.symbol));
   const sw = document.getElementById("slots-wrap");
-
   // Build a lookup from williams_r data for non-held ETF slot counts
   const wrMap = {};
   (data.williams_r ?? []).forEach(item => { wrMap[item.symbol] = item; });
+  const sw = document.getElementById("slots-wrap");
 
   // Total P&L in Slot Matrix header
   if (holdings.length) {
@@ -2497,11 +2500,11 @@ function render(data) {
     const line1Val = curVal != null ? `<span class="slot-val">${fmtL(curVal)}</span>` : "";
 
     // Line 2: slots counter (left) + P&L (right)
-    let slotsLabel = u ? "● Holding" : "○ Empty";
     // For held ETFs: use buys_today/max_slots from holdings data
     // For non-held ETFs: use buys_today/max_slots from williams_r data (always show slot counter)
     const slotBuys = u ? (h?.buys_today ?? null) : (wrMap[sym]?.buys_today ?? null);
     const slotMax  = u ? (h?.max_slots  ?? null) : (wrMap[sym]?.max_slots  ?? null);
+    let slotsLabel = u ? "● Holding" : "○ Empty";
     if (slotBuys != null && slotMax != null) {
       const pct = slotBuys / slotMax;
       const cls = pct >= 1 ? "neg" : pct >= 0.6 ? "amber" : "pos";
