@@ -133,6 +133,13 @@ class SignalGenerator:
                         self._buys_today.get(sym, 0), count
                     )
                     self._attempted_today.add(sym)
+                    # Set recently_bought cooldown so the signal gate doesn't
+                    # re-fire immediately after a session restart / re-auth.
+                    # Uses now() so the 5-min cooldown starts from session resume,
+                    # not from the original order time (which may be hours ago).
+                    # This prevents duplicate buys like the SILVERBEES ORPHAN error.
+                    if sym not in self.recently_bought:
+                        self.recently_bought[sym] = _now_ist()
 
             if rebuilt:
                 import logging
