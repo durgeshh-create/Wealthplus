@@ -461,12 +461,23 @@ class SignalGenerator:
             logger.debug(f"Skip {symbol}: already queued")
             return False
 
-        # Already attempted this session (latched at queue time — covers the
-        # 2s window between get_due_buys() clearing pending_buys and the
-        # executor setting executing_symbols)
+        # _attempted_today latch: covers the 2s window between get_due_buys()
+        # clearing pending_buys and the executor setting executing_symbols so a
+        # second signal doesn't queue a duplicate order for the same slot.
+        # IMPORTANT: only block if ALL slots for this symbol are used today.
+        # If buys_today < max_slots, allow re-trigger after recently_bought cooldown
+        # so slots 2, 3, … N can fire on subsequent dip signals the same day.
         if symbol in self._attempted_today:
-            logger.debug(f"Skip {symbol}: already attempted today")
-            return False
+            buys_so_far = self._get_buys_today(symbol)
+            max_sl      = self._get_max_slots()
+            if buys_so_far >= max_sl:
+                logger.debug(
+                    f"Skip {symbol}: all {max_sl} slots used today "
+                    f"(buys_today={buys_so_far})"
+                )
+                return False
+            # Slots remain — fall through so subsequent slot buys can fire.
+            # The recently_bought 5-min cooldown below is the rate-limit guard.
 
         # Within post-buy cooldown (5 min after a confirmed buy)
         if symbol in self.recently_bought:
@@ -652,8 +663,10 @@ class SignalGenerator:
     def unlock_symbol(self, symbol: str, success: bool = False, allow_retry: bool = False):
         """
         Release execution lock.
-        success=True               : Order confirmed. Set recently_bought cooldown and keep
-                                     _attempted_today — no second buy this session.
+        success=True               : Order confirmed. Set recently_bought cooldown.
+                                     Clear _attempted_today if slots remain so that
+                                     slots 2…N can re-trigger after the cooldown expires.
+                                     Keep it latched only when all slots are exhausted.
         success=False, allow_retry=True  : Order NEVER reached broker (pre-flight failure,
                                      e.g. insufficient funds, price unavailable). Clear all
                                      guards so the signal can re-trigger next cycle.
@@ -667,8 +680,24 @@ class SignalGenerator:
         if symbol in self.executing_symbols:
             self.executing_symbols.pop(symbol)
         if success:
-            # Order confirmed — set cooldown and keep session latch
+            # Order confirmed — always set cooldown
             self.recently_bought[symbol] = _now_ist()
+            # Keep _attempted_today latched only when all slots are used up for today.
+            # If slots remain, discard the latch so slot 2, 3, … N can re-trigger
+            # after the 5-min recently_bought cooldown expires.
+            buys_so_far = self._get_buys_today(symbol)
+            max_sl      = self._get_max_slots()
+            if buys_so_far < max_sl:
+                self._attempted_today.discard(symbol)
+                logger.info(
+                    f"\U0001f513 {symbol}: slot {buys_so_far}/{max_sl} used — "
+                    f"_attempted_today cleared, {max_sl - buys_so_far} slot(s) remain for today"
+                )
+            else:
+                logger.info(
+                    f"\U0001f512 {symbol}: all {max_sl} slots used today — "
+                    f"_attempted_today latched for remainder of session"
+                )
         elif allow_retry:
             # Pre-flight failure — order never reached broker; allow full retry
             if symbol in self.recently_bought:
