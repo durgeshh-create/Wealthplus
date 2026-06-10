@@ -284,6 +284,15 @@ def market_close_watchdog(backend: dict):
             trading_active = False
             logger.info("🛑 Trading loop stopped")
 
+            # Step 2b: Write final snapshot with bot_running=True preserved
+            # so the gh-pages dashboard shows last-known values after shutdown.
+            try:
+                from backend.utils.snapshot import write_snapshot
+                write_snapshot(backend | {"_final_snapshot": True})
+                logger.info("📸 Final snapshot written before shutdown")
+            except Exception as _snap_e:
+                logger.warning(f"Final snapshot failed: {_snap_e}")
+
             # Step 3: Stop realtime data feed
             try:
                 if backend and backend.get("realtime"):
@@ -516,6 +525,8 @@ def initialize_backend(auth_manager=None):
             realtime_manager,
             portfolio_tracker
         )
+        # ✅ Rebuild buy counts from today's order history on every startup
+        signal_generator.rebuild_from_order_history()
         print("✅")
 
         print("   [7/7] ⚡ Initializing strategy executor...", end=" ", flush=True)
