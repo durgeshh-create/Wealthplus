@@ -451,11 +451,11 @@ class OrderManager:
         if not liq_price or liq_price <= 0:
             raise RuntimeError("Cannot get LIQUIDCASE price for shortfall calculation")
 
-        # ✅ FIX: add 2% buffer to shortfall to account for:
+        # ✅ FIX: add 8% buffer to shortfall to account for:
         # 1. LIQUIDCASE MARKET sell executing slightly below LTP
-        # 2. MON100/ETF price moving up between calculation and order placement
+        # 2. ETF price moving up during the 90s margin poll wait
         # 3. Zerodha margins API lag causing available cash to appear lower
-        liq_to_sell = math.ceil((shortfall * 1.02) / liq_price)
+        liq_to_sell = math.ceil((shortfall * 1.08) / liq_price)
         liq_held    = portfolio_tracker.liquidcase_quantity
 
         if liq_to_sell > liq_held:
@@ -570,6 +570,19 @@ class OrderManager:
                 f"[smart_buy] Overriding {buy_order_type} → MARKET after LIQUIDCASE sell "
                 f"(limit price ₹{buy_limit_price} is stale after margin poll delay)"
             )
+
+        # ✅ FIX: recalculate buy_quantity using fresh LTP after the 90s poll.
+        _fresh_ltp = realtime_manager.get_ltp(buy_symbol) if realtime_manager else None
+        if _fresh_ltp and _fresh_ltp > 0 and _fresh_ltp != exec_price:
+            _safe_cash   = max(0.0, (_last_cash or total_cost) - cash_reserve)
+            _fresh_qty   = max(1, int(_safe_cash / _fresh_ltp))
+            if _fresh_qty != buy_quantity:
+                logger.info(
+                    f"[smart_buy] Price moved ₹{exec_price:.2f}→₹{_fresh_ltp:.2f} during poll — "
+                    f"adjusting qty {buy_quantity}→{_fresh_qty} "
+                    f"(safe cash ₹{_safe_cash:,.2f} / ₹{_fresh_ltp:.2f})"
+                )
+                buy_quantity = _fresh_qty
 
         buy_oid, buy_msg = self.place_order(
             buy_symbol, 'BUY', buy_quantity,
