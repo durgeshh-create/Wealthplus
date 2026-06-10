@@ -46,23 +46,6 @@ def _safe_buys_today(signal_gen, sym, bnh_symbols):
 def write_snapshot(dashboard_state: dict):
     """Build and write the full status snapshot. Never raises."""
     try:
-        # Guard: only skip overwrite if portfolio hasn't synced yet (holdings is None,
-        # not just empty list — empty list is valid on a flat day with no ETF positions).
-        import json as _json_guard
-        _is_final = dashboard_state.get("_final_snapshot", False)
-        if not _is_final:
-            try:
-                if SNAPSHOT_PATH.exists():
-                    _prev = _json_guard.loads(SNAPSHOT_PATH.read_text())
-                    _port = dashboard_state.get("portfolio_tracker")
-                    # Use None check, NOT truthiness — holdings=[] is valid (bot running, no positions)
-                    _holdings_attr = getattr(_port, "holdings", None) if _port else None
-                    _not_synced_yet = _holdings_attr is None
-                    if _not_synced_yet and _prev.get("total_value"):
-                        import sys as _sg; print("[snapshot] Portfolio not yet synced — preserving last snapshot", file=_sg.stderr)
-                        return
-            except Exception:
-                pass
         from backend.core.constants import LIQUIDCASE_SYMBOL
         from backend.indicators.calculator import calculate_daily_williams_r
 
@@ -122,18 +105,6 @@ def write_snapshot(dashboard_state: dict):
                 today_move = round((ltp - prev_close) * qty, 2) if prev_close and prev_close > 0 else 0.0
                 today_move_pct = round((ltp - prev_close) / prev_close * 100, 2) if prev_close and prev_close > 0 else 0.0
 
-                # Unrealised P&L — use Zerodha's own pnl field directly so it
-                # matches Kite exactly (includes corporate action adjustments).
-                # Fall back to manual calc only if field is missing.
-                _z_pnl = h.get("pnl")
-                if _z_pnl is not None:
-                    unrealised_pnl     = round(float(_z_pnl), 2)
-                    cost_basis         = avg * qty
-                    unrealised_pnl_pct = round(unrealised_pnl / cost_basis * 100, 2) if cost_basis > 0 else 0.0
-                else:
-                    unrealised_pnl     = round((ltp - avg) * qty, 2) if avg > 0 else 0.0
-                    unrealised_pnl_pct = round((ltp - avg) / avg * 100, 2) if avg > 0 else 0.0
-
                 total_value += val
                 held_set.add(sym)
                 holdings.append({
@@ -142,13 +113,11 @@ def write_snapshot(dashboard_state: dict):
                     "avg":      round(avg, 2),
                     "ltp":      round(ltp, 2),
                     "value":    round(val, 2),
-                    "pnl":      unrealised_pnl,
-                    "pnl_pct":  unrealised_pnl_pct,
-                    "today_pnl":     today_move,
-                    "today_pnl_pct": today_move_pct,
+                    "pnl":      today_move,
+                    "pnl_pct":  today_move_pct,
                     "strategy":   "bnh" if sym in bnh_symbols else "active",
-                    "buys_today": max(_safe_buys_today(signal_gen, sym, bnh_symbols) or 0, 1),  # held = min 1 slot used
-                    "max_slots":  int(settings.get("slots_count", slots_count)),  # always read fresh from settings
+                    "buys_today": _safe_buys_today(signal_gen, sym, bnh_symbols),
+                    "max_slots":  slots_count,
                 })
 
             # LIQUIDCASE
@@ -159,7 +128,7 @@ def write_snapshot(dashboard_state: dict):
             total_value += liq_val
 
             # Today's P&L — sum of per-holding today_move already computed above
-            today_pnl = sum(h["today_pnl"] for h in holdings)
+            today_pnl = sum(h["pnl"] for h in holdings)
 
         else:
             liq_qty = liq_price = liq_val = 0
@@ -204,8 +173,6 @@ def write_snapshot(dashboard_state: dict):
                 "is_held":    is_held,
                 "avg_price":  round(avg_price, 2) if avg_price else None,
                 "strategy":   "bnh" if is_bnh else "active",
-                "buys_today": _safe_buys_today(signal_gen, sym, bnh_symbols) if not is_bnh else None,
-                "max_slots":  slots_count if not is_bnh else None,
             })
 
             # Generate signals for active ETFs only (BNH is long-term hold)
