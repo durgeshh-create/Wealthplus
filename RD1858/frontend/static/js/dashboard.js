@@ -2942,8 +2942,8 @@ function saveBotSettings() {
         showToast('Max Qty cannot be negative', 'error');
         return;
     }
-    if (isNaN(slotsValue) || slotsValue < 1 || slotsValue > 5) {
-        showToast('Slots must be between 1 and 5', 'error');
+    if (isNaN(slotsValue) || slotsValue < 1 || slotsValue > 10) {
+        showToast('Slots must be between 1 and 10', 'error');
         return;
     }
     if (maxCashPerStock < 0) {
