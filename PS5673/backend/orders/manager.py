@@ -275,6 +275,48 @@ class OrderManager:
         logger.error(f"Order {order_id} still not complete after {max_wait + 6}s — giving up")
         return False
     
+    def get_open_buy_orders(self) -> list:
+        """Fetch all open/pending BUY orders that may be blocking margin."""
+        try:
+            r = self.auth.session.get(
+                f"{Config.ZERODHA_API_BASE}/oms/orders", timeout=10
+            )
+            if r.status_code != 200:
+                return []
+            orders = r.json().get('data', [])
+            return [
+                o for o in orders
+                if o.get('transaction_type') == 'BUY'
+                and o.get('status') in ('OPEN', 'TRIGGER PENDING', 'AMO REQ RECEIVED')
+            ]
+        except Exception as e:
+            logger.warning(f"Could not fetch open orders: {e}")
+            return []
+
+    def cancel_open_buy_orders(self) -> int:
+        """Cancel all open BUY orders to free up blocked margin. Returns count cancelled."""
+        open_orders = self.get_open_buy_orders()
+        if not open_orders:
+            return 0
+        cancelled = 0
+        for o in open_orders:
+            oid      = o.get('order_id')
+            sym      = o.get('tradingsymbol')
+            variety  = o.get('variety', Config.ORDER_VARIETY)
+            try:
+                r = self.auth.session.delete(
+                    f"{Config.ZERODHA_API_BASE}/oms/orders/{variety}/{oid}",
+                    timeout=10
+                )
+                if r.status_code == 200:
+                    logger.info(f"[smart_buy] Cancelled open BUY order {oid} ({sym}) to free margin")
+                    cancelled += 1
+                else:
+                    logger.warning(f"[smart_buy] Could not cancel order {oid} ({sym}): HTTP {r.status_code}")
+            except Exception as e:
+                logger.warning(f"[smart_buy] Error cancelling order {oid}: {e}")
+        return cancelled
+
     def cancel_order(self, order_id: str) -> bool:
         """Cancel an order"""
         try:
@@ -474,6 +516,14 @@ class OrderManager:
                 f"💡 No cash — selling {liq_to_sell} LIQUIDCASE (₹{liq_to_sell*liq_price:,.2f}) "
                 f"to fund full buy of ₹{total_cost:,.2f}"
             )
+
+        # ✅ FIX: cancel any open BUY orders before LIQUIDCASE sell
+        # Open orders block margin in Zerodha's OMS — cancelling them first
+        # ensures the LIQUIDCASE proceeds are fully available for the ETF buy.
+        _cancelled = self.cancel_open_buy_orders()
+        if _cancelled:
+            logger.info(f"[smart_buy] Cancelled {_cancelled} open BUY order(s) to free margin")
+            import time as _t; _t.sleep(2)  # brief pause for OMS to release margin
 
         # Sell LIQUIDCASE for the shortfall (CNC — delivery sell)
         liq_oid, liq_msg = self.place_order(
