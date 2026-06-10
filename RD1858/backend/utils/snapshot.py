@@ -46,18 +46,20 @@ def _safe_buys_today(signal_gen, sym, bnh_symbols):
 def write_snapshot(dashboard_state: dict):
     """Build and write the full status snapshot. Never raises."""
     try:
-        # ✅ FIX: if portfolio has no holdings and existing snapshot has good data,
-        # don't overwrite with blank — preserve last known values.
-        import json as _json_guard, os as _os_guard
+        # Guard: only skip overwrite if portfolio hasn't synced yet (holdings is None,
+        # not just empty list — empty list is valid on a flat day with no ETF positions).
+        import json as _json_guard
         _is_final = dashboard_state.get("_final_snapshot", False)
         if not _is_final:
             try:
                 if SNAPSHOT_PATH.exists():
                     _prev = _json_guard.loads(SNAPSHOT_PATH.read_text())
                     _port = dashboard_state.get("portfolio_tracker")
-                    _has_holdings = _port and getattr(_port, "holdings", None)
-                    if not _has_holdings and _prev.get("total_value"):
-                        import sys as _sg; print("[snapshot] Portfolio empty — skipping overwrite of last good snapshot", file=_sg.stderr)
+                    # Use None check, NOT truthiness — holdings=[] is valid (bot running, no positions)
+                    _holdings_attr = getattr(_port, "holdings", None) if _port else None
+                    _not_synced_yet = _holdings_attr is None
+                    if _not_synced_yet and _prev.get("total_value"):
+                        import sys as _sg; print("[snapshot] Portfolio not yet synced — preserving last snapshot", file=_sg.stderr)
                         return
             except Exception:
                 pass
