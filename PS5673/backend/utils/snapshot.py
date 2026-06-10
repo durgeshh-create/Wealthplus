@@ -46,6 +46,21 @@ def _safe_buys_today(signal_gen, sym, bnh_symbols):
 def write_snapshot(dashboard_state: dict):
     """Build and write the full status snapshot. Never raises."""
     try:
+        # ✅ FIX: if portfolio has no holdings and existing snapshot has good data,
+        # don't overwrite with blank — preserve last known values.
+        import json as _json_guard, os as _os_guard
+        _is_final = dashboard_state.get("_final_snapshot", False)
+        if not _is_final:
+            try:
+                if SNAPSHOT_PATH.exists():
+                    _prev = _json_guard.loads(SNAPSHOT_PATH.read_text())
+                    _port = dashboard_state.get("portfolio_tracker")
+                    _has_holdings = _port and getattr(_port, "holdings", None)
+                    if not _has_holdings and _prev.get("total_value"):
+                        import sys as _sg; print("[snapshot] Portfolio empty — skipping overwrite of last good snapshot", file=_sg.stderr)
+                        return
+            except Exception:
+                pass
         from backend.core.constants import LIQUIDCASE_SYMBOL
         from backend.indicators.calculator import calculate_daily_williams_r
 
