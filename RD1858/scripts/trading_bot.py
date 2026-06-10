@@ -100,6 +100,10 @@ class TradingBot:
             
             # Strategy components
             self.signal_gen = SignalGenerator(self.historical, self.realtime, self.portfolio)
+            # ✅ FIX: rebuild buy counts from today's Zerodha order history
+            # so slot guards work correctly after session restart (e.g. 12:35 PM session
+            # knows what the 9 AM session already bought and doesn't re-buy).
+            self.signal_gen.rebuild_from_order_history()
             self.executor = StrategyExecutor(self.orders, self.portfolio, self.realtime, self.signal_gen)
             logger.info("✓ Strategy components ready (with execution locking)")
             
