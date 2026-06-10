@@ -520,7 +520,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       <table class="tbl" id="wr-tbl">
         <thead><tr>
           <th style="text-align:left">Symbol / Price</th>
-          <th style="text-align:left;width:48px">Signal</th>
+          <th style="text-align:left;width:90px">W%R Bar</th>
           <th style="text-align:left;width:48px">Value</th>
           <th style="text-align:left;width:72px">Signal</th>
         </tr></thead>
@@ -2452,10 +2452,6 @@ function render(data) {
     const bnhTag = item.strategy === "bnh" ? `<span class="tag tag-b" style="margin-left:4px">B&H</span>` : "";
     const chg  = item.change_pct;
     const chgS = chg != null ? `<span style="color:${chg>=0?'var(--green)':'var(--red)'};font-size:10px">${chg>=0?"+":""}${chg.toFixed(2)}%</span>` : "";
-    // Bulb: 🔵 if W%R <= -80 (oversold/buy zone), 🔴 if W%R >= -20 (overbought)
-    const bulb = v != null && v <= -80 ? `<span title="Oversold — BUY zone" style="font-size:14px">🔵</span>`
-               : v != null && v >= -20 ? `<span title="Overbought" style="font-size:14px">🔴</span>`
-               : `<span style="font-size:14px;opacity:.25">⚪</span>`;
     return `<tr>
       <td><div class="sym">${item.symbol}${held}${bnhTag}</div><div style="font-size:10px;color:var(--muted2)">${item.ltp ? fmtR(item.ltp) : "—"} ${chgS}</div></td>
       <td style="width:90px;padding-right:6px">
@@ -2463,7 +2459,6 @@ function render(data) {
       </td>
       <td style="text-align:left;font-size:12px;color:${col};width:48px;padding-right:4px">${v != null ? v.toFixed(1) : "—"}</td>
       <td style="text-align:left;width:72px">${sig}</td>
-      <td style="text-align:center;width:48px">${bulb}</td>
     </tr>`;
   }).join("") : `<tr><td colspan="4" class="empty">No market data</td></tr>`;
 
@@ -2471,10 +2466,6 @@ function render(data) {
   const allEtfs = slots.active_etfs ?? [];
   const bnhSyms = slots.bnh_symbols ?? [];
   const heldSet = new Set(holdings.map(h => h.symbol));
-  const sw = document.getElementById("slots-wrap");
-  // Build a lookup from williams_r data for non-held ETF slot counts
-  const wrMap = {};
-  (data.williams_r ?? []).forEach(item => { wrMap[item.symbol] = item; });
   const sw = document.getElementById("slots-wrap");
 
   // Total P&L in Slot Matrix header
@@ -2500,15 +2491,11 @@ function render(data) {
     const line1Val = curVal != null ? `<span class="slot-val">${fmtL(curVal)}</span>` : "";
 
     // Line 2: slots counter (left) + P&L (right)
-    // For held ETFs: use buys_today/max_slots from holdings data
-    // For non-held ETFs: use buys_today/max_slots from williams_r data (always show slot counter)
-    const slotBuys = u ? (h?.buys_today ?? null) : (wrMap[sym]?.buys_today ?? null);
-    const slotMax  = u ? (h?.max_slots  ?? null) : (wrMap[sym]?.max_slots  ?? null);
     let slotsLabel = u ? "● Holding" : "○ Empty";
-    if (slotBuys != null && slotMax != null) {
-      const pct = slotBuys / slotMax;
+    if (u && h && h.buys_today != null && h.max_slots != null) {
+      const pct = h.buys_today / h.max_slots;
       const cls = pct >= 1 ? "neg" : pct >= 0.6 ? "amber" : "pos";
-      slotsLabel = `<span class="${cls}" style="font-weight:700">${slotBuys}/${slotMax}</span> <span style="color:var(--muted)">SLOTS</span>`;
+      slotsLabel = `<span class="${cls}" style="font-weight:700">${h.buys_today}/${h.max_slots}</span> <span style="color:var(--muted)">slots</span>`;
     }
     let pnlHtml = "";
     if (u && h && h.pnl != null) {
