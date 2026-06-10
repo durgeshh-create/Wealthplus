@@ -439,14 +439,16 @@ class StrategyExecutor:
                     self.signal_generator.unlock_symbol(symbol)
                 return False
 
-            # Use top bid for LIQUIDCASE buy limit price; fall back to LTP
-            liq_top_bid = None
-            if hasattr(self.realtime, 'get_top_bid'):
-                liq_top_bid = self.realtime.get_top_bid(LIQUIDCASE_SYMBOL)
-            liq_limit_price = float(liq_top_bid) if liq_top_bid and liq_top_bid > 0 else liq_price
+            # Use top ask (best offer) for LIQUIDCASE buy limit price — ensures
+            # the limit order fills immediately against the lowest ask in the book.
+            # top_bid would sit below market and may not fill quickly.
+            liq_top_ask = None
+            if hasattr(self.realtime, 'get_top_ask'):
+                liq_top_ask = self.realtime.get_top_ask(LIQUIDCASE_SYMBOL)
+            liq_limit_price = float(liq_top_ask) if liq_top_ask and liq_top_ask > 0 else liq_price
             logger.info(
                 f"LIQUIDCASE buy limit price: ₹{liq_limit_price:.2f} "
-                f"({'top bid from depth' if liq_top_bid else 'fell back to LTP ₹' + str(round(liq_price, 2))})"
+                f"({'top ask (offer) from depth' if liq_top_ask else 'fell back to LTP ₹' + str(round(liq_price, 2))})"
             )
 
             proceeds    = etf_qty * etf_price
