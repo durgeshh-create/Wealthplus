@@ -264,6 +264,24 @@ class SignalGenerator:
                 del self._pending_exec[symbol]
                 logger.debug(f"📋 {symbol}: pending_exec cleared after portfolio sync")
 
+    def rollback_buy_executed(self, symbol: str):
+        """
+        Undo a pre-registered buy that failed before the order reached the broker
+        (PostSellError / orphan scenario). Decrements _buys_today and clears
+        _pending_exec so the slot count stays accurate.
+        Called by executor when smart_buy raises PostSellError.
+        """
+        with self._lock:
+            if self._buys_today.get(symbol, 0) > 0:
+                self._buys_today[symbol] -= 1
+                logger.warning(
+                    f"↩ {symbol}: pre-registered buy rolled back "
+                    f"(buys_today now {self._buys_today[symbol]})"
+                )
+            if symbol in self._pending_exec:
+                del self._pending_exec[symbol]
+                logger.debug(f"↩ {symbol}: pending_exec rolled back")
+
     # ── Main signal generation ────────────────────────────────────────────────
 
     def generate_signals(self) -> Dict[str, dict]:
@@ -716,11 +734,16 @@ class SignalGenerator:
                 del self._pending_exec[symbol]
                 logger.debug(f"🔄 {symbol}: pending_exec cleared on allow_retry")
         else:
-            # Order outcome uncertain — clear cooldown but keep session latch
-            # (prevents duplicate orders if broker silently accepted)
-            if symbol in self.recently_bought:
-                del self.recently_bought[symbol]
-            # _attempted_today stays set — no re-trigger this session
+            # Order outcome uncertain — keep session latch AND set a cooldown.
+            # Deleting recently_bought here was the bug: it allowed the signal
+            # to re-fire every 2s after a PostSellError (LIQUIDCASE sold but
+            # ETF buy rejected), causing the ORPHAN hammer loop.
+            # Setting recently_bought imposes the 5-min rate-limit regardless.
+            self.recently_bought[symbol] = _now_ist()
+            logger.debug(
+                f"⏳ {symbol}: outcome uncertain — cooldown set, session latch kept"
+            )
+            # _attempted_today stays set — no re-trigger until cooldown expires
 
     # ── Public interface ──────────────────────────────────────────────────────
 

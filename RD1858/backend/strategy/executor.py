@@ -297,10 +297,15 @@ class StrategyExecutor:
                 )
             except PostSellError as e:
                 # LIQUIDCASE was already sold — cash is now in account.
-                # Do NOT allow_retry: the next cycle will see the cash and buy
-                # directly without selling LIQUIDCASE again.
+                # Rollback the pre-registered buy so _buys_today stays accurate
+                # (the ETF was never actually bought). The next cycle will see
+                # the freed cash and retry the buy directly without LIQUIDCASE sell.
+                # Do NOT allow_retry: unlock_symbol keeps _attempted_today latched
+                # and sets a 5-min cooldown to prevent the hammer loop.
                 logger.error(f"✗ BUY FAILED after LIQUIDCASE sell [{symbol}]: {e}")
                 if self.signal_generator and is_automated:
+                    if hasattr(self.signal_generator, 'rollback_buy_executed'):
+                        self.signal_generator.rollback_buy_executed(symbol)
                     self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=False)
                 return False, str(e)
             except RuntimeError as e:
@@ -342,6 +347,12 @@ class StrategyExecutor:
             err_str = str(e)
             logger.error(f"Error executing buy for {symbol}: {e}", exc_info=True)
             if self.signal_generator and is_automated:
+                # ── Auth/token failure (HTTP 403) ─────────────────────────────
+                # The access_token is dead for the rest of this session.
+                # unlock_symbol(success=False) would clear _attempted_today and
+                # allow a retry every 2s — causing hundreds of logged errors.
+                # Instead treat it like a permanent failure: keep _attempted_today
+                # latched so this symbol is skipped for the rest of the session.
                 if '403' in err_str or 'access_token' in err_str.lower() or 'api_key' in err_str.lower():
                     logger.critical(
                         f"🔐 AUTH FAILURE detected during BUY {symbol} — "
@@ -361,7 +372,7 @@ class StrategyExecutor:
                         except Exception:
                             pass
                     import sys as _sys
-                    _sys.exit(2)
+                    _sys.exit(2)   # exit code 2 = auth failure → launcher re-logins
                 else:
                     self.signal_generator.unlock_symbol(symbol, success=False)
             return False, err_str
@@ -548,7 +559,7 @@ class StrategyExecutor:
                         except Exception:
                             pass
                     import sys as _sys
-                    _sys.exit(2)
+                    _sys.exit(2)   # exit code 2 = auth failure → launcher re-logins
                 else:
                     self.signal_generator.unlock_symbol(symbol)
             return False
