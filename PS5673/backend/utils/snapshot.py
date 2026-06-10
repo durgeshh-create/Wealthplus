@@ -105,9 +105,17 @@ def write_snapshot(dashboard_state: dict):
                 today_move = round((ltp - prev_close) * qty, 2) if prev_close and prev_close > 0 else 0.0
                 today_move_pct = round((ltp - prev_close) / prev_close * 100, 2) if prev_close and prev_close > 0 else 0.0
 
-                # Unrealised P&L = (ltp - avg_buy_price) * qty  — matches Kite holdings P&L
-                unrealised_pnl     = round((ltp - avg) * qty, 2) if avg > 0 else 0.0
-                unrealised_pnl_pct = round((ltp - avg) / avg * 100, 2) if avg > 0 else 0.0
+                # Unrealised P&L — use Zerodha's own pnl field directly so it
+                # matches Kite exactly (includes corporate action adjustments).
+                # Fall back to manual calc only if field is missing.
+                _z_pnl = h.get("pnl")
+                if _z_pnl is not None:
+                    unrealised_pnl     = round(float(_z_pnl), 2)
+                    cost_basis         = avg * qty
+                    unrealised_pnl_pct = round(unrealised_pnl / cost_basis * 100, 2) if cost_basis > 0 else 0.0
+                else:
+                    unrealised_pnl     = round((ltp - avg) * qty, 2) if avg > 0 else 0.0
+                    unrealised_pnl_pct = round((ltp - avg) / avg * 100, 2) if avg > 0 else 0.0
 
                 total_value += val
                 held_set.add(sym)
@@ -122,8 +130,8 @@ def write_snapshot(dashboard_state: dict):
                     "today_pnl":     today_move,
                     "today_pnl_pct": today_move_pct,
                     "strategy":   "bnh" if sym in bnh_symbols else "active",
-                    "buys_today": max(_safe_buys_today(signal_gen, sym, bnh_symbols), 1),  # held = min 1 slot occupied
-                    "max_slots":  slots_count,
+                    "buys_today": max(_safe_buys_today(signal_gen, sym, bnh_symbols) or 0, 1),  # held = min 1 slot used
+                    "max_slots":  int(settings.get("slots_count", slots_count)),  # always read fresh from settings
                 })
 
             # LIQUIDCASE
