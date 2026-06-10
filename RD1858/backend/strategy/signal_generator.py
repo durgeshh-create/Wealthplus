@@ -87,6 +87,65 @@ class SignalGenerator:
         # {symbol: {'qty': int, 'avg_price': float, 'cost': float}}
         self._pending_exec: Dict[str, dict] = {}
 
+    # ── Startup: rebuild buy counts from today's Zerodha order history ────────
+
+    def rebuild_from_order_history(self) -> None:
+        """
+        On session start, fetch today's completed BUY orders from Zerodha and
+        populate _buys_today so slot guards work correctly across session restarts.
+        Called by trading_bot.py after SignalGenerator is created.
+        """
+        try:
+            session = self.portfolio.auth.session
+            from backend.core.config import Config
+            r = session.get(
+                f"{Config.ZERODHA_API_BASE}/oms/orders", timeout=10
+            )
+            if r.status_code != 200:
+                return
+
+            from datetime import datetime, timezone, timedelta
+            IST = timezone(timedelta(hours=5, minutes=30))
+            today = datetime.now(IST).date()
+
+            orders = r.json().get('data', [])
+            rebuilt = {}
+            for o in orders:
+                if o.get('transaction_type') != 'BUY':
+                    continue
+                if o.get('status') not in ('COMPLETE',):
+                    continue
+                # Parse order timestamp
+                ts_str = o.get('order_timestamp') or o.get('exchange_timestamp', '')
+                try:
+                    ts = datetime.fromisoformat(ts_str.replace('Z', '+00:00'))
+                    if ts.astimezone(IST).date() != today:
+                        continue
+                except Exception:
+                    continue
+                sym = o.get('tradingsymbol', '')
+                if sym:
+                    rebuilt[sym] = rebuilt.get(sym, 0) + 1
+
+            with self._lock:
+                for sym, count in rebuilt.items():
+                    self._buys_today[sym] = max(
+                        self._buys_today.get(sym, 0), count
+                    )
+                    self._attempted_today.add(sym)
+
+            if rebuilt:
+                import logging
+                logging.getLogger(__name__).info(
+                    f"[startup] Rebuilt _buys_today from order history: "
+                    + ", ".join(f"{s}×{c}" for s, c in sorted(rebuilt.items()))
+                )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(
+                f"[startup] Could not rebuild buy history: {e}"
+            )
+
     # ── Settings helpers ──────────────────────────────────────────────────────
 
     def _get_profit_target(self) -> float:
