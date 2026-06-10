@@ -297,10 +297,15 @@ class StrategyExecutor:
                 )
             except PostSellError as e:
                 # LIQUIDCASE was already sold — cash is now in account.
-                # Do NOT allow_retry: the next cycle will see the cash and buy
-                # directly without selling LIQUIDCASE again.
+                # Rollback the pre-registered buy so _buys_today stays accurate
+                # (the ETF was never actually bought). The next cycle will see
+                # the freed cash and retry the buy directly without LIQUIDCASE sell.
+                # Do NOT allow_retry: unlock_symbol keeps _attempted_today latched
+                # and sets a 5-min cooldown to prevent the hammer loop.
                 logger.error(f"✗ BUY FAILED after LIQUIDCASE sell [{symbol}]: {e}")
                 if self.signal_generator and is_automated:
+                    if hasattr(self.signal_generator, 'rollback_buy_executed'):
+                        self.signal_generator.rollback_buy_executed(symbol)
                     self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=False)
                 return False, str(e)
             except RuntimeError as e:
