@@ -105,6 +105,10 @@ def write_snapshot(dashboard_state: dict):
                 today_move = round((ltp - prev_close) * qty, 2) if prev_close and prev_close > 0 else 0.0
                 today_move_pct = round((ltp - prev_close) / prev_close * 100, 2) if prev_close and prev_close > 0 else 0.0
 
+                # Unrealised P&L = (ltp - avg_buy_price) * qty  — matches Kite holdings P&L
+                unrealised_pnl     = round((ltp - avg) * qty, 2) if avg > 0 else 0.0
+                unrealised_pnl_pct = round((ltp - avg) / avg * 100, 2) if avg > 0 else 0.0
+
                 total_value += val
                 held_set.add(sym)
                 holdings.append({
@@ -113,8 +117,10 @@ def write_snapshot(dashboard_state: dict):
                     "avg":      round(avg, 2),
                     "ltp":      round(ltp, 2),
                     "value":    round(val, 2),
-                    "pnl":      today_move,
-                    "pnl_pct":  today_move_pct,
+                    "pnl":      unrealised_pnl,
+                    "pnl_pct":  unrealised_pnl_pct,
+                    "today_pnl":     today_move,
+                    "today_pnl_pct": today_move_pct,
                     "strategy":   "bnh" if sym in bnh_symbols else "active",
                     "buys_today": _safe_buys_today(signal_gen, sym, bnh_symbols),
                     "max_slots":  slots_count,
@@ -128,7 +134,7 @@ def write_snapshot(dashboard_state: dict):
             total_value += liq_val
 
             # Today's P&L — sum of per-holding today_move already computed above
-            today_pnl = sum(h["pnl"] for h in holdings)
+            today_pnl = sum(h["today_pnl"] for h in holdings)
 
         else:
             liq_qty = liq_price = liq_val = 0
@@ -173,6 +179,8 @@ def write_snapshot(dashboard_state: dict):
                 "is_held":    is_held,
                 "avg_price":  round(avg_price, 2) if avg_price else None,
                 "strategy":   "bnh" if is_bnh else "active",
+                "buys_today": _safe_buys_today(signal_gen, sym, bnh_symbols) if not is_bnh else None,
+                "max_slots":  slots_count if not is_bnh else None,
             })
 
             # Generate signals for active ETFs only (BNH is long-term hold)
