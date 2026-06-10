@@ -44,23 +44,18 @@ jobs:
           HOUR=$(date -u +%H)
           MIN=$(date -u +%M)
           NOW=$(( HOUR * 60 + MIN ))
-          # Session 1: cron fires at 3:30 UTC (9:00 IST).
-          # GitHub can delay scheduled runs by up to 60 min under load.
-          # Window: 3:25 UTC → 4:30 UTC  (covers up to ~60 min GitHub delay)
-          # Hard upper bound keeps clear of Session 2 window (~7:00 UTC).
+          # Session 1: 9:00 AM IST = 3:30 UTC → allow 3:25–3:35 UTC only
           S1_START=$(( 3 * 60 + 25 ))
-          S1_END=$(( 4 * 60 + 30 ))
-          # Session 2: cron fires at 7:05 UTC (12:35 IST).
-          # Window: 7:00 UTC → 8:00 UTC  (covers up to ~55 min GitHub delay)
-          # timeout-minutes:185 on bot jobs is the real safety fence for market close.
+          S1_END=$(( 3 * 60 + 35 ))
+          # Session 2: 12:35 PM IST = 7:05 UTC → allow 7:00–7:10 UTC only
           S2_START=$(( 7 * 60 + 0 ))
-          S2_END=$(( 8 * 60 + 0 ))
+          S2_END=$(( 7 * 60 + 10 ))
           if [ $NOW -ge $S1_START ] && [ $NOW -le $S1_END ]; then
             echo "✅ Within Session 1 window ($HOUR:$(printf '%02d' $MIN) UTC) — proceeding"
           elif [ $NOW -ge $S2_START ] && [ $NOW -le $S2_END ]; then
             echo "✅ Within Session 2 window ($HOUR:$(printf '%02d' $MIN) UTC) — proceeding"
           else
-            echo "⛔ $HOUR:$(printf '%02d' $MIN) UTC is outside allowed windows (3:25-4:30 or 7:00-8:00 UTC) — aborting stale run"
+            echo "⛔ $HOUR:$(printf '%02d' $MIN) UTC is outside allowed windows (3:25-3:35 or 7:00-7:10 UTC) — aborting stale run"
             exit 1
           fi
 
@@ -239,7 +234,8 @@ jobs:
                 git add status_rd1858.json
                 git commit -m "rd1858 snapshot $(date -u +'%H:%M UTC')" 2>/dev/null || true
                 for _retry in 1 2 3 4 5; do
-                  git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+                  git fetch origin gh-pages 2>/dev/null || true
+                  git rebase origin/gh-pages 2>/dev/null || git rebase --abort 2>/dev/null || true
                   git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
                   sleep $((RANDOM % 10 + 3))
                 done
@@ -367,7 +363,8 @@ jobs:
                 git add status_ps5673.json
                 git commit -m "ps5673 snapshot $(date -u +'%H:%M UTC')" 2>/dev/null || true
                 for _retry in 1 2 3 4 5; do
-                  git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+                  git fetch origin gh-pages 2>/dev/null || true
+                  git rebase origin/gh-pages 2>/dev/null || git rebase --abort 2>/dev/null || true
                   git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
                   sleep $((RANDOM % 10 + 3))
                 done
