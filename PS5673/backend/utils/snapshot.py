@@ -442,32 +442,39 @@ def write_snapshot(dashboard_state: dict):
                         mf_data  = mf_resp.json()
                         raw_list = mf_data.get("data", []) or []
                         for h in raw_list:
-                            qty      = float(h.get("quantity", 0) or 0)
+                            # Total units = free (redeemable) + pledged as collateral.
+                            # Kite shows pledged units with the "P: <n>" label in the
+                            # holdings UI — they are real units you own and must be
+                            # included for correct invested / cur_val / P&L figures.
+                            free_qty    = float(h.get("quantity", 0) or 0)
+                            pledged_qty = float(h.get("pledged_quantity", 0) or 0)
+                            qty         = free_qty + pledged_qty
                             avg_nav  = float(h.get("average_price", 0) or 0)
                             ltp      = float(h.get("last_price", 0) or 0)
                             invested = round(qty * avg_nav, 2)
                             cur_val  = round(qty * ltp, 2)
                             pnl      = round(cur_val - invested, 2)
                             pnl_pct  = round(pnl / invested * 100, 2) if invested else 0
-                            # Day change: use last_price vs previous_close if available
-                            prev_nav    = float(h.get("last_price_date") or h.get("previous_close") or 0)
-                            # Zerodha MF holdings v3 returns day_change and day_change_percentage
+                            # Zerodha MF holdings v3 returns day_change (per-unit NAV Δ)
+                            # and day_change_percentage; multiply by total qty for ₹ impact.
                             day_chg_abs = float(h.get("day_change", 0) or 0)
                             day_chg_pct = float(h.get("day_change_percentage", 0) or 0)
                             day_pnl_h   = round(day_chg_abs * qty, 2)
                             mf_holdings.append({
-                                "name":        h.get("fund", h.get("tradingsymbol", "")),
-                                "folio":       h.get("folio", ""),
-                                "units":       round(qty, 3),
-                                "avg_nav":     round(avg_nav, 3),
-                                "ltp":         round(ltp, 3),
-                                "invested":    invested,
-                                "cur_val":     cur_val,
-                                "pnl":         pnl,
-                                "pnl_pct":     pnl_pct,
-                                "day_chg_abs": day_chg_abs,
-                                "day_chg_pct": round(day_chg_pct, 2),
-                                "day_pnl":     day_pnl_h,
+                                "name":          h.get("fund", h.get("tradingsymbol", "")),
+                                "folio":         h.get("folio", ""),
+                                "units":         round(qty, 3),
+                                "free_units":    round(free_qty, 3),
+                                "pledged_units": round(pledged_qty, 3),
+                                "avg_nav":       round(avg_nav, 3),
+                                "ltp":           round(ltp, 3),
+                                "invested":      invested,
+                                "cur_val":       cur_val,
+                                "pnl":           pnl,
+                                "pnl_pct":       pnl_pct,
+                                "day_chg_abs":   day_chg_abs,
+                                "day_chg_pct":   round(day_chg_pct, 2),
+                                "day_pnl":       day_pnl_h,
                             })
                         total_invested = sum(h["invested"] for h in mf_holdings)
                         total_cur_val  = sum(h["cur_val"]  for h in mf_holdings)
