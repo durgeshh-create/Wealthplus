@@ -141,9 +141,9 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 .pos{color:var(--green)}
 .neg{color:var(--red)}
 
-#wr-tbl{width:100%;table-layout:fixed;border-collapse:collapse}
+#wr-tbl{width:100%;border-collapse:collapse}
 #wr-tbl td,#wr-tbl th{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#wr-tbl td:first-child,#wr-tbl th:first-child{white-space:normal;overflow:visible}
+#wr-tbl td:first-child,#wr-tbl th:first-child{white-space:normal;overflow:visible;width:1%;min-width:160px}
 /* ── williams %r ── */
 .wr-bar-wrap{position:relative;height:5px;background:var(--bg3);border-radius:3px;min-width:70px}
 .wr-bar{position:absolute;right:0;top:0;height:100%;border-radius:3px;transition:width .4s}
@@ -519,13 +519,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
   <!-- Williams %R -->
   <div class="panel" style="margin-bottom:14px">
     <div class="ph"><span class="pt">Williams %R</span><span style="font-size:10px;color:var(--muted)">≤ −75 oversold → BUY zone</span></div>
-    <table class="tbl" id="wr-tbl" style="width:100%;table-layout:fixed">
-      <colgroup>
-        <col style="width:auto">
-        <col style="width:52px">
-        <col style="width:72px">
-        <col style="width:96px">
-      </colgroup>
+    <table class="tbl" id="wr-tbl">
       <thead><tr>
         <th style="text-align:left;padding-left:14px">Symbol / Price</th>
         <th style="text-align:left;padding-left:8px">Signal</th>
