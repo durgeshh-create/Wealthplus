@@ -2519,7 +2519,7 @@ function render(data) {
   const mfPanel    = document.getElementById("mf-panel");
   const mfBody     = document.getElementById("mf-tbl-body");
   const mfChips    = document.getElementById("mf-summary-chips");
-  if (mfPanel) mfPanel.style.display = mfHoldings.length ? "" : "none";
+  if (mfPanel) mfPanel.style.display = ""; // always visible — shows placeholder when empty
   if (mfChips && mfSummary.total_invested) {
     const dpnl = mfSummary.day_pnl ?? 0;
     const dpct = mfSummary.day_pnl_pct ?? 0;
@@ -2546,7 +2546,7 @@ function render(data) {
         <td style="text-align:right;padding-right:14px;font-size:12px" class="${pc}">${h.pnl>=0?'+':''}${fmtL(h.pnl)}<div style="font-size:10px">${h.pnl_pct>=0?'+':''}${h.pnl_pct.toFixed(2)}%</div></td>
         <td style="text-align:right;padding-right:14px;font-size:12px" class="${dc}">${h.day_chg_pct>=0?'+':''}${h.day_chg_pct.toFixed(2)}%</td>
       </tr>`;
-    }).join("") : `<tr><td colspan="4" class="empty">No mutual fund holdings</td></tr>`;
+    }).join("") : `<tr><td colspan="4" class="empty" style="padding:18px">Mutual fund data not yet available — will populate on next bot snapshot</td></tr>`;
   }
 
   // Slot matrix — active strategy + dip accumulator (BNH) sections
