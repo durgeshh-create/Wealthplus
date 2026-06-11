@@ -49,8 +49,8 @@ def write_snapshot(dashboard_state: dict):
         # Guard: don't overwrite good snapshot with empty data
         import json as _jg
         _port = dashboard_state.get("portfolio_tracker")
-        _has_holdings = _port and getattr(_port, "holdings", None)
-        if not _has_holdings:
+        _holdings_attr = getattr(_port, "holdings", None) if _port else None
+        if _holdings_attr is None:
             try:
                 if SNAPSHOT_PATH.exists():
                     _prev = _jg.loads(SNAPSHOT_PATH.read_text())
@@ -414,6 +414,78 @@ def write_snapshot(dashboard_state: dict):
             print(f"[snapshot] indices fetch error: {_ie}", file=_sys.stderr)
 
         # ── Build snapshot ────────────────────────────────────────────────────
+
+        # ── Mutual Fund Holdings ──────────────────────────────────────────────
+        mf_holdings = []
+        mf_summary  = {}
+        try:
+            order_mgr = dashboard_state.get("order_manager")
+            if order_mgr and hasattr(order_mgr, "auth") and order_mgr.auth:
+                auth_mgr = order_mgr.auth
+                enctoken = getattr(auth_mgr, "enctoken", None)
+                if enctoken:
+                    import requests as _req2
+                    from backend.core.config import Config
+                    _mf_sess = _req2.Session()
+                    _mf_sess.headers.update({
+                        "Authorization": f"enctoken {enctoken}",
+                        "X-Kite-Version": "3",
+                    })
+                    # MF holdings via OMS endpoint (enctoken auth — same as all other calls)
+                    # api.kite.trade requires official API key; OMS works with enctoken
+                    mf_resp = _mf_sess.get(
+                        f"{Config.ZERODHA_API_BASE}/oms/mf/holdings",
+                        timeout=15,
+                        allow_redirects=False,
+                    )
+                    if mf_resp.status_code == 200 and mf_resp.text.strip().startswith("{"):
+                        mf_data  = mf_resp.json()
+                        raw_list = mf_data.get("data", []) or []
+                        for h in raw_list:
+                            qty      = float(h.get("quantity", 0) or 0)
+                            avg_nav  = float(h.get("average_price", 0) or 0)
+                            ltp      = float(h.get("last_price", 0) or 0)
+                            invested = round(qty * avg_nav, 2)
+                            cur_val  = round(qty * ltp, 2)
+                            pnl      = round(cur_val - invested, 2)
+                            pnl_pct  = round(pnl / invested * 100, 2) if invested else 0
+                            # Day change: use last_price vs previous_close if available
+                            prev_nav    = float(h.get("last_price_date") or h.get("previous_close") or 0)
+                            # Zerodha MF holdings v3 returns day_change and day_change_percentage
+                            day_chg_abs = float(h.get("day_change", 0) or 0)
+                            day_chg_pct = float(h.get("day_change_percentage", 0) or 0)
+                            day_pnl_h   = round(day_chg_abs * qty, 2)
+                            mf_holdings.append({
+                                "name":        h.get("fund", h.get("tradingsymbol", "")),
+                                "folio":       h.get("folio", ""),
+                                "units":       round(qty, 3),
+                                "avg_nav":     round(avg_nav, 3),
+                                "ltp":         round(ltp, 3),
+                                "invested":    invested,
+                                "cur_val":     cur_val,
+                                "pnl":         pnl,
+                                "pnl_pct":     pnl_pct,
+                                "day_chg_abs": day_chg_abs,
+                                "day_chg_pct": round(day_chg_pct, 2),
+                                "day_pnl":     day_pnl_h,
+                            })
+                        total_invested = sum(h["invested"] for h in mf_holdings)
+                        total_cur_val  = sum(h["cur_val"]  for h in mf_holdings)
+                        total_pnl      = round(total_cur_val - total_invested, 2)
+                        total_pnl_pct  = round(total_pnl / total_invested * 100, 2) if total_invested else 0
+                        total_day_pnl     = sum(h["day_pnl"] for h in mf_holdings)
+                        total_day_pnl_pct = round(total_day_pnl / total_invested * 100, 2) if total_invested else 0
+                        mf_summary = {
+                            "total_invested":   round(total_invested, 2),
+                            "total_cur_val":    round(total_cur_val, 2),
+                            "total_pnl":        round(total_pnl, 2),
+                            "total_pnl_pct":    round(total_pnl_pct, 2),
+                            "day_pnl":          round(total_day_pnl, 2),
+                            "day_pnl_pct":      round(total_day_pnl_pct, 2),
+                        }
+        except Exception as _mfe:
+            import sys as _mfsys
+            print(f"[snapshot] MF holdings fetch failed: {_mfe}", file=_mfsys.stderr)
         snapshot = {
             "account":     ACCOUNT,
             "timestamp":   datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S IST"),
@@ -443,6 +515,8 @@ def write_snapshot(dashboard_state: dict):
             "signals":          signals,
             "orders":           orders,
             "indices":          indices,
+            "mf_holdings":      mf_holdings,
+            "mf_summary":       mf_summary,
             "available_cash":   available_cash,
             "available_margin": available_margin,
             "available_margin_note": available_margin_note,
