@@ -314,19 +314,28 @@ def write_snapshot(dashboard_state: dict):
                         except Exception as _e:
                             available_margin_note = f"request error: {_e}"
                             break
-                    # ✅ FIX: on 403 TokenException, refresh token from browser (CDP)
-                    # and retry once — handles the case where user logged into Kite
-                    # web browser mid-session, rotating the enctoken.
+                    # ✅ FIX: on 403 TokenException, refresh token.
+                    # Try CDP first (local), fall back to fresh TOTP login (cloud/GitHub Actions).
                     if mresp is not None and mresp.status_code == 403:
                         try:
-                            refreshed = auth_mgr.handle_session_expiry()
+                            import sys as _sys
+                            refreshed = False
+                            # Try CDP first (works if browser is open locally)
+                            try:
+                                refreshed = auth_mgr.handle_session_expiry()
+                            except Exception:
+                                pass
+                            # If CDP didn't work, do a fresh TOTP re-login
+                            if not refreshed or getattr(auth_mgr, "enctoken", None) == enctoken:
+                                if hasattr(auth_mgr, "_login_with_credentials"):
+                                    print("[snapshot] CDP failed — attempting fresh TOTP re-login...", file=_sys.stderr)
+                                    refreshed = auth_mgr._login_with_credentials()
                             if refreshed:
                                 new_enc = getattr(auth_mgr, "enctoken", None)
-                                if new_enc and new_enc != enctoken:
+                                if new_enc:
                                     _snap_session.headers.update({"Authorization": f"enctoken {new_enc}"})
                                     mresp = _snap_session.get(margins_url, timeout=15)
-                                    import sys as _sys
-                                    print("[snapshot] margins token refreshed via CDP — retrying ✅", file=_sys.stderr)
+                                    print("[snapshot] margins token refreshed — retrying ✅", file=_sys.stderr)
                         except Exception as _re:
                             import sys as _sys
                             print(f"[snapshot] margins token refresh failed: {_re}", file=_sys.stderr)
