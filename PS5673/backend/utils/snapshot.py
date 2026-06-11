@@ -431,56 +431,50 @@ def write_snapshot(dashboard_state: dict):
                         "Authorization": f"enctoken {enctoken}",
                         "X-Kite-Version": "3",
                     })
-                    # Zerodha MF/Coin holdings — try kite first, fall back to coin subdomain.
-                    # Use allow_redirects=False so a 302 to login page surfaces as non-200.
-                    _mf_urls = [
-                        f"{Config.ZERODHA_API_BASE}/holdings/mutualfund",
-                        "https://coin.zerodha.com/api/holdings",
-                    ]
-                    mf_resp = None
-                    for _mf_url in _mf_urls:
-                        _r = _mf_sess.get(_mf_url, timeout=15, allow_redirects=False)
-                        import sys as _mfsys2
-                        print(f"[snapshot] MF fetch {_mf_url} → HTTP {_r.status_code} body[:80]={_r.text[:80]!r}", file=_mfsys2.stderr)
-                        if _r.status_code == 200 and _r.text.strip().startswith("{"):
-                            mf_resp = _r
-                            break
-                    if mf_resp is not None:
-                        mf_data     = mf_resp.json()
-                        raw_mf      = mf_data.get("data", mf_data)
-                        raw_list    = raw_mf.get("holdings", raw_mf) if isinstance(raw_mf, dict) else raw_mf
-                        raw_summary = raw_mf.get("summary", {}) if isinstance(raw_mf, dict) else {}
-                        for h in (raw_list or []):
-                            invested  = float(h.get("invested_amount", h.get("cost_value", 0)) or 0)
-                            cur_val   = float(h.get("current_value",   h.get("present_value", 0)) or 0)
-                            pnl       = cur_val - invested
-                            pnl_pct   = round(pnl / invested * 100, 2) if invested else 0
-                            day_chg   = float(h.get("day_change_percentage", h.get("pnl_day_percentage", 0)) or 0)
+                    # Correct endpoint per Kite Connect v3 docs: api.kite.trade/mf/holdings
+                    # Authorization: enctoken {token}  (same header the bot uses everywhere)
+                    # Response fields: fund, folio, quantity, average_price, last_price, pnl
+                    # current_value = quantity * last_price  (not returned directly)
+                    # invested_amount = quantity * average_price
+                    mf_resp = _mf_sess.get(
+                        "https://api.kite.trade/mf/holdings",
+                        timeout=15,
+                        allow_redirects=False,
+                    )
+                    if mf_resp.status_code == 200 and mf_resp.text.strip().startswith("{"):
+                        mf_data  = mf_resp.json()
+                        raw_list = mf_data.get("data", []) or []
+                        for h in raw_list:
+                            qty      = float(h.get("quantity", 0) or 0)
+                            avg_nav  = float(h.get("average_price", 0) or 0)
+                            ltp      = float(h.get("last_price", 0) or 0)
+                            invested = round(qty * avg_nav, 2)
+                            cur_val  = round(qty * ltp, 2)
+                            pnl      = round(cur_val - invested, 2)
+                            pnl_pct  = round(pnl / invested * 100, 2) if invested else 0
                             mf_holdings.append({
-                                "name":        h.get("fund", h.get("tradingsymbol", h.get("scheme_name", ""))),
+                                "name":        h.get("fund", h.get("tradingsymbol", "")),
                                 "folio":       h.get("folio", ""),
-                                "units":       round(float(h.get("quantity", h.get("units", 0)) or 0), 3),
-                                "avg_nav":     round(float(h.get("average_price", h.get("avg_cost_price", 0)) or 0), 3),
-                                "ltp":         round(float(h.get("last_price", h.get("nav", 0)) or 0), 3),
-                                "invested":    round(invested, 2),
-                                "cur_val":     round(cur_val, 2),
-                                "pnl":         round(pnl, 2),
+                                "units":       round(qty, 3),
+                                "avg_nav":     round(avg_nav, 3),
+                                "ltp":         round(ltp, 3),
+                                "invested":    invested,
+                                "cur_val":     cur_val,
+                                "pnl":         pnl,
                                 "pnl_pct":     pnl_pct,
-                                "day_chg_pct": round(day_chg, 2),
+                                "day_chg_pct": 0.0,  # not returned by /mf/holdings endpoint
                             })
                         total_invested = sum(h["invested"] for h in mf_holdings)
                         total_cur_val  = sum(h["cur_val"]  for h in mf_holdings)
-                        total_pnl      = total_cur_val - total_invested
+                        total_pnl      = round(total_cur_val - total_invested, 2)
                         total_pnl_pct  = round(total_pnl / total_invested * 100, 2) if total_invested else 0
-                        day_pnl        = float(raw_summary.get("day_change", 0) or 0)
-                        day_pnl_pct    = float(raw_summary.get("day_change_percentage", 0) or 0)
                         mf_summary = {
                             "total_invested": round(total_invested, 2),
                             "total_cur_val":  round(total_cur_val, 2),
                             "total_pnl":      round(total_pnl, 2),
                             "total_pnl_pct":  round(total_pnl_pct, 2),
-                            "day_pnl":        round(day_pnl, 2),
-                            "day_pnl_pct":    round(day_pnl_pct, 2),
+                            "day_pnl":        0.0,
+                            "day_pnl_pct":    0.0,
                         }
         except Exception as _mfe:
             import sys as _mfsys
