@@ -431,13 +431,10 @@ def write_snapshot(dashboard_state: dict):
                         "Authorization": f"enctoken {enctoken}",
                         "X-Kite-Version": "3",
                     })
-                    # Correct endpoint per Kite Connect v3 docs: api.kite.trade/mf/holdings
-                    # Authorization: enctoken {token}  (same header the bot uses everywhere)
-                    # Response fields: fund, folio, quantity, average_price, last_price, pnl
-                    # current_value = quantity * last_price  (not returned directly)
-                    # invested_amount = quantity * average_price
+                    # MF holdings via OMS endpoint (enctoken auth — same as all other calls)
+                    # api.kite.trade requires official API key; OMS works with enctoken
                     mf_resp = _mf_sess.get(
-                        "https://api.kite.trade/mf/holdings",
+                        f"{Config.ZERODHA_API_BASE}/oms/mf/holdings",
                         timeout=15,
                         allow_redirects=False,
                     )
