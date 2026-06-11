@@ -520,7 +520,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       <table class="tbl" id="wr-tbl">
         <thead><tr>
           <th style="text-align:left">Symbol / Price</th>
-          <th style="text-align:left;width:90px">W%R Bar</th>
+          <th style="text-align:left;width:48px">Signal</th>
           <th style="text-align:left;width:48px">Value</th>
           <th style="text-align:left;width:72px">Signal</th>
         </tr></thead>
@@ -2186,7 +2186,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 // from the DASHBOARD_PW_HASH repository secret (SHA-256 of your password).
 // To change the password: update the secret and re-run the workflow.
 // No "Set a password" flow needed — works identically on every device.
-const _BAKED_HASH = '408311ba9b03d5d2d41463f1b49280625f826a70a7dc5ccd92d0b41b93b26be2';   // replaced by workflow at deploy
+const _BAKED_HASH = '%%DASHBOARD_PW_HASH%%';   // replaced by workflow at deploy
 const PW_SESSION  = 'wealthalgo_unlocked';
 
 async function sha256(s) {
@@ -2452,11 +2452,12 @@ function render(data) {
     const bnhTag = item.strategy === "bnh" ? `<span class="tag tag-b" style="margin-left:4px">B&H</span>` : "";
     const chg  = item.change_pct;
     const chgS = chg != null ? `<span style="color:${chg>=0?'var(--green)':'var(--red)'};font-size:10px">${chg>=0?"+":""}${chg.toFixed(2)}%</span>` : "";
+    const bulb = v != null && v <= -80 ? `<span title="Oversold — BUY zone" style="font-size:14px">🔵</span>`
+               : v != null && v >= -20 ? `<span title="Overbought" style="font-size:14px">🔴</span>`
+               : `<span style="font-size:14px;opacity:.25">⚪</span>`;
     return `<tr>
       <td><div class="sym">${item.symbol}${held}${bnhTag}</div><div style="font-size:10px;color:var(--muted2)">${item.ltp ? fmtR(item.ltp) : "—"} ${chgS}</div></td>
-      <td style="width:90px;padding-right:6px">
-        <div class="wr-bar-wrap"><div class="wr-bar" style="width:${bw}%;background:${col}"></div><div class="threshold-line"></div></div>
-      </td>
+      <td style="text-align:center;width:48px">${bulb}</td>
       <td style="text-align:left;font-size:12px;color:${col};width:48px;padding-right:4px">${v != null ? v.toFixed(1) : "—"}</td>
       <td style="text-align:left;width:72px">${sig}</td>
     </tr>`;
@@ -2470,7 +2471,7 @@ function render(data) {
 
   // Total P&L in Slot Matrix header
   if (holdings.length) {
-    const totalPnl    = holdings.reduce((s,h) => s+(h.pnl??0), 0);
+    const totalPnl    = holdings.reduce((s,h) => s+(h.unrealised_pnl??h.pnl??0), 0);
     const costBasis   = holdings.reduce((s,h) => s+((h.avg??0)*(h.quantity??0)), 0);
     const totalPnlPct = costBasis > 0 ? (totalPnl/costBasis*100) : 0;
     const smWrap = document.getElementById("sm-pnl-wrap");
@@ -2498,9 +2499,11 @@ function render(data) {
       slotsLabel = `<span class="${cls}" style="font-weight:700">${h.buys_today}/${h.max_slots}</span> <span style="color:var(--muted)">slots</span>`;
     }
     let pnlHtml = "";
-    if (u && h && h.pnl != null) {
-      const pnlCls = h.pnl >= 0 ? "pos" : "neg";
-      pnlHtml = `<span class="slot-pnl ${pnlCls}">${h.pnl>=0?"+":""}${fmtL(h.pnl)} <span style="opacity:.75">${fmtPct(h.pnl_pct)}</span></span>`;
+    if (u && h && (h.unrealised_pnl ?? h.pnl) != null) {
+      const _p = h.unrealised_pnl ?? h.pnl;
+      const _pp = h.unrealised_pnl_pct ?? h.pnl_pct;
+      const pnlCls = _p >= 0 ? "pos" : "neg";
+      pnlHtml = `<span class="slot-pnl ${pnlCls}">${_p>=0?"+":""}${fmtL(_p)} <span style="opacity:.75">${fmtPct(_pp)}</span></span>`;
     }
 
     return `<div class="slot ${u?'used':''}" title="${sym}">
@@ -2523,9 +2526,11 @@ function render(data) {
 
     // Line 2: status (left) + P&L (right)
     let pnlHtml = "";
-    if (u && h && h.pnl != null) {
-      const pnlCls = h.pnl >= 0 ? "pos" : "neg";
-      pnlHtml = `<span class="slot-pnl ${pnlCls}">${h.pnl>=0?"+":""}${fmtL(h.pnl)} <span style="opacity:.75">${fmtPct(h.pnl_pct)}</span></span>`;
+    if (u && h && (h.unrealised_pnl ?? h.pnl) != null) {
+      const _p = h.unrealised_pnl ?? h.pnl;
+      const _pp = h.unrealised_pnl_pct ?? h.pnl_pct;
+      const pnlCls = _p >= 0 ? "pos" : "neg";
+      pnlHtml = `<span class="slot-pnl ${pnlCls}">${_p>=0?"+":""}${fmtL(_p)} <span style="opacity:.75">${fmtPct(_pp)}</span></span>`;
     }
 
     return `<div class="slot bnh ${u?'held':''}" title="${sym}">
