@@ -141,6 +141,9 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 .pos{color:var(--green)}
 .neg{color:var(--red)}
 
+#wr-tbl{width:100%;table-layout:fixed;border-collapse:collapse}
+#wr-tbl td,#wr-tbl th{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#wr-tbl td:first-child,#wr-tbl th:first-child{white-space:normal;overflow:visible}
 /* ── williams %r ── */
 .wr-bar-wrap{position:relative;height:5px;background:var(--bg3);border-radius:3px;min-width:70px}
 .wr-bar{position:absolute;right:0;top:0;height:100%;border-radius:3px;transition:width .4s}
@@ -516,17 +519,21 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
   <!-- Williams %R -->
   <div class="panel" style="margin-bottom:14px">
     <div class="ph"><span class="pt">Williams %R</span><span style="font-size:10px;color:var(--muted)">≤ −75 oversold → BUY zone</span></div>
-    <div class="scroll">
-      <table class="tbl" id="wr-tbl">
-        <thead><tr>
-          <th style="text-align:left">Symbol / Price</th>
-          <th style="text-align:left;width:48px">Signal</th>
-          <th style="text-align:left;width:48px">Value</th>
-          <th style="text-align:left;width:72px">Signal</th>
-        </tr></thead>
-        <tbody id="wr-tbl-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
-      </table>
-    </div>
+    <table class="tbl" id="wr-tbl" style="width:100%;table-layout:fixed">
+      <colgroup>
+        <col style="width:auto">
+        <col style="width:52px">
+        <col style="width:72px">
+        <col style="width:96px">
+      </colgroup>
+      <thead><tr>
+        <th style="text-align:left;padding-left:14px">Symbol / Price</th>
+        <th style="text-align:left;padding-left:8px">Signal</th>
+        <th style="text-align:left;padding-left:8px">Value</th>
+        <th style="text-align:left;padding-left:8px">Signal</th>
+      </tr></thead>
+      <tbody id="wr-tbl-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+    </table>
   </div>
   </main>
 </div>
@@ -2456,10 +2463,10 @@ function render(data) {
                : v != null && v >= -20 ? `<span title="Overbought" style="font-size:14px">🔴</span>`
                : `<span style="font-size:14px;opacity:.25">⚪</span>`;
     return `<tr>
-      <td><div class="sym">${item.symbol}${held}${bnhTag}</div><div style="font-size:10px;color:var(--muted2)">${item.ltp ? fmtR(item.ltp) : "—"} ${chgS}</div></td>
-      <td style="text-align:center;width:48px">${bulb}</td>
-      <td style="text-align:left;font-size:12px;color:${col};width:48px;padding-right:4px">${v != null ? v.toFixed(1) : "—"}</td>
-      <td style="text-align:left;width:72px">${sig}</td>
+      <td style="padding-left:14px"><div class="sym">${item.symbol}${held}${bnhTag}</div><div style="font-size:10px;color:var(--muted2)">${item.ltp ? fmtR(item.ltp) : "—"} ${chgS}</div></td>
+      <td style="text-align:left;padding-left:8px">${bulb}</td>
+      <td style="text-align:left;padding-left:8px;font-size:12px;color:${col}">${v != null ? v.toFixed(1) : "—"}</td>
+      <td style="text-align:left;padding-left:8px">${sig}</td>
     </tr>`;
   }).join("") : `<tr><td colspan="4" class="empty">No market data</td></tr>`;
 
