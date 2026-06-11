@@ -525,6 +525,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <th style="text-align:left;padding-left:8px">Signal</th>
         <th style="text-align:left;padding-left:8px">Value</th>
         <th style="text-align:left;padding-left:8px">Signal</th>
+        <th style="text-align:left;padding-left:8px">vs 20DMA</th>
       </tr></thead>
       <tbody id="wr-tbl-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
     </table>
@@ -2331,6 +2332,7 @@ function setDot(state) {
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
+const _dma20Cache = {}; // sym → 20DMA value (fetched once, recalculated on every render with live LTP)
 function render(data) {
   const pnl    = data.today_pnl   ?? 0;
   const pnlPct = data.today_pnl_pct ?? 0;
@@ -2461,8 +2463,37 @@ function render(data) {
       <td style="text-align:left;padding-left:8px">${bulb}</td>
       <td style="text-align:left;padding-left:8px;font-size:12px;color:${col}">${v != null ? v.toFixed(1) : "—"}</td>
       <td style="text-align:left;padding-left:8px">${sig}</td>
+      <td style="text-align:left;padding-left:8px;font-size:11px" id="dma-${item.symbol}"><span style="color:var(--muted);opacity:.4">…</span></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="4" class="empty">No market data</td></tr>`;
+  }).join("") : `<tr><td colspan="5" class="empty">No market data</td></tr>`;
+
+  // vs 20DMA — recalculate from live LTP using cached DMA values.
+  // CSVs are fetched once per symbol and stored in _dma20Cache (module-level).
+  // Every render() call then updates the cells with fresh LTP immediately.
+  (async () => {
+    for (const item of wr) {
+      const sym = item.symbol;
+      const el  = document.getElementById(`dma-${sym}`);
+      if (!el) continue;
+
+      // Fetch + cache DMA once if not yet loaded
+      if (_dma20Cache[sym] === undefined) {
+        _dma20Cache[sym] = null; // mark as in-flight
+        try {
+          const daily = await _fetchCSV(`${REPO_RAW}/daily/${sym}.csv`);
+          _dma20Cache[sym] = _calcDMA20(daily);
+        } catch { _dma20Cache[sym] = null; }
+      }
+
+      // Render using live LTP from current snapshot
+      const dma20 = _dma20Cache[sym];
+      const ltp   = item.ltp;
+      if (dma20 == null || !ltp) { el.innerHTML = `<span style="color:var(--muted)">—</span>`; continue; }
+      const pct = ((ltp - dma20) / dma20) * 100;
+      const cls = pct >= 0 ? "dma-above" : "dma-below";
+      el.innerHTML = `<span class="${cls}">${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%</span>`;
+    }
+  })();
 
   // Slot matrix — active strategy + dip accumulator (BNH) sections
   const allEtfs = slots.active_etfs ?? [];
