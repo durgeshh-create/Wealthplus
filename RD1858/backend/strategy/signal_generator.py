@@ -90,24 +90,16 @@ class SignalGenerator:
     # ── Startup: rebuild buy counts from today's Zerodha order history ────────
 
     def rebuild_from_order_history(self) -> None:
-        """
-        On session start, fetch today's completed BUY orders from Zerodha and
-        populate _buys_today so slot guards work correctly across session restarts.
-        Called by trading_bot.py after SignalGenerator is created.
-        """
+        """Fetch today's completed BUY orders and populate _buys_today."""
         try:
             session = self.portfolio.auth.session
             from backend.core.config import Config
-            r = session.get(
-                f"{Config.ZERODHA_API_BASE}/oms/orders", timeout=10
-            )
+            r = session.get(f"{Config.ZERODHA_API_BASE}/oms/orders", timeout=10)
             if r.status_code != 200:
                 return
-
             from datetime import datetime, timezone, timedelta
             IST = timezone(timedelta(hours=5, minutes=30))
             today = datetime.now(IST).date()
-
             orders = r.json().get('data', [])
             rebuilt = {}
             for o in orders:
@@ -115,7 +107,6 @@ class SignalGenerator:
                     continue
                 if o.get('status') not in ('COMPLETE',):
                     continue
-                # Parse order timestamp
                 ts_str = o.get('order_timestamp') or o.get('exchange_timestamp', '')
                 try:
                     ts = datetime.fromisoformat(ts_str.replace('Z', '+00:00'))
@@ -126,32 +117,19 @@ class SignalGenerator:
                 sym = o.get('tradingsymbol', '')
                 if sym:
                     rebuilt[sym] = rebuilt.get(sym, 0) + 1
-
             with self._lock:
                 for sym, count in rebuilt.items():
-                    self._buys_today[sym] = max(
-                        self._buys_today.get(sym, 0), count
-                    )
+                    self._buys_today[sym] = max(self._buys_today.get(sym, 0), count)
                     self._attempted_today.add(sym)
-                    # Set recently_bought cooldown so the signal gate doesn't
-                    # re-fire immediately after a session restart / re-auth.
-                    # Uses now() so the 5-min cooldown starts from session resume,
-                    # not from the original order time (which may be hours ago).
-                    # This prevents duplicate buys like the SILVERBEES ORPHAN error.
-                    if sym not in self.recently_bought:
-                        self.recently_bought[sym] = _now_ist()
-
             if rebuilt:
                 import logging
                 logging.getLogger(__name__).info(
-                    f"[startup] Rebuilt _buys_today from order history: "
+                    "[startup] Rebuilt _buys_today from order history: "
                     + ", ".join(f"{s}×{c}" for s, c in sorted(rebuilt.items()))
                 )
         except Exception as e:
             import logging
-            logging.getLogger(__name__).warning(
-                f"[startup] Could not rebuild buy history: {e}"
-            )
+            logging.getLogger(__name__).warning(f"[startup] Could not rebuild buy history: {e}")
 
     # ── Settings helpers ──────────────────────────────────────────────────────
 
@@ -263,24 +241,6 @@ class SignalGenerator:
             if symbol in self._pending_exec:
                 del self._pending_exec[symbol]
                 logger.debug(f"📋 {symbol}: pending_exec cleared after portfolio sync")
-
-    def rollback_buy_executed(self, symbol: str):
-        """
-        Undo a pre-registered buy that failed before the order reached the broker
-        (PostSellError / orphan scenario). Decrements _buys_today and clears
-        _pending_exec so the slot count stays accurate.
-        Called by executor when smart_buy raises PostSellError.
-        """
-        with self._lock:
-            if self._buys_today.get(symbol, 0) > 0:
-                self._buys_today[symbol] -= 1
-                logger.warning(
-                    f"↩ {symbol}: pre-registered buy rolled back "
-                    f"(buys_today now {self._buys_today[symbol]})"
-                )
-            if symbol in self._pending_exec:
-                del self._pending_exec[symbol]
-                logger.debug(f"↩ {symbol}: pending_exec rolled back")
 
     # ── Main signal generation ────────────────────────────────────────────────
 
@@ -486,23 +446,12 @@ class SignalGenerator:
             logger.debug(f"Skip {symbol}: already queued")
             return False
 
-        # _attempted_today latch: covers the 2s window between get_due_buys()
-        # clearing pending_buys and the executor setting executing_symbols so a
-        # second signal doesn't queue a duplicate order for the same slot.
-        # IMPORTANT: only block if ALL slots for this symbol are used today.
-        # If buys_today < max_slots, allow re-trigger after recently_bought cooldown
-        # so slots 2, 3, … N can fire on subsequent dip signals the same day.
+        # Already attempted this session (latched at queue time — covers the
+        # 2s window between get_due_buys() clearing pending_buys and the
+        # executor setting executing_symbols)
         if symbol in self._attempted_today:
-            buys_so_far = self._get_buys_today(symbol)
-            max_sl      = self._get_max_slots()
-            if buys_so_far >= max_sl:
-                logger.debug(
-                    f"Skip {symbol}: all {max_sl} slots used today "
-                    f"(buys_today={buys_so_far})"
-                )
-                return False
-            # Slots remain — fall through so subsequent slot buys can fire.
-            # The recently_bought 5-min cooldown below is the rate-limit guard.
+            logger.debug(f"Skip {symbol}: already attempted today")
+            return False
 
         # Within post-buy cooldown (5 min after a confirmed buy)
         if symbol in self.recently_bought:
@@ -688,10 +637,8 @@ class SignalGenerator:
     def unlock_symbol(self, symbol: str, success: bool = False, allow_retry: bool = False):
         """
         Release execution lock.
-        success=True               : Order confirmed. Set recently_bought cooldown.
-                                     Clear _attempted_today if slots remain so that
-                                     slots 2…N can re-trigger after the cooldown expires.
-                                     Keep it latched only when all slots are exhausted.
+        success=True               : Order confirmed. Set recently_bought cooldown and keep
+                                     _attempted_today — no second buy this session.
         success=False, allow_retry=True  : Order NEVER reached broker (pre-flight failure,
                                      e.g. insufficient funds, price unavailable). Clear all
                                      guards so the signal can re-trigger next cycle.
@@ -705,24 +652,8 @@ class SignalGenerator:
         if symbol in self.executing_symbols:
             self.executing_symbols.pop(symbol)
         if success:
-            # Order confirmed — always set cooldown
+            # Order confirmed — set cooldown and keep session latch
             self.recently_bought[symbol] = _now_ist()
-            # Keep _attempted_today latched only when all slots are used up for today.
-            # If slots remain, discard the latch so slot 2, 3, … N can re-trigger
-            # after the 5-min recently_bought cooldown expires.
-            buys_so_far = self._get_buys_today(symbol)
-            max_sl      = self._get_max_slots()
-            if buys_so_far < max_sl:
-                self._attempted_today.discard(symbol)
-                logger.info(
-                    f"\U0001f513 {symbol}: slot {buys_so_far}/{max_sl} used — "
-                    f"_attempted_today cleared, {max_sl - buys_so_far} slot(s) remain for today"
-                )
-            else:
-                logger.info(
-                    f"\U0001f512 {symbol}: all {max_sl} slots used today — "
-                    f"_attempted_today latched for remainder of session"
-                )
         elif allow_retry:
             # Pre-flight failure — order never reached broker; allow full retry
             if symbol in self.recently_bought:
@@ -734,16 +665,11 @@ class SignalGenerator:
                 del self._pending_exec[symbol]
                 logger.debug(f"🔄 {symbol}: pending_exec cleared on allow_retry")
         else:
-            # Order outcome uncertain — keep session latch AND set a cooldown.
-            # Deleting recently_bought here was the bug: it allowed the signal
-            # to re-fire every 2s after a PostSellError (LIQUIDCASE sold but
-            # ETF buy rejected), causing the ORPHAN hammer loop.
-            # Setting recently_bought imposes the 5-min rate-limit regardless.
-            self.recently_bought[symbol] = _now_ist()
-            logger.debug(
-                f"⏳ {symbol}: outcome uncertain — cooldown set, session latch kept"
-            )
-            # _attempted_today stays set — no re-trigger until cooldown expires
+            # Order outcome uncertain — clear cooldown but keep session latch
+            # (prevents duplicate orders if broker silently accepted)
+            if symbol in self.recently_bought:
+                del self.recently_bought[symbol]
+            # _attempted_today stays set — no re-trigger this session
 
     # ── Public interface ──────────────────────────────────────────────────────
 
