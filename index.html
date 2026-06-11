@@ -2528,11 +2528,9 @@ function render(data) {
     const tpct = mfSummary.total_pnl_pct ?? 0;
     // fmtRupee: full Indian-format rupee string for tooltips and summary
     const fmtRupee = v => '₹' + Number(v).toLocaleString('en-IN', {maximumFractionDigits: 2});
-    // Day's P&L chip: show "—" when zero (day_change field not yet deployed on bot)
-    const dayChip = dpnl !== 0
-      ? `<span>Day's P&L <strong class="${dpnl>=0?'pos':'neg'}" title="${fmtRupee(dpnl)}">${dpnl>=0?'+':''}${fmtL(dpnl)}</strong> ` +
-          `<span class="badge" style="background:${dpnl>=0?'var(--green-d)':'var(--red-d)'};color:${dpnl>=0?'var(--green)':'var(--red)'}">${dpct>=0?'+':''}${dpct.toFixed(2)}%</span></span>`
-      : `<span>Day's P&L <strong style="color:var(--muted)">—</strong></span>`;
+    // Day's P&L chip — always show value; 0 is a valid real figure once day_change deploys
+    const dayChip = `<span>Day's P&L <strong class="${dpnl>=0?'pos':'neg'}" title="${fmtRupee(dpnl)}">${dpnl>=0?'+':''}${fmtL(dpnl)}</strong> ` +
+      `<span class="badge" style="background:${dpnl>=0?'var(--green-d)':'var(--red-d)'};color:${dpnl>=0?'var(--green)':'var(--red)'}">${dpct>=0?'+':''}${dpct.toFixed(2)}%</span></span>`;
     mfChips.innerHTML =
       `<span>Invested <strong style="color:var(--text)" title="${fmtRupee(mfSummary.total_invested)}">₹${fmtL(mfSummary.total_invested)}</strong></span>` +
       `<span>Current <strong style="color:var(--text)" title="${fmtRupee(mfSummary.total_cur_val)}">₹${fmtL(mfSummary.total_cur_val)}</strong></span>` +
@@ -2545,16 +2543,13 @@ function render(data) {
     const fmtRupee = v => '₹' + Number(v).toLocaleString('en-IN', {maximumFractionDigits: 2});
     mfBody.innerHTML = mfHoldings.length ? mfHoldings.map(h => {
       const pc = h.pnl >= 0 ? "pos" : "neg";
-      // day_chg_pct is 0 when bot hasn't deployed the day_change fix yet — show "—" instead of misleading +0.00%
-      const dayAvail = h.day_chg_pct != null && h.day_chg_pct !== 0;
-      const dc = dayAvail ? (h.day_chg_pct >= 0 ? "pos" : "neg") : "";
-      const dayCell = dayAvail
-        ? `<span class="${dc}">${h.day_pnl !== 0 ? `<div>${h.day_pnl>=0?'+':''}${fmtL(h.day_pnl)}</div>` : ''}${h.day_chg_pct>=0?'+':''}${h.day_chg_pct.toFixed(2)}%</span>`
-        : `<span style="color:var(--muted);font-size:11px" title="day_change not yet in snapshot">—</span>`;
+      // Net chg. column — show day_pnl (₹) + day_chg_pct (%) always; both are 0 until day_change deploys
+      const dc = (h.day_chg_pct ?? 0) >= 0 ? "pos" : "neg";
+      const dayCell = `<span class="${dc}">${(h.day_pnl ?? 0) !== 0 ? `<div>${h.day_pnl>=0?'+':''}${fmtL(h.day_pnl)}</div>` : ''}${(h.day_chg_pct??0)>=0?'+':''}${(h.day_chg_pct??0).toFixed(2)}%</span>`;
       return `<tr>
         <td style="padding-left:14px">
           <div class="sym" style="font-size:12px;white-space:normal">${h.name}</div>
-          ${h.folio ? `<div style="font-size:10px;color:var(--muted)">Folio ${h.folio} &nbsp;·&nbsp; ${h.units} units @ ₹${h.avg_nav}</div>` : ""}
+          ${h.folio ? `<div style="font-size:10px;color:var(--muted)">Folio ${h.folio} &nbsp;·&nbsp; ${h.units} units @ ₹${h.avg_nav}${h.pledged_units > 0 ? ` &nbsp;<span title="Pledged as collateral">(P: ${h.pledged_units})</span>` : ''}</div>` : ""}
         </td>
         <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.cur_val)}">₹${fmtL(h.cur_val)}</td>
         <td style="text-align:right;padding-right:14px;font-size:12px" class="${pc}" title="${fmtRupee(h.pnl)}">${h.pnl>=0?'+':''}${fmtL(h.pnl)}<div style="font-size:10px">${h.pnl_pct>=0?'+':''}${h.pnl_pct.toFixed(2)}%</div></td>
