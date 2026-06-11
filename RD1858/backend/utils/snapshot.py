@@ -441,6 +441,14 @@ def write_snapshot(dashboard_state: dict):
                     if mf_resp.status_code == 200 and mf_resp.text.strip().startswith("{"):
                         mf_data  = mf_resp.json()
                         raw_list = mf_data.get("data", []) or []
+                        # DEBUG: log raw field names + values from first holding so we
+                        # can confirm exact Kite API field names (remove after confirmed)
+                        if raw_list:
+                            import sys as _dbgsys
+                            _h0 = raw_list[0]
+                            print(f"[snapshot] MF raw fields for '{_h0.get('fund','?')}': "
+                                  + ", ".join(f"{k}={v!r}" for k, v in _h0.items()),
+                                  file=_dbgsys.stderr, flush=True)
                         for h in raw_list:
                             # Total units = free (redeemable) + pledged as collateral.
                             # Kite shows pledged units with the "P: <n>" label in the
@@ -489,6 +497,8 @@ def write_snapshot(dashboard_state: dict):
                             "total_pnl_pct":    round(total_pnl_pct, 2),
                             "day_pnl":          round(total_day_pnl, 2),
                             "day_pnl_pct":      round(total_day_pnl_pct, 2),
+                            # Temporary: expose raw API fields so field names can be verified
+                            "debug_raw_first":  {k: v for k, v in (raw_list[0].items() if raw_list else {}.items())},
                         }
         except Exception as _mfe:
             import sys as _mfsys
