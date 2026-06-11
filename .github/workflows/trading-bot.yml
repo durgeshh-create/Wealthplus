@@ -41,8 +41,8 @@ jobs:
             echo "✅ Manual trigger — skipping time-window check"
             exit 0
           fi
-          HOUR=$(date -u +%H)
-          MIN=$(date -u +%M)
+          HOUR=$(date -u +%-H)
+          MIN=$(date -u +%-M)
           NOW=$(( HOUR * 60 + MIN ))
           # Session 1: 9:00 AM IST = 3:30 UTC → allow 3:25–3:35 UTC only
           S1_START=$(( 3 * 60 + 25 ))
