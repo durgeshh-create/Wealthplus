@@ -49,8 +49,8 @@ def write_snapshot(dashboard_state: dict):
         # Guard: don't overwrite good snapshot with empty data
         import json as _jg
         _port = dashboard_state.get("portfolio_tracker")
-        _has_holdings = _port and getattr(_port, "holdings", None)
-        if not _has_holdings:
+        _holdings_attr = getattr(_port, "holdings", None) if _port else None
+        if _holdings_attr is None:
             try:
                 if SNAPSHOT_PATH.exists():
                     _prev = _jg.loads(SNAPSHOT_PATH.read_text())
@@ -414,6 +414,67 @@ def write_snapshot(dashboard_state: dict):
             print(f"[snapshot] indices fetch error: {_ie}", file=_sys.stderr)
 
         # ── Build snapshot ────────────────────────────────────────────────────
+
+        # ── Mutual Fund Holdings ──────────────────────────────────────────────
+        mf_holdings = []
+        mf_summary  = {}
+        try:
+            order_mgr = dashboard_state.get("order_manager")
+            if order_mgr and hasattr(order_mgr, "auth") and order_mgr.auth:
+                auth_mgr = order_mgr.auth
+                enctoken = getattr(auth_mgr, "enctoken", None)
+                if enctoken:
+                    import requests as _req2
+                    from backend.core.config import Config
+                    _mf_sess = _req2.Session()
+                    _mf_sess.headers.update({
+                        "Authorization": f"enctoken {enctoken}",
+                        "X-Kite-Version": "3",
+                    })
+                    mf_resp = _mf_sess.get(
+                        f"{Config.ZERODHA_API_BASE}/holdings/mutualfund",
+                        timeout=15,
+                    )
+                    if mf_resp.status_code == 200:
+                        mf_data     = mf_resp.json()
+                        raw_mf      = mf_data.get("data", {})
+                        raw_list    = raw_mf.get("holdings", raw_mf) if isinstance(raw_mf, dict) else raw_mf
+                        raw_summary = raw_mf.get("summary", {}) if isinstance(raw_mf, dict) else {}
+                        for h in (raw_list or []):
+                            invested  = float(h.get("invested_amount", h.get("cost_value", 0)) or 0)
+                            cur_val   = float(h.get("current_value",   h.get("present_value", 0)) or 0)
+                            pnl       = cur_val - invested
+                            pnl_pct   = round(pnl / invested * 100, 2) if invested else 0
+                            day_chg   = float(h.get("day_change_percentage", h.get("pnl_day_percentage", 0)) or 0)
+                            mf_holdings.append({
+                                "name":        h.get("fund", h.get("tradingsymbol", h.get("scheme_name", ""))),
+                                "folio":       h.get("folio", ""),
+                                "units":       round(float(h.get("quantity", h.get("units", 0)) or 0), 3),
+                                "avg_nav":     round(float(h.get("average_price", h.get("avg_cost_price", 0)) or 0), 3),
+                                "ltp":         round(float(h.get("last_price", h.get("nav", 0)) or 0), 3),
+                                "invested":    round(invested, 2),
+                                "cur_val":     round(cur_val, 2),
+                                "pnl":         round(pnl, 2),
+                                "pnl_pct":     pnl_pct,
+                                "day_chg_pct": round(day_chg, 2),
+                            })
+                        total_invested = sum(h["invested"] for h in mf_holdings)
+                        total_cur_val  = sum(h["cur_val"]  for h in mf_holdings)
+                        total_pnl      = total_cur_val - total_invested
+                        total_pnl_pct  = round(total_pnl / total_invested * 100, 2) if total_invested else 0
+                        day_pnl        = float(raw_summary.get("day_change", 0) or 0)
+                        day_pnl_pct    = float(raw_summary.get("day_change_percentage", 0) or 0)
+                        mf_summary = {
+                            "total_invested": round(total_invested, 2),
+                            "total_cur_val":  round(total_cur_val, 2),
+                            "total_pnl":      round(total_pnl, 2),
+                            "total_pnl_pct":  round(total_pnl_pct, 2),
+                            "day_pnl":        round(day_pnl, 2),
+                            "day_pnl_pct":    round(day_pnl_pct, 2),
+                        }
+        except Exception as _mfe:
+            import sys as _mfsys
+            print(f"[snapshot] MF holdings fetch failed: {_mfe}", file=_mfsys.stderr)
         snapshot = {
             "account":     ACCOUNT,
             "timestamp":   datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S IST"),
@@ -443,6 +504,8 @@ def write_snapshot(dashboard_state: dict):
             "signals":          signals,
             "orders":           orders,
             "indices":          indices,
+            "mf_holdings":      mf_holdings,
+            "mf_summary":       mf_summary,
             "available_cash":   available_cash,
             "available_margin": available_margin,
             "available_margin_note": available_margin_note,
