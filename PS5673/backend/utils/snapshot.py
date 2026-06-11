@@ -46,6 +46,19 @@ def _safe_buys_today(signal_gen, sym, bnh_symbols):
 def write_snapshot(dashboard_state: dict):
     """Build and write the full status snapshot. Never raises."""
     try:
+        # Guard: don't overwrite good snapshot with empty data
+        import json as _jg
+        _port = dashboard_state.get("portfolio_tracker")
+        _has_holdings = _port and getattr(_port, "holdings", None)
+        if not _has_holdings:
+            try:
+                if SNAPSHOT_PATH.exists():
+                    _prev = _jg.loads(SNAPSHOT_PATH.read_text())
+                    if _prev.get("total_value"):
+                        import sys as _sg; print("[snapshot] Portfolio empty — keeping last good snapshot", file=_sg.stderr)
+                        return
+            except Exception:
+                pass
         from backend.core.constants import LIQUIDCASE_SYMBOL
         from backend.indicators.calculator import calculate_daily_williams_r
 
@@ -105,6 +118,16 @@ def write_snapshot(dashboard_state: dict):
                 today_move = round((ltp - prev_close) * qty, 2) if prev_close and prev_close > 0 else 0.0
                 today_move_pct = round((ltp - prev_close) / prev_close * 100, 2) if prev_close and prev_close > 0 else 0.0
 
+                # Unrealised P&L — use Zerodha's pnl field directly (matches Kite)
+                _z_pnl = h.get("pnl")
+                if _z_pnl is not None:
+                    unrealised_pnl     = round(float(_z_pnl), 2)
+                    cost_basis         = avg * qty
+                    unrealised_pnl_pct = round(unrealised_pnl / cost_basis * 100, 2) if cost_basis > 0 else 0.0
+                else:
+                    unrealised_pnl     = round((ltp - avg) * qty, 2) if avg > 0 else 0.0
+                    unrealised_pnl_pct = round((ltp - avg) / avg * 100, 2) if avg > 0 else 0.0
+
                 total_value += val
                 held_set.add(sym)
                 holdings.append({
@@ -115,9 +138,11 @@ def write_snapshot(dashboard_state: dict):
                     "value":    round(val, 2),
                     "pnl":      today_move,
                     "pnl_pct":  today_move_pct,
+                    "unrealised_pnl":     unrealised_pnl,
+                    "unrealised_pnl_pct": unrealised_pnl_pct,
                     "strategy":   "bnh" if sym in bnh_symbols else "active",
-                    "buys_today": _safe_buys_today(signal_gen, sym, bnh_symbols),
-                    "max_slots":  slots_count,
+                    "buys_today": max(_safe_buys_today(signal_gen, sym, bnh_symbols) or 0, 1),
+                    "max_slots":  int(settings.get("slots_count", slots_count)),
                 })
 
             # LIQUIDCASE
