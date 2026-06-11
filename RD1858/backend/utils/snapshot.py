@@ -431,13 +431,23 @@ def write_snapshot(dashboard_state: dict):
                         "Authorization": f"enctoken {enctoken}",
                         "X-Kite-Version": "3",
                     })
-                    mf_resp = _mf_sess.get(
+                    # Zerodha MF/Coin holdings — try kite first, fall back to coin subdomain.
+                    # Use allow_redirects=False so a 302 to login page surfaces as non-200.
+                    _mf_urls = [
                         f"{Config.ZERODHA_API_BASE}/holdings/mutualfund",
-                        timeout=15,
-                    )
-                    if mf_resp.status_code == 200:
+                        "https://coin.zerodha.com/api/holdings",
+                    ]
+                    mf_resp = None
+                    for _mf_url in _mf_urls:
+                        _r = _mf_sess.get(_mf_url, timeout=15, allow_redirects=False)
+                        import sys as _mfsys2
+                        print(f"[snapshot] MF fetch {_mf_url} → HTTP {_r.status_code} body[:80]={_r.text[:80]!r}", file=_mfsys2.stderr)
+                        if _r.status_code == 200 and _r.text.strip().startswith("{"):
+                            mf_resp = _r
+                            break
+                    if mf_resp is not None:
                         mf_data     = mf_resp.json()
-                        raw_mf      = mf_data.get("data", {})
+                        raw_mf      = mf_data.get("data", mf_data)
                         raw_list    = raw_mf.get("holdings", raw_mf) if isinstance(raw_mf, dict) else raw_mf
                         raw_summary = raw_mf.get("summary", {}) if isinstance(raw_mf, dict) else {}
                         for h in (raw_list or []):
