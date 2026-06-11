@@ -276,45 +276,33 @@ class OrderManager:
         return False
     
     def get_open_buy_orders(self) -> list:
-        """Fetch all open/pending BUY orders that may be blocking margin."""
+        """Fetch all open/pending BUY orders blocking margin."""
         try:
-            r = self.auth.session.get(
-                f"{Config.ZERODHA_API_BASE}/oms/orders", timeout=10
-            )
+            r = self.auth.session.get(f"{Config.ZERODHA_API_BASE}/oms/orders", timeout=10)
             if r.status_code != 200:
                 return []
-            orders = r.json().get('data', [])
-            return [
-                o for o in orders
-                if o.get('transaction_type') == 'BUY'
-                and o.get('status') in ('OPEN', 'TRIGGER PENDING', 'AMO REQ RECEIVED')
-            ]
+            return [o for o in r.json().get('data', [])
+                    if o.get('transaction_type') == 'BUY'
+                    and o.get('status') in ('OPEN', 'TRIGGER PENDING', 'AMO REQ RECEIVED')]
         except Exception as e:
             logger.warning(f"Could not fetch open orders: {e}")
             return []
 
     def cancel_open_buy_orders(self) -> int:
-        """Cancel all open BUY orders to free up blocked margin. Returns count cancelled."""
-        open_orders = self.get_open_buy_orders()
-        if not open_orders:
-            return 0
+        """Cancel all open BUY orders to free blocked margin."""
         cancelled = 0
-        for o in open_orders:
-            oid      = o.get('order_id')
-            sym      = o.get('tradingsymbol')
-            variety  = o.get('variety', Config.ORDER_VARIETY)
+        for o in self.get_open_buy_orders():
+            oid = o.get('order_id')
+            sym = o.get('tradingsymbol')
+            variety = o.get('variety', Config.ORDER_VARIETY)
             try:
                 r = self.auth.session.delete(
-                    f"{Config.ZERODHA_API_BASE}/oms/orders/{variety}/{oid}",
-                    timeout=10
-                )
+                    f"{Config.ZERODHA_API_BASE}/oms/orders/{variety}/{oid}", timeout=10)
                 if r.status_code == 200:
-                    logger.info(f"[smart_buy] Cancelled open BUY order {oid} ({sym}) to free margin")
+                    logger.info(f"[smart_buy] Cancelled open BUY {oid} ({sym}) to free margin")
                     cancelled += 1
-                else:
-                    logger.warning(f"[smart_buy] Could not cancel order {oid} ({sym}): HTTP {r.status_code}")
             except Exception as e:
-                logger.warning(f"[smart_buy] Error cancelling order {oid}: {e}")
+                logger.warning(f"[smart_buy] Error cancelling {oid}: {e}")
         return cancelled
 
     def cancel_order(self, order_id: str) -> bool:
@@ -493,9 +481,9 @@ class OrderManager:
         if not liq_price or liq_price <= 0:
             raise RuntimeError("Cannot get LIQUIDCASE price for shortfall calculation")
 
-        # ✅ FIX: add 8% buffer to shortfall to account for:
+        # ✅ FIX: add 2% buffer to shortfall to account for:
         # 1. LIQUIDCASE MARKET sell executing slightly below LTP
-        # 2. ETF price moving up during the 90s margin poll wait
+        # 2. MON100/ETF price moving up between calculation and order placement
         # 3. Zerodha margins API lag causing available cash to appear lower
         liq_to_sell = math.ceil((shortfall * 1.08) / liq_price)
         liq_held    = portfolio_tracker.liquidcase_quantity
@@ -517,13 +505,11 @@ class OrderManager:
                 f"to fund full buy of ₹{total_cost:,.2f}"
             )
 
-        # ✅ FIX: cancel any open BUY orders before LIQUIDCASE sell
-        # Open orders block margin in Zerodha's OMS — cancelling them first
-        # ensures the LIQUIDCASE proceeds are fully available for the ETF buy.
-        _cancelled = self.cancel_open_buy_orders()
-        if _cancelled:
-            logger.info(f"[smart_buy] Cancelled {_cancelled} open BUY order(s) to free margin")
-            import time as _t; _t.sleep(2)  # brief pause for OMS to release margin
+        # Cancel open BUY orders to free blocked margin before LIQUIDCASE sell
+        _ncancelled = self.cancel_open_buy_orders()
+        if _ncancelled:
+            logger.info(f"[smart_buy] Cancelled {_ncancelled} open BUY order(s) to free margin")
+            import time as _t; _t.sleep(2)
 
         # Sell LIQUIDCASE for the shortfall (CNC — delivery sell)
         liq_oid, liq_msg = self.place_order(
@@ -613,6 +599,15 @@ class OrderManager:
         # After LIQUIDCASE sell + margin poll (up to 90s), the limit price
         # captured before the poll is stale — market has moved. Force MARKET
         # so the fill is guaranteed and we don't orphan the cash.
+        # Recalculate qty using fresh LTP after 90s poll — price may have moved
+        _fresh_ltp = realtime_manager.get_ltp(buy_symbol) if realtime_manager else None
+        if _fresh_ltp and _fresh_ltp > 0 and _fresh_ltp != exec_price:
+            _safe_cash = max(0.0, (_last_cash or total_cost) - cash_reserve)
+            _fresh_qty = max(1, int(_safe_cash / _fresh_ltp))
+            if _fresh_qty != buy_quantity:
+                logger.info(f"[smart_buy] Price moved ₹{exec_price:.2f}→₹{_fresh_ltp:.2f} — qty {buy_quantity}→{_fresh_qty}")
+                buy_quantity = _fresh_qty
+
         _actual_order_type  = 'MARKET'
         _actual_limit_price = None
         if buy_order_type != 'MARKET':
@@ -620,19 +615,6 @@ class OrderManager:
                 f"[smart_buy] Overriding {buy_order_type} → MARKET after LIQUIDCASE sell "
                 f"(limit price ₹{buy_limit_price} is stale after margin poll delay)"
             )
-
-        # ✅ FIX: recalculate buy_quantity using fresh LTP after the 90s poll.
-        _fresh_ltp = realtime_manager.get_ltp(buy_symbol) if realtime_manager else None
-        if _fresh_ltp and _fresh_ltp > 0 and _fresh_ltp != exec_price:
-            _safe_cash   = max(0.0, (_last_cash or total_cost) - cash_reserve)
-            _fresh_qty   = max(1, int(_safe_cash / _fresh_ltp))
-            if _fresh_qty != buy_quantity:
-                logger.info(
-                    f"[smart_buy] Price moved ₹{exec_price:.2f}→₹{_fresh_ltp:.2f} during poll — "
-                    f"adjusting qty {buy_quantity}→{_fresh_qty} "
-                    f"(safe cash ₹{_safe_cash:,.2f} / ₹{_fresh_ltp:.2f})"
-                )
-                buy_quantity = _fresh_qty
 
         buy_oid, buy_msg = self.place_order(
             buy_symbol, 'BUY', buy_quantity,
