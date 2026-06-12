@@ -2529,7 +2529,7 @@ function render(data) {
     // fmtRupee: full Indian-format rupee string for tooltips and summary
     const fmtRupee = v => '₹' + Number(v).toLocaleString('en-IN', {maximumFractionDigits: 2});
     // Day's P&L chip — always show value; 0 is a valid real figure once day_change deploys
-    const dayChip = `<span>Day's P&L <strong class="${dpnl>=0?'pos':'neg'}" title="${fmtRupee(dpnl)}">${dpnl>=0?'+':''}${fmtL(dpnl)}</strong> ` +
+    const dayChip = `<span id="mf-day-pnl-chip">Day's P&L <strong class="${dpnl>=0?'pos':'neg'}" title="${fmtRupee(dpnl)}">${dpnl>=0?'+':''}${fmtL(dpnl)}</strong> ` +
       `<span class="badge" style="background:${dpnl>=0?'var(--green-d)':'var(--red-d)'};color:${dpnl>=0?'var(--green)':'var(--red)'}">${dpct>=0?'+':''}${dpct.toFixed(2)}%</span></span>`;
     mfChips.innerHTML =
       `<span>Invested <strong style="color:var(--text)" title="${fmtRupee(mfSummary.total_invested)}">₹${fmtL(mfSummary.total_invested)}</strong></span>` +
@@ -2546,16 +2546,20 @@ function render(data) {
       // Net chg. column — show day_pnl (₹) + day_chg_pct (%) always; both are 0 until day_change deploys
       const dc = (h.day_chg_pct ?? 0) >= 0 ? "pos" : "neg";
       const dayCell = `<span class="${dc}">${(h.day_pnl ?? 0) !== 0 ? `<div>${h.day_pnl>=0?'+':''}${fmtL(h.day_pnl)}</div>` : ''}${(h.day_chg_pct??0)>=0?'+':''}${(h.day_chg_pct??0).toFixed(2)}%</span>`;
+      const dayCellId = `mf-dc-${h.tradingsymbol || h.folio}`;
       return `<tr>
         <td style="padding-left:14px">
           <div class="sym" style="font-size:12px;white-space:normal">${h.name}</div>
-          ${h.folio ? `<div style="font-size:10px;color:var(--muted)">Folio ${h.folio} &nbsp;·&nbsp; ${h.units} units @ ₹${h.avg_nav}${h.pledged_units > 0 ? ` &nbsp;<span title="Pledged as collateral">(P: ${h.pledged_units})</span>` : ''}</div>` : ""}
+          ${h.folio ? `<div style="font-size:10px;color:var(--muted)">Folio ${h.folio} &nbsp;·&nbsp; ${(h.units||0).toFixed(3)} units @ ₹${(h.avg_nav||0).toFixed(3)}${(h.pledged_units||0) > 0 ? ` &nbsp;<span title="Pledged as collateral">(P: ${h.pledged_units})</span>` : ''}</div>` : ""}
         </td>
         <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.cur_val)}">₹${fmtL(h.cur_val)}</td>
         <td style="text-align:right;padding-right:14px;font-size:12px" class="${pc}" title="${fmtRupee(h.pnl)}">${h.pnl>=0?'+':''}${fmtL(h.pnl)}<div style="font-size:10px">${h.pnl_pct>=0?'+':''}${h.pnl_pct.toFixed(2)}%</div></td>
-        <td style="text-align:right;padding-right:14px;font-size:12px">${dayCell}</td>
+        <td style="text-align:right;padding-right:14px;font-size:12px" id="${dayCellId}"><span style="color:var(--muted);font-size:10px">…</span></td>
       </tr>`;
     }).join("") : `<tr><td colspan="4" class="empty" style="padding:18px">Mutual fund data not yet available — will populate on next bot snapshot</td></tr>`;
+
+    // Fetch day change from mfapi.in (uses AMFI data, free, no auth)
+    _fetchMFDayChange(mfHoldings, mfSummary);
   }
 
   // Slot matrix — active strategy + dip accumulator (BNH) sections
@@ -3272,6 +3276,80 @@ function renderScanResults() {
       <td>${dmaHtml}</td><td>${sig}</td>
     </tr>`;
   }).join('');
+}
+
+
+// ── AMFI / mfapi.in day-change fetcher ──────────────────────────────────────
+const _mfDayCache = {};
+
+async function _fetchMFDayChange(holdings, summary) {
+  if (!holdings || !holdings.length) return;
+  let totalDayPnl = 0;
+  let anyFetched  = false;
+
+  for (const h of holdings) {
+    const sym   = h.tradingsymbol || "";
+    const cellId = `mf-dc-${sym || h.folio}`;
+    const el    = document.getElementById(cellId);
+
+    // Use mfapi.in — free AMFI mirror, returns latest 2 NAVs
+    const url = sym ? `https://api.mfapi.in/mf/${sym}/latest` : null;
+    if (!url) { if (el) el.innerHTML = `<span style="color:var(--muted)">—</span>`; continue; }
+
+    if (_mfDayCache[sym] !== undefined) {
+      _applyMFDayCell(el, h, _mfDayCache[sym]);
+      totalDayPnl += (_mfDayCache[sym]?.dayPnl ?? 0);
+      anyFetched = true;
+      continue;
+    }
+
+    try {
+      const r = await fetch(url, { cache: "no-store" });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const d = await r.json();
+      const navs = d.data || [];
+      if (navs.length >= 2) {
+        const today = parseFloat(navs[0].nav);
+        const prev  = parseFloat(navs[1].nav);
+        const chgPct = ((today - prev) / prev) * 100;
+        const chgAbs = today - prev;
+        const dayPnl = chgAbs * h.units;
+        _mfDayCache[sym] = { chgPct, chgAbs, dayPnl };
+        _applyMFDayCell(el, h, _mfDayCache[sym]);
+        totalDayPnl += dayPnl;
+        anyFetched = true;
+      } else {
+        _mfDayCache[sym] = null;
+        if (el) el.innerHTML = `<span style="color:var(--muted)">—</span>`;
+      }
+    } catch(e) {
+      _mfDayCache[sym] = null;
+      if (el) el.innerHTML = `<span style="color:var(--muted)">—</span>`;
+    }
+    // Small delay to avoid rate limiting
+    await new Promise(r => setTimeout(r, 150));
+  }
+
+  // Update Day's P&L chip in header
+  if (anyFetched && summary) {
+    const inv  = summary.total_invested || 0;
+    const dpct = inv > 0 ? (totalDayPnl / inv) * 100 : 0;
+    const cls  = totalDayPnl >= 0 ? "pos" : "neg";
+    const chip = document.getElementById("mf-day-pnl-chip");
+    if (chip) {
+      chip.innerHTML =
+        `Day's P&L <strong class="${cls}">${totalDayPnl>=0?'+':''}${fmtL(totalDayPnl)}</strong> ` +
+        `<span class="${cls} chip ${totalDayPnl>=0?'chip-g':'chip-r'}">${dpct>=0?'+':''}${dpct.toFixed(2)}%</span>`;
+    }
+  }
+}
+
+function _applyMFDayCell(el, h, cache) {
+  if (!el || !cache) return;
+  const cls = cache.chgPct >= 0 ? "pos" : "neg";
+  el.innerHTML =
+    `<div class="${cls}" style="font-size:11px;font-weight:600">${cache.dayPnl>=0?'+':''}${fmtL(cache.dayPnl)}</div>` +
+    `<div class="${cls}" style="font-size:10px">${cache.chgPct>=0?'+':''}${cache.chgPct.toFixed(2)}%</div>`;
 }
 
 </script>
