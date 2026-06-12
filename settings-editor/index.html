@@ -547,8 +547,9 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <th style="text-align:left;padding-left:14px">Instrument</th>
         <th style="text-align:right;padding-right:14px">Cur. Val</th>
         <th style="text-align:right;padding-right:14px">P&amp;L</th>
+        <th style="text-align:right;padding-right:14px">Net chg.</th>
       </tr></thead>
-      <tbody id="mf-tbl-body"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+      <tbody id="mf-tbl-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
     </table>
   </div>
   </div>
@@ -2412,14 +2413,6 @@ function setDot(state) {
   d.className = "dot " + state;
   t.textContent = {live:"Live ✓", off:"Offline", stale:"Stale"}[state] || "—";
 }
-  // Update bot toggle button label to reflect current state
-  const _btgBtn = document.getElementById("bot-toggle-btn");
-  if (_btgBtn && !_btgBtn.disabled) {
-    const _br = data.bot_running ?? false;
-    _btgBtn.textContent = _br ? "⏹ STOP BOT" : "▶ START BOT";
-    _btgBtn.style.background = _br ? "var(--red-d)"   : "var(--green-d)";
-    _btgBtn.style.color      = _br ? "var(--red)"     : "var(--green)";
-  }
 
 // ── Render ────────────────────────────────────────────────────────────────────
 const _dma20Cache = {}; // sym → 20DMA value (fetched once, recalculated on every render with live LTP)
@@ -2598,15 +2591,21 @@ function render(data) {
   if (mfChips && mfSummary.total_invested) {
     const tpnl = mfSummary.total_pnl ?? 0;
     const tpct = mfSummary.total_pnl_pct ?? 0;
+    const dpnl = mfSummary.day_pnl ?? 0;
+    const dpct = mfSummary.day_pnl_pct ?? 0;
     mfChips.innerHTML =
       `<span>Invested <strong style="color:var(--text)" title="${fmtRupee(mfSummary.total_invested)}">${fmtL(mfSummary.total_invested)}</strong></span>` +
       `<span>Current <strong style="color:var(--text)" title="${fmtRupee(mfSummary.total_cur_val)}">${fmtL(mfSummary.total_cur_val)}</strong></span>` +
+      `<span>Day's P&L <strong class="${dpnl>=0?'pos':'neg'}" title="${fmtRupee(dpnl)}">${dpnl>=0?'+':''}${fmtL(dpnl)}</strong> ` +
+        `<span class="badge" style="background:${dpnl>=0?'var(--green-d)':'var(--red-d)'};color:${dpnl>=0?'var(--green)':'var(--red)'}">${dpct>=0?'+':''}${dpct.toFixed(2)}%</span></span>` +
       `<span>Total P&L <strong class="${tpnl>=0?'pos':'neg'}" title="${fmtRupee(tpnl)}">${tpnl>=0?'+':''}${fmtL(tpnl)}</strong> ` +
         `<span class="badge" style="background:${tpnl>=0?'var(--green-d)':'var(--red-d)'};color:${tpnl>=0?'var(--green)':'var(--red)'}">${tpct>=0?'+':''}${tpct.toFixed(2)}%</span></span>`;
   }
   if (mfBody) {
     mfBody.innerHTML = mfHoldings.length ? mfHoldings.map(h => {
       const pc = (h.pnl ?? 0) >= 0 ? "pos" : "neg";
+      const dc = (h.day_chg_pct ?? 0) >= 0 ? "pos" : "neg";
+      const dayCell = `<span class="${dc}">${(h.day_pnl ?? 0) !== 0 ? `<div>${h.day_pnl>=0?'+':''}${fmtL(h.day_pnl)}</div>` : ''}${(h.day_chg_pct??0)>=0?'+':''}${(h.day_chg_pct??0).toFixed(2)}%</span>`;
       return `<tr>
         <td style="padding-left:14px">
           <div class="sym" style="font-size:12px;white-space:normal">${h.name}</div>
@@ -2614,6 +2613,7 @@ function render(data) {
         </td>
         <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.cur_val)}">${fmtL(h.cur_val)}</td>
         <td style="text-align:right;padding-right:14px;font-size:12px" class="${pc}" title="${fmtRupee(h.pnl)}">${h.pnl>=0?'+':''}${fmtL(h.pnl)}<div style="font-size:10px">${(h.pnl_pct??0)>=0?'+':''}${(h.pnl_pct??0).toFixed(2)}%</div></td>
+        <td style="text-align:right;padding-right:14px;font-size:12px">${dayCell}</td>
       </tr>`;
     }).join("") : `<tr><td colspan="4" class="empty" style="padding:18px">Mutual fund data not yet available — will populate on next bot snapshot</td></tr>`;
   }
@@ -2828,6 +2828,14 @@ async function refreshAll() {
   const snapDate = parseSnapTs(snapTs);
   const ageMin  = !isNaN(snapDate) ? (Date.now() - snapDate.getTime()) / 60000 : 999;
   const botOn   = data.bot_running !== false;
+
+  // Update bot toggle button label to reflect current state
+  const _btgBtn = document.getElementById("bot-toggle-btn");
+  if (_btgBtn && !_btgBtn.disabled) {
+    _btgBtn.textContent = botOn ? "⏹ STOP BOT" : "▶ START BOT";
+    _btgBtn.style.background = botOn ? "var(--red-d)"   : "var(--green-d)";
+    _btgBtn.style.color      = botOn ? "var(--red)"     : "var(--green)";
+  }
 
   // ── Market-hours awareness (IST 09:15–15:30 Mon–Fri) ─────────────────────
   const nowIST    = new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
