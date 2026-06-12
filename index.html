@@ -85,13 +85,19 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 
 /* ── mobile ── */
 @media(max-width:600px){
-  header{padding:10px 14px}
-  .logo h1{font-size:16px}
+  header{padding:0 10px;height:48px}
+  .logo h1{font-size:15px}
   .logo .sub{display:none}
-  .hdr-right{gap:8px}
+  .hdr-right{gap:6px;margin-left:10px}
+  /* Hide NIFTY/VIX chips on mobile — not enough room */
+  .idx-chips{display:none}
+  /* Hide timestamp row, keep only Refresh button */
+  .ts{display:none}
+  .rbtn-wrap{flex-direction:row;gap:0}
   .pill{padding:3px 8px;font-size:10px}
-  .rbtn{padding:4px 9px;font-size:10px}
-  .ts{font-size:9px}
+  .rbtn{padding:4px 8px;font-size:10px}
+  /* Shrink bot toggle button */
+  #bot-toggle-btn{padding:4px 8px!important;font-size:10px!important;letter-spacing:0!important}
   .tabs{padding:0 10px}
   .tab{padding:9px 12px;font-size:11px}
   main{padding:12px 10px}
