@@ -226,8 +226,14 @@ jobs:
         run: |
           (
             cd "$GITHUB_WORKSPACE"
+            _rd_first=1
             while true; do
-              sleep 120
+              if [ "$_rd_first" = "1" ]; then
+                _rd_first=0
+                sleep 30
+              else
+                sleep 120
+              fi
               if [ -f /tmp/status_rd1858.json ]; then
                 # Reset worktree each cycle to avoid stale rebase state
                 if [ -d /tmp/gh-pages-rd1858 ]; then
@@ -361,8 +367,14 @@ jobs:
         run: |
           (
             cd "$GITHUB_WORKSPACE"
+            _ps_first=1
             while true; do
-              sleep 120
+              if [ "$_ps_first" = "1" ]; then
+                _ps_first=0
+                sleep 30
+              else
+                sleep 120
+              fi
               if [ -f /tmp/status_ps5673.json ]; then
                 # Reset worktree each cycle to avoid stale rebase state
                 if [ -d /tmp/gh-pages-ps5673 ]; then
