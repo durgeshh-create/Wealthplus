@@ -44,6 +44,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:14p
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 .ts{font-size:10px;color:var(--muted)}
 .rbtn{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--muted2);cursor:pointer;font-family:var(--mono);font-size:11px;padding:5px 12px;transition:all .15s}
+.rbtn-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
 .rbtn:hover{border-color:var(--accent);color:var(--text)}
 .rbtn.spin{animation:rspin .8s linear infinite}
 @keyframes rspin{to{transform:rotate(360deg)}}
@@ -442,19 +443,21 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 <header>
   <div class="logo"><h1>WealthAlgo</h1><span class="sub">Live Dashboard</span></div>
   <div class="hdr-right">
+    <div class="rbtn-wrap">
+      <button class="rbtn" id="rbtn" onclick="refreshAll()">&#8635; Refresh</button>
+      <div class="ts" id="last-ts" style="text-align:center">&mdash;</div>
+    </div>
+    <div class="pill"><div class="dot" id="bot-dot"></div><span id="bot-txt">Loading&hellip;</span></div>
+    <div class="idx-chips">
+      <div class="idx-chip" id="chip-nifty50"><span class="ic-name">NIFTY 50</span><span class="ic-val">—</span><span class="ic-chg neu">—</span></div>
+      <div class="idx-chip" id="chip-indiavix"><span class="ic-name">INDIA VIX</span><span class="ic-val">—</span><span class="ic-chg neu">—</span></div>
+    </div>
     <button id="bot-toggle-btn" onclick="toggleBot()" style="
       padding:5px 14px;border-radius:6px;border:1px solid var(--border);
       background:var(--bg3);color:var(--text);font-size:11px;font-weight:600;
       cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s
     " title="Start or stop the trading bot">⏯ BOT</button>
-    <div class="idx-chips">
-      <div class="idx-chip" id="chip-nifty50"><span class="ic-name">NIFTY 50</span><span class="ic-val">—</span><span class="ic-chg neu">—</span></div>
-      <div class="idx-chip" id="chip-indiavix"><span class="ic-name">INDIA VIX</span><span class="ic-val">—</span><span class="ic-chg neu">—</span></div>
-    </div>
-    <div class="pill"><div class="dot" id="bot-dot"></div><span id="bot-txt">Loading&hellip;</span></div>
-    <span class="ts" id="last-ts">&mdash;</span>
-    <button class="rbtn" id="rbtn" onclick="refreshAll()">&#8635; Refresh</button>
-    <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px;margin-left:4px" title="Lock">&#128274;</button>
+    <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px" title="Lock">&#128274;</button>
   </div>
 </header>
 
@@ -490,7 +493,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <div class="ph"><span class="pt">Today's Positions</span><span class="pb" id="pos-count">—</span></div>
         <div class="scroll">
           <table class="tbl">
-            <thead><tr><th>Symbol</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>Unrealised</th><th>Realised</th></tr></thead>
+            <thead><tr><th>Symbol</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>Unrealised</th><th>Realised</th><th style="text-align:right">Δ Delta</th></tr></thead>
             <tbody id="pos-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
           </table>
         </div>
@@ -2502,9 +2505,17 @@ function render(data) {
   const positions = data.positions ?? [];
   document.getElementById("pos-count").textContent = positions.length + " positions";
   const pb = document.getElementById("pos-body");
+  // Detect option symbols: tradingsymbol ends in CE or PE
+  const isOption = sym => /[CP]E$/.test(sym);
   pb.innerHTML = positions.length ? positions.map(p => {
-    const unr = p.unrealised ?? p.pnl ?? 0;
-    const rel = p.realised ?? 0;
+    const unr    = p.unrealised ?? p.pnl ?? 0;
+    const rel    = p.realised ?? 0;
+    const optFlg = isOption(p.symbol);
+    // Delta cell — populated async via option chain fetch
+    const deltaId = `delta-${p.symbol.replace(/[^a-zA-Z0-9]/g,"-")}`;
+    const deltaCell = optFlg
+      ? `<td id="${deltaId}" style="font-size:11px;color:var(--muted);text-align:right">…</td>`
+      : `<td style="color:var(--muted);text-align:right">—</td>`;
     return `<tr>
       <td><span class="sym">${p.symbol}</span>${p.product ? `<span class="tag tag-a" style="font-size:8px">${p.product}</span>` : ""}</td>
       <td>${p.quantity > 0 ? "+" : ""}${p.quantity}</td>
@@ -2512,8 +2523,13 @@ function render(data) {
       <td>${fmtR(p.ltp)}</td>
       <td class="${unr >= 0 ? 'pos' : 'neg'}">${unr >= 0 ? "+" : ""}${fmtL(unr)}</td>
       <td class="${rel >= 0 ? 'pos' : 'neg'}">${rel >= 0 ? "+" : ""}${fmtL(rel)}</td>
+      ${deltaCell}
     </tr>`;
-  }).join("") : `<tr><td colspan="6" class="empty">No open positions today</td></tr>`;
+  }).join("") : `<tr><td colspan="7" class="empty">No open positions today</td></tr>`;
+
+  // Fetch option delta for any option positions
+  const optPositions = positions.filter(p => isOption(p.symbol));
+  if (optPositions.length) _fetchOptionDeltas(optPositions);
 
   // Cash bar (deployed capital)
   const holdVal = holdings.reduce((a,h) => a + (h.value||0), 0);
@@ -2885,7 +2901,7 @@ async function refreshAll() {
   // ── P&L label handled inside render() via s-pnl-label ──────────────────────
 
   const now = new Date();
-  const tsText = "Refreshed " + now.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  const tsText = now.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
   const el = document.getElementById("last-ts");
   el.dataset.base = tsText;
   el.textContent = tsText;
@@ -3366,6 +3382,67 @@ function renderScanResults() {
       <td>${dmaHtml}</td><td>${sig}</td>
     </tr>`;
   }).join('');
+}
+
+
+// ── Option delta fetcher via Kite option chain ───────────────────────────────
+// Parses tradingsymbol like NIFTY2661621500PE → underlying=NIFTY, expiry=25JUN26, strike=21500, type=PE
+function _parseOptionSym(sym) {
+  const m = sym.match(/^([A-Z]+?)(\d{2})(\d{2})(\d{2,})(\d+)(CE|PE)$/);
+  if (!m) return null;
+  const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  return {
+    underlying: m[1],
+    expiry: `${m[3]}${months[parseInt(m[4])-1]}${m[2]}`,  // DD + MON + YY
+    strike: parseInt(m[5]),
+    optType: m[6]
+  };
+}
+
+const _deltaCache = {};
+async function _fetchOptionDeltas(optPositions) {
+  for (const p of optPositions) {
+    const info = _parseOptionSym(p.symbol);
+    if (!info) continue;
+    const elId = `delta-${p.symbol.replace(/[^a-zA-Z0-9]/g,"-")}`;
+    const el   = document.getElementById(elId);
+    if (!el) continue;
+
+    const cacheKey = p.symbol;
+    if (_deltaCache[cacheKey] != null) {
+      _renderDeltaCell(el, _deltaCache[cacheKey], p.quantity);
+      continue;
+    }
+
+    try {
+      // Kite option chain endpoint (requires session cookie — works in browser when logged in)
+      const url = `https://api.kite.trade/oi/chain/${info.underlying}?expiry=${info.expiry}`;
+      const r   = await fetch(url, { credentials: "include" });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const d = await r.json();
+      const chain = d.data || [];
+      const entry = chain.find(e => e.strike_price == info.strike);
+      if (!entry) { el.textContent = "—"; continue; }
+      const key   = info.optType === "CE" ? "call_options" : "put_options";
+      const delta = entry[key]?.greeks?.delta ?? entry[key]?.option_chain?.delta;
+      if (delta != null) {
+        _deltaCache[cacheKey] = parseFloat(delta);
+        _renderDeltaCell(el, _deltaCache[cacheKey], p.quantity);
+      } else {
+        el.textContent = "—";
+      }
+    } catch(e) {
+      // Option chain requires Kite login — show dashes gracefully
+      el.innerHTML = `<span style="color:var(--muted)">—</span>`;
+    }
+  }
+}
+
+function _renderDeltaCell(el, delta, qty) {
+  const notional = delta * qty;
+  const cls = notional >= 0 ? "pos" : "neg";
+  el.innerHTML = `<div style="font-size:11px;font-weight:600" class="${cls}">${delta >= 0 ? "+" : ""}${delta.toFixed(3)}</div>` +
+                 `<div style="font-size:9px;color:var(--muted)">Δ ${notional >= 0 ? "+" : ""}${notional.toFixed(1)}</div>`;
 }
 
 </script>
