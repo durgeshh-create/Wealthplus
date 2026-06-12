@@ -461,14 +461,10 @@ def write_snapshot(dashboard_state: dict):
                             ltp      = float(h.get("last_price", 0) or 0)
                             invested = round(qty * avg_nav, 2)
                             cur_val  = round(qty * ltp, 2)
-                            # Use Zerodha's own pnl field — always matches Kite exactly.
-                            # Manual (ltp-avg)*qty can diverge when the OMS returns
-                            # last-close NAV as average_price for some fund types
-                            # (e.g. index equity funds like Motilal Oswal BSE EVI).
-                            # Fall back to (cur_val - invested) only if field is absent.
-                            _z_pnl   = h.get("pnl")
-                            pnl      = round(float(_z_pnl), 2) if _z_pnl is not None else round(cur_val - invested, 2)
-                            # pnl_pct: derive from Zerodha pnl / invested so % also matches
+                            # Zerodha OMS returns pnl=0.0 and xirr=0.0 for all MF
+                            # holdings — those fields are not populated. Compute P&L
+                            # manually from (ltp - avg_nav) * total_qty.
+                            pnl      = round(cur_val - invested, 2)
                             pnl_pct  = round(pnl / invested * 100, 2) if invested else 0
                             # Zerodha MF holdings v3 returns day_change (per-unit NAV Δ)
                             # and day_change_percentage; multiply by total qty for ₹ impact.
