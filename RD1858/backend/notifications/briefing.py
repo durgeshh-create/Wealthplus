@@ -41,7 +41,16 @@ def _account() -> str:
     return os.environ.get("KITE_USER_ID", "BOT").strip()
 
 
+def _tg_enabled() -> bool:
+    try:
+        import json as _j; from pathlib import Path as _P
+        _s = _j.loads((_P(__file__).parent.parent.parent / "config" / "settings.json").read_text())
+        return _s.get("telegram_enabled", True) is not False
+    except Exception:
+        return True
+
 def _send(text: str):
+    if not _tg_enabled(): return
     """Fire-and-forget Telegram send — same implementation as utils/telegram.py
     but self-contained so briefing.py has zero import dependencies at startup."""
     token   = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
