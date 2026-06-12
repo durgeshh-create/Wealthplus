@@ -613,17 +613,17 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       </div>
       <div class="field">
         <label>Slots Count</label>
-        <input type="number" id="s-slots_count" min="1" max="10" step="1" oninput="recalcMaxCashPerTransaction()">
+        <input type="number" id="s-slots_count" min="1" max="10" step="1" oninput="recalcMaxCashPerStock()">
         <span class="hint">Number of buy tiers per symbol</span>
       </div>
       <div class="field">
         <label>Max Cash / Stock (₹)</label>
-        <input type="number" id="s-max_cash_per_stock" min="1000" step="1000" oninput="recalcMaxCashPerTransaction()">
+        <input type="number" id="s-max_cash_per_stock" min="1000" step="1000" readonly style="background:var(--bg3);color:var(--muted2);cursor:not-allowed">
       </div>
       <div class="field">
         <label>Max Cash / Transaction (₹)</label>
-        <input type="number" id="s-max_cash_per_transaction" min="1000" step="500" readonly style="background:var(--bg3);color:var(--muted2);cursor:not-allowed">
-        <span class="hint">Auto = Max Cash / Stock × Slots Count</span>
+        <input type="number" id="s-max_cash_per_transaction" min="1000" step="500" oninput="recalcMaxCashPerStock()">
+        <span class="hint">Set per-trade budget → Max Cash / Stock auto = Transaction × Slots</span>
       </div>
       <div class="field">
         <label>Min Price Drop (%)</label>
@@ -2265,7 +2265,7 @@ async function toggleBot() {
     }
 
     if (runs.length > 0) {
-      // 2a. Running → cancel it
+      // 2a. Running → cancel it, then poll until fully stopped before re-enabling
       const run = runs[0];
       const cancelResp = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${run.id}/cancel`,
         { method: "POST", headers: apiHeaders() });
@@ -2276,7 +2276,28 @@ async function toggleBot() {
         btn.textContent = "⏳ STOPPING…";
         btn.style.background = "var(--red-d)";
         btn.style.color      = "var(--red)";
+        btn.disabled = true;
       }
+      // Poll until the run is no longer in_progress/queued, then re-enable as START
+      (async () => {
+        for (let i = 0; i < 30; i++) {
+          await new Promise(r => setTimeout(r, 4000));
+          try {
+            const chk = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${run.id}`,
+              { headers: apiHeaders() });
+            if (chk.ok) {
+              const rd = await chk.json();
+              if (rd.status !== "in_progress" && rd.status !== "queued") break;
+            }
+          } catch(_) {}
+        }
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "▶ START";
+          btn.style.background = "var(--green-d)";
+          btn.style.color      = "var(--green)";
+        }
+      })();
     } else {
       // 2b. Not running → dispatch a new run
       const dispatchResp = await fetch(`${base}/dispatches`, {
@@ -2292,9 +2313,9 @@ async function toggleBot() {
         btn.style.background = "var(--green-d)";
         btn.style.color      = "var(--green)";
       }
+      // Re-enable after delay; render() will refresh label from data.bot_running
+      setTimeout(() => { if (btn) { btn.disabled = false; btn.textContent = "⏯ BOT"; btn.style.background = ""; btn.style.color = ""; } }, 8000);
     }
-    // Re-enable after a short delay; render() will refresh the label from data.bot_running
-    setTimeout(() => { if (btn) btn.disabled = false; }, 5000);
   } catch(e) {
     alert("Bot toggle error: " + e.message);
     if (btn) { btn.disabled = false; btn.textContent = "⏯ BOT"; }
@@ -3035,13 +3056,15 @@ function populateForm(s) {
   recalcMaxCashPerTransaction();
 }
 
-// ── Max Cash / Transaction = Max Cash / Stock × Slots Count (read-only, auto) ──
-function recalcMaxCashPerTransaction() {
-  const slots   = parseInt(document.getElementById('s-slots_count')?.value)        || 0;
-  const perStock = parseFloat(document.getElementById('s-max_cash_per_stock')?.value) || 0;
-  const target  = document.getElementById('s-max_cash_per_transaction');
-  if (target) target.value = (slots * perStock) || '';
+// ── Max Cash / Stock = Max Cash / Transaction × Slots Count (read-only, auto) ──
+function recalcMaxCashPerStock() {
+  const slots  = parseInt(document.getElementById('s-slots_count')?.value)             || 0;
+  const perTxn = parseFloat(document.getElementById('s-max_cash_per_transaction')?.value) || 0;
+  const target = document.getElementById('s-max_cash_per_stock');
+  if (target) target.value = slots && perTxn ? slots * perTxn : '';
 }
+// Keep old name as alias so any remaining oninput refs still work
+function recalcMaxCashPerTransaction() { recalcMaxCashPerStock(); }
 
 // ── Collect form values into a settings object ────────────────────────────────
 function collectForm() {
