@@ -31,11 +31,11 @@
 body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;line-height:1.6}
 
 /* ── header ── */
-header{display:flex;align-items:center;justify-content:flex-start;padding:14px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+header{display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06);height:52px}
 .logo{display:flex;align-items:baseline;gap:10px}
 .logo h1{font-family:var(--head);font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--accent)}
 .logo .sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
-.hdr-right{display:flex;align-items:center;gap:12px;margin-left:32px}
+.hdr-right{display:flex;align-items:center;gap:12px;margin-left:28px;flex-shrink:0}
 .pill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
 .dot.live{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
@@ -49,7 +49,7 @@ header{display:flex;align-items:center;justify-content:flex-start;padding:14px 2
 .rbtn.spin{animation:rspin .8s linear infinite}
 @keyframes rspin{to{transform:rotate(360deg)}}
 .idx-chips{display:flex;align-items:center;gap:8px;margin-right:4px}
-.idx-chip{display:flex;flex-direction:column;align-items:flex-end;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px 10px;min-width:80px;cursor:default;transition:border-color .15s}
+.idx-chip{display:flex;flex-direction:column;align-items:flex-end;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px 8px;min-width:72px;cursor:default;transition:border-color .15s}
 .idx-chip:hover{border-color:var(--accent)}
 .idx-chip .ic-name{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-family:var(--head);line-height:1.2}
 .idx-chip .ic-val{font-size:12px;font-weight:700;font-family:var(--head);color:var(--text);line-height:1.3}
@@ -637,6 +637,20 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <label>W%R Threshold</label>
         <input type="number" id="s-williams_r_threshold" min="-100" max="0" step="1">
         <span class="hint">Buy signal threshold (e.g. -80)</span>
+      </div>
+      <div class="field" style="padding:10px 0;border-top:1px solid var(--border);margin-top:4px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <label style="margin:0;font-weight:600">📨 Telegram Notifications</label>
+            <div class="hint" style="margin-top:2px">Send buy/sell/alert messages to Telegram</div>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0">
+            <span id="tg-toggle-label" style="font-size:11px;color:var(--muted)">ON</span>
+            <input type="checkbox" id="s-telegram_enabled" checked
+              onchange="document.getElementById('tg-toggle-label').textContent=this.checked?'ON':'OFF'"
+              style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
+          </label>
+        </div>
       </div>
     </div>
   </div>
@@ -3050,6 +3064,12 @@ function populateForm(s) {
   setVal('s-cash_reserve',              s.cash_reserve);
   setVal('s-profit_target_pct',         s.profit_target_pct ?? s.default_profit_target_pct);
   setVal('s-slots_count',               s.slots_count);
+  // Telegram toggle
+  const tgEl = document.getElementById('s-telegram_enabled');
+  if (tgEl) {
+    tgEl.checked = s.telegram_enabled !== false; // default ON if key absent
+    document.getElementById('tg-toggle-label').textContent = tgEl.checked ? 'ON' : 'OFF';
+  }
   setVal('s-max_cash_per_stock',        s.max_cash_per_stock);
   setVal('s-max_cash_per_transaction',  s.max_cash_per_transaction);
   setVal('s-min_price_drop_pct',        s.min_price_drop_pct);
@@ -3090,6 +3110,7 @@ function collectForm() {
     profit_target_pct:             n('s-profit_target_pct'),
     default_profit_target_pct:     n('s-profit_target_pct'),
     slots_count:                   ni('s-slots_count'),
+    telegram_enabled:              document.getElementById('s-telegram_enabled')?.checked ?? true,
     max_cash_per_stock:            n('s-max_cash_per_stock'),
     max_cash_per_transaction:      n('s-max_cash_per_transaction'),
     min_price_drop_pct:            n('s-min_price_drop_pct'),
