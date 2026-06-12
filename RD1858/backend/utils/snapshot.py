@@ -114,7 +114,6 @@ def write_snapshot(dashboard_state: dict):
                         except Exception:
                             pass
                 import sys as _sys
-                print(f"[snapshot] {sym}: ltp={ltp} prev_close={prev_close}({prev_close_src}) qty={qty}", flush=True, file=_sys.stderr)
                 today_move = round((ltp - prev_close) * qty, 2) if prev_close and prev_close > 0 else 0.0
                 today_move_pct = round((ltp - prev_close) / prev_close * 100, 2) if prev_close and prev_close > 0 else 0.0
 
@@ -442,13 +441,6 @@ def write_snapshot(dashboard_state: dict):
                         mf_data  = mf_resp.json()
                         raw_list = mf_data.get("data", []) or []
                         # DEBUG: log raw field names + values from first holding so we
-                        # can confirm exact Kite API field names (remove after confirmed)
-                        if raw_list:
-                            import sys as _dbgsys
-                            _h0 = raw_list[0]
-                            print(f"[snapshot] MF raw fields for '{_h0.get('fund','?')}': "
-                                  + ", ".join(f"{k}={v!r}" for k, v in _h0.items()),
-                                  file=_dbgsys.stderr, flush=True)
                         for h in raw_list:
                             # quantity field from Zerodha OMS = TOTAL units (free + pledged).
                             # pledged_quantity is a SUBSET of quantity — do NOT add them.
