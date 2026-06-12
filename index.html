@@ -418,7 +418,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
        Your token is stored only in your browser (localStorage) and never sent anywhere except GitHub.</p>
     <input id="cfg-owner" placeholder="GitHub username  (e.g. durgeshh-create)" autocomplete="off">
     <input id="cfg-repo"  placeholder="Repository name  (e.g. Wealthplus)" autocomplete="off">
-    <input id="cfg-token" type="password" placeholder="GitHub Personal Access Token (needs repo scope)" autocomplete="off">
+    <input id="cfg-token" type="password" placeholder="GitHub Personal Access Token (needs repo + workflow scope)" autocomplete="off">
     <div id="cfg-test-status" style="font-size:11px;min-height:16px;margin-bottom:6px;color:var(--muted)"></div>
     <button class="btn-primary" onclick="saveConfig()">Connect →</button>
     <button class="btn-primary" onclick="testGitHubToken()"
@@ -547,8 +547,9 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <th style="text-align:left;padding-left:14px">Instrument</th>
         <th style="text-align:right;padding-right:14px">Cur. Val</th>
         <th style="text-align:right;padding-right:14px">P&amp;L</th>
+        <th style="text-align:right;padding-right:14px">Net chg.</th>
       </tr></thead>
-      <tbody id="mf-tbl-body"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+      <tbody id="mf-tbl-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
     </table>
   </div>
   </div>
@@ -613,16 +614,17 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       </div>
       <div class="field">
         <label>Slots Count</label>
-        <input type="number" id="s-slots_count" min="1" max="10" step="1">
+        <input type="number" id="s-slots_count" min="1" max="10" step="1" oninput="recalcMaxCashPerTransaction()">
         <span class="hint">Number of buy tiers per symbol</span>
       </div>
       <div class="field">
         <label>Max Cash / Stock (₹)</label>
-        <input type="number" id="s-max_cash_per_stock" min="1000" step="1000">
+        <input type="number" id="s-max_cash_per_stock" min="1000" step="1000" oninput="recalcMaxCashPerTransaction()">
       </div>
       <div class="field">
         <label>Max Cash / Transaction (₹)</label>
-        <input type="number" id="s-max_cash_per_transaction" min="1000" step="500">
+        <input type="number" id="s-max_cash_per_transaction" min="1000" step="500" readonly style="background:var(--bg3);color:var(--muted2);cursor:not-allowed">
+        <span class="hint">Auto = Max Cash / Stock × Slots Count</span>
       </div>
       <div class="field">
         <label>Min Price Drop (%)</label>
@@ -2243,24 +2245,57 @@ function togglePwEye() {
 }
 async function toggleBot() {
   const btn = document.getElementById("bot-toggle-btn");
+  const cfg = getCfg();
+  if (!cfg.owner || !cfg.repo || !cfg.token) {
+    alert("Please configure GitHub owner / repo / token first (Setup).");
+    return;
+  }
   if (btn) { btn.disabled = true; btn.textContent = "…"; }
+  const WORKFLOW_FILE = "trading-bot.yml";
+  const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
+
   try {
-    // Try POST /api/bot/toggle — the dashboard server exposes this endpoint.
-    // It returns {running: true/false} to reflect the new state.
-    const resp = await fetch("/api/bot/toggle", { method: "POST" });
-    if (resp.ok) {
-      const data = await resp.json();
-      const running = data.running ?? data.bot_running ?? null;
+    // 1. Check for an in-progress / queued run
+    const runsResp = await fetch(`${base}/runs?status=in_progress&per_page=5`, { headers: apiHeaders() });
+    if (!runsResp.ok) throw new Error(`GitHub API ${runsResp.status}: ${await runsResp.text()}`);
+    const runsData = await runsResp.json();
+    let runs = runsData.workflow_runs || [];
+    if (runs.length === 0) {
+      const queuedResp = await fetch(`${base}/runs?status=queued&per_page=5`, { headers: apiHeaders() });
+      if (queuedResp.ok) runs = (await queuedResp.json()).workflow_runs || [];
+    }
+
+    if (runs.length > 0) {
+      // 2a. Running → cancel it
+      const run = runs[0];
+      const cancelResp = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${run.id}/cancel`,
+        { method: "POST", headers: apiHeaders() });
+      if (!cancelResp.ok && cancelResp.status !== 202) {
+        throw new Error(`Cancel failed: ${cancelResp.status} ${await cancelResp.text()}`);
+      }
       if (btn) {
-        btn.textContent = running ? "⏹ STOP BOT" : "▶ START BOT";
-        btn.style.background = running ? "var(--red-d)" : "var(--green-d)";
-        btn.style.color      = running ? "var(--red)"   : "var(--green)";
-        btn.disabled = false;
+        btn.textContent = "⏳ STOPPING…";
+        btn.style.background = "var(--red-d)";
+        btn.style.color      = "var(--red)";
       }
     } else {
-      alert("Bot toggle failed: " + resp.status);
-      if (btn) { btn.disabled = false; btn.textContent = "⏯ BOT"; }
+      // 2b. Not running → dispatch a new run
+      const dispatchResp = await fetch(`${base}/dispatches`, {
+        method: "POST",
+        headers: apiHeaders(),
+        body: JSON.stringify({ ref: "main" }),
+      });
+      if (!dispatchResp.ok && dispatchResp.status !== 204) {
+        throw new Error(`Dispatch failed: ${dispatchResp.status} ${await dispatchResp.text()}`);
+      }
+      if (btn) {
+        btn.textContent = "⏳ STARTING…";
+        btn.style.background = "var(--green-d)";
+        btn.style.color      = "var(--green)";
+      }
     }
+    // Re-enable after a short delay; render() will refresh the label from data.bot_running
+    setTimeout(() => { if (btn) btn.disabled = false; }, 5000);
   } catch(e) {
     alert("Bot toggle error: " + e.message);
     if (btn) { btn.disabled = false; btn.textContent = "⏯ BOT"; }
@@ -2558,28 +2593,37 @@ function render(data) {
   const mfPanel    = document.getElementById("mf-panel");
   const mfBody     = document.getElementById("mf-tbl-body");
   const mfChips    = document.getElementById("mf-summary-chips");
+  // fmtRupee: full Indian-locale value for title tooltips (no "₹₹" — fmtL already adds ₹)
+  const fmtRupee = v => '₹' + Number(v ?? 0).toLocaleString('en-IN', {maximumFractionDigits: 2});
   if (mfPanel) mfPanel.style.display = ""; // always visible — shows placeholder when empty
   if (mfChips && mfSummary.total_invested) {
+    const tpnl = mfSummary.total_pnl ?? 0;
+    const tpct = mfSummary.total_pnl_pct ?? 0;
+    const dpnl = mfSummary.day_pnl ?? 0;
+    const dpct = mfSummary.day_pnl_pct ?? 0;
     mfChips.innerHTML =
       `<span>Invested <strong style="color:var(--text)" title="${fmtRupee(mfSummary.total_invested)}">${fmtL(mfSummary.total_invested)}</strong></span>` +
       `<span>Current <strong style="color:var(--text)" title="${fmtRupee(mfSummary.total_cur_val)}">${fmtL(mfSummary.total_cur_val)}</strong></span>` +
+      `<span>Day's P&L <strong class="${dpnl>=0?'pos':'neg'}" title="${fmtRupee(dpnl)}">${dpnl>=0?'+':''}${fmtL(dpnl)}</strong> ` +
+        `<span class="badge" style="background:${dpnl>=0?'var(--green-d)':'var(--red-d)'};color:${dpnl>=0?'var(--green)':'var(--red)'}">${dpct>=0?'+':''}${dpct.toFixed(2)}%</span></span>` +
       `<span>Total P&L <strong class="${tpnl>=0?'pos':'neg'}" title="${fmtRupee(tpnl)}">${tpnl>=0?'+':''}${fmtL(tpnl)}</strong> ` +
         `<span class="badge" style="background:${tpnl>=0?'var(--green-d)':'var(--red-d)'};color:${tpnl>=0?'var(--green)':'var(--red)'}">${tpct>=0?'+':''}${tpct.toFixed(2)}%</span></span>`;
   }
   if (mfBody) {
-    // fmtRupee: full Indian-locale value for title tooltip on each cell
-    const fmtRupee = v => '₹' + Number(v).toLocaleString('en-IN', {maximumFractionDigits: 2});
     mfBody.innerHTML = mfHoldings.length ? mfHoldings.map(h => {
-      const pc = h.pnl >= 0 ? "pos" : "neg";
+      const pc = (h.pnl ?? 0) >= 0 ? "pos" : "neg";
+      const dc = (h.day_chg_pct ?? 0) >= 0 ? "pos" : "neg";
+      const dayCell = `<span class="${dc}">${(h.day_pnl ?? 0) !== 0 ? `<div>${h.day_pnl>=0?'+':''}${fmtL(h.day_pnl)}</div>` : ''}${(h.day_chg_pct??0)>=0?'+':''}${(h.day_chg_pct??0).toFixed(2)}%</span>`;
       return `<tr>
         <td style="padding-left:14px">
           <div class="sym" style="font-size:12px;white-space:normal">${h.name}</div>
           ${h.folio ? `<div style="font-size:10px;color:var(--muted)">Folio ${h.folio} &nbsp;·&nbsp; ${h.units} units @ ₹${h.avg_nav}${h.pledged_units > 0 ? ` &nbsp;<span title="Pledged as collateral">(P: ${h.pledged_units})</span>` : ''}</div>` : ""}
         </td>
-        <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.cur_val)}">₹${fmtL(h.cur_val)}</td>
-        <td style="text-align:right;padding-right:14px;font-size:12px" class="${pc}" title="${fmtRupee(h.pnl)}">${h.pnl>=0?'+':''}${fmtL(h.pnl)}<div style="font-size:10px">${h.pnl_pct>=0?'+':''}${h.pnl_pct.toFixed(2)}%</div></td>
+        <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.cur_val)}">${fmtL(h.cur_val)}</td>
+        <td style="text-align:right;padding-right:14px;font-size:12px" class="${pc}" title="${fmtRupee(h.pnl)}">${h.pnl>=0?'+':''}${fmtL(h.pnl)}<div style="font-size:10px">${(h.pnl_pct??0)>=0?'+':''}${(h.pnl_pct??0).toFixed(2)}%</div></td>
+        <td style="text-align:right;padding-right:14px;font-size:12px">${dayCell}</td>
       </tr>`;
-    }).join("") : `<tr><td colspan="3" class="empty" style="padding:18px">Mutual fund data not yet available — will populate on next bot snapshot</td></tr>`;
+    }).join("") : `<tr><td colspan="4" class="empty" style="padding:18px">Mutual fund data not yet available — will populate on next bot snapshot</td></tr>`;
   }
 
   // Slot matrix — active strategy + dip accumulator (BNH) sections
@@ -2996,6 +3040,15 @@ function populateForm(s) {
   _bnhSym    = [...(s.bnh_symbols  || [])];
   renderChips('active');
   renderChips('bnh');
+  recalcMaxCashPerTransaction();
+}
+
+// ── Max Cash / Transaction = Max Cash / Stock × Slots Count (read-only, auto) ──
+function recalcMaxCashPerTransaction() {
+  const slots   = parseInt(document.getElementById('s-slots_count')?.value)        || 0;
+  const perStock = parseFloat(document.getElementById('s-max_cash_per_stock')?.value) || 0;
+  const target  = document.getElementById('s-max_cash_per_transaction');
+  if (target) target.value = (slots * perStock) || '';
 }
 
 // ── Collect form values into a settings object ────────────────────────────────
