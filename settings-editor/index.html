@@ -2859,7 +2859,9 @@ async function refreshAll() {
                      && istMin <= 930;  // 15:30
   // Only flag stale during market hours when bot should be pushing data
   // Snapshot writes every 2 min + GH Actions pushes every 2 min = ~4 min max lag; 7 min gives headroom
-  const isStale = botOn && isMarketHours && ageMin > 7;
+  // Startup: pip+playwright+auth≈5-6min, first push≈30s after snapshot written → ~6.5min total
+  // 15min threshold avoids false stale on startup while still catching real bot failures
+  const isStale = botOn && isMarketHours && ageMin > 15;
 
   // ── Dot + banners ─────────────────────────────────────────────────────────
   const staleBanner   = document.getElementById("stale-banner");
