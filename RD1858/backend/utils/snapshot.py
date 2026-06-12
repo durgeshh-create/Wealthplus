@@ -461,37 +461,34 @@ def write_snapshot(dashboard_state: dict):
                             ltp      = float(h.get("last_price", 0) or 0)
                             invested = round(qty * avg_nav, 2)
                             cur_val  = round(qty * ltp, 2)
-                            # Use Zerodha's own pnl field if available — it accounts
-                            # for corporate actions, switches, and is always accurate.
-                            z_pnl = h.get("pnl")
-                            if z_pnl is not None:
-                                pnl     = round(float(z_pnl), 2)
-                                pnl_pct = round(pnl / invested * 100, 2) if invested else 0
-                            else:
-                                pnl     = round(cur_val - invested, 2)
-                                pnl_pct = round(pnl / invested * 100, 2) if invested else 0
-
-                            # Day change — Zerodha returns day_change (per-unit) if available
+                            # Use Zerodha's own pnl field — always matches Kite exactly.
+                            # Manual (ltp-avg)*qty can diverge when the OMS returns
+                            # last-close NAV as average_price for some fund types
+                            # (e.g. index equity funds like Motilal Oswal BSE EVI).
+                            # Fall back to (cur_val - invested) only if field is absent.
+                            _z_pnl   = h.get("pnl")
+                            pnl      = round(float(_z_pnl), 2) if _z_pnl is not None else round(cur_val - invested, 2)
+                            # pnl_pct: derive from Zerodha pnl / invested so % also matches
+                            pnl_pct  = round(pnl / invested * 100, 2) if invested else 0
+                            # Zerodha MF holdings v3 returns day_change (per-unit NAV Δ)
+                            # and day_change_percentage; multiply by total qty for ₹ impact.
                             day_chg_abs = float(h.get("day_change", 0) or 0)
                             day_chg_pct = float(h.get("day_change_percentage", 0) or 0)
                             day_pnl_h   = round(day_chg_abs * qty, 2)
-                            tradingsym  = h.get("tradingsymbol", "")
-
                             mf_holdings.append({
-                                "name":          h.get("fund", tradingsym),
+                                "name":          h.get("fund", h.get("tradingsymbol", "")),
                                 "folio":         h.get("folio", ""),
-                                "tradingsymbol": tradingsym,
-                                "units":         round(qty, 4),
-                                "free_units":    round(free_qty, 4),
-                                "pledged_units": round(pledged_qty, 4),
-                                "avg_nav":       round(avg_nav, 4),
-                                "ltp":           round(ltp, 4),
+                                "units":         round(qty, 3),
+                                "free_units":    round(free_qty, 3),
+                                "pledged_units": round(pledged_qty, 3),
+                                "avg_nav":       round(avg_nav, 3),
+                                "ltp":           round(ltp, 3),
                                 "invested":      invested,
                                 "cur_val":       cur_val,
                                 "pnl":           pnl,
                                 "pnl_pct":       pnl_pct,
                                 "day_chg_abs":   day_chg_abs,
-                                "day_chg_pct":   round(day_chg_pct, 4),
+                                "day_chg_pct":   round(day_chg_pct, 2),
                                 "day_pnl":       day_pnl_h,
                             })
                         total_invested = sum(h["invested"] for h in mf_holdings)
@@ -508,7 +505,7 @@ def write_snapshot(dashboard_state: dict):
                             "day_pnl":          round(total_day_pnl, 2),
                             "day_pnl_pct":      round(total_day_pnl_pct, 2),
                             # Temporary: expose raw API fields so field names can be verified
-
+                            "debug_raw_first":  {k: v for k, v in (raw_list[0].items() if raw_list else {}.items())},
                         }
         except Exception as _mfe:
             import sys as _mfsys
