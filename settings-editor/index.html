@@ -31,11 +31,11 @@
 body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;line-height:1.6}
 
 /* ── header ── */
-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+header{display:flex;align-items:center;justify-content:flex-start;padding:14px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
 .logo{display:flex;align-items:baseline;gap:10px}
 .logo h1{font-family:var(--head);font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--accent)}
 .logo .sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
-.hdr-right{display:flex;align-items:center;gap:14px}
+.hdr-right{display:flex;align-items:center;gap:12px;margin-left:32px}
 .pill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
 .dot.live{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
@@ -493,7 +493,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <div class="ph"><span class="pt">Today's Positions</span><span class="pb" id="pos-count">—</span></div>
         <div class="scroll">
           <table class="tbl">
-            <thead><tr><th>Symbol</th><th>Qty</th><th>Avg ₹</th><th>LTP ₹</th><th>Unrealised</th><th>Realised</th><th style="text-align:right">Δ Delta</th></tr></thead>
+            <thead><tr><th>SYMBOL</th><th>QTY</th><th>AVG ₹</th><th>LTP ₹</th><th>UNREALISED</th><th>REALISED</th></tr></thead>
             <tbody id="pos-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
           </table>
         </div>
@@ -2512,10 +2512,6 @@ function render(data) {
     const rel    = p.realised ?? 0;
     const optFlg = isOption(p.symbol);
     // Delta cell — populated async via option chain fetch
-    const deltaId = `delta-${p.symbol.replace(/[^a-zA-Z0-9]/g,"-")}`;
-    const deltaCell = optFlg
-      ? `<td id="${deltaId}" style="font-size:11px;color:var(--muted);text-align:right">…</td>`
-      : `<td style="color:var(--muted);text-align:right">—</td>`;
     return `<tr>
       <td><span class="sym">${p.symbol}</span>${p.product ? `<span class="tag tag-a" style="font-size:8px">${p.product}</span>` : ""}</td>
       <td>${p.quantity > 0 ? "+" : ""}${p.quantity}</td>
@@ -2523,13 +2519,8 @@ function render(data) {
       <td>${fmtR(p.ltp)}</td>
       <td class="${unr >= 0 ? 'pos' : 'neg'}">${unr >= 0 ? "+" : ""}${fmtL(unr)}</td>
       <td class="${rel >= 0 ? 'pos' : 'neg'}">${rel >= 0 ? "+" : ""}${fmtL(rel)}</td>
-      ${deltaCell}
     </tr>`;
   }).join("") : `<tr><td colspan="7" class="empty">No open positions today</td></tr>`;
-
-  // Fetch option delta for any option positions
-  const optPositions = positions.filter(p => isOption(p.symbol));
-  if (optPositions.length) _fetchOptionDeltas(optPositions);
 
   // Cash bar (deployed capital)
   const holdVal = holdings.reduce((a,h) => a + (h.value||0), 0);
