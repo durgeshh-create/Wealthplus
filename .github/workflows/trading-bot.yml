@@ -148,6 +148,12 @@ jobs:
           key: rd1858-${{ hashFiles('RD1858/requirements.txt') }}
           restore-keys: rd1858-
 
+      - name: Cache playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-v1
+          restore-keys: playwright-chromium-${{ runner.os }}-
       - name: Restore enctoken cache (RD1858)
         uses: actions/cache/restore@v4
         with:
@@ -159,9 +165,9 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r RD1858/requirements.txt
-          pip install playwright pyotp
+          pip install --upgrade pip -q
+          pip install -r RD1858/requirements.txt -q
+          pip install playwright pyotp -q
 
       - name: Install Playwright Chromium browser
         run: playwright install chromium --with-deps
@@ -308,6 +314,12 @@ jobs:
           key: ps5673-${{ hashFiles('PS5673/requirements.txt') }}
           restore-keys: ps5673-
 
+      - name: Cache playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-v1
+          restore-keys: playwright-chromium-${{ runner.os }}-
       - name: Restore enctoken cache (PS5673)
         uses: actions/cache/restore@v4
         with:
@@ -319,9 +331,9 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r PS5673/requirements.txt
-          pip install playwright pyotp
+          pip install --upgrade pip -q
+          pip install -r PS5673/requirements.txt -q
+          pip install playwright pyotp -q
 
       - name: Install Playwright Chromium browser
         run: playwright install chromium --with-deps
