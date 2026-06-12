@@ -442,6 +442,11 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 <header>
   <div class="logo"><h1>WealthAlgo</h1><span class="sub">Live Dashboard</span></div>
   <div class="hdr-right">
+    <button id="bot-toggle-btn" onclick="toggleBot()" style="
+      padding:5px 14px;border-radius:6px;border:1px solid var(--border);
+      background:var(--bg3);color:var(--text);font-size:11px;font-weight:600;
+      cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s
+    " title="Start or stop the trading bot">⏯ BOT</button>
     <div class="idx-chips">
       <div class="idx-chip" id="chip-nifty50"><span class="ic-name">NIFTY 50</span><span class="ic-val">—</span><span class="ic-chg neu">—</span></div>
       <div class="idx-chip" id="chip-indiavix"><span class="ic-name">INDIA VIX</span><span class="ic-val">—</span><span class="ic-chg neu">—</span></div>
@@ -542,9 +547,8 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <th style="text-align:left;padding-left:14px">Instrument</th>
         <th style="text-align:right;padding-right:14px">Cur. Val</th>
         <th style="text-align:right;padding-right:14px">P&amp;L</th>
-        <th style="text-align:right;padding-right:14px">Net chg.</th>
       </tr></thead>
-      <tbody id="mf-tbl-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+      <tbody id="mf-tbl-body"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
     </table>
   </div>
   </div>
@@ -2237,6 +2241,32 @@ function togglePwEye() {
   const i = document.getElementById('pw-input');
   i.type = i.type === 'password' ? 'text' : 'password';
 }
+async function toggleBot() {
+  const btn = document.getElementById("bot-toggle-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "…"; }
+  try {
+    // Try POST /api/bot/toggle — the dashboard server exposes this endpoint.
+    // It returns {running: true/false} to reflect the new state.
+    const resp = await fetch("/api/bot/toggle", { method: "POST" });
+    if (resp.ok) {
+      const data = await resp.json();
+      const running = data.running ?? data.bot_running ?? null;
+      if (btn) {
+        btn.textContent = running ? "⏹ STOP BOT" : "▶ START BOT";
+        btn.style.background = running ? "var(--red-d)" : "var(--green-d)";
+        btn.style.color      = running ? "var(--red)"   : "var(--green)";
+        btn.disabled = false;
+      }
+    } else {
+      alert("Bot toggle failed: " + resp.status);
+      if (btn) { btn.disabled = false; btn.textContent = "⏯ BOT"; }
+    }
+  } catch(e) {
+    alert("Bot toggle error: " + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = "⏯ BOT"; }
+  }
+}
+
 function lockDashboard() {
   sessionStorage.removeItem(PW_SESSION);
   document.getElementById('pw-input').value = '';
@@ -2348,6 +2378,14 @@ function setDot(state) {
   d.className = "dot " + state;
   t.textContent = {live:"Live ✓", off:"Offline", stale:"Stale"}[state] || "—";
 }
+  // Update bot toggle button label to reflect current state
+  const _btgBtn = document.getElementById("bot-toggle-btn");
+  if (_btgBtn && !_btgBtn.disabled) {
+    const _br = data.bot_running ?? false;
+    _btgBtn.textContent = _br ? "⏹ STOP BOT" : "▶ START BOT";
+    _btgBtn.style.background = _br ? "var(--red-d)"   : "var(--green-d)";
+    _btgBtn.style.color      = _br ? "var(--red)"     : "var(--green)";
+  }
 
 // ── Render ────────────────────────────────────────────────────────────────────
 const _dma20Cache = {}; // sym → 20DMA value (fetched once, recalculated on every render with live LTP)
@@ -2522,19 +2560,9 @@ function render(data) {
   const mfChips    = document.getElementById("mf-summary-chips");
   if (mfPanel) mfPanel.style.display = ""; // always visible — shows placeholder when empty
   if (mfChips && mfSummary.total_invested) {
-    const dpnl = mfSummary.day_pnl ?? 0;
-    const dpct = mfSummary.day_pnl_pct ?? 0;
-    const tpnl = mfSummary.total_pnl ?? 0;
-    const tpct = mfSummary.total_pnl_pct ?? 0;
-    // fmtRupee: full Indian-format rupee string for tooltips and summary
-    const fmtRupee = v => '₹' + Number(v).toLocaleString('en-IN', {maximumFractionDigits: 2});
-    // Day's P&L chip — always show value; 0 is a valid real figure once day_change deploys
-    const dayChip = `<span>Day's P&L <strong class="${dpnl>=0?'pos':'neg'}" title="${fmtRupee(dpnl)}">${dpnl>=0?'+':''}${fmtL(dpnl)}</strong> ` +
-      `<span class="badge" style="background:${dpnl>=0?'var(--green-d)':'var(--red-d)'};color:${dpnl>=0?'var(--green)':'var(--red)'}">${dpct>=0?'+':''}${dpct.toFixed(2)}%</span></span>`;
     mfChips.innerHTML =
-      `<span>Invested <strong style="color:var(--text)" title="${fmtRupee(mfSummary.total_invested)}">₹${fmtL(mfSummary.total_invested)}</strong></span>` +
-      `<span>Current <strong style="color:var(--text)" title="${fmtRupee(mfSummary.total_cur_val)}">₹${fmtL(mfSummary.total_cur_val)}</strong></span>` +
-      dayChip +
+      `<span>Invested <strong style="color:var(--text)" title="${fmtRupee(mfSummary.total_invested)}">${fmtL(mfSummary.total_invested)}</strong></span>` +
+      `<span>Current <strong style="color:var(--text)" title="${fmtRupee(mfSummary.total_cur_val)}">${fmtL(mfSummary.total_cur_val)}</strong></span>` +
       `<span>Total P&L <strong class="${tpnl>=0?'pos':'neg'}" title="${fmtRupee(tpnl)}">${tpnl>=0?'+':''}${fmtL(tpnl)}</strong> ` +
         `<span class="badge" style="background:${tpnl>=0?'var(--green-d)':'var(--red-d)'};color:${tpnl>=0?'var(--green)':'var(--red)'}">${tpct>=0?'+':''}${tpct.toFixed(2)}%</span></span>`;
   }
@@ -2543,9 +2571,6 @@ function render(data) {
     const fmtRupee = v => '₹' + Number(v).toLocaleString('en-IN', {maximumFractionDigits: 2});
     mfBody.innerHTML = mfHoldings.length ? mfHoldings.map(h => {
       const pc = h.pnl >= 0 ? "pos" : "neg";
-      // Net chg. column — show day_pnl (₹) + day_chg_pct (%) always; both are 0 until day_change deploys
-      const dc = (h.day_chg_pct ?? 0) >= 0 ? "pos" : "neg";
-      const dayCell = `<span class="${dc}">${(h.day_pnl ?? 0) !== 0 ? `<div>${h.day_pnl>=0?'+':''}${fmtL(h.day_pnl)}</div>` : ''}${(h.day_chg_pct??0)>=0?'+':''}${(h.day_chg_pct??0).toFixed(2)}%</span>`;
       return `<tr>
         <td style="padding-left:14px">
           <div class="sym" style="font-size:12px;white-space:normal">${h.name}</div>
@@ -2553,9 +2578,8 @@ function render(data) {
         </td>
         <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.cur_val)}">₹${fmtL(h.cur_val)}</td>
         <td style="text-align:right;padding-right:14px;font-size:12px" class="${pc}" title="${fmtRupee(h.pnl)}">${h.pnl>=0?'+':''}${fmtL(h.pnl)}<div style="font-size:10px">${h.pnl_pct>=0?'+':''}${h.pnl_pct.toFixed(2)}%</div></td>
-        <td style="text-align:right;padding-right:14px;font-size:12px">${dayCell}</td>
       </tr>`;
-    }).join("") : `<tr><td colspan="4" class="empty" style="padding:18px">Mutual fund data not yet available — will populate on next bot snapshot</td></tr>`;
+    }).join("") : `<tr><td colspan="3" class="empty" style="padding:18px">Mutual fund data not yet available — will populate on next bot snapshot</td></tr>`;
   }
 
   // Slot matrix — active strategy + dip accumulator (BNH) sections
