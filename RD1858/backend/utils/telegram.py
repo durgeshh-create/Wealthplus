@@ -28,11 +28,27 @@ IST = timezone(timedelta(hours=5, minutes=30))
 
 # ── Core send ─────────────────────────────────────────────────────────────────
 
+def _tg_enabled() -> bool:
+    """Return False if telegram_enabled is explicitly set to false in settings.json."""
+    try:
+        import json as _json
+        from pathlib import Path as _Path
+        _cfg = _Path(__file__).parent.parent.parent / "config" / "settings.json"
+        _s   = _json.loads(_cfg.read_text())
+        return _s.get("telegram_enabled", True) is not False
+    except Exception:
+        return True  # default ON if settings unreadable
+
+
 def _send(text: str) -> bool:
     """
     Send a Telegram message. Returns True on success, False on any failure.
     Never raises — all exceptions are swallowed so trading is never interrupted.
+    Silently skips if telegram_enabled = false in settings.json.
     """
+    if not _tg_enabled():
+        return False
+
     token   = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
