@@ -450,24 +450,23 @@ def write_snapshot(dashboard_state: dict):
                                   + ", ".join(f"{k}={v!r}" for k, v in _h0.items()),
                                   file=_dbgsys.stderr, flush=True)
                         for h in raw_list:
-                            # Total units = free (redeemable) + pledged as collateral.
-                            # Kite shows pledged units with the "P: <n>" label in the
-                            # holdings UI — they are real units you own and must be
-                            # included for correct invested / cur_val / P&L figures.
-                            free_qty    = float(h.get("quantity", 0) or 0)
+                            # quantity field from Zerodha OMS = TOTAL units (free + pledged).
+                            # pledged_quantity is a SUBSET of quantity — do NOT add them.
+                            # Adding both double-counts pledged units.
+                            qty         = float(h.get("quantity", 0) or 0)
                             pledged_qty = float(h.get("pledged_quantity", 0) or 0)
-                            qty         = free_qty + pledged_qty
+                            free_qty    = max(0.0, qty - pledged_qty)
                             avg_nav  = float(h.get("average_price", 0) or 0)
+                            # last_price from OMS may be T-1 NAV (last_price_date='').
+                            # Use it as-is — it is the most recent NAV Zerodha has published.
                             ltp      = float(h.get("last_price", 0) or 0)
                             invested = round(qty * avg_nav, 2)
                             cur_val  = round(qty * ltp, 2)
-                            # Zerodha OMS returns pnl=0.0 and xirr=0.0 for all MF
-                            # holdings — those fields are not populated. Compute P&L
-                            # manually from (ltp - avg_nav) * total_qty.
+                            # Zerodha OMS returns pnl=0.0 — not populated. Compute manually.
                             pnl      = round(cur_val - invested, 2)
                             pnl_pct  = round(pnl / invested * 100, 2) if invested else 0
-                            # Zerodha MF holdings v3 returns day_change (per-unit NAV Δ)
-                            # and day_change_percentage; multiply by total qty for ₹ impact.
+                            # day_change = per-unit NAV change from previous close.
+                            # Multiply by total qty for ₹ impact.
                             day_chg_abs = float(h.get("day_change", 0) or 0)
                             day_chg_pct = float(h.get("day_change_percentage", 0) or 0)
                             day_pnl_h   = round(day_chg_abs * qty, 2)
