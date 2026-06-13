@@ -464,9 +464,9 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
     </div>
     <button id="bot-toggle-btn" onclick="toggleBot()" style="
       padding:5px 14px;border-radius:6px;border:1px solid var(--border);
-      background:var(--bg3);color:var(--text);font-size:11px;font-weight:600;
+      background:var(--bg3);color:var(--muted);font-size:11px;font-weight:600;
       cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s
-    " title="Start or stop the trading bot">⏯ BOT</button>
+    " title="Start or stop the trading bot" disabled>⏳ …</button>
     <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px" title="Lock">&#128274;</button>
   </div>
 </header>
@@ -2340,12 +2340,14 @@ async function toggleBot() {
         btn.style.background = "var(--green-d)";
         btn.style.color      = "var(--green)";
       }
-      // Re-enable after delay; render() will refresh label from data.bot_running
-      setTimeout(() => { if (btn) { btn.disabled = false; btn.textContent = "⏯ BOT"; btn.style.background = ""; btn.style.color = ""; } }, 8000);
+      // Re-enable after delay and refresh to pick up true live status
+      setTimeout(() => { if (btn) { btn.disabled = false; } refreshAll(); }, 8000);
     }
   } catch(e) {
     alert("Bot toggle error: " + e.message);
-    if (btn) { btn.disabled = false; btn.textContent = "⏯ BOT"; }
+    // Re-check live status to show the correct caption rather than a stale generic label
+    if (btn) { btn.disabled = false; }
+    refreshAll();
   }
 }
 
@@ -2871,15 +2873,54 @@ async function refreshAll() {
   const snapTs  = data.timestamp ?? "";
   const snapDate = parseSnapTs(snapTs);
   const ageMin  = !isNaN(snapDate) ? (Date.now() - snapDate.getTime()) / 60000 : 999;
+  // data.bot_running from snapshot JSON can be stale — always verify against
+  // the live GitHub Actions workflow run status before updating the button.
   const botOn   = data.bot_running !== false;
 
-  // Update bot toggle button label to reflect current state
-  const _btgBtn = document.getElementById("bot-toggle-btn");
-  if (_btgBtn && !_btgBtn.disabled) {
-    _btgBtn.textContent = botOn ? "⏹ STOP BOT" : "▶ START BOT";
-    _btgBtn.style.background = botOn ? "var(--red-d)"   : "var(--green-d)";
-    _btgBtn.style.color      = botOn ? "var(--red)"     : "var(--green)";
-  }
+  // Update bot toggle button label by checking live GitHub workflow run status.
+  // Falls back to snapshot's bot_running only if GitHub API is unavailable.
+  (async () => {
+    const _btgBtn = document.getElementById("bot-toggle-btn");
+    if (!_btgBtn || _btgBtn.disabled) return;  // skip if user is mid-action
+
+    const cfg = getCfg();
+    let liveRunning = botOn; // default: trust snapshot
+
+    if (cfg && cfg.owner && cfg.repo && cfg.token) {
+      try {
+        const WORKFLOW_FILE = "trading-bot.yml";
+        const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
+        const inProgressResp = await fetch(`${base}/runs?status=in_progress&per_page=1`, { headers: apiHeaders() });
+        if (inProgressResp.ok) {
+          const inProgressData = await inProgressResp.json();
+          const inProgressRuns = inProgressData.workflow_runs || [];
+          if (inProgressRuns.length > 0) {
+            liveRunning = true;
+          } else {
+            // Also check queued
+            const queuedResp = await fetch(`${base}/runs?status=queued&per_page=1`, { headers: apiHeaders() });
+            if (queuedResp.ok) {
+              const queuedData = await queuedResp.json();
+              liveRunning = (queuedData.workflow_runs || []).length > 0;
+            } else {
+              liveRunning = false;
+            }
+          }
+        }
+        // If inProgressResp is not ok (e.g. 404, network), fall back to snapshot value silently
+      } catch (_) {
+        // GitHub API unreachable — keep liveRunning = botOn (snapshot fallback)
+      }
+    }
+
+    // Only update if button is still not disabled (user hasn't clicked mid-fetch)
+    if (!_btgBtn.disabled) {
+      _btgBtn.textContent      = liveRunning ? "⏹ STOP BOT" : "▶ START BOT";
+      _btgBtn.style.background = liveRunning ? "var(--red-d)"   : "var(--green-d)";
+      _btgBtn.style.color      = liveRunning ? "var(--red)"     : "var(--green)";
+      _btgBtn.disabled = false;
+    }
+  })();
 
   // ── Market-hours awareness (IST 09:15–15:30 Mon–Fri) ─────────────────────
   const nowIST    = new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
