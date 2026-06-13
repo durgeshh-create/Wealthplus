@@ -31,11 +31,11 @@
 body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;line-height:1.6}
 
 /* ── header ── */
-header{display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06);height:52px;gap:0}
+header{display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06);height:52px}
 .logo{display:flex;align-items:baseline;gap:10px}
 .logo h1{font-family:var(--head);font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--accent)}
 .logo .sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
-.hdr-right{display:flex;align-items:center;gap:10px;margin-left:auto;padding-left:24px;flex-wrap:nowrap}
+.hdr-right{display:flex;align-items:center;gap:12px;margin-left:28px;flex-shrink:0}
 .pill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
 .dot.live{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
@@ -63,10 +63,10 @@ header{display:flex;align-items:center;padding:0 20px;border-bottom:1px solid va
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 
 /* ── main ── */
-main{padding:18px 20px;max-width:960px;margin:0 auto}
+main{padding:18px 20px;max-width:1380px;margin:0 auto}
 
 /* ── stat cards ── */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
 .sc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:13px 15px;position:relative;overflow:hidden}
 .sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);opacity:.5}
 .sc.g::before{background:var(--green)}
@@ -85,10 +85,10 @@ main{padding:18px 20px;max-width:960px;margin:0 auto}
 
 /* ── mobile ── */
 @media(max-width:600px){
-  header{padding:6px 10px;height:auto;flex-wrap:wrap;row-gap:6px;gap:6px}
+  header{padding:6px 10px;height:auto;flex-wrap:wrap;row-gap:6px}
   .logo h1{font-size:15px}
   .logo .sub{display:none}
-  .hdr-right{gap:6px;margin-left:0;flex-wrap:wrap;row-gap:4px;padding-left:0;width:100%}
+  .hdr-right{gap:6px;margin-left:0;flex-wrap:wrap;row-gap:6px}
   /* Shrink NIFTY/VIX chips so they fit on mobile instead of hiding them */
   .idx-chips{gap:4px;margin-right:0}
   .idx-chip{min-width:58px;padding:2px 6px}
@@ -153,7 +153,7 @@ main{padding:18px 20px;max-width:960px;margin:0 auto}
 .neg{color:var(--red)}
 
 #wr-tbl{width:100%;border-collapse:collapse}
-#wr-tbl{table-layout:fixed;width:100%}#wr-tbl td,#wr-tbl th{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#wr-tbl td,#wr-tbl th{white-space:nowrap}
 #wr-tbl td:first-child,#wr-tbl th:first-child{white-space:normal;overflow:visible;width:1%;min-width:160px}
 /* ── williams %r ── */
 .wr-bar-wrap{position:relative;height:5px;background:var(--bg3);border-radius:3px;min-width:70px}
@@ -464,9 +464,9 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
     </div>
     <button id="bot-toggle-btn" onclick="toggleBot()" style="
       padding:5px 14px;border-radius:6px;border:1px solid var(--border);
-      background:var(--bg3);color:var(--muted);font-size:11px;font-weight:600;
+      background:var(--bg3);color:var(--text);font-size:11px;font-weight:600;
       cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s
-    " title="Start or stop the trading bot" disabled>⏳ …</button>
+    " title="Start or stop the trading bot">⏯ BOT</button>
     <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px" title="Lock">&#128274;</button>
   </div>
 </header>
@@ -2042,7 +2042,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 
 <!-- PANE: STRATEGY -->
 <div class="nav-tab-pane" id="pane-strategy">
-  <main style="max-width:960px;margin:0 auto;padding:18px 20px 40px">
+  <main style="max-width:1380px;margin:0 auto;padding:18px 20px 40px">
     <div class="panel" id="strategy-ref" style="margin-bottom:0">
       <div class="ph"><span class="pt">Strategy Reference</span></div>
       <div id="strat-body">
@@ -2340,14 +2340,12 @@ async function toggleBot() {
         btn.style.background = "var(--green-d)";
         btn.style.color      = "var(--green)";
       }
-      // Re-enable after delay and refresh to pick up true live status
-      setTimeout(() => { if (btn) { btn.disabled = false; } refreshAll(); }, 8000);
+      // Re-enable after delay; render() will refresh label from data.bot_running
+      setTimeout(() => { if (btn) { btn.disabled = false; btn.textContent = "⏯ BOT"; btn.style.background = ""; btn.style.color = ""; } }, 8000);
     }
   } catch(e) {
     alert("Bot toggle error: " + e.message);
-    // Re-check live status to show the correct caption rather than a stale generic label
-    if (btn) { btn.disabled = false; }
-    refreshAll();
+    if (btn) { btn.disabled = false; btn.textContent = "⏯ BOT"; }
   }
 }
 
@@ -2655,7 +2653,7 @@ function render(data) {
       const pc = (h.pnl ?? 0) >= 0 ? "pos" : "neg";
       return `<tr>
         <td style="padding-left:14px">
-          <div class="sym" style="font-size:12px;white-space:normal;max-width:none">${h.name}</div>
+          <div class="sym" style="font-size:12px;white-space:normal">${h.name}</div>
           ${h.folio ? `<div style="font-size:10px;color:var(--muted)">Folio ${h.folio} &nbsp;·&nbsp; ${h.units} units @ ₹${h.avg_nav}${h.pledged_units > 0 ? ` &nbsp;<span title="Pledged as collateral">(P: ${h.pledged_units})</span>` : ''}</div>` : ""}
         </td>
         <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.cur_val)}">${fmtL(h.cur_val)}</td>
@@ -2873,57 +2871,42 @@ async function refreshAll() {
   const snapTs  = data.timestamp ?? "";
   const snapDate = parseSnapTs(snapTs);
   const ageMin  = !isNaN(snapDate) ? (Date.now() - snapDate.getTime()) / 60000 : 999;
-  // data.bot_running from snapshot JSON can be stale — always verify against
-  // the live GitHub Actions workflow run status before updating the button.
   const botOn   = data.bot_running !== false;
 
-  // Update bot toggle button label by checking live GitHub workflow run status.
-  // Falls back to snapshot's bot_running only if GitHub API is unavailable.
-  (async () => {
-    const _btgBtn = document.getElementById("bot-toggle-btn");
-    if (!_btgBtn) return;
-    // Skip only if user is mid-action (button shows a transient state),
-    // but allow the initial load (button stuck on the placeholder "⏳ …").
-    if (_btgBtn.disabled && _btgBtn.textContent.trim() !== "⏳ …") return;
-
-    const cfg = getCfg();
-    let liveRunning = botOn; // default: trust snapshot
-
-    if (cfg && cfg.owner && cfg.repo && cfg.token) {
-      try {
-        const WORKFLOW_FILE = "trading-bot.yml";
-        const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
-        const inProgressResp = await fetch(`${base}/runs?status=in_progress&per_page=1`, { headers: apiHeaders() });
-        if (inProgressResp.ok) {
-          const inProgressData = await inProgressResp.json();
-          const inProgressRuns = inProgressData.workflow_runs || [];
-          if (inProgressRuns.length > 0) {
-            liveRunning = true;
-          } else {
-            // Also check queued
-            const queuedResp = await fetch(`${base}/runs?status=queued&per_page=1`, { headers: apiHeaders() });
-            if (queuedResp.ok) {
-              const queuedData = await queuedResp.json();
-              liveRunning = (queuedData.workflow_runs || []).length > 0;
+  // Update bot toggle button label to reflect current state.
+  // Snapshot's bot_running can be stale — verify against the live GitHub
+  // Actions workflow run status before updating the button.
+  const _btgBtn = document.getElementById("bot-toggle-btn");
+  if (_btgBtn && !_btgBtn.disabled) {
+    (async () => {
+      let liveRunning = botOn; // default: trust snapshot
+      const cfg = getCfg();
+      if (cfg && cfg.owner && cfg.repo && cfg.token) {
+        try {
+          const WORKFLOW_FILE = "trading-bot.yml";
+          const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
+          const inProgressResp = await fetch(`${base}/runs?status=in_progress&per_page=1`, { headers: apiHeaders() });
+          if (inProgressResp.ok) {
+            const inProgressRuns = (await inProgressResp.json()).workflow_runs || [];
+            if (inProgressRuns.length > 0) {
+              liveRunning = true;
             } else {
-              liveRunning = false;
+              const queuedResp = await fetch(`${base}/runs?status=queued&per_page=1`, { headers: apiHeaders() });
+              liveRunning = queuedResp.ok && ((await queuedResp.json()).workflow_runs || []).length > 0;
             }
           }
+          // If not ok (404/network), fall back to snapshot value silently
+        } catch (_) {
+          // GitHub API unreachable — keep liveRunning = botOn (snapshot fallback)
         }
-        // If inProgressResp is not ok (e.g. 404, network), fall back to snapshot value silently
-      } catch (_) {
-        // GitHub API unreachable — keep liveRunning = botOn (snapshot fallback)
       }
-    }
-
-    // Only update if button is still not disabled (user hasn't clicked mid-fetch)
-    if (!_btgBtn.disabled) {
-      _btgBtn.textContent      = liveRunning ? "⏹ STOP BOT" : "▶ START BOT";
-      _btgBtn.style.background = liveRunning ? "var(--red-d)"   : "var(--green-d)";
-      _btgBtn.style.color      = liveRunning ? "var(--red)"     : "var(--green)";
-      _btgBtn.disabled = false;
-    }
-  })();
+      if (!_btgBtn.disabled) {
+        _btgBtn.textContent = liveRunning ? "⏹ STOP BOT" : "▶ START BOT";
+        _btgBtn.style.background = liveRunning ? "var(--red-d)"   : "var(--green-d)";
+        _btgBtn.style.color      = liveRunning ? "var(--red)"     : "var(--green)";
+      }
+    })();
+  }
 
   // ── Market-hours awareness (IST 09:15–15:30 Mon–Fri) ─────────────────────
   const nowIST    = new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
