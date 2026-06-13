@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Strict single-page lock */
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #f8fafc; 
+            height: 100dvh; 
+            width: 100vw; 
+            overflow: hidden; 
+        }
+        
+        .bg-pattern {
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover .watermark-graphic {
+            transform: scale(1.1) rotate(-5deg);
+            opacity: 0.12;
+        }
+    </style>
+</head>
+<body class="relative flex flex-col items-center justify-center p-4 sm:p-6">
+
+    <div class="absolute inset-0 bg-pattern opacity-40 z-0 pointer-events-none"></div>
+    <div class="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-blue-300/30 rounded-full mix-blend-multiply filter blur-[80px] opacity-60 pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-emerald-300/30 rounded-full mix-blend-multiply filter blur-[80px] opacity-60 pointer-events-none"></div>
+
+    <main class="relative z-10 w-full max-w-4xl mx-auto flex flex-col justify-center h-full max-h-[700px]">
+        
+        <header class="text-center mb-8 shrink-0">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white shadow-xl shadow-slate-900/20 mb-3 relative overflow-hidden">
+                <i class="fa-solid fa-layer-group text-2xl relative z-10"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight mb-2">Application Hub</h1>
+            <p class="text-slate-500 text-sm font-medium max-w-lg mx-auto">Manage wealth, health, and smart applications from a central workspace.</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+            
+            <a href="https://docs.google.com/spreadsheets/d/1ArUcmJ-FT-Z3ssdN9J14M1YBl3TKbbEsVbcRpIrHEyI/edit#gid=1984306723" target="_blank" class="group glass-card relative overflow-hidden rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-emerald-500/20 hover:-translate-y-1 border border-white hover:border-emerald-200 bg-gradient-to-br from-white to-emerald-50/50 flex flex-col h-full">
+                <i class="fa-solid fa-chart-line absolute -bottom-4 -right-4 text-7xl text-emerald-600 opacity-[0.03] transition-all duration-500 watermark-graphic"></i>
+                <div class="relative z-10 flex flex-col h-full">
+                    <div class="flex items-center gap-4 mb-3">
+                        <div class="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/30 group-hover:scale-105 transition-transform duration-300">
+                            <i class="fa-solid fa-file-invoice-dollar text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 leading-tight group-hover:text-emerald-700 transition-colors">Wealth++ Model</h2>
+                            <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-0.5">Wealth Enhancement</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-500 text-xs font-medium leading-relaxed flex-1">A powerful Google Sheets model dedicated to strategic planning and enhancing wealth.</p>
+                    <div class="mt-3 flex items-center text-xs font-bold text-slate-400 group-hover:text-emerald-600 transition-colors">
+                        Launch Application <i class="fa-solid fa-arrow-right ml-1.5 transition-transform group-hover:translate-x-1"></i>
+                    </div>
+                </div>
+            </a>
+
+            <a href="https://durgeshh-create.github.io/Wealthplus/" target="_blank" class="group glass-card relative overflow-hidden rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-blue-500/20 hover:-translate-y-1 border border-white hover:border-blue-200 bg-gradient-to-br from-white to-blue-50/50 flex flex-col h-full">
+                <i class="fa-solid fa-network-wired absolute -bottom-4 -right-4 text-7xl text-blue-600 opacity-[0.03] transition-all duration-500 watermark-graphic"></i>
+                <div class="relative z-10 flex flex-col h-full">
+                    <div class="flex items-center gap-4 mb-3">
+                        <div class="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/30 group-hover:scale-105 transition-transform duration-300">
+                            <i class="fa-solid fa-robot text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 leading-tight group-hover:text-blue-700 transition-colors">Wealth++ Algo</h2>
+                            <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-0.5">Algorithmic Trading</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-500 text-xs font-medium leading-relaxed flex-1">Automated trading engine and execution dashboard integrated with Zerodha Kite.</p>
+                    <div class="mt-3 flex items-center text-xs font-bold text-slate-400 group-hover:text-blue-600 transition-colors">
+                        Launch Application <i class="fa-solid fa-arrow-right ml-1.5 transition-transform group-hover:translate-x-1"></i>
+                    </div>
+                </div>
+            </a>
+
+            <a href="shop.html" target="_blank" class="group glass-card relative overflow-hidden rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-purple-500/20 hover:-translate-y-1 border border-white hover:border-purple-200 bg-gradient-to-br from-white to-purple-50/50 flex flex-col h-full">
+                <i class="fa-solid fa-tags absolute -bottom-4 -right-4 text-7xl text-purple-600 opacity-[0.03] transition-all duration-500 watermark-graphic"></i>
+                <div class="relative z-10 flex flex-col h-full">
+                    <div class="flex items-center gap-4 mb-3">
+                        <div class="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-500 flex items-center justify-center text-white shadow-md shadow-purple-500/30 group-hover:scale-105 transition-transform duration-300">
+                            <i class="fa-solid fa-cart-shopping text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 leading-tight group-hover:text-purple-700 transition-colors">Smart Shopping</h2>
+                            <p class="text-[10px] font-bold text-purple-600 uppercase tracking-widest mt-0.5">Consumer Utility</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-500 text-xs font-medium leading-relaxed flex-1">Intelligent e-commerce prototype designed for optimized purchasing and tracking.</p>
+                    <div class="mt-3 flex items-center text-xs font-bold text-slate-400 group-hover:text-purple-600 transition-colors">
+                        Launch Application <i class="fa-solid fa-arrow-right ml-1.5 transition-transform group-hover:translate-x-1"></i>
+                    </div>
+                </div>
+            </a>
+
+            <a href="SwasthyaAI.html" target="_blank" class="group glass-card relative overflow-hidden rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-teal-500/20 hover:-translate-y-1 border border-white hover:border-teal-200 bg-gradient-to-br from-white to-teal-50/50 flex flex-col h-full">
+                <i class="fa-solid fa-notes-medical absolute -bottom-4 -right-4 text-7xl text-teal-600 opacity-[0.03] transition-all duration-500 watermark-graphic"></i>
+                <div class="relative z-10 flex flex-col h-full">
+                    <div class="flex items-center gap-4 mb-3">
+                        <div class="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white shadow-md shadow-teal-500/30 group-hover:scale-105 transition-transform duration-300">
+                            <i class="fa-solid fa-stethoscope text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 leading-tight group-hover:text-teal-700 transition-colors">Swasthya AI</h2>
+                            <p class="text-[10px] font-bold text-teal-600 uppercase tracking-widest mt-0.5">Medical Diagnostics</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-500 text-xs font-medium leading-relaxed flex-1">Advanced clinical triage engine with exhaustive NLP symptom mapping and diagnosis.</p>
+                    <div class="mt-3 flex items-center text-xs font-bold text-slate-400 group-hover:text-teal-600 transition-colors">
+                        Launch Application <i class="fa-solid fa-arrow-right ml-1.5 transition-transform group-hover:translate-x-1"></i>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+    </main>
+
+</body>
+</html>
