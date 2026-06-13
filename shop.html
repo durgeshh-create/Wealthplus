@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Comparator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 800px;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 32px;
+            margin-bottom: 8px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: #edf2f7;
+            padding: 6px;
+            border-radius: 16px;
+        }
+
+        .category-tab {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .category-tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            color: #4a5568;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .text-input-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 16px;
+            border: 3px solid #e2e8f0;
+            border-radius: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        input[type="text"]:focus {
+            border-color: #48bb78;
+            background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
+            box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.2), 0 10px 25px -5px rgba(72, 187, 120, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .select-wrapper {
+            position: relative;
+            min-width: 220px;
+        }
+
+        select {
+            width: 100%;
+            padding: 16px 45px 16px 20px;
+            font-size: 16px;
+            border: 3px solid #ed8936;
+            border-radius: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #fffaf0 0%, #fff5eb 100%);
+            cursor: pointer;
+            color: #744210;
+            font-weight: 600;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23ed8936' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 20px;
+        }
+
+        select:focus {
+            border-color: #dd6b20;
+            background: linear-gradient(135deg, #ffffff 0%, #fffaf0 100%);
+            box-shadow: 0 0 0 4px rgba(237, 137, 54, 0.2), 0 10px 25px -5px rgba(237, 137, 54, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .store-selector {
+            background: linear-gradient(135deg, #ebf8ff 0%, #e6fffa 100%);
+            border: 2px solid #4299e1;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .selector-title {
+            color: #2b6cb0;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .select-all-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: white;
+            border: 2px solid #bee3f8;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #2c5282;
+            user-select: none;
+        }
+
+        .select-all-option:hover {
+            border-color: #4299e1;
+            background: #f7fafc;
+        }
+
+        .select-all-option input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #4299e1;
+            pointer-events: none;
+        }
+
+        .store-section {
+            margin-bottom: 16px;
+        }
+
+        .store-section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #4a5568;
+            margin-bottom: 10px;
+            padding-left: 4px;
+        }
+
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .quick-badge-section {
+            background: #48bb78;
+            color: white;
+        }
+
+        .regular-badge-section {
+            background: #667eea;
+            color: white;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .store-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #4a5568;
+            user-select: none;
+        }
+
+        .store-checkbox:hover {
+            border-color: #9f7aea;
+            background: #faf5ff;
+            transform: translateY(-1px);
+        }
+
+        .store-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+            flex-shrink: 0;
+            pointer-events: none;
+        }
+
+        .store-checkbox.checked {
+            border-color: #48bb78;
+            background: #f0fff4;
+            color: #22543d;
+        }
+
+        .store-checkbox.quick-commerce {
+            border-left: 4px solid #48bb78;
+        }
+
+        .store-checkbox.regular-commerce {
+            border-left: 4px solid #667eea;
+        }
+
+        .quick-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            background: #48bb78;
+            color: white;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: 700;
+            margin-left: auto;
+            text-transform: uppercase;
+        }
+
+        button {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(72, 187, 120, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 35px -10px rgba(72, 187, 120, 0.5);
+        }
+
+        button.other-mode {
+            background: linear-gradient(135deg, #ed64a6 0%, #d53f8c 100%);
+            box-shadow: 0 10px 25px -5px rgba(237, 100, 166, 0.4);
+        }
+
+        button.other-mode:hover {
+            background: linear-gradient(135deg, #d53f8c 0%, #b83280 100%);
+            box-shadow: 0 20px 35px -10px rgba(237, 100, 166, 0.5);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .warning {
+            background: linear-gradient(135deg, #fffaf0 0%, #feebc8 100%);
+            border: 2px solid #f6ad55;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #744210;
+            display: none;
+            line-height: 1.5;
+        }
+
+        .warning.show {
+            display: block;
+        }
+
+        .warning strong {
+            color: #c05621;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .manual-links {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .manual-links.show {
+            display: block;
+        }
+
+        .link-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .manual-link {
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            color: #2d3748;
+            padding: 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .manual-link:hover {
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .hint {
+            font-size: 13px;
+            color: #718096;
+            margin-top: 12px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 24px;
+            background: white;
+            color: #4299e1;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 8px;
+            padding: 0 8px;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <div class="container">
+        <h1>🛒 Price Comparator</h1>
+        <p class="subtitle" id="subtitleText">Compare grocery prices across all major Indian stores</p>
+
+        <div class="category-tabs">
+            <button class="category-tab active" onclick="switchCategory('grocery')" id="groceryTab">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                Grocery
+            </button>
+            <button class="category-tab" onclick="switchCategory('other')" id="otherTab">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                </svg>
+                Other Products
+            </button>
+        </div>
+
+        <div class="input-wrapper">
+            <label id="searchLabel">🔍 Search Grocery Items</label>
+            <div class="input-group">
+                <div class="text-input-wrapper">
+                    <input type="text" id="searchInput" placeholder="Type your product name..." autocomplete="off">
+                </div>
+                <div class="select-wrapper" id="groceryDropdown">
+                    <select id="productDropdown" onchange="updateInputFromDropdown()">
+                        <option value="">📋 Select Product</option>
+                        <option value="Aam Papad">Aam Papad</option>
+                        <option value="Ajwain">Ajwain</option>
+                        <option value="Almonds">Almonds</option>
+                        <option value="Aloo Bhujia">Aloo Bhujia</option>
+                        <option value="Amchur Powder">Amchur Powder</option>
+                        <option value="Appalam">Appalam</option>
+                        <option value="Apple">Apple</option>
+                        <option value="Arhar Dal">Arhar Dal</option>
+                        <option value="Asafoetida">Asafoetida</option>
+                        <option value="Atta 1Kg">Atta 1Kg</option>
+                        <option value="Atta 5Kg">Atta 5Kg</option>
+                        <option value="Atta 10Kg">Atta 10Kg</option>
+                        <option value="Badam">Badam</option>
+                        <option value="Bajari Atta">Bajari Atta</option>
+                        <option value="Baking Powder">Baking Powder</option>
+                        <option value="Baking Soda">Baking Soda</option>
+                        <option value="Banana">Banana</option>
+                        <option value="Basmati Rice 1Kg">Basmati Rice 1Kg</option>
+                        <option value="Basmati Rice 5Kg">Basmati Rice 5Kg</option>
+                        <option value="Basmati Rice 10Kg">Basmati Rice 10Kg</option>
+                        <option value="Bay Leaf">Bay Leaf</option>
+                        <option value="Beans">Beans</option>
+                        <option value="Bedgi">Bedgi</option>
+                        <option value="Beetroot">Beetroot</option>
+                        <option value="Besan">Besan</option>
+                        <option value="Bhindi">Bhindi</option>
+                        <option value="Bhel">Bhel</option>
+                        <option value="Biryani Masala">Biryani Masala</option>
+                        <option value="Biscuits">Biscuits</option>
+                        <option value="Bitter Gourd">Bitter Gourd</option>
+                        <option value="Black Cardamom">Black Cardamom</option>
+                        <option value="Black Pepper">Black Pepper</option>
+                        <option value="Black Salt">Black Salt</option>
+                        <option value="Bottle Gourd">Bottle Gourd</option>
+                        <option value="Bread">Bread</option>
+                        <option value="Brinjal">Brinjal</option>
+                        <option value="Broccoli">Broccoli</option>
+                        <option value="Brown Rice">Brown Rice</option>
+                        <option value="Broom Stick">Broom Stick</option>
+                        <option value="Butter">Butter</option>
+                        <option value="Cabbage">Cabbage</option>
+                        <option value="Canned Sardines">Canned Sardines</option>
+                        <option value="Capsicum">Capsicum</option>
+                        <option value="Cardamom">Cardamom</option>
+                        <option value="Carrot">Carrot</option>
+                        <option value="Cashews">Cashews</option>
+                        <option value="Cauliflower">Cauliflower</option>
+                        <option value="Chana Dal">Chana Dal</option>
+                        <option value="Chana Masala">Chana Masala</option>
+                        <option value="Cheese">Cheese</option>
+                        <option value="Cheese Slice">Cheese Slice</option>
+                        <option value="Cherry">Cherry</option>
+                        <option value="Chilli Powder">Chilli Powder</option>
+                        <option value="Chivda">Chivda</option>
+                        <option value="Chocolate">Chocolate</option>
+                        <option value="Cinnamon">Cinnamon</option>
+                        <option value="Cloves">Cloves</option>
+                        <option value="Coconut">Coconut</option>
+                        <option value="Coconut Milk">Coconut Milk</option>
+                        <option value="Coconut Oil">Coconut Oil</option>
+                        <option value="Coconut Powder">Coconut Powder</option>
+                        <option value="Coffee">Coffee</option>
+                        <option value="Conditioner">Conditioner</option>
+                        <option value="Coriander">Coriander</option>
+                        <option value="Coriander Powder">Coriander Powder</option>
+                        <option value="Coriander Whole">Coriander Whole</option>
+                        <option value="Corn Flour">Corn Flour</option>
+                        <option value="Cream">Cream</option>
+                        <option value="Cucumber">Cucumber</option>
+                        <option value="Cumin Seeds">Cumin Seeds</option>
+                        <option value="Curd">Curd</option>
+                        <option value="Curry Leaves">Curry Leaves</option>
+                        <option value="Custard Powder">Custard Powder</option>
+                        <option value="Detergent Powder">Detergent Powder</option>
+                        <option value="Dishwash Bar">Dishwash Bar</option>
+                        <option value="Dishwash Liquid">Dishwash Liquid</option>
+                        <option value="Dosa Batter">Dosa Batter</option>
+                        <option value="Dosa Tava">Dosa Tava</option>
+                        <option value="Double Beans">Double Beans</option>
+                        <option value="Drumstick">Drumstick</option>
+                        <option value="Dry Coconut">Dry Coconut</option>
+                        <option value="Dry Fruits">Dry Fruits</option>
+                        <option value="Eggs">Eggs</option>
+                        <option value="Elaichi">Elaichi</option>
+                        <option value="Fennel Seeds">Fennel Seeds</option>
+                        <option value="Fenugreek Leaves">Fenugreek Leaves</option>
+                        <option value="Fenugreek Seeds">Fenugreek Seeds</option>
+                        <option value="Fish">Fish</option>
+                        <option value="Flax Seeds">Flax Seeds</option>
+                        <option value="Floor Cleaner">Floor Cleaner</option>
+                        <option value="Flour">Flour</option>
+                        <option value="Frozen Peas">Frozen Peas</option>
+                        <option value="Frozen Vegetables">Frozen Vegetables</option>
+                        <option value="Fruits">Fruits</option>
+                        <option value="Garam Masala Powder">Garam Masala Powder</option>
+                        <option value="Garlic">Garlic</option>
+                        <option value="Ghee">Ghee</option>
+                        <option value="Ginger">Ginger</option>
+                        <option value="Ginger Garlic Paste">Ginger Garlic Paste</option>
+                        <option value="Go Milk">Go Milk</option>
+                        <option value="Gram Flour">Gram Flour</option>
+                        <option value="Grapes">Grapes</option>
+                        <option value="Green Chilli">Green Chilli</option>
+                        <option value="Green Peas">Green Peas</option>
+                        <option value="Groundnut Oil">Groundnut Oil</option>
+                        <option value="Guava">Guava</option>
+                        <option value="Handwash">Handwash</option>
+                        <option value="Hing">Hing</option>
+                        <option value="Hit">Hit</option>
+                        <option value="Homelite">Homelite</option>
+                        <option value="Honey">Honey</option>
+                        <option value="Idli Batter">Idli Batter</option>
+                        <option value="Idli Rava">Idli Rava</option>
+                        <option value="Jaggery">Jaggery</option>
+                        <option value="Jawari Atta">Jawari Atta</option>
+                        <option value="Jeera">Jeera</option>
+                        <option value="Jowar">Jowar</option>
+                        <option value="Kabuli Chana">Kabuli Chana</option>
+                        <option value="Kaju">Kaju</option>
+                        <option value="Kashmiri Chilli Powder">Kashmiri Chilli Powder</option>
+                        <option value="Kesar">Kesar</option>
+                        <option value="Ketchup">Ketchup</option>
+                        <option value="Khakra">Khakra</option>
+                        <option value="Kolam Rice">Kolam Rice</option>
+                        <option value="Kurmura">Kurmura</option>
+                        <option value="Ladies Finger">Ladies Finger</option>
+                        <option value="Lemon">Lemon</option>
+                        <option value="Lobiya Chowli">Lobiya Chowli</option>
+                        <option value="Maggi">Maggi</option>
+                        <option value="Maida">Maida</option>
+                        <option value="Mango">Mango</option>
+                        <option value="Masoor Dal">Masoor Dal</option>
+                        <option value="Masoor Whole">Masoor Whole</option>
+                        <option value="Mayonnaise">Mayonnaise</option>
+                        <option value="Methi">Methi</option>
+                        <option value="Milk">Milk</option>
+                        <option value="Milk Powder">Milk Powder</option>
+                        <option value="Mixed Dal">Mixed Dal</option>
+                        <option value="Moong Dal">Moong Dal</option>
+                        <option value="Moong Whole">Moong Whole</option>
+                        <option value="Mosquito Repellent">Mosquito Repellent</option>
+                        <option value="Mother Dairy Pure Cow Ghee">Mother Dairy Pure Cow Ghee</option>
+                        <option value="Muesli">Muesli</option>
+                        <option value="Mushroom">Mushroom</option>
+                        <option value="Mustard Oil">Mustard Oil</option>
+                        <option value="Mustard Seeds">Mustard Seeds</option>
+                        <option value="Mysore Sandal">Mysore Sandal</option>
+                        <option value="Namkeen">Namkeen</option>
+                        <option value="Nutmeg">Nutmeg</option>
+                        <option value="Oats">Oats</option>
+                        <option value="Oil">Oil</option>
+                        <option value="Olive Oil">Olive Oil</option>
+                        <option value="Onion">Onion</option>
+                        <option value="Orange">Orange</option>
+                        <option value="Paan">Paan</option>
+                        <option value="Papad">Papad</option>
+                        <option value="Papaya">Papaya</option>
+                        <option value="Paneer">Paneer</option>
+                        <option value="Pasta">Pasta</option>
+                        <option value="Peanuts">Peanuts</option>
+                        <option value="Pear Fruit">Pear Fruit</option>
+                        <option value="Pepper">Pepper</option>
+                        <option value="Pickle">Pickle</option>
+                        <option value="Pineapple">Pineapple</option>
+                        <option value="Poha">Poha</option>
+                        <option value="Pomegranate">Pomegranate</option>
+                        <option value="Potato">Potato</option>
+                        <option value="Prawns">Prawns</option>
+                        <option value="Puffed Rice">Puffed Rice</option>
+                        <option value="Pulses">Pulses</option>
+                        <option value="Ragi Atta">Ragi Atta</option>
+                        <option value="Ragi Flour">Ragi Flour</option>
+                        <option value="Rajma Chitra">Rajma Chitra</option>
+                        <option value="Rava">Rava</option>
+                        <option value="Raw Banana">Raw Banana</option>
+                        <option value="Raw Mango">Raw Mango</option>
+                        <option value="Red Chilli">Red Chilli</option>
+                        <option value="Refined Oil">Refined Oil</option>
+                        <option value="Rice">Rice</option>
+                        <option value="Rice Bran Oil">Rice Bran Oil</option>
+                        <option value="Rice Flour">Rice Flour</option>
+                        <option value="Rose Water">Rose Water</option>
+                        <option value="Sabudana">Sabudana</option>
+                        <option value="Salt">Salt</option>
+                        <option value="Salt Lite">Salt Lite</option>
+                        <option value="Sambar Powder">Sambar Powder</option>
+                        <option value="Sattu">Sattu</option>
+                        <option value="Schezwan Chutney">Schezwan Chutney</option>
+                        <option value="Semiya">Semiya</option>
+                        <option value="Sesame Oil">Sesame Oil</option>
+                        <option value="Sesame Seeds">Sesame Seeds</option>
+                        <option value="Shampoo">Shampoo</option>
+                        <option value="Shaving Cream">Shaving Cream</option>
+                        <option value="Soap">Soap</option>
+                        <option value="Sooji">Sooji</option>
+                        <option value="Soya Chunks">Soya Chunks</option>
+                        <option value="Spinach">Spinach</option>
+                        <option value="Sprouts">Sprouts</option>
+                        <option value="Star Anise">Star Anise</option>
+                        <option value="Storia Coconut Water">Storia Coconut Water</option>
+                        <option value="Sugar">Sugar</option>
+                        <option value="Sunflower Oil">Sunflower Oil</option>
+                        <option value="Surmai">Surmai</option>
+                        <option value="Surti Vaal">Surti Vaal</option>
+                        <option value="Sweet Corn">Sweet Corn</option>
+                        <option value="Sweet Potato">Sweet Potato</option>
+                        <option value="Tamarind">Tamarind</option>
+                        <option value="Tea">Tea</option>
+                        <option value="Thyme">Thyme</option>
+                        <option value="Tinda">Tinda</option>
+                        <option value="Toilet Cleaner">Toilet Cleaner</option>
+                        <option value="Tomato">Tomato</option>
+                        <option value="Toor Dal">Toor Dal</option>
+                        <option value="Toothbrush">Toothbrush</option>
+                        <option value="Toothpaste">Toothpaste</option>
+                        <option value="Turmeric">Turmeric</option>
+                        <option value="Turmeric Powder">Turmeric Powder</option>
+                        <option value="Urad Dal">Urad Dal</option>
+                        <option value="Vaseline">Vaseline</option>
+                        <option value="Vegetable">Vegetable</option>
+                        <option value="Vermicelli">Vermicelli</option>
+                        <option value="Vinegar">Vinegar</option>
+                        <option value="Wada Kolam">Wada Kolam</option>
+                        <option value="Walnuts">Walnuts</option>
+                        <option value="Watermelon">Watermelon</option>
+                        <option value="Wheat">Wheat</option>
+                        <option value="White Beans">White Beans</option>
+                        <option value="Yogurt">Yogurt</option>
+                    </select>
+                </div>
+                <div class="select-wrapper hidden" id="otherDropdown">
+                    <select id="otherProductDropdown" onchange="updateInputFromDropdown()">
+                        <option value="">📋 Select Product</option>
+                        <option value="Mobile Phone">Mobile Phone</option>
+                        <option value="Laptop">Laptop</option>
+                        <option value="Headphones">Headphones</option>
+                        <option value="Smart Watch">Smart Watch</option>
+                        <option value="Power Bank">Power Bank</option>
+                        <option value="Charger">Charger</option>
+                        <option value="Earbuds">Earbuds</option>
+                        <option value="Tablet">Tablet</option>
+                        <option value="Camera">Camera</option>
+                        <option value="Television">Television</option>
+                        <option value="Refrigerator">Refrigerator</option>
+                        <option value="Washing Machine">Washing Machine</option>
+                        <option value="AC">AC</option>
+                        <option value="Fan">Fan</option>
+                        <option value="Iron">Iron</option>
+                        <option value="Mixer Grinder">Mixer Grinder</option>
+                        <option value="Induction Cooktop">Induction Cooktop</option>
+                        <option value="Air Fryer">Air Fryer</option>
+                        <option value="Microwave">Microwave</option>
+                        <option value="Oven">Oven</option>
+                        <option value="Toaster">Toaster</option>
+                        <option value="Kettle">Kettle</option>
+                        <option value="Hair Dryer">Hair Dryer</option>
+                        <option value="Trimmer">Trimmer</option>
+                        <option value="Shaver">Shaver</option>
+                        <option value="Straightener">Straightener</option>
+                        <option value="Keyboard">Keyboard</option>
+                        <option value="Mouse">Mouse</option>
+                        <option value="Monitor">Monitor</option>
+                        <option value="Printer">Printer</option>
+                        <option value="Router">Router</option>
+                        <option value="Hard Disk">Hard Disk</option>
+                        <option value="Pen Drive">Pen Drive</option>
+                        <option value="Memory Card">Memory Card</option>
+                        <option value="Cable">Cable</option>
+                        <option value="Adapter">Adapter</option>
+                        <option value="Battery">Battery</option>
+                        <option value="Case Cover">Case Cover</option>
+                        <option value="Screen Guard">Screen Guard</option>
+                        <option value="T-shirt">T-shirt</option>
+                        <option value="Shirt">Shirt</option>
+                        <option value="Jeans">Jeans</option>
+                        <option value="Trousers">Trousers</option>
+                        <option value="Shorts">Shorts</option>
+                        <option value="Jacket">Jacket</option>
+                        <option value="Sweater">Sweater</option>
+                        <option value="Hoodie">Hoodie</option>
+                        <option value="Dress">Dress</option>
+                        <option value="Saree">Saree</option>
+                        <option value="Kurti">Kurti</option>
+                        <option value="Leggings">Leggings</option>
+                        <option value="Shoes">Shoes</option>
+                        <option value="Slippers">Slippers</option>
+                        <option value="Sandals">Sandals</option>
+                        <option value="Socks">Socks</option>
+                        <option value="Belt">Belt</option>
+                        <option value="Wallet">Wallet</option>
+                        <option value="Bag">Bag</option>
+                        <option value="Backpack">Backpack</option>
+                        <option value="Sunglasses">Sunglasses</option>
+                        <option value="Watch">Watch</option>
+                        <option value="Jewellery">Jewellery</option>
+                        <option value="Makeup Kit">Makeup Kit</option>
+                        <option value="Perfume">Perfume</option>
+                        <option value="Deodorant">Deodorant</option>
+                        <option value="Face Wash">Face Wash</option>
+                        <option value="Moisturizer">Moisturizer</option>
+                        <option value="Sunscreen">Sunscreen</option>
+                        <option value="Lipstick">Lipstick</option>
+                        <option value="Nail Polish">Nail Polish</option>
+                        <option value="Hair Oil">Hair Oil</option>
+                        <option value="Comb">Comb</option>
+                        <option value="Mirror">Mirror</option>
+                        <option value="Umbrella">Umbrella</option>
+                        <option value="Torch">Torch</option>
+                        <option value="Battery Cell">Battery Cell</option>
+                        <option value="Bulb">Bulb</option>
+                        <option value="Tube Light">Tube Light</option>
+                        <option value="Extension Board">Extension Board</option>
+                        <option value="Switches">Switches</option>
+                        <option value="Wires">Wires</option>
+                        <option value="Tape">Tape</option>
+                        <option value="Glue">Glue</option>
+                        <option value="Scissors">Scissors</option>
+                        <option value="Cutter">Cutter</option>
+                        <option value="Tool Kit">Tool Kit</option>
+                        <option value="Lock">Lock</option>
+                        <option value="Key Chain">Key Chain</option>
+                        <option value="Water Bottle">Water Bottle</option>
+                        <option value="Lunch Box">Lunch Box</option>
+                        <option value="Containers">Containers</option>
+                        <option value="Bucket">Bucket</option>
+                        <option value="Mug">Mug</option>
+                        <option value="Dustbin">Dustbin</option>
+                        <option value="Hanger">Hanger</option>
+                        <option value="Pillow">Pillow</option>
+                        <option value="Blanket">Blanket</option>
+                        <option value="Bed Sheet">Bed Sheet</option>
+                        <option value="Curtain">Curtain</option>
+                        <option value="Mat">Mat</option>
+                        <option value="Clock">Clock</option>
+                        <option value="Photo Frame">Photo Frame</option>
+                        <option value="Vase">Vase</option>
+                        <option value="Cushion">Cushion</option>
+                        <option value="Lamp">Lamp</option>
+                        <option value="Books">Books</option>
+                        <option value="Pen">Pen</option>
+                        <option value="Pencil">Pencil</option>
+                        <option value="Notebook">Notebook</option>
+                        <option value="Diary">Diary</option>
+                        <option value="Colors">Colors</option>
+                        <option value="Sketch Pens">Sketch Pens</option>
+                        <option value="Stapler">Stapler</option>
+                        <option value="Tape Dispenser">Tape Dispenser</option>
+                        <option value="Calculator">Calculator</option>
+                        <option value="Files">Files</option>
+                        <option value="Folders">Folders</option>
+                        <option value="Envelopes">Envelopes</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grocery Store Selector with Checkboxes -->
+        <div class="store-selector" id="groceryStoreSelector">
+            <div class="selector-title">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+                Select Stores to Compare
+                <span class="count-badge" id="groceryCount">8</span>
+            </div>
+
+            <div class="select-all-option" id="grocerySelectAllContainer" onclick="handleSelectAllClick('grocery')">
+                <input type="checkbox" id="grocerySelectAll" checked>
+                <span>Select All Stores</span>
+            </div>
+
+            <!-- Quick Commerce Section -->
+            <div class="store-section">
+                <div class="store-section-title">
+                    <span class="section-badge quick-badge-section">Quick</span>
+                    Quick Commerce (10-30 min delivery)
+                </div>
+                <div class="checkbox-grid" id="groceryQuickCheckboxes"></div>
+            </div>
+
+            <!-- Regular Stores Section -->
+            <div class="store-section">
+                <div class="store-section-title">
+                    <span class="section-badge regular-badge-section">Regular</span>
+                    Regular Stores (Same/Next day delivery)
+                </div>
+                <div class="checkbox-grid" id="groceryRegularCheckboxes"></div>
+            </div>
+        </div>
+
+        <!-- Other Products Store Selector with Checkboxes -->
+        <div class="store-selector hidden" id="otherStoreSelector" style="background: linear-gradient(135deg, #fed7e2 0%, #e9d8fd 100%); border-color: #ed64a6;">
+            <div class="selector-title" style="color: #97266d;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+                Select Stores to Compare
+                <span class="count-badge" id="otherCount">7</span>
+            </div>
+
+            <div class="select-all-option" id="otherSelectAllContainer" onclick="handleSelectAllClick('other')" style="border-color: #fbb6ce;">
+                <input type="checkbox" id="otherSelectAll" checked>
+                <span>Select All Stores</span>
+            </div>
+
+            <div class="checkbox-grid" id="otherCheckboxes">
+                <!-- Checkboxes will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <button onclick="openAllStores()" id="searchBtn">
+            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+            </svg>
+            Open Selected Stores
+        </button>
+
+        <p class="hint">💡 Tip: If tabs don't open, check the popup blocker icon in your browser's address bar</p>
+
+        <div class="warning" id="popupWarning">
+            <strong>⚠️ Popups Blocked</strong>
+            Your browser blocked multiple tabs from opening. To fix this:
+            <ol style="margin-left: 20px; margin-top: 8px;">
+                <li>Look for the popup blocked icon (🔒 or 🚫) in your browser's address bar</li>
+                <li>Click it and select "Always allow popups from this site"</li>
+                <li>Click the button again</li>
+            </ol>
+        </div>
+
+        <div class="manual-links" id="manualLinks">
+            <strong style="color: #2d3748; font-size: 14px;">Click each link manually:</strong>
+            <div class="link-grid" id="linkGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        const groceryStores = [
+            { id: 'blinkit', name: 'Blinkit', url: 'https://blinkit.com/s/?q={keyword}', isQuick: true },
+            { id: 'bigbasket', name: 'BigBasket', url: 'https://www.bigbasket.com/ps/?q={keyword}', isQuick: true },
+            { id: 'zepto', name: 'Zepto', url: 'https://www.zeptonow.com/search?query={keyword}', isQuick: true },
+            { id: 'instamart', name: 'Instamart', url: 'https://www.swiggy.com/instamart/search?custom_back=true&query={keyword}', isQuick: true },
+            { id: 'amazon', name: 'Amazon', url: 'https://www.amazon.in/s?k={keyword}&i=nowstore', isQuick: false },
+            { id: 'dmart', name: 'DMart', url: 'https://www.dmart.in/search?searchTerm={keyword}', isQuick: false },
+            { id: 'flipkart', name: 'Flipkart', url: 'https://www.flipkart.com/search?q={keyword}&marketplace=GROCERY', isQuick: false },
+            { id: 'jiomart', name: 'JioMart', url: 'https://www.jiomart.com/search/{keyword}', isQuick: false }
+        ];
+
+        const otherStores = [
+            { id: 'amazon', name: 'Amazon', url: 'https://www.amazon.in/s?k={keyword}&s=price-asc-rank&dc&ref=sr_st_price-asc-rank&rh=p_85%3A10440599031' },
+            { id: 'flipkart', name: 'Flipkart', url: 'https://www.flipkart.com/search?q={keyword}&sort=price_asc' },
+            { id: 'reliance', name: 'Reliance Digital', url: 'https://www.reliancedigital.in/products?q={keyword}&sort_on=price_asc' },
+            { id: 'meesho', name: 'Meesho', url: 'https://www.meesho.com/search?q={keyword}' },
+            { id: 'myntra', name: 'Myntra', url: 'https://www.myntra.com/mobiles?sort=price_asc&rawQuery={keyword}' },
+            { id: 'jiomart', name: 'JioMart', url: 'https://www.jiomart.com/search?q={keyword}' },
+            { id: 'tatacliq', name: 'Tata CLiQ', url: 'https://www.tatacliq.com/search/?searchCategory=all&text={keyword}' }
+        ];
+
+        let currentCategory = 'grocery';
+        let selectedGroceryStores = groceryStores.map(s => s.id);
+        let selectedOtherStores = otherStores.map(s => s.id);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            generateCheckboxes();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const keyword = urlParams.get('q') || urlParams.get('search');
+            const category = urlParams.get('category');
+
+            if (category === 'other') {
+                switchCategory('other');
+            }
+
+            if (keyword) {
+                document.getElementById('searchInput').value = decodeURIComponent(keyword);
+            }
+
+            updateButtonText();
+        });
+
+        function generateCheckboxes() {
+            // Generate grocery quick commerce checkboxes
+            const quickStores = groceryStores.filter(s => s.isQuick);
+            const quickContainer = document.getElementById('groceryQuickCheckboxes');
+            quickContainer.innerHTML = quickStores.map(store => `
+                <div class="store-checkbox quick-commerce checked" id="grocery-label-${store.id}" onclick="handleStoreClick('grocery', '${store.id}')">
+                    <input type="checkbox" value="${store.id}" checked onclick="event.stopPropagation()">
+                    <span>${store.name}</span>
+                    <span class="quick-badge">Quick</span>
+                </div>
+            `).join('');
+
+            // Generate grocery regular store checkboxes
+            const regularStores = groceryStores.filter(s => !s.isQuick);
+            const regularContainer = document.getElementById('groceryRegularCheckboxes');
+            regularContainer.innerHTML = regularStores.map(store => `
+                <div class="store-checkbox regular-commerce checked" id="grocery-label-${store.id}" onclick="handleStoreClick('grocery', '${store.id}')">
+                    <input type="checkbox" value="${store.id}" checked onclick="event.stopPropagation()">
+                    <span>${store.name}</span>
+                </div>
+            `).join('');
+
+            // Generate other checkboxes
+            const otherContainer = document.getElementById('otherCheckboxes');
+            otherContainer.innerHTML = otherStores.map(store => `
+                <div class="store-checkbox other-products checked" id="other-label-${store.id}" onclick="handleStoreClick('other', '${store.id}')">
+                    <input type="checkbox" value="${store.id}" checked onclick="event.stopPropagation()">
+                    <span>${store.name}</span>
+                </div>
+            `).join('');
+        }
+
+        function handleStoreClick(category, storeId) {
+            const label = document.getElementById(`${category}-label-${storeId}`);
+            const checkbox = label.querySelector('input');
+
+            // Toggle checkbox
+            checkbox.checked = !checkbox.checked;
+
+            let selectedArray = category === 'grocery' ? selectedGroceryStores : selectedOtherStores;
+
+            if (checkbox.checked) {
+                if (!selectedArray.includes(storeId)) {
+                    selectedArray.push(storeId);
+                }
+                label.classList.add('checked');
+            } else {
+                selectedArray = selectedArray.filter(id => id !== storeId);
+                label.classList.remove('checked');
+            }
+
+            if (category === 'grocery') {
+                selectedGroceryStores = selectedArray;
+            } else {
+                selectedOtherStores = selectedArray;
+            }
+
+            // Update select all checkbox
+            const stores = category === 'grocery' ? groceryStores : otherStores;
+            const selectAllCheckbox = document.getElementById(category + 'SelectAll');
+            selectAllCheckbox.checked = selectedArray.length === stores.length;
+
+            updateCount(category);
+            updateButtonText();
+        }
+
+        function handleSelectAllClick(category) {
+            const checkbox = document.getElementById(category + 'SelectAll');
+            const isChecked = !checkbox.checked;
+            checkbox.checked = isChecked;
+
+            const stores = category === 'grocery' ? groceryStores : otherStores;
+
+            if (isChecked) {
+                // Select all
+                if (category === 'grocery') {
+                    selectedGroceryStores = stores.map(s => s.id);
+                } else {
+                    selectedOtherStores = stores.map(s => s.id);
+                }
+            } else {
+                // Deselect all
+                if (category === 'grocery') {
+                    selectedGroceryStores = [];
+                } else {
+                    selectedOtherStores = [];
+                }
+            }
+
+            // Update all checkboxes
+            stores.forEach(store => {
+                const label = document.getElementById(`${category}-label-${store.id}`);
+                const storeCheckbox = label.querySelector('input');
+                storeCheckbox.checked = isChecked;
+                label.classList.toggle('checked', isChecked);
+            });
+
+            updateCount(category);
+            updateButtonText();
+        }
+
+        function switchCategory(category) {
+            currentCategory = category;
+
+            document.getElementById('groceryTab').classList.toggle('active', category === 'grocery');
+            document.getElementById('otherTab').classList.toggle('active', category === 'other');
+
+            document.getElementById('subtitleText').textContent = category === 'grocery' 
+                ? 'Compare grocery prices across all major Indian stores'
+                : 'Compare prices for electronics, fashion & more';
+
+            document.getElementById('searchLabel').textContent = category === 'grocery' 
+                ? '🔍 Search Grocery Items' 
+                : '🔍 Search Products';
+
+            document.getElementById('searchInput').placeholder = category === 'grocery'
+                ? 'Type your product name...'
+                : 'Type product (e.g., mobile, laptop, shoes)...';
+
+            document.getElementById('groceryDropdown').classList.toggle('hidden', category !== 'grocery');
+            document.getElementById('otherDropdown').classList.toggle('hidden', category === 'grocery');
+
+            document.getElementById('groceryStoreSelector').classList.toggle('hidden', category !== 'grocery');
+            document.getElementById('otherStoreSelector').classList.toggle('hidden', category === 'grocery');
+
+            const btn = document.getElementById('searchBtn');
+            if (category === 'other') {
+                btn.classList.add('other-mode');
+            } else {
+                btn.classList.remove('other-mode');
+            }
+
+            updateButtonText();
+        }
+
+        function updateInputFromDropdown() {
+            const dropdown = currentCategory === 'grocery' 
+                ? document.getElementById('productDropdown')
+                : document.getElementById('otherProductDropdown');
+            const input = document.getElementById('searchInput');
+            if (dropdown.value) {
+                input.value = dropdown.value;
+            }
+        }
+
+        function updateCount(category) {
+            const selectedArray = category === 'grocery' ? selectedGroceryStores : selectedOtherStores;
+            document.getElementById(category + 'Count').textContent = selectedArray.length;
+        }
+
+        function updateButtonText() {
+            const btn = document.getElementById('searchBtn');
+            const selectedArray = currentCategory === 'grocery' ? selectedGroceryStores : selectedOtherStores;
+            const count = selectedArray.length;
+
+            btn.innerHTML = `
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+                Open ${count} Selected Store${count !== 1 ? 's' : ''}
+            `;
+
+            btn.disabled = count === 0;
+        }
+
+        function openAllStores() {
+            const keyword = document.getElementById('searchInput').value.trim();
+
+            if (!keyword) {
+                alert('Please enter a search keyword or select from dropdown!');
+                document.getElementById('searchInput').focus();
+                return;
+            }
+
+            const encodedKeyword = encodeURIComponent(keyword);
+
+            let stores, selectedIds;
+            if (currentCategory === 'grocery') {
+                stores = groceryStores;
+                selectedIds = selectedGroceryStores;
+            } else {
+                stores = otherStores;
+                selectedIds = selectedOtherStores;
+            }
+
+            const selectedStores = stores.filter(store => selectedIds.includes(store.id));
+
+            if (selectedStores.length === 0) {
+                alert('Please select at least one store!');
+                return;
+            }
+
+            const urls = selectedStores.map(store => ({
+                name: store.name,
+                url: store.url.replace('{keyword}', encodedKeyword)
+            }));
+
+            const openedWindows = [];
+            let blockedCount = 0;
+
+            for (let i = 0; i < urls.length; i++) {
+                openedWindows[i] = window.open(urls[i].url, '_blank');
+            }
+
+            for (let i = 0; i < urls.length; i++) {
+                if (!openedWindows[i] || openedWindows[i].closed || typeof openedWindows[i].closed === 'undefined') {
+                    blockedCount++;
+                }
+            }
+
+            if (blockedCount > 0) {
+                document.getElementById('popupWarning').classList.add('show');
+
+                const linkGrid = document.getElementById('linkGrid');
+                linkGrid.innerHTML = '';
+                urls.forEach(store => {
+                    const link = document.createElement('a');
+                    link.href = store.url;
+                    link.target = '_blank';
+                    link.className = 'manual-link';
+                    link.textContent = store.name;
+                    linkGrid.appendChild(link);
+                });
+                document.getElementById('manualLinks').classList.add('show');
+            } else {
+                document.getElementById('popupWarning').classList.remove('show');
+                document.getElementById('manualLinks').classList.remove('show');
+            }
+
+            const newUrl = `${window.location.pathname}?category=${currentCategory}&q=${encodedKeyword}`;
+            window.history.pushState({keyword: keyword, category: currentCategory}, '', newUrl);
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                openAllStores();
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const dropdown = currentCategory === 'grocery' 
+                ? document.getElementById('productDropdown')
+                : document.getElementById('otherProductDropdown');
+            const value = e.target.value;
+            const options = Array.from(dropdown.options);
+            const matchingOption = options.find(opt => opt.value === value);
+            if (matchingOption) {
+                dropdown.value = value;
+            } else {
+                dropdown.value = "";
+            }
+        });
+    </script>
+</body>
+</html>

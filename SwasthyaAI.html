@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwasthyaAI - Clinical Triage Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f0f4f8; color: #1e293b; overflow-x: hidden; }
+        
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        .symptom-card { transition: all 0.2s ease; border: 1px solid #cbd5e1; background: white; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .symptom-card:hover { border-color: #0d9488; background: #f0fdfa; transform: translateY(-1px); box-shadow: 0 4px 6px rgba(13, 148, 136, 0.1); }
+        .symptom-card.active { background: #0f766e !important; color: white !important; border-color: #0f766e !important; box-shadow: 0 4px 10px rgba(15, 118, 110, 0.3); }
+        .symptom-card.active .icon-box { background: rgba(255,255,255,0.2); color: white; }
+
+        .urgency-critical { border-left: 6px solid #e11d48; background: #fff1f2; }
+        .urgency-high { border-left: 6px solid #ea580c; background: #fff7ed; }
+        .urgency-medium { border-left: 6px solid #d97706; background: #fffbeb; }
+        .urgency-low { border-left: 6px solid #059669; background: #ecfdf5; }
+
+        .glass-header { background: linear-gradient(135deg, #1e3a8a 0%, #0f766e 100%); box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="glass-header sticky top-0 z-50 px-6 py-3 border-b border-white/10">
+        <div class="max-w-[1400px] mx-auto flex flex-col md:flex-row items-center gap-4 md:gap-6">
+            
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-[#0f766e] shadow-lg shadow-black/20">
+                    <i class="fa-solid fa-staff-snake text-2xl"></i>
+                </div>
+                <div class="text-white">
+                    <h1 class="text-xl font-black tracking-tight leading-tight">SwasthyaAI</h1>
+                    <p class="text-[10px] uppercase tracking-[0.2em] font-semibold text-teal-100 opacity-90">Clinical Dashboard</p>
+                </div>
+            </div>
+
+            <div class="flex-1 w-full max-w-3xl relative group">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="fa-solid fa-magnifying-glass text-slate-400 group-focus-within:text-teal-600 transition-colors"></i>
+                </div>
+                <input type="text" id="aiPrompt" placeholder="Enter medical conditions, describe symptoms, or choose from the section below..." 
+                    onkeydown="if(event.key === 'Enter') aiAgentProcess()"
+                    class="w-full pl-11 pr-28 py-2 md:py-3 bg-white border-2 border-transparent rounded-xl md:rounded-2xl text-xs md:text-sm focus:border-teal-500 focus:ring-4 focus:ring-teal-500/20 transition-all outline-none shadow-inner text-slate-700 font-medium placeholder-slate-400">
+                <button onclick="aiAgentProcess()" class="absolute inset-y-1 right-1 bg-teal-600 text-white px-4 md:px-5 py-1.5 rounded-lg md:rounded-xl text-[10px] md:text-xs font-bold hover:bg-teal-500 hover:shadow-lg hover:shadow-teal-500/30 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-microchip"></i> Analyze
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+                <button onclick="toggleDietPlan()" id="dietBtn" class="bg-emerald-600/30 hover:bg-emerald-500/50 border border-emerald-400/40 text-white px-3 py-1.5 md:py-2 md:px-4 rounded-lg md:rounded-xl text-[10px] md:text-xs font-bold transition-all flex items-center gap-1.5 backdrop-blur-sm shadow-sm hover:shadow-md">
+                    <i class="fa-solid fa-leaf"></i> Diet Plan
+                </button>
+                <button onclick="location.reload()" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-3 py-1.5 md:py-2 md:px-4 rounded-lg md:rounded-xl text-[10px] md:text-xs font-bold transition-all flex items-center gap-1.5 backdrop-blur-sm shadow-sm hover:shadow-md">
+                    <i class="fa-solid fa-rotate-right"></i> Reset
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main id="triageView" class="max-w-[1400px] mx-auto p-4 md:p-6 grid lg:grid-cols-12 gap-6 flex-1 w-full fade-in flex-col">
+        
+        <section class="lg:col-span-7 space-y-4 order-last lg:order-first">
+            <div class="flex gap-2 overflow-x-auto pb-3 custom-scroll">
+                <button onclick="filterCat('all')" class="cat-btn px-4 py-2 rounded-xl bg-slate-800 text-white text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-sm hover:bg-slate-700 transition-colors">All</button>
+                <button onclick="filterCat('critical')" class="cat-btn px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-sm transition-colors"><i class="fa-solid fa-truck-medical mr-1.5"></i>ER</button>
+                <button onclick="filterCat('mental')" class="cat-btn px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-sm transition-colors"><i class="fa-solid fa-brain mr-1.5"></i>Neuro/Psych</button>
+                <button onclick="filterCat('fever')" class="cat-btn px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-orange-600 hover:border-orange-200 hover:bg-orange-50 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-sm transition-colors"><i class="fa-solid fa-temperature-half mr-1.5"></i>Immune</button>
+                <button onclick="filterCat('gi')" class="cat-btn px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-sm transition-colors"><i class="fa-solid fa-stomach mr-1.5"></i>Gastro</button>
+                <button onclick="filterCat('resp')" class="cat-btn px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-cyan-600 hover:border-cyan-200 hover:bg-cyan-50 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-sm transition-colors"><i class="fa-solid fa-lungs mr-1.5"></i>Pulm</button>
+                <button onclick="filterCat('metabolic')" class="cat-btn px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-sm transition-colors"><i class="fa-solid fa-droplet mr-1.5"></i>Endo/Ortho</button>
+                <button onclick="filterCat('uro')" class="cat-btn px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-yellow-600 hover:border-yellow-200 hover:bg-yellow-50 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-sm transition-colors"><i class="fa-solid fa-kidneys mr-1.5"></i>Uro/Gyn</button>
+                <button onclick="filterCat('derma')" class="cat-btn px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-pink-600 hover:border-pink-200 hover:bg-pink-50 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-sm transition-colors"><i class="fa-solid fa-hand-dots mr-1.5"></i>Derma</button>
+            </div>
+
+            <div id="symptomsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 max-h-[calc(100vh-240px)] overflow-y-auto pr-2 custom-scroll p-1">
+            </div>
+        </section>
+
+        <aside id="resultsPanel" class="hidden lg:col-span-5 order-first lg:order-last mb-6 lg:mb-0">
+            <div class="bg-white rounded-3xl p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-slate-200 sticky top-24 space-y-5 custom-scroll max-h-[calc(100vh-120px)] overflow-y-auto w-full flex flex-col">
+                
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-slate-100 text-slate-500 w-10 h-10 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-file-medical"></i></div>
+                        <div>
+                            <h2 class="font-black text-slate-800 leading-none">Diagnostic Report</h2>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">AI Triage Assessment</p>
+                        </div>
+                    </div>
+                    
+                    <div id="severityCard" class="px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-sm bg-slate-100 text-slate-500">
+                        <i id="severityIcon" class="fa-solid fa-circle-check text-sm opacity-90"></i>
+                        <p id="severityText" class="text-[10px] font-black uppercase tracking-wide whitespace-nowrap">Analysis</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-3">
+                    <p class="text-[11px] font-bold text-white mb-2 flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-rose-400"></i> Find Nearest <span id="specialistName" class="text-teal-300 underline decoration-teal-500/50 underline-offset-4">Specialist</span></p>
+                    <div class="flex gap-2 relative">
+                        <input type="text" id="locInput" placeholder="Enter PIN (e.g. 400069) or Area..." 
+                            onkeydown="if(event.key === 'Enter') searchNearest()"
+                            class="flex-1 px-3 py-2.5 rounded-lg text-xs font-medium outline-none bg-slate-900/50 text-white placeholder-slate-400 border border-slate-600 focus:border-teal-400 transition-colors shadow-inner">
+                        <button onclick="searchNearest()" class="bg-teal-500 hover:bg-teal-400 text-slate-900 px-4 py-2 rounded-lg text-xs font-extrabold transition-all shadow-[0_0_15px_rgba(20,184,166,0.2)] hover:shadow-[0_0_20px_rgba(20,184,166,0.5)] flex items-center">
+                            <i class="fa-solid fa-location-arrow mr-1.5"></i> Locate
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><i class="fa-solid fa-list-check"></i> Documented Presentation</p>
+                    <div id="selectedDisplayList" class="flex flex-wrap gap-1.5"></div>
+                </div>
+
+                <div class="space-y-1">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2"><i class="fa-solid fa-code-branch"></i> Differential Diagnosis</p>
+                    <div id="conditionsList" class="space-y-3"></div>
+                </div>
+
+                <div class="space-y-3 pt-1">
+                    <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3.5">
+                        <p class="text-[11px] font-bold text-blue-900 mb-2.5 flex items-center gap-2"><i class="fa-solid fa-flask text-blue-600"></i> Recommended Diagnostics</p>
+                        <ul id="labList" class="text-[11px] list-none pl-1 text-blue-800 space-y-1.5 font-medium"></ul>
+                    </div>
+                    <div class="bg-teal-50/50 border border-teal-100 rounded-xl p-3.5">
+                        <p class="text-[11px] font-bold text-teal-900 mb-2.5 flex items-center gap-2"><i class="fa-solid fa-prescription-bottle-medical text-teal-600"></i> Pharmacology & Care</p>
+                        <div id="treatmentList" class="text-[11px] space-y-1.5 text-teal-900 leading-relaxed"></div>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+    </main>
+
+    <main id="dietView" class="hidden max-w-[1400px] mx-auto p-4 md:p-6 flex-1 w-full fade-in">
+        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-200 h-full flex flex-col">
+            
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-emerald-100">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                        <i class="fa-solid fa-apple-whole"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-black text-slate-800 leading-none">Therapeutic Diet Plan</h2>
+                        <p class="text-[11px] text-emerald-600 font-bold uppercase tracking-widest mt-1.5">Holistic Nutritional Matrix</p>
+                    </div>
+                </div>
+                
+                <button onclick="toggleDietPlan()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-sm shrink-0">
+                    <i class="fa-solid fa-arrow-left"></i> Return to Main Menu
+                </button>
+            </div>
+            
+            <div class="mb-8 bg-teal-50 border border-teal-200 rounded-2xl p-5 shadow-sm">
+                <h3 class="text-sm md:text-base font-black text-teal-900 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-jar text-teal-600"></i> Daily Sattu Protein Blend
+                </h3>
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="flex-1">
+                        <p class="text-xs font-bold text-teal-800 uppercase tracking-wider mb-2 border-b border-teal-200 pb-1">Ingredients to Grind & Store</p>
+                        <ul class="text-xs text-teal-900 space-y-1.5 list-disc list-inside marker:text-teal-500">
+                            <li><strong>500g</strong> Sattu</li>
+                            <li><strong>200g</strong> Finely ground roasted oats</li>
+                            <li><strong>150g</strong> Roasted ragi flour</li>
+                            <li><strong>100g</strong> Roasted sesame seeds (ground)</li>
+                            <li><strong>Pinch</strong> of saunf powder or elaichi</li>
+                        </ul>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs font-bold text-teal-800 uppercase tracking-wider mb-2 border-b border-teal-200 pb-1">Usage Instructions</p>
+                        <ul class="text-xs text-teal-900 space-y-2">
+                            <li class="flex gap-2"><i class="fa-solid fa-spoon text-teal-600 mt-0.5"></i> Mix <strong>3 tbsp</strong> of the powder blend with <strong>250ml warm water</strong>.</li>
+                            <li class="flex gap-2"><i class="fa-solid fa-ban text-red-500 mt-0.5"></i> <strong>Important:</strong> Do not drink plain water 30 minutes before or after consumption.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dietPlanContent" class="flex-1 overflow-y-auto custom-scroll pr-2 pb-10">
+                </div>
+        </div>
+    </main>
+
+    <script>
+        // --- DIET PLAN JSON DB (With Eggs, Tofu & Fish/Seafood) ---
+        const dietPlanDB = [{"meal": "Early Morning (6:30 AM)", "items": [{"Food Item Options": "Warm water + soaked fenugreek seeds", "Carbs": "✅", "Protein": "❌", "Fiber": "✅", "Healthy Fats": "❌", "Vitamins & Minerals": "Magnesium, Calcium, Iron"}, {"Food Item Options": "5 soaked almonds + 2 walnuts", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Omega-3, Vitamin E, Magnesium"}, {"Food Item Options": "Soaked raisins + 1 tsp ghee", "Carbs": "✅", "Protein": "❌", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Iron, Potassium"}]}, {"meal": "Breakfast (7:15 AM)", "items": [{"Food Item Options": "Ragi porridge (ragi + jaggery + milk/coconut milk)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Calcium, Iron, B-complex"}, {"Food Item Options": "Vegetable upma (sooji + peas, carrot, beans) + coconut chutney", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Vitamin A, B, Iron"}, {"Food Item Options": "Instant dosa (non-fermented) + potato filling + coconut chutney", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "B-complex, Folate"}, {"Food Item Options": "Paneer paratha + coconut chutney (no tomato)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Calcium, Vitamin B12, Protein"}, {"Food Item Options": "Jowar roti + pumpkin sabzi", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Magnesium, Phosphorus, Fiber"}, {"Food Item Options": "Ragi malt (sprouted ragi powder + milk + jaggery)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Vitamin D (if milk), Iron"}, {"Food Item Options": "Moong dal cheela (no fermentation)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Plant protein, Folate"}, {"Food Item Options": "Ragi idli (baking soda version, non-fermented)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Calcium, Amino acids"}, {"Food Item Options": "Sabudana khichdi (tapioca + peanuts + potato) no lemon", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Energy, Peanut protein"}, {"Food Item Options": "Daliya upma (broken wheat + peas + carrot)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Fiber, B1, Iron"}, {"Food Item Options": "Poha + grated coconut + pomegranate", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Vitamin C (pomegranate), Iron"}, {"Food Item Options": "Oats uttapam (oats + suji + coconut curd)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Beta-glucan, Magnesium"}, {"Food Item Options": "Methi thepla (whole wheat + methi + oil, no curd)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Vitamin K, Iron, Calcium"}, {"Food Item Options": "Scrambled Tofu (Bhurji) with Spinach + Whole Wheat Toast", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Calcium, Iron, Vitamin B"}, {"Food Item Options": "Masala Omelette (2 eggs) + Multigrain Toast", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Vitamin B12, Choline, Iron"}, {"Food Item Options": "Egg Bhurji (Scrambled eggs with onion/tomato) + Jowar Roti", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Protein, Lutein, Zeaxanthin"}, {"Food Item Options": "Boiled Eggs (2) with Chaat Masala + Fruit Bowl", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "High Quality Protein, Vitamin D"}]}, {"meal": "Mid-Morning (10:00 AM)", "items": [{"Food Item Options": "Ripe banana + 4 almonds", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Potassium, Vitamin B6"}, {"Food Item Options": "Boiled sweet potato + rock salt", "Carbs": "✅", "Protein": "❌", "Fiber": "✅", "Healthy Fats": "❌", "Vitamins & Minerals": "Vitamin A, C (mild), Manganese"}, {"Food Item Options": "Papaya cubes", "Carbs": "✅", "Protein": "❌", "Fiber": "✅", "Healthy Fats": "❌", "Vitamins & Minerals": "Vitamin C (non-citrus), Beta-carotene"}, {"Food Item Options": "Watermelon slice", "Carbs": "✅", "Protein": "❌", "Fiber": "✅", "Healthy Fats": "❌", "Vitamins & Minerals": "Lycopene, Vitamin A"}, {"Food Item Options": "Coconut water (plain)", "Carbs": "✅", "Protein": "❌", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Potassium, Electrolytes"}, {"Food Item Options": "Roasted chana (handful)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "B-vitamins, Iron"}, {"Food Item Options": "Coconut ladoo (jaggery + coconut)", "Carbs": "✅", "Protein": "❌", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "MCTs, Manganese"}, {"Food Item Options": "Ragi cookies (homemade, low sugar)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Calcium, Iron"}, {"Food Item Options": "Boiled peanuts + fresh coconut pieces", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Resveratrol, Biotin"}, {"Food Item Options": "Apple slices with peanut butter", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Vitamin C, Fiber, Healthy fats"}]}, {"meal": "Lunch (12:00 PM)", "items": [{"Food Item Options": "Toor dal + pumpkin khichdi", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Vitamin A, Folate, Fiber"}, {"Food Item Options": "Masoor dal + spinach khichdi (small masoor)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Iron, Folic acid, Vitamin K"}, {"Food Item Options": "Multigrain roti + Chana dal + Pumpkin curry", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Complex carbs, Plant iron"}, {"Food Item Options": "Brown rice + Moong palak dal + Cabbage-carrot stir fry", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "B-vitamins, Vitamin K, A"}, {"Food Item Options": "Ragi mudde (ragi balls) + Spinach & paneer curry", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Calcium, Protein, Vitamin A"}, {"Food Item Options": "Bajra roti + Masoor dal (small) + Ridge gourd sabzi", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Iron, B-complex, Fiber"}, {"Food Item Options": "Rajma curry (no tomato) + Jeera rice", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Plant protein, Molybdenum"}, {"Food Item Options": "Chole (chickpeas + pumpkin paste instead of tomato) + Jowar roti", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Folate, Manganese, Protein"}, {"Food Item Options": "Stuffed capsicum (paneer + potato filling) + Moong dal", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Vitamin C (capsicum), Calcium"}, {"Food Item Options": "Bhindi (okra) stir fry + Toor dal + Brown rice", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (oil)", "Vitamins & Minerals": "Vitamin K, Magnesium, Fiber"}, {"Food Item Options": "Drumstick + moong dal curry + Jowar bhakri", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Vitamin C, Iron, Calcium"}, {"Food Item Options": "Cluster beans (guar) sabzi + Chana dal + Roti", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Soluble fiber, B-complex"}, {"Food Item Options": "Sev tamater (pumpkin puree instead of tomato) + Bajra roti", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Vitamin A, Antioxidants"}, {"Food Item Options": "Coconut milk kadhi (besan + coconut milk + ginger) + Rice", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (coconut fat)", "Vitamins & Minerals": "MCTs, Probiotic benefits"}, {"Food Item Options": "Salad (cucumber + carrot + beetroot) + Curd (fresh, not sour) optional", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (if curd)", "Vitamins & Minerals": "Vitamin A, Probiotics, Fiber"}, {"Food Item Options": "Coconut raita (grated coconut + cumin + green chili) no curd", "Carbs": "✅", "Protein": "❌", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Electrolytes, Manganese"}, {"Food Item Options": "Pan-seared Ravas (Indian Salmon) + Brown Rice + Steamed Greens", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (Fish oil/Olive oil)", "Vitamins & Minerals": "Omega-3, Vitamin D, Selenium"}, {"Food Item Options": "Tofu & Bell Pepper Stir Fry + Quinoa/Brown Rice", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (Sesame oil)", "Vitamins & Minerals": "Plant Protein, Calcium, Iron"}, {"Food Item Options": "Prawn Curry (coconut milk base, no tomato) + Jowar Roti", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (Coconut)", "Vitamins & Minerals": "Vitamin B12, Zinc, Omega-3"}, {"Food Item Options": "Dhaba Style Egg Curry (light gravy) + Brown Rice", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Protein, Selenium, Vitamin B12"}, {"Food Item Options": "Egg Biryani (with brown rice/quinoa & cucumber raita)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Complex Carbs, Complete Protein"}, {"Food Item Options": "Bengali Dim Kosha (Spicy Egg Curry) + Multigrain Roti", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (Mustard oil)", "Vitamins & Minerals": "Iron, Vitamin A, Protein"}]}, {"meal": "Afternoon (3:00 PM)", "items": [{"Food Item Options": "Roasted chana (handful)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "❌", "Vitamins & Minerals": "B-vitamins, Iron"}, {"Food Item Options": "Coconut ladoo (jaggery + coconut)", "Carbs": "✅", "Protein": "❌", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "MCTs, Manganese"}, {"Food Item Options": "Ragi cookies (homemade)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Calcium, Iron"}, {"Food Item Options": "Boiled peanuts + fresh coconut", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Resveratrol, Biotin"}, {"Food Item Options": "Apple slices + peanut butter", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Vitamin C, Fiber, Healthy fats"}, {"Food Item Options": "Buttermilk (fresh, non-sour) + roasted jeera + mint", "Carbs": "✅", "Protein": "✅", "Fiber": "❌", "Healthy Fats": "❌", "Vitamins & Minerals": "Probiotics, Electrolytes"}, {"Food Item Options": "Ragi banana smoothie (ragi flour + banana + milk)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Calcium, Potassium, B6"}, {"Food Item Options": "Sweet potato tikki (no lemon, no tamarind chutney)", "Carbs": "✅", "Protein": "❌", "Fiber": "✅", "Healthy Fats": "✅ (oil)", "Vitamins & Minerals": "Vitamin A, Complex carbs"}, {"Food Item Options": "Moong dal chilla (cold strips)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "❌", "Vitamins & Minerals": "Plant protein, Folate"}, {"Food Item Options": "Coconut barfi (jaggery + coconut)", "Carbs": "✅", "Protein": "❌", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Manganese, Healthy fats"}, {"Food Item Options": "Ragi puffs (homemade baked)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Calcium, Fiber"}]}, {"meal": "Dinner (7:30 PM)", "items": [{"Food Item Options": "Jowar bhakri + Methi moong dal", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Iron, Vitamin K, Calcium"}, {"Food Item Options": "Vegetable millet pulao (barnyard/foxtail) + coconut milk base", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (coconut oil)", "Vitamins & Minerals": "B-complex, Magnesium"}, {"Food Item Options": "Paneer butter masala (no tomato: pumpkin+beetroot+cashew) + Roti", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee/cashew)", "Vitamins & Minerals": "Calcium, Vitamin A, Protein"}, {"Food Item Options": "Cabbage & chana dal stir fry + Jeera rice", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Fiber, Plant protein, Vitamin C"}, {"Food Item Options": "Dosa (non-fermented) + Sambar (no tamarind: pumpkin + toor dal)", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (coconut chutney)", "Vitamins & Minerals": "B-complex, Iron"}, {"Food Item Options": "Veg pulao (cauliflower, peas, carrot, beans) + Coconut raita", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (coconut)", "Vitamins & Minerals": "Vitamin A, C, Fiber"}, {"Food Item Options": "Palak tofu (spinach + tofu) + Jowar roti", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (oil)", "Vitamins & Minerals": "Iron, Calcium, Plant protein"}, {"Food Item Options": "Baingan bharta (roasted eggplant + green peas, no tomato) + Roti", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (oil)", "Vitamins & Minerals": "Antioxidants, Fiber"}, {"Food Item Options": "Methi matar malai (fenugreek + peas + coconut milk) + Rice", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (coconut fat)", "Vitamins & Minerals": "Vitamin K, Protein, Iron"}, {"Food Item Options": "Mix dal tadka (moong + chana + toor, no tamarind) + Brown rice", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Complete protein profile"}, {"Food Item Options": "Rice + Moringa (drumstick leaves) dal", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Calcium, Iron, Vitamins A,C"}, {"Food Item Options": "Zucchini & paneer kofta curry (cashew paste, no tomato) + Roti", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (cashew/ghee)", "Vitamins & Minerals": "Protein, Vitamin C, Zinc"}, {"Food Item Options": "Grilled Sardines with Garlic/Herbs + Sweet Potato Mash", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (Omega-3)", "Vitamins & Minerals": "Calcium, Omega-3, Vitamin B12"}, {"Food Item Options": "Tofu Tikka Masala (cashew paste base) + Multigrain Roti", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (Cashew)", "Vitamins & Minerals": "Protein, Iron, Magnesium"}, {"Food Item Options": "Baked Pomfret/Mackerel + Roasted Vegetables", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (Fish oil)", "Vitamins & Minerals": "Protein, Omega-3, Potassium"}, {"Food Item Options": "Kerala Mutta Roast (Egg Roast with onions & spices) + Appam/Dosa", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (coconut oil)", "Vitamins & Minerals": "Choline, Vitamin D, Potassium"}, {"Food Item Options": "Egg Tadka Dal (Dal mixed with scrambled eggs) + Bajra Roti", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅ (ghee)", "Vitamins & Minerals": "Plant & Animal Protein combo, Iron"}, {"Food Item Options": "Egg Makhani (Tomato base, low cream) + Jeera Rice", "Carbs": "✅", "Protein": "✅", "Fiber": "✅", "Healthy Fats": "✅", "Vitamins & Minerals": "Lycopene, Calcium, Protein"}]}];
+
+        function renderDietPlan() {
+            const container = document.getElementById('dietPlanContent');
+            let html = '';
+            
+            dietPlanDB.forEach(group => {
+                html += `
+                <div class="mb-10">
+                    <h3 class="text-sm font-bold text-emerald-800 bg-emerald-100/60 px-5 py-3 rounded-t-2xl border border-emerald-200/60 border-b-0 flex items-center gap-2">
+                        <i class="fa-regular fa-clock text-emerald-600"></i> ${group.meal}
+                    </h3>
+                    <div class="overflow-x-auto rounded-b-2xl rounded-tr-2xl border border-slate-200 shadow-sm">
+                        <table class="w-full text-left text-xs text-slate-600 whitespace-nowrap md:whitespace-normal">
+                            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px]">
+                                <tr>
+                                    <th class="px-5 py-3.5 font-extrabold w-1/3">Food Item Options</th>
+                                    <th class="px-3 py-3.5 font-extrabold text-center">Carbs</th>
+                                    <th class="px-3 py-3.5 font-extrabold text-center">Protein</th>
+                                    <th class="px-3 py-3.5 font-extrabold text-center">Fiber</th>
+                                    <th class="px-3 py-3.5 font-extrabold text-center">Fats</th>
+                                    <th class="px-5 py-3.5 font-extrabold">Vitamins & Minerals</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 bg-white">`;
+                
+                group.items.forEach(item => {
+                    html += `
+                                <tr class="hover:bg-emerald-50/40 transition-colors">
+                                    <td class="px-5 py-3.5 font-semibold text-slate-700 leading-relaxed">${item['Food Item Options']}</td>
+                                    <td class="px-3 py-3.5 text-center text-xs opacity-90">${item['Carbs']}</td>
+                                    <td class="px-3 py-3.5 text-center text-xs opacity-90">${item['Protein']}</td>
+                                    <td class="px-3 py-3.5 text-center text-xs opacity-90">${item['Fiber']}</td>
+                                    <td class="px-3 py-3.5 text-center text-[10px] font-medium text-slate-500">${item['Healthy Fats']}</td>
+                                    <td class="px-5 py-3.5 text-slate-500 font-medium leading-relaxed">${item['Vitamins & Minerals']}</td>
+                                </tr>`;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // --- FULL SCREEN VIEW TOGGLER ---
+        function toggleDietPlan() {
+            const triageView = document.getElementById('triageView');
+            const dietView = document.getElementById('dietView');
+            const dietBtn = document.getElementById('dietBtn');
+            
+            if (dietView.classList.contains('hidden')) {
+                // Show Diet Plan
+                triageView.classList.add('hidden');
+                triageView.classList.remove('flex'); // Keep grid removed
+                dietView.classList.remove('hidden');
+                dietBtn.classList.add('ring-2', 'ring-white');
+            } else {
+                // Show Main Menu
+                dietView.classList.add('hidden');
+                triageView.classList.remove('hidden');
+                triageView.classList.add('flex');
+                dietBtn.classList.remove('ring-2', 'ring-white');
+            }
+        }
+
+        // Initialize diet plan rendering
+        renderDietPlan();
+
+        // --- EXHAUSTIVE CLINICAL ONTOLOGY ---
+        const symptomsDB = [
+            { id: 'cp', name: 'Chest Pain / Pressure', cat: 'critical', icon: 'fa-heart-pulse', k: ['chest', 'heart', 'angina', 'crushing', 'tightness'] },
+            { id: 'sob', name: 'Shortness of Breath', cat: 'critical', icon: 'fa-wind', k: ['breath', 'breathing', 'gasping', 'choking', 'pant'] },
+            { id: 'sl', name: 'Slurred Speech', cat: 'critical', icon: 'fa-lips', k: ['speech', 'talking', 'slur', 'droop', 'paralysis'] },
+            { id: 'sz', name: 'Seizures', cat: 'critical', icon: 'fa-bolt', k: ['seizure', 'shaking', 'fit', 'convulsion', 'epilepsy'] },
+            { id: 'bld_gi', name: 'Vomiting Blood / Black Stool', cat: 'critical', icon: 'fa-droplet', k: ['bleeding', 'blood', 'vomit blood', 'black stool', 'rectal bleed', 'blood in poop'] },
+            { id: 'bld_rp', name: 'Coughing Blood', cat: 'critical', icon: 'fa-lungs-virus', k: ['coughing blood', 'blood spit', 'phlegm blood', 'bleeding'] },
+            { id: 'sync', name: 'Fainting / Syncope', cat: 'critical', icon: 'fa-person-falling', k: ['faint', 'passed out', 'collapse', 'blackout'] },
+            { id: 'dep', name: 'Persistent Low Mood', cat: 'mental', icon: 'fa-cloud-rain', k: ['sad', 'depressed', 'crying', 'hopeless', 'suicidal', 'grief'] },
+            { id: 'anx', name: 'Severe Anxiety / Panic', cat: 'mental', icon: 'fa-brain', k: ['panic', 'anxious', 'worry', 'fear', 'nervous', 'dread'] },
+            { id: 'ins', name: 'Insomnia / Sleep Issues', cat: 'mental', icon: 'fa-bed', k: ['sleep', 'insomnia', 'awake', 'nightmares'] },
+            { id: 'hd', name: 'Severe Headache', cat: 'mental', icon: 'fa-head-side-virus', k: ['headache', 'head', 'migraine', 'throbbing'] },
+            { id: 'dz', name: 'Dizziness / Vertigo', cat: 'mental', icon: 'fa-arrows-spin', k: ['dizzy', 'spinning', 'faint', 'lightheaded'] },
+            { id: 'pn', name: 'Peripheral Numbness', cat: 'mental', icon: 'fa-hand-sparkles', k: ['tingling', 'numb', 'pins', 'needles', 'loss of sensation'] },
+            { id: 'trem', name: 'Tremors / Shaking', cat: 'mental', icon: 'fa-hand-dots', k: ['tremor', 'shaking', 'hands shake', 'parkinsons'] },
+            { id: 'ch', name: 'Dry Cough', cat: 'resp', icon: 'fa-lungs', k: ['cough', 'coughing', 'dry', 'hacking'] },
+            { id: 'cgh_p', name: 'Productive Cough', cat: 'resp', icon: 'fa-virus', k: ['mucus', 'phlegm', 'sputum', 'wet cough'] },
+            { id: 'wh', name: 'Wheezing', cat: 'resp', icon: 'fa-lungs-virus', k: ['wheeze', 'whistling', 'asthma'] },
+            { id: 'st', name: 'Sore Throat', cat: 'resp', icon: 'fa-head-side-cough', k: ['throat', 'swallowing', 'tonsils', 'hoarse'] },
+            { id: 'con', name: 'Nasal Congestion', cat: 'resp', icon: 'fa-head-side-cough-slash', k: ['runny nose', 'blocked nose', 'sneezing', 'sinus'] },
+            { id: 'ear', name: 'Ear Pain / Discharge', cat: 'resp', icon: 'fa-ear-listen', k: ['earache', 'ear', 'hearing', 'deaf', 'ear bleed', 'fluid'] },
+            { id: 'bld_ns', name: 'Nosebleed (Epistaxis)', cat: 'resp', icon: 'fa-droplet-slash', k: ['nosebleed', 'nose bleed', 'bleeding nose'] },
+            { id: 'et', name: 'Excessive Thirst', cat: 'metabolic', icon: 'fa-glass-water', k: ['thirsty', 'thirst', 'polydipsia'] },
+            { id: 'uwl', name: 'Unexplained Weight Loss', cat: 'metabolic', icon: 'fa-weight-scale', k: ['weight loss', 'thinning', 'losing weight'] },
+            { id: 'wtg', name: 'Unexplained Weight Gain', cat: 'metabolic', icon: 'fa-weight-hanging', k: ['weight gain', 'fat', 'obese'] },
+            { id: 'fat', name: 'Extreme Fatigue', cat: 'metabolic', icon: 'fa-battery-empty', k: ['weak', 'tired', 'fatigue', 'lethargy', 'exhausted'] },
+            { id: 'jp', name: 'Joint/Muscle Pain', cat: 'metabolic', icon: 'fa-bone', k: ['knee', 'joint', 'muscle', 'ache', 'back', 'neck', 'stiffness', 'arthritis'] },
+            { id: 'hl', name: 'Severe Hair Loss', cat: 'metabolic', icon: 'fa-user-injured', k: ['hairfall', 'hair loss', 'balding', 'alopecia'] },
+            { id: 'palp', name: 'Palpitations', cat: 'metabolic', icon: 'fa-heart-circle-bolt', k: ['heartbeat', 'racing heart', 'flutter'] },
+            { id: 'edm', name: 'Swelling (Edema)', cat: 'metabolic', icon: 'fa-shoe-prints', k: ['swelling', 'swollen legs', 'puffy', 'edema', 'ankles'] },
+            { id: 'fu', name: 'Frequent Urination', cat: 'uro', icon: 'fa-toilet', k: ['peeing', 'pee', 'urination', 'frequent'] },
+            { id: 'bu', name: 'Burning Micturition', cat: 'uro', icon: 'fa-fire-flame-simple', k: ['burning urine', 'painful pee', 'uti'] },
+            { id: 'bld_ur', name: 'Blood in Urine', cat: 'uro', icon: 'fa-droplet', k: ['blood in pee', 'red urine', 'bleeding', 'hematuria'] },
+            { id: 'gyn_bld', name: 'Abnormal Vaginal Bleeding', cat: 'uro', icon: 'fa-person-dress', k: ['period', 'menstruation', 'heavy bleeding', 'spotting', 'vaginal bleed'] },
+            { id: 'gyn_pn', name: 'Pelvic Pain / Cramps', cat: 'uro', icon: 'fa-child-reaching', k: ['pelvic', 'cramps', 'lower belly', 'ovary'] },
+            { id: 'ar', name: 'Acid Reflux / Heartburn', cat: 'gi', icon: 'fa-fire', k: ['acid', 'reflux', 'heartburn', 'gerd', 'acidity', 'burping'] },
+            { id: 'ap', name: 'Abdominal Pain', cat: 'gi', icon: 'fa-stomach', k: ['stomach ache', 'belly pain', 'cramps', 'abdomen', 'gastric', 'lower left'] },
+            { id: 'nv', name: 'Nausea / Vomiting', cat: 'gi', icon: 'fa-head-side-cough', k: ['vomit', 'puke', 'nausea', 'throwing up'] },
+            { id: 'dia', name: 'Diarrhea', cat: 'gi', icon: 'fa-poop', k: ['loose motions', 'diarrhea', 'watery', 'dysentery'] },
+            { id: 'cst', name: 'Severe Constipation', cat: 'gi', icon: 'fa-restroom', k: ['constipation', 'hard stool', 'blocked', 'cant poop'] },
+            { id: 'jnd', name: 'Yellowing Skin/Eyes', cat: 'gi', icon: 'fa-face-smile', k: ['yellow', 'jaundice', 'liver'] },
+            { id: 'hgf', name: 'High Fever (>103°F)', cat: 'fever', icon: 'fa-temperature-arrow-up', k: ['103', '104', '105', 'high fever', 'burning up'] },
+            { id: 'lgf', name: 'Low-grade Fever', cat: 'fever', icon: 'fa-temperature-low', k: ['99', '100', 'mild fever', 'warm'] },
+            { id: 'ns', name: 'Night Sweats / Chills', cat: 'fever', icon: 'fa-snowflake', k: ['chills', 'shivering', 'sweating', 'cold'] },
+            { id: 'ln', name: 'Swollen Lymph Nodes', cat: 'fever', icon: 'fa-lungs', k: ['lump', 'swollen glands', 'neck lump', 'armpit lump'] },
+            { id: 'rash', name: 'Skin Rash / Hives', cat: 'derma', icon: 'fa-allergies', k: ['rash', 'redness', 'hives', 'bumps', 'spots'] },
+            { id: 'itch', name: 'Severe Itching', cat: 'derma', icon: 'fa-hand-dots', k: ['itching', 'scratching', 'itchy', 'pruritus'] },
+            { id: 'brs', name: 'Easy Bruising', cat: 'derma', icon: 'fa-hand-fist', k: ['bruise', 'black and blue', 'bleeding under skin'] },
+            { id: 'eye_rd', name: 'Red / Pink Eye', cat: 'derma', icon: 'fa-eye', k: ['red eye', 'pink eye', 'bloodshot', 'eye pain'] },
+            { id: 'eye_vis', name: 'Blurred Vision', cat: 'derma', icon: 'fa-eye-low-vision', k: ['blind', 'blurred', 'cant see', 'vision', 'floaters'] }
+        ];
+
+        // --- EXHAUSTIVE DIFFERENTIAL DIAGNOSIS MATRIX ---
+        const conditionsDB = [
+            { 
+                name: 'Diverticulosis / Diverticulitis', spec: 'Gastroenterologist', k: ['diverticulosis', 'diverticulitis', 'colon', 'diverticular'], match: ['ap', 'cst', 'dia', 'lgf', 'nv', 'bld_gi'], urg: 'high', 
+                labs: ['CT Abdomen with Contrast', 'CBC (Check WBC)', 'CRP / ESR'], 
+                meds: ['Ciprofloxacin + Metronidazole (Flagyl)', 'Analgesics'], actions: ['Switch to a clear liquid diet', 'Seek ER if pain is severe']
+            },
+            { 
+                name: 'Gastrointestinal Bleeding', spec: 'Emergency Hospital', k: ['gi bleed', 'ulcer', 'internal bleeding'], match: ['bld_gi', 'ap', 'sync', 'dz', 'fat'], urg: 'critical', 
+                labs: ['CBC (Check Hemoglobin)', 'Upper GI Endoscopy'], 
+                meds: ['IV Fluids', 'IV Pantoprazole 40mg'], actions: ['RUSH TO ER IMMEDIATELY', 'Do not eat or drink anything (NBM)']
+            },
+            { 
+                name: 'Active Tuberculosis', spec: 'Pulmonologist', k: ['tuberculosis', 'tb'], match: ['bld_rp', 'ch', 'cgh_p', 'uwl', 'ns', 'lgf'], urg: 'critical', 
+                labs: ['Chest X-Ray', 'Sputum AFB & CBNAAT'], 
+                meds: ['Tranexamic Acid (ER Only)', 'Anti-Tubercular Therapy'], actions: ['Isolate patient immediately', 'Go to ER or Pulmonologist']
+            },
+            { 
+                name: 'Myocardial Infarction', spec: 'Cardiologist', k: ['heart attack', 'mi', 'myocardial', 'infarction', 'cardiac'], match: ['cp', 'sob', 'dz', 'palp', 'edm', 'sync'], urg: 'critical', 
+                labs: ['ECG (Immediately)', 'Troponin-I', 'BNP'], 
+                meds: ['Ecosprin 300mg (Chew immediately)', 'Sorbitrate 5mg'], actions: ['Call 108 / Reach ER immediately', 'Keep patient seated']
+            },
+            { 
+                name: 'Cerebrovascular Accident (Stroke)', spec: 'Neurologist', k: ['stroke', 'cva', 'paralysis', 'tia'], match: ['sl', 'dz', 'hd', 'pn', 'sync'], urg: 'critical', 
+                labs: ['CT Brain (Non-Contrast)', 'MRI Brain with Angio'], 
+                meds: ['Immediate Neurological Intervention required (4.5h window)'], actions: ['Activate Emergency Response', 'Note exact time symptoms started']
+            },
+            { 
+                name: 'Clinical Depression', spec: 'Psychiatrist', k: ['depression', 'mdd', 'bipolar'], match: ['dep', 'ins', 'fat', 'uwl', 'wtg'], urg: 'high', 
+                labs: ['Thyroid Profile', 'Vitamin D3 & B12'], 
+                meds: ['SSRIs (e.g., Escitalopram)'], actions: ['Book consultation with a Clinical Psychologist', 'Maintain sleep-wake cycle']
+            },
+            { 
+                name: 'Generalized Anxiety', spec: 'Psychiatrist', k: ['anxiety', 'panic', 'gad'], match: ['anx', 'palp', 'sob', 'ins', 'cp', 'dz'], urg: 'medium', 
+                labs: ['ECG', 'Thyroid Panel'], 
+                meds: ['Propranolol (Ciplar)'], actions: ['Practice 4-7-8 breathing technique', 'Reduce caffeine intake']
+            },
+            { 
+                name: 'Hypothyroidism', spec: 'Endocrinologist', k: ['hypothyroidism', 'thyroid', 'hashimotos'], match: ['fat', 'wtg', 'hl', 'dep', 'cst', 'jp'], urg: 'medium', 
+                labs: ['Thyroid Profile (T3, T4, TSH)'], 
+                meds: ['Levothyroxine (Thyronorm)'], actions: ['Avoid raw cabbage/cauliflower', 'Regular exercise']
+            },
+            { 
+                name: 'Type 2 Diabetes Mellitus', spec: 'Diabetologist', k: ['diabetes', 'sugar', 'diabetic'], match: ['et', 'fu', 'uwl', 'fat', 'pn'], urg: 'high', 
+                labs: ['HbA1c', 'Fasting & PP Blood Sugar'], 
+                meds: ['Metformin (Glycomet)'], actions: ['Strict Diabetic Diet', 'Ophthalmic evaluation']
+            },
+            { 
+                name: 'Osteoarthritis', spec: 'Orthopedic Doctor', k: ['osteoarthritis', 'arthritis', 'rheumatoid', 'ra'], match: ['jp', 'fat', 'edm'], urg: 'medium', 
+                labs: ['X-Ray of affected joint', 'Serum Uric Acid'], 
+                meds: ['Paracetamol 650mg', 'Diclofenac Gel'], actions: ['Hot/Cold compress', 'Physiotherapy evaluation']
+            },
+            { 
+                name: 'Upper Respiratory Infection', spec: 'ENT Specialist', k: ['sinusitis', 'sinus', 'uri', 'cold', 'flu'], match: ['con', 'cgh_p', 'st', 'lgf', 'ear', 'hd'], urg: 'low', 
+                labs: ['CBC', 'X-Ray PNS'], 
+                meds: ['Levocetirizine + Montelukast', 'Otrivin Nasal Drops'], actions: ['Steam inhalation', 'Warm saline gargles']
+            },
+            { 
+                name: 'Hypertension', spec: 'Cardiologist', k: ['hypertension', 'bp', 'blood pressure'], match: ['bld_ns', 'hd', 'dz'], urg: 'high', 
+                labs: ['Blood Pressure Monitoring', 'CBC'], 
+                meds: ['Amlodipine 5mg'], actions: ['Pinch soft part of nose and lean FORWARD', 'Check BP immediately']
+            },
+            { 
+                name: 'Acute Gastroenteritis', spec: 'General Physician', k: ['gastroenteritis', 'food poisoning', 'enteric'], match: ['nv', 'dia', 'ap', 'lgf'], urg: 'medium', 
+                labs: ['Stool Routine & Microscopy', 'CBC'], 
+                meds: ['O2 (Ofloxacin + Ornidazole)', 'Ondansetron'], actions: ['Aggressive ORS hydration', 'BRAT Diet']
+            },
+            { 
+                name: 'Hepatic Dysfunction', spec: 'Hepatologist', k: ['hepatitis', 'jaundice', 'liver'], match: ['jnd', 'ap', 'nv', 'fat', 'uwl'], urg: 'high', 
+                labs: ['Liver Function Test (LFT)', 'USG Abdomen'], 
+                meds: ['Ursodeoxycholic acid (Udapa)'], actions: ['Strict fat-free, boiled diet', 'Complete abstinence from alcohol']
+            },
+            { 
+                name: 'Acute Viral Pyrexia', spec: 'General Physician', k: ['dengue', 'malaria', 'viral'], match: ['hgf', 'fat', 'ns', 'jp', 'hd', 'brs', 'rash'], urg: 'high', 
+                labs: ['CBC (Watch Platelets)', 'Dengue NS1 Ag'], 
+                meds: ['Dolo 650mg (Strictly NO Aspirin)', 'IV Fluids if dehydrated'], actions: ['Cold sponging', 'Monitor for bleeding gums']
+            },
+            { 
+                name: 'Contact Dermatitis', spec: 'Dermatologist', k: ['dermatitis', 'allergy', 'urticaria', 'eczema'], match: ['rash', 'itch', 'brs'], urg: 'low', 
+                labs: ['Absolute Eosinophil Count'], 
+                meds: ['Levocetirizine 5mg', 'Calamine Lotion'], actions: ['Identify offending allergen', 'Avoid hot water baths']
+            },
+            { 
+                name: 'Acute Conjunctivitis', spec: 'Ophthalmologist', k: ['conjunctivitis', 'pink eye', 'eye infection'], match: ['eye_rd', 'eye_vis'], urg: 'medium', 
+                labs: ['Clinical Ophthalmic Evaluation'], 
+                meds: ['Moxifloxacin Eye Drops', 'Artificial Tears'], actions: ['Wash hands frequently', 'Do NOT share towels or rub eyes']
+            },
+            { 
+                name: 'Severe Urinary Tract Infection', spec: 'Urologist', k: ['uti', 'renal calculi', 'kidney stone', 'infection'], match: ['bu', 'fu', 'ap', 'lgf', 'bld_ur'], urg: 'high', 
+                labs: ['Urine Routine', 'USG KUB'], 
+                meds: ['Nitrofurantoin (Macrodantin)', 'Citalka Syrup'], actions: ['Increase fluid intake to 4 Liters/day', 'Consult Urologist if blood persists']
+            },
+            { 
+                name: 'Pelvic Inflammatory Disease', spec: 'Gynecologist', k: ['menorrhagia', 'pid', 'pcos', 'endometriosis'], match: ['gyn_bld', 'gyn_pn', 'fat', 'lgf'], urg: 'medium', 
+                labs: ['CBC', 'USG Pelvis', 'Thyroid Profile'], 
+                meds: ['Tranexamic Acid (Pause heavy flow)', 'Iron supplements'], actions: ['Book immediate Gynecologist consultation', 'Track pad usage per day']
+            }
+        ];
+
+        let selected = new Set();
+        window.currentSpecialty = 'Hospital';
+
+        function calculateLevenshtein(a, b) {
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        function renderSymptoms(list = symptomsDB) {
+            const grid = document.getElementById('symptomsGrid');
+            grid.innerHTML = list.map(s => `
+                <div onclick="toggleSymptom('${s.id}')" class="symptom-card p-2 rounded-xl flex flex-col items-center justify-center text-center gap-1.5 ${selected.has(s.id) ? 'active' : ''}">
+                    <div class="icon-box w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-teal-600 text-sm transition-colors"><i class="fa-solid ${s.icon}"></i></div>
+                    <p class="font-semibold text-[10px] leading-tight tracking-tight px-1">${s.name}</p>
+                </div>
+            `).join('');
+        }
+
+        function toggleSymptom(id) {
+            selected.has(id) ? selected.delete(id) : selected.add(id);
+            renderSymptoms();
+            runAnalysis();
+        }
+
+        function aiAgentProcess() {
+            let prompt = document.getElementById('aiPrompt').value.toLowerCase();
+            if(!prompt) return;
+            prompt = prompt.replace(/[^\w\s-]/gi, ' ').replace(/\s+/g, ' ').trim();
+            const stopWords = ['i', 'am', 'feeling', 'have', 'got', 'a', 'the', 'my', 'is', 'very', 'bad', 'some', 'lot', 'of', 'in', 'with', 'been', 'and', 'to', 'think', 'maybe'];
+            const userWords = prompt.split(' ').filter(w => !stopWords.includes(w) && w.length > 2);
+            selected.clear();
+
+            conditionsDB.forEach(c => {
+                let matchedCondition = false;
+                if(c.k) {
+                    c.k.forEach(kw => {
+                        if (matchedCondition) return;
+                        if (new RegExp(`\\b${kw}\\b`, 'i').test(prompt)) { matchedCondition = true; return; }
+                        userWords.forEach(word => {
+                            if (matchedCondition) return;
+                            if ((word.includes(kw) || kw.includes(word)) && word.length >= 4 && kw.length >= 4) matchedCondition = true;
+                            if (Math.abs(word.length - kw.length) <= 2 && word.length > 4) {
+                                if (calculateLevenshtein(word, kw) <= (kw.length <= 6 ? 1 : 2)) matchedCondition = true;
+                            }
+                        });
+                    });
+                }
+                if (matchedCondition) c.match.forEach(sympId => selected.add(sympId));
+            });
+
+            symptomsDB.forEach(s => {
+                let matched = false;
+                s.k.forEach(kw => {
+                    if (matched || selected.has(s.id)) return; 
+                    if (new RegExp(`\\b${kw}\\b`, 'i').test(prompt)) { matched = true; return; }
+                    userWords.forEach(word => {
+                        if (matched) return;
+                        if ((word.includes(kw) || kw.includes(word)) && word.length >= 4 && kw.length >= 4) matched = true;
+                        if (Math.abs(word.length - kw.length) <= 2 && word.length > 4) {
+                            if (calculateLevenshtein(word, kw) <= (kw.length <= 6 ? 1 : 2)) matched = true;
+                        }
+                    });
+                });
+                if (matched) selected.add(s.id);
+            });
+            renderSymptoms();
+            runAnalysis();
+        }
+
+        function runAnalysis() {
+            const panel = document.getElementById('resultsPanel');
+            if(selected.size === 0) { panel.classList.add('hidden'); return; }
+            panel.classList.remove('hidden');
+            const cList = document.getElementById('conditionsList');
+            const tList = document.getElementById('treatmentList');
+            const lList = document.getElementById('labList');
+            const sList = document.getElementById('selectedDisplayList');
+            
+            cList.innerHTML = ''; tList.innerHTML = ''; lList.innerHTML = ''; sList.innerHTML = '';
+            selected.forEach(id => {
+                const s = symptomsDB.find(x => x.id === id);
+                if(s) sList.innerHTML += `<span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-bold border border-slate-200 shadow-sm">${s.name}</span>`;
+            });
+
+            let highest = 'low';
+            let matched = conditionsDB.map(c => {
+                let matchCount = c.match.filter(m => selected.has(m)).length;
+                return { ...c, matchCount };
+            }).filter(c => c.matchCount > 0).sort((a, b) => b.matchCount - a.matchCount);
+
+            if(matched.length === 0) {
+                cList.innerHTML = `<div class="p-4 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl text-xs font-medium">Primary assessment ongoing. Symptoms are unspecific. Consult a General Practitioner.</div>`;
+                window.currentSpecialty = 'Hospital';
+            } else {
+                window.currentSpecialty = matched[0].spec || 'Hospital';
+            }
+            
+            document.getElementById('specialistName').innerText = window.currentSpecialty;
+
+            let uniqueLabs = new Set();
+            let uniqueMeds = new Set();
+            let uniqueActions = new Set();
+
+            matched.forEach((c, index) => {
+                if (c.urg === 'critical') highest = 'critical';
+                else if (c.urg === 'high' && highest !== 'critical') highest = 'high';
+                else if (c.urg === 'medium' && !['critical', 'high'].includes(highest)) highest = 'medium';
+                
+                let borderStyle = index === 0 ? `border-2 border-slate-800 shadow-md` : `border border-transparent`;
+                cList.innerHTML += `<div class="p-4 rounded-2xl urgency-${c.urg} ${borderStyle} transition-all hover:scale-[1.01] cursor-default"><h4 class="font-black text-[13px] text-slate-800 uppercase tracking-tight">${c.name}</h4><p class="text-[10px] font-bold text-slate-500 mt-1.5 bg-white/50 inline-block px-2 py-0.5 rounded-md">Relevance Match: ${c.matchCount}/${c.match.length} active markers</p></div>`;
+                
+                c.labs.forEach(l => uniqueLabs.add(l));
+                c.meds.forEach(m => uniqueMeds.add(m));
+                c.actions.forEach(a => uniqueActions.add(a));
+            });
+
+            uniqueLabs.forEach(l => lList.innerHTML += `<li class="flex items-start gap-2"><i class="fa-solid fa-microscope text-[10px] mt-0.5 opacity-50"></i><span>${l}</span></li>`);
+            uniqueMeds.forEach(m => tList.innerHTML += `<div class="font-bold flex items-start gap-2"><i class="fa-solid fa-pills text-teal-600 mt-0.5 text-[10px]"></i> <span>${m}</span></div>`);
+            uniqueActions.forEach(a => tList.innerHTML += `<div class="italic text-teal-800/80 font-medium flex items-start gap-2"><i class="fa-solid fa-arrow-right text-[10px] mt-1 opacity-50"></i> <span>${a}</span></div>`);
+
+            // Apply Compact Severity Badge styling
+            const config = {
+                critical: { c: 'bg-red-600 text-white', t: 'EMERGENCY / ER', i: 'fa-truck-medical' },
+                high: { c: 'bg-orange-600 text-white', t: 'URGENT CARE', i: 'fa-user-doctor' },
+                medium: { c: 'bg-amber-500 text-white', t: 'MODERATE RISK', i: 'fa-triangle-exclamation' },
+                low: { c: 'bg-emerald-500 text-white', t: 'ROUTINE CARE', i: 'fa-shield-heart' }
+            };
+            
+            document.getElementById('severityCard').className = `px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-sm ${config[highest].c}`;
+            document.getElementById('severityText').innerText = config[highest].t;
+            document.getElementById('severityIcon').className = `fa-solid ${config[highest].i}`;
+            
+            // Fix for mobile: Scroll to results panel when updated
+            if (window.innerWidth < 1024) {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                panel.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // --- GOOGLE MAPS DEEP LINK INTEGRATION ---
+        function searchNearest() {
+            let loc = document.getElementById('locInput').value.trim();
+            if(!loc) loc = '400069'; 
+            
+            const spec = window.currentSpecialty || 'Hospital';
+            const query = encodeURIComponent(`${spec} near ${loc}`);
+            window.open(`https://www.google.com/maps/search/${query}`, '_blank');
+        }
+
+        function filterCat(cat) {
+            renderSymptoms(cat === 'all' ? symptomsDB : symptomsDB.filter(s => s.cat === cat));
+        }
+
+        renderSymptoms();
+    </script>
+</body>
+</html>
