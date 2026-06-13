@@ -2873,39 +2873,12 @@ async function refreshAll() {
   const ageMin  = !isNaN(snapDate) ? (Date.now() - snapDate.getTime()) / 60000 : 999;
   const botOn   = data.bot_running !== false;
 
-  // Update bot toggle button label to reflect current state.
-  // Snapshot's bot_running can be stale — verify against the live GitHub
-  // Actions workflow run status before updating the button.
+  // Update bot toggle button label to reflect current state
   const _btgBtn = document.getElementById("bot-toggle-btn");
   if (_btgBtn && !_btgBtn.disabled) {
-    (async () => {
-      let liveRunning = botOn; // default: trust snapshot
-      const cfg = getCfg();
-      if (cfg && cfg.owner && cfg.repo && cfg.token) {
-        try {
-          const WORKFLOW_FILE = "trading-bot.yml";
-          const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
-          const inProgressResp = await fetch(`${base}/runs?status=in_progress&per_page=1`, { headers: apiHeaders() });
-          if (inProgressResp.ok) {
-            const inProgressRuns = (await inProgressResp.json()).workflow_runs || [];
-            if (inProgressRuns.length > 0) {
-              liveRunning = true;
-            } else {
-              const queuedResp = await fetch(`${base}/runs?status=queued&per_page=1`, { headers: apiHeaders() });
-              liveRunning = queuedResp.ok && ((await queuedResp.json()).workflow_runs || []).length > 0;
-            }
-          }
-          // If not ok (404/network), fall back to snapshot value silently
-        } catch (_) {
-          // GitHub API unreachable — keep liveRunning = botOn (snapshot fallback)
-        }
-      }
-      if (!_btgBtn.disabled) {
-        _btgBtn.textContent = liveRunning ? "⏹ STOP BOT" : "▶ START BOT";
-        _btgBtn.style.background = liveRunning ? "var(--red-d)"   : "var(--green-d)";
-        _btgBtn.style.color      = liveRunning ? "var(--red)"     : "var(--green)";
-      }
-    })();
+    _btgBtn.textContent = botOn ? "⏹ STOP BOT" : "▶ START BOT";
+    _btgBtn.style.background = botOn ? "var(--red-d)"   : "var(--green-d)";
+    _btgBtn.style.color      = botOn ? "var(--red)"     : "var(--green)";
   }
 
   // ── Market-hours awareness (IST 09:15–15:30 Mon–Fri) ─────────────────────
@@ -2948,11 +2921,61 @@ async function refreshAll() {
   el.dataset.base = tsText;
   el.textContent = tsText;
 
+  syncLiveBotStatus(botOn);
+
   render(data);
 
   clearTimeout(timer);
   timer = setTimeout(refreshAll, INTERVAL);
   startCountdown();
+}
+
+// Verify the snapshot's bot_running flag against the live GitHub Actions
+// workflow run status, and correct the bot-toggle button + Live/Offline/Stale
+// dot if they disagree. Purely additive: does not touch toggleBot() or the
+// existing snapshot-based render/setDot logic, only refines it afterward.
+async function syncLiveBotStatus(snapshotBotOn) {
+  const _btgBtn = document.getElementById("bot-toggle-btn");
+  const cfg = getCfg();
+  if (!cfg || !cfg.owner || !cfg.repo || !cfg.token) return; // can't check without creds
+
+  let liveRunning = snapshotBotOn;
+  try {
+    const WORKFLOW_FILE = "trading-bot.yml";
+    const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
+    const inProgressResp = await fetch(`${base}/runs?status=in_progress&per_page=1`, { headers: apiHeaders() });
+    if (inProgressResp.ok) {
+      const inProgressRuns = (await inProgressResp.json()).workflow_runs || [];
+      if (inProgressRuns.length > 0) {
+        liveRunning = true;
+      } else {
+        const queuedResp = await fetch(`${base}/runs?status=queued&per_page=1`, { headers: apiHeaders() });
+        liveRunning = queuedResp.ok && ((await queuedResp.json()).workflow_runs || []).length > 0;
+      }
+    } else {
+      return; // API issue — leave existing snapshot-based UI as-is
+    }
+  } catch (_) {
+    return; // network issue — leave existing snapshot-based UI as-is
+  }
+
+  if (liveRunning === snapshotBotOn) return; // snapshot already correct
+
+  // Correct the button caption (only if user isn't mid-action)
+  if (_btgBtn && !_btgBtn.disabled) {
+    _btgBtn.textContent = liveRunning ? "⏹ STOP BOT" : "▶ START BOT";
+    _btgBtn.style.background = liveRunning ? "var(--red-d)"   : "var(--green-d)";
+    _btgBtn.style.color      = liveRunning ? "var(--red)"     : "var(--green)";
+  }
+
+  // Correct the Live/Offline dot
+  setDot(liveRunning ? "live" : "off");
+  document.getElementById("stale-banner").style.display = "none";
+  if (!liveRunning) {
+    document.getElementById("offline-banner").style.display = "block";
+  } else {
+    document.getElementById("offline-banner").style.display = "none";
+  }
 }
 
 function switchAccount(acc) {
