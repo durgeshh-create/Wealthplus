@@ -2881,7 +2881,10 @@ async function refreshAll() {
   // Falls back to snapshot's bot_running only if GitHub API is unavailable.
   (async () => {
     const _btgBtn = document.getElementById("bot-toggle-btn");
-    if (!_btgBtn || _btgBtn.disabled) return;  // skip if user is mid-action
+    if (!_btgBtn) return;
+    // Skip only if user is mid-action (button shows a transient state),
+    // but allow the initial load (button stuck on the placeholder "⏳ …").
+    if (_btgBtn.disabled && _btgBtn.textContent.trim() !== "⏳ …") return;
 
     const cfg = getCfg();
     let liveRunning = botOn; // default: trust snapshot
