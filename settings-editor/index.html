@@ -31,11 +31,11 @@
 body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;line-height:1.6}
 
 /* ── header ── */
-header{display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06);height:52px}
+header{display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06);height:52px;gap:0}
 .logo{display:flex;align-items:baseline;gap:10px}
 .logo h1{font-family:var(--head);font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--accent)}
 .logo .sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
-.hdr-right{display:flex;align-items:center;gap:12px;margin-left:28px;flex-shrink:0}
+.hdr-right{display:flex;align-items:center;gap:10px;margin-left:auto;padding-left:24px;flex-wrap:nowrap}
 .pill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
 .dot.live{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
@@ -63,10 +63,10 @@ header{display:flex;align-items:center;padding:0 20px;border-bottom:1px solid va
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 
 /* ── main ── */
-main{padding:18px 20px;max-width:1380px;margin:0 auto}
+main{padding:18px 20px;max-width:960px;margin:0 auto}
 
 /* ── stat cards ── */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px}
 .sc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:13px 15px;position:relative;overflow:hidden}
 .sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);opacity:.5}
 .sc.g::before{background:var(--green)}
@@ -85,10 +85,10 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 
 /* ── mobile ── */
 @media(max-width:600px){
-  header{padding:6px 10px;height:auto;flex-wrap:wrap;row-gap:6px}
+  header{padding:6px 10px;height:auto;flex-wrap:wrap;row-gap:6px;gap:6px}
   .logo h1{font-size:15px}
   .logo .sub{display:none}
-  .hdr-right{gap:6px;margin-left:0;flex-wrap:wrap;row-gap:6px}
+  .hdr-right{gap:6px;margin-left:0;flex-wrap:wrap;row-gap:4px;padding-left:0;width:100%}
   /* Shrink NIFTY/VIX chips so they fit on mobile instead of hiding them */
   .idx-chips{gap:4px;margin-right:0}
   .idx-chip{min-width:58px;padding:2px 6px}
@@ -153,7 +153,7 @@ main{padding:18px 20px;max-width:1380px;margin:0 auto}
 .neg{color:var(--red)}
 
 #wr-tbl{width:100%;border-collapse:collapse}
-#wr-tbl td,#wr-tbl th{white-space:nowrap}
+#wr-tbl{table-layout:fixed;width:100%}#wr-tbl td,#wr-tbl th{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #wr-tbl td:first-child,#wr-tbl th:first-child{white-space:normal;overflow:visible;width:1%;min-width:160px}
 /* ── williams %r ── */
 .wr-bar-wrap{position:relative;height:5px;background:var(--bg3);border-radius:3px;min-width:70px}
@@ -2042,7 +2042,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 
 <!-- PANE: STRATEGY -->
 <div class="nav-tab-pane" id="pane-strategy">
-  <main style="max-width:1380px;margin:0 auto;padding:18px 20px 40px">
+  <main style="max-width:960px;margin:0 auto;padding:18px 20px 40px">
     <div class="panel" id="strategy-ref" style="margin-bottom:0">
       <div class="ph"><span class="pt">Strategy Reference</span></div>
       <div id="strat-body">
@@ -2653,7 +2653,7 @@ function render(data) {
       const pc = (h.pnl ?? 0) >= 0 ? "pos" : "neg";
       return `<tr>
         <td style="padding-left:14px">
-          <div class="sym" style="font-size:12px;white-space:normal">${h.name}</div>
+          <div class="sym" style="font-size:12px;white-space:normal;max-width:none">${h.name}</div>
           ${h.folio ? `<div style="font-size:10px;color:var(--muted)">Folio ${h.folio} &nbsp;·&nbsp; ${h.units} units @ ₹${h.avg_nav}${h.pledged_units > 0 ? ` &nbsp;<span title="Pledged as collateral">(P: ${h.pledged_units})</span>` : ''}</div>` : ""}
         </td>
         <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.cur_val)}">${fmtL(h.cur_val)}</td>
