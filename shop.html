@@ -97,14 +97,34 @@
             margin-bottom: 24px;
         }
 
+        .label-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
         label {
             display: block;
             color: #4a5568;
             font-size: 14px;
             font-weight: 600;
-            margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        .manage-link {
+            font-size: 13px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .manage-link:hover {
+            color: #764ba2;
+            text-decoration: underline;
         }
 
         .input-group {
@@ -168,6 +188,108 @@
             box-shadow: 0 0 0 4px rgba(237, 137, 54, 0.2), 0 10px 25px -5px rgba(237, 137, 54, 0.3);
             transform: translateY(-2px);
         }
+
+        /* --- New Grocery Management Screen Styles --- */
+        .management-screen {
+            background: #f7fafc;
+            border: 2px dashed #cbd5e0;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mgmt-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mgmt-add-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .mgmt-add-group input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid #cbd5e0;
+            border-radius: 10px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .mgmt-add-group input:focus {
+            border-color: #667eea;
+        }
+
+        .btn-sm {
+            padding: 10px 16px;
+            font-size: 14px;
+            border-radius: 10px;
+            width: auto;
+            box-shadow: none;
+        }
+
+        .btn-add {
+            background: #667eea;
+        }
+        .btn-add:hover {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .mgmt-list-container {
+            max-height: 160px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 8px;
+        }
+
+        .mgmt-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 14px;
+            color: #4a5568;
+        }
+
+        .mgmt-item:last-child {
+            border-bottom: none;
+        }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #e53e3e;
+            cursor: pointer;
+            padding: 4px;
+            width: auto;
+            box-shadow: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-delete:hover {
+            color: #9b2c2c;
+            transform: scale(1.1);
+            background: none;
+            box-shadow: none;
+        }
+        /* ------------------------------------------- */
 
         .store-selector {
             background: linear-gradient(135deg, #ebf8ff 0%, #e6fffa 100%);
@@ -475,7 +597,10 @@
         </div>
 
         <div class="input-wrapper">
-            <label id="searchLabel">🔍 Search Grocery Items</label>
+            <div class="label-container">
+                <label id="searchLabel">🔍 Search Grocery Items</label>
+                <a class="manage-link" id="manageGroceryLink" onclick="toggleManagementScreen()">Gear: Manage List</a>
+            </div>
             <div class="input-group">
                 <div class="text-input-wrapper">
                     <input type="text" id="searchInput" placeholder="Type your product name..." autocomplete="off">
@@ -483,235 +608,7 @@
                 <div class="select-wrapper" id="groceryDropdown">
                     <select id="productDropdown" onchange="updateInputFromDropdown()">
                         <option value="">📋 Select Product</option>
-                        <option value="Aam Papad">Aam Papad</option>
-                        <option value="Ajwain">Ajwain</option>
-                        <option value="Almonds">Almonds</option>
-                        <option value="Aloo Bhujia">Aloo Bhujia</option>
-                        <option value="Amchur Powder">Amchur Powder</option>
-                        <option value="Appalam">Appalam</option>
-                        <option value="Apple">Apple</option>
-                        <option value="Arhar Dal">Arhar Dal</option>
-                        <option value="Asafoetida">Asafoetida</option>
-                        <option value="Atta 1Kg">Atta 1Kg</option>
-                        <option value="Atta 5Kg">Atta 5Kg</option>
-                        <option value="Atta 10Kg">Atta 10Kg</option>
-                        <option value="Badam">Badam</option>
-                        <option value="Bajari Atta">Bajari Atta</option>
-                        <option value="Baking Powder">Baking Powder</option>
-                        <option value="Baking Soda">Baking Soda</option>
-                        <option value="Banana">Banana</option>
-                        <option value="Basmati Rice 1Kg">Basmati Rice 1Kg</option>
-                        <option value="Basmati Rice 5Kg">Basmati Rice 5Kg</option>
-                        <option value="Basmati Rice 10Kg">Basmati Rice 10Kg</option>
-                        <option value="Bay Leaf">Bay Leaf</option>
-                        <option value="Beans">Beans</option>
-                        <option value="Bedgi">Bedgi</option>
-                        <option value="Beetroot">Beetroot</option>
-                        <option value="Besan">Besan</option>
-                        <option value="Bhindi">Bhindi</option>
-                        <option value="Bhel">Bhel</option>
-                        <option value="Biryani Masala">Biryani Masala</option>
-                        <option value="Biscuits">Biscuits</option>
-                        <option value="Bitter Gourd">Bitter Gourd</option>
-                        <option value="Black Cardamom">Black Cardamom</option>
-                        <option value="Black Pepper">Black Pepper</option>
-                        <option value="Black Salt">Black Salt</option>
-                        <option value="Bottle Gourd">Bottle Gourd</option>
-                        <option value="Bread">Bread</option>
-                        <option value="Brinjal">Brinjal</option>
-                        <option value="Broccoli">Broccoli</option>
-                        <option value="Brown Rice">Brown Rice</option>
-                        <option value="Broom Stick">Broom Stick</option>
-                        <option value="Butter">Butter</option>
-                        <option value="Cabbage">Cabbage</option>
-                        <option value="Canned Sardines">Canned Sardines</option>
-                        <option value="Capsicum">Capsicum</option>
-                        <option value="Cardamom">Cardamom</option>
-                        <option value="Carrot">Carrot</option>
-                        <option value="Cashews">Cashews</option>
-                        <option value="Cauliflower">Cauliflower</option>
-                        <option value="Chana Dal">Chana Dal</option>
-                        <option value="Chana Masala">Chana Masala</option>
-                        <option value="Cheese">Cheese</option>
-                        <option value="Cheese Slice">Cheese Slice</option>
-                        <option value="Cherry">Cherry</option>
-                        <option value="Chilli Powder">Chilli Powder</option>
-                        <option value="Chivda">Chivda</option>
-                        <option value="Chocolate">Chocolate</option>
-                        <option value="Cinnamon">Cinnamon</option>
-                        <option value="Cloves">Cloves</option>
-                        <option value="Coconut">Coconut</option>
-                        <option value="Coconut Milk">Coconut Milk</option>
-                        <option value="Coconut Oil">Coconut Oil</option>
-                        <option value="Coconut Powder">Coconut Powder</option>
-                        <option value="Coffee">Coffee</option>
-                        <option value="Conditioner">Conditioner</option>
-                        <option value="Coriander">Coriander</option>
-                        <option value="Coriander Powder">Coriander Powder</option>
-                        <option value="Coriander Whole">Coriander Whole</option>
-                        <option value="Corn Flour">Corn Flour</option>
-                        <option value="Cream">Cream</option>
-                        <option value="Cucumber">Cucumber</option>
-                        <option value="Cumin Seeds">Cumin Seeds</option>
-                        <option value="Curd">Curd</option>
-                        <option value="Curry Leaves">Curry Leaves</option>
-                        <option value="Custard Powder">Custard Powder</option>
-                        <option value="Detergent Powder">Detergent Powder</option>
-                        <option value="Dishwash Bar">Dishwash Bar</option>
-                        <option value="Dishwash Liquid">Dishwash Liquid</option>
-                        <option value="Dosa Batter">Dosa Batter</option>
-                        <option value="Dosa Tava">Dosa Tava</option>
-                        <option value="Double Beans">Double Beans</option>
-                        <option value="Drumstick">Drumstick</option>
-                        <option value="Dry Coconut">Dry Coconut</option>
-                        <option value="Dry Fruits">Dry Fruits</option>
-                        <option value="Eggs">Eggs</option>
-                        <option value="Elaichi">Elaichi</option>
-                        <option value="Fennel Seeds">Fennel Seeds</option>
-                        <option value="Fenugreek Leaves">Fenugreek Leaves</option>
-                        <option value="Fenugreek Seeds">Fenugreek Seeds</option>
-                        <option value="Fish">Fish</option>
-                        <option value="Flax Seeds">Flax Seeds</option>
-                        <option value="Floor Cleaner">Floor Cleaner</option>
-                        <option value="Flour">Flour</option>
-                        <option value="Frozen Peas">Frozen Peas</option>
-                        <option value="Frozen Vegetables">Frozen Vegetables</option>
-                        <option value="Fruits">Fruits</option>
-                        <option value="Garam Masala Powder">Garam Masala Powder</option>
-                        <option value="Garlic">Garlic</option>
-                        <option value="Ghee">Ghee</option>
-                        <option value="Ginger">Ginger</option>
-                        <option value="Ginger Garlic Paste">Ginger Garlic Paste</option>
-                        <option value="Go Milk">Go Milk</option>
-                        <option value="Gram Flour">Gram Flour</option>
-                        <option value="Grapes">Grapes</option>
-                        <option value="Green Chilli">Green Chilli</option>
-                        <option value="Green Peas">Green Peas</option>
-                        <option value="Groundnut Oil">Groundnut Oil</option>
-                        <option value="Guava">Guava</option>
-                        <option value="Handwash">Handwash</option>
-                        <option value="Hing">Hing</option>
-                        <option value="Hit">Hit</option>
-                        <option value="Homelite">Homelite</option>
-                        <option value="Honey">Honey</option>
-                        <option value="Idli Batter">Idli Batter</option>
-                        <option value="Idli Rava">Idli Rava</option>
-                        <option value="Jaggery">Jaggery</option>
-                        <option value="Jawari Atta">Jawari Atta</option>
-                        <option value="Jeera">Jeera</option>
-                        <option value="Jowar">Jowar</option>
-                        <option value="Kabuli Chana">Kabuli Chana</option>
-                        <option value="Kaju">Kaju</option>
-                        <option value="Kashmiri Chilli Powder">Kashmiri Chilli Powder</option>
-                        <option value="Kesar">Kesar</option>
-                        <option value="Ketchup">Ketchup</option>
-                        <option value="Khakra">Khakra</option>
-                        <option value="Kolam Rice">Kolam Rice</option>
-                        <option value="Kurmura">Kurmura</option>
-                        <option value="Ladies Finger">Ladies Finger</option>
-                        <option value="Lemon">Lemon</option>
-                        <option value="Lobiya Chowli">Lobiya Chowli</option>
-                        <option value="Maggi">Maggi</option>
-                        <option value="Maida">Maida</option>
-                        <option value="Mango">Mango</option>
-                        <option value="Masoor Dal">Masoor Dal</option>
-                        <option value="Masoor Whole">Masoor Whole</option>
-                        <option value="Mayonnaise">Mayonnaise</option>
-                        <option value="Methi">Methi</option>
-                        <option value="Milk">Milk</option>
-                        <option value="Milk Powder">Milk Powder</option>
-                        <option value="Mixed Dal">Mixed Dal</option>
-                        <option value="Moong Dal">Moong Dal</option>
-                        <option value="Moong Whole">Moong Whole</option>
-                        <option value="Mosquito Repellent">Mosquito Repellent</option>
-                        <option value="Mother Dairy Pure Cow Ghee">Mother Dairy Pure Cow Ghee</option>
-                        <option value="Muesli">Muesli</option>
-                        <option value="Mushroom">Mushroom</option>
-                        <option value="Mustard Oil">Mustard Oil</option>
-                        <option value="Mustard Seeds">Mustard Seeds</option>
-                        <option value="Mysore Sandal">Mysore Sandal</option>
-                        <option value="Namkeen">Namkeen</option>
-                        <option value="Nutmeg">Nutmeg</option>
-                        <option value="Oats">Oats</option>
-                        <option value="Oil">Oil</option>
-                        <option value="Olive Oil">Olive Oil</option>
-                        <option value="Onion">Onion</option>
-                        <option value="Orange">Orange</option>
-                        <option value="Paan">Paan</option>
-                        <option value="Papad">Papad</option>
-                        <option value="Papaya">Papaya</option>
-                        <option value="Paneer">Paneer</option>
-                        <option value="Pasta">Pasta</option>
-                        <option value="Peanuts">Peanuts</option>
-                        <option value="Pear Fruit">Pear Fruit</option>
-                        <option value="Pepper">Pepper</option>
-                        <option value="Pickle">Pickle</option>
-                        <option value="Pineapple">Pineapple</option>
-                        <option value="Poha">Poha</option>
-                        <option value="Pomegranate">Pomegranate</option>
-                        <option value="Potato">Potato</option>
-                        <option value="Prawns">Prawns</option>
-                        <option value="Puffed Rice">Puffed Rice</option>
-                        <option value="Pulses">Pulses</option>
-                        <option value="Ragi Atta">Ragi Atta</option>
-                        <option value="Ragi Flour">Ragi Flour</option>
-                        <option value="Rajma Chitra">Rajma Chitra</option>
-                        <option value="Rava">Rava</option>
-                        <option value="Raw Banana">Raw Banana</option>
-                        <option value="Raw Mango">Raw Mango</option>
-                        <option value="Red Chilli">Red Chilli</option>
-                        <option value="Refined Oil">Refined Oil</option>
-                        <option value="Rice">Rice</option>
-                        <option value="Rice Bran Oil">Rice Bran Oil</option>
-                        <option value="Rice Flour">Rice Flour</option>
-                        <option value="Rose Water">Rose Water</option>
-                        <option value="Sabudana">Sabudana</option>
-                        <option value="Salt">Salt</option>
-                        <option value="Salt Lite">Salt Lite</option>
-                        <option value="Sambar Powder">Sambar Powder</option>
-                        <option value="Sattu">Sattu</option>
-                        <option value="Schezwan Chutney">Schezwan Chutney</option>
-                        <option value="Semiya">Semiya</option>
-                        <option value="Sesame Oil">Sesame Oil</option>
-                        <option value="Sesame Seeds">Sesame Seeds</option>
-                        <option value="Shampoo">Shampoo</option>
-                        <option value="Shaving Cream">Shaving Cream</option>
-                        <option value="Soap">Soap</option>
-                        <option value="Sooji">Sooji</option>
-                        <option value="Soya Chunks">Soya Chunks</option>
-                        <option value="Spinach">Spinach</option>
-                        <option value="Sprouts">Sprouts</option>
-                        <option value="Star Anise">Star Anise</option>
-                        <option value="Storia Coconut Water">Storia Coconut Water</option>
-                        <option value="Sugar">Sugar</option>
-                        <option value="Sunflower Oil">Sunflower Oil</option>
-                        <option value="Surmai">Surmai</option>
-                        <option value="Surti Vaal">Surti Vaal</option>
-                        <option value="Sweet Corn">Sweet Corn</option>
-                        <option value="Sweet Potato">Sweet Potato</option>
-                        <option value="Tamarind">Tamarind</option>
-                        <option value="Tea">Tea</option>
-                        <option value="Thyme">Thyme</option>
-                        <option value="Tinda">Tinda</option>
-                        <option value="Toilet Cleaner">Toilet Cleaner</option>
-                        <option value="Tomato">Tomato</option>
-                        <option value="Toor Dal">Toor Dal</option>
-                        <option value="Toothbrush">Toothbrush</option>
-                        <option value="Toothpaste">Toothpaste</option>
-                        <option value="Turmeric">Turmeric</option>
-                        <option value="Turmeric Powder">Turmeric Powder</option>
-                        <option value="Urad Dal">Urad Dal</option>
-                        <option value="Vaseline">Vaseline</option>
-                        <option value="Vegetable">Vegetable</option>
-                        <option value="Vermicelli">Vermicelli</option>
-                        <option value="Vinegar">Vinegar</option>
-                        <option value="Wada Kolam">Wada Kolam</option>
-                        <option value="Walnuts">Walnuts</option>
-                        <option value="Watermelon">Watermelon</option>
-                        <option value="Wheat">Wheat</option>
-                        <option value="White Beans">White Beans</option>
-                        <option value="Yogurt">Yogurt</option>
-                    </select>
+                        </select>
                 </div>
                 <div class="select-wrapper hidden" id="otherDropdown">
                     <select id="otherProductDropdown" onchange="updateInputFromDropdown()">
@@ -839,7 +736,16 @@
             </div>
         </div>
 
-        <!-- Grocery Store Selector with Checkboxes -->
+        <div class="management-screen hidden" id="groceryManagementScreen">
+            <div class="mgmt-title">✏️ Add / Delete Grocery Items</div>
+            <div class="mgmt-add-group">
+                <input type="text" id="newGroceryInput" placeholder="Enter new item name (e.g. Olive Oil 1L)...">
+                <button class="btn-sm btn-add" onclick="addGroceryItem()">Add Item</button>
+            </div>
+            <div class="mgmt-list-container" id="mgmtListContainer">
+                </div>
+        </div>
+
         <div class="store-selector" id="groceryStoreSelector">
             <div class="selector-title">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -854,7 +760,6 @@
                 <span>Select All Stores</span>
             </div>
 
-            <!-- Quick Commerce Section -->
             <div class="store-section">
                 <div class="store-section-title">
                     <span class="section-badge quick-badge-section">Quick</span>
@@ -863,7 +768,6 @@
                 <div class="checkbox-grid" id="groceryQuickCheckboxes"></div>
             </div>
 
-            <!-- Regular Stores Section -->
             <div class="store-section">
                 <div class="store-section-title">
                     <span class="section-badge regular-badge-section">Regular</span>
@@ -873,7 +777,6 @@
             </div>
         </div>
 
-        <!-- Other Products Store Selector with Checkboxes -->
         <div class="store-selector hidden" id="otherStoreSelector" style="background: linear-gradient(135deg, #fed7e2 0%, #e9d8fd 100%); border-color: #ed64a6;">
             <div class="selector-title" style="color: #97266d;">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -889,8 +792,7 @@
             </div>
 
             <div class="checkbox-grid" id="otherCheckboxes">
-                <!-- Checkboxes will be generated by JavaScript -->
-            </div>
+                </div>
         </div>
 
         <button onclick="openAllStores()" id="searchBtn">
@@ -919,6 +821,41 @@
     </div>
 
     <script>
+        // Array modified to act as default fallback list
+        let groceryProducts = [
+            "Aam Papad", "Ajwain", "Almonds", "Aloo Bhujia", "Amchur Powder", "Appalam", "Apple", "Arhar Dal", 
+            "Asafoetida", "Atta 1Kg", "Atta 5Kg", "Atta 10Kg", "Badam", "Bajari Atta", "Baking Powder", 
+            "Baking Soda", "Banana", "Basmati Rice 1Kg", "Basmati Rice 5Kg", "Basmati Rice 10Kg", "Bay Leaf", 
+            "Beans", "Bedgi", "Beetroot", "Besan", "Bhindi", "Bhel", "Biryani Masala", "Biscuits", "Bitter Gourd", 
+            "Black Cardamom", "Black Pepper", "Black Salt", "Bottle Gourd", "Bread", "Brinjal", "Broccoli", 
+            "Brown Rice", "Broom Stick", "Butter", "Cabbage", "Canned Sardines", "Capsicum", "Cardamom", 
+            "Carrot", "Cashews", "Cauliflower", "Chana Dal", "Chana Masala", "Cheese", "Cheese Slice", "Cherry", 
+            "Chilli Powder", "Chivda", "Chocolate", "Cinnamon", "Cloves", "Coconut", "Coconut Milk", "Coconut Oil", 
+            "Coconut Powder", "Coffee", "Conditioner", "Coriander", "Coriander Powder", "Coriander Whole", 
+            "Corn Flour", "Cream", "Cucumber", "Cumin Seeds", "Curd", "Curry Leaves", "Custard Powder", 
+            "Detergent Powder", "Dishwash Bar", "Dishwash Liquid", "Dosa Batter", "Dosa Tava", "Double Beans", 
+            "Drumstick", "Dry Coconut", "Dry Fruits", "Eggs", "Elaichi", "Fennel Seeds", "Fenugreek Leaves", 
+            "Fenugreek Seeds", "Fish", "Flax Seeds", "Floor Cleaner", "Flour", "Frozen Peas", "Frozen Vegetables", 
+            "Fruits", "Garam Masala Powder", "Garlic", "Ghee", "Ginger", "Ginger Garlic Paste", "Go Milk", 
+            "Gram Flour", "Grapes", "Green Chilli", "Green Peas", "Groundnut Oil", "Guava", "Handwash", "Hing", 
+            "Hit", "Homelite", "Honey", "Idli Batter", "Idli Rava", "Jaggery", "Jawari Atta", "Jeera", "Jowar", 
+            "Kabuli Chana", "Kaju", "Kashmiri Chilli Powder", "Kesar", "Ketchup", "Khakra", "Kolam Rice", 
+            "Kurmura", "Ladies Finger", "Lemon", "Lobiya Chowli", "Maggi", "Maida", "Mango", "Masoor Dal", 
+            "Masoor Whole", "Mayonnaise", "Methi", "Milk", "Milk Powder", "Mixed Dal", "Moong Dal", "Moong Whole", 
+            "Mosquito Repellent", "Mother Dairy Pure Cow Ghee", "Muesli", "Mushroom", "Mustard Oil", "Mustard Seeds", 
+            "Mysore Sandal", "Namkeen", "Nutmeg", "Oats", "Oil", "Olive Oil", "Onion", "Orange", "Paan", "Papad", 
+            "Papaya", "Paneer", "Pasta", "Peanuts", "Pear Fruit", "Pepper", "Pickle", "Pineapple", "Poha", 
+            "Pomegranate", "Potato", "Prawns", "Puffed Rice", "Pulses", "Ragi Atta", "Ragi Flour", "Rajma Chitra", 
+            "Rava", "Raw Banana", "Raw Mango", "Red Chilli", "Refined Oil", "Rice", "Rice Bran Oil", "Rice Flour", 
+            "Rose Water", "Sabudana", "Salt", "Salt Lite", "Sambar Powder", "Sattu", "Schezwan Chutney", "Semiya", 
+            "Sesame Oil", "Sesame Seeds", "Shampoo", "Shaving Cream", "Soap", "Sooji", "Soya Chunks", "Spinach", 
+            "Sprouts", "Star Anise", "Storia Coconut Water", "Sugar", "Sunflower Oil", "Surmai", "Surti Vaal", 
+            "Sweet Corn", "Sweet Potato", "Tamarind", "Tea", "Thyme", "Tinda", "Toilet Cleaner", "Tomato", 
+            "Toor Dal", "Toothbrush", "Toothpaste", "Turmeric", "Turmeric Powder", "Urad Dal", "Vaseline", 
+            "Vegetable", "Vermicelli", "Vinegar", "Wada Kolam", "Walnuts", "Watermelon", "Wheat", "White Beans", 
+            "Yogurt"
+        ];
+
         const groceryStores = [
             { id: 'blinkit', name: 'Blinkit', url: 'https://blinkit.com/s/?q={keyword}', isQuick: true },
             { id: 'bigbasket', name: 'BigBasket', url: 'https://www.bigbasket.com/ps/?q={keyword}', isQuick: true },
@@ -945,6 +882,14 @@
         let selectedOtherStores = otherStores.map(s => s.id);
 
         window.addEventListener('DOMContentLoaded', () => {
+            // Load custom grocery list if saved in browser local storage
+            const storedGroceries = localStorage.getItem('customGroceryProducts');
+            if (storedGroceries) {
+                groceryProducts = JSON.parse(storedGroceries);
+            }
+            
+            renderGroceryDropdown();
+            renderManagementList();
             generateCheckboxes();
 
             const urlParams = new URLSearchParams(window.location.search);
@@ -961,6 +906,104 @@
 
             updateButtonText();
         });
+
+        /* --- New Grocery Management Logic --- */
+        function renderGroceryDropdown() {
+            const dropdown = document.getElementById('productDropdown');
+            // Keep the placeholder element
+            dropdown.innerHTML = '<option value="">📋 Select Product</option>';
+            
+            // Alphabetize items cleanly before adding
+            groceryProducts.sort((a, b) => a.localeCompare(b));
+
+            groceryProducts.forEach(product => {
+                const opt = document.createElement('option');
+                opt.value = product;
+                opt.textContent = product;
+                dropdown.appendChild(opt);
+            });
+        }
+
+        function renderManagementList() {
+            const container = document.getElementById('mgmtListContainer');
+            container.innerHTML = '';
+            
+            groceryProducts.forEach((product, index) => {
+                const itemRow = document.createElement('div');
+                itemRow.className = 'mgmt-item';
+                itemRow.innerHTML = `
+                    <span>${product}</span>
+                    <button class="btn-delete" onclick="deleteGroceryItem('${product}')" title="Delete ${product}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </button>
+                `;
+                container.appendChild(itemRow);
+            });
+        }
+
+        function toggleManagementScreen() {
+            const screen = document.getElementById('groceryManagementScreen');
+            const link = document.getElementById('manageGroceryLink');
+            
+            if (screen.classList.contains('hidden')) {
+                screen.classList.remove('hidden');
+                link.textContent = '❌ Close Panel';
+            } else {
+                screen.classList.add('hidden');
+                link.textContent = 'Gear: Manage List';
+            }
+        }
+
+        function addGroceryItem() {
+            const input = document.getElementById('newGroceryInput');
+            const value = input.value.trim();
+            
+            if (!value) {
+                alert('Please enter a valid product name!');
+                return;
+            }
+            
+            if (groceryProducts.map(p => p.toLowerCase()).includes(value.toLowerCase())) {
+                alert('This product already exists in your list!');
+                return;
+            }
+            
+            groceryProducts.push(value);
+            saveToLocalStorage();
+            
+            // Refresh visuals
+            renderGroceryDropdown();
+            renderManagementList();
+            
+            input.value = '';
+        }
+
+        function deleteGroceryItem(itemName) {
+            if (confirm(`Are you sure you want to delete "${itemName}"?`)) {
+                groceryProducts = groceryProducts.filter(item => item !== itemName);
+                saveToLocalStorage();
+                
+                // Refresh visuals
+                renderGroceryDropdown();
+                renderManagementList();
+                
+                // Reset select text element if deleted item was active
+                const currentInput = document.getElementById('searchInput');
+                if (currentInput.value === itemName) {
+                    currentInput.value = '';
+                }
+            }
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('customGroceryProducts', JSON.stringify(groceryProducts));
+        }
+        /* ------------------------------------ */
 
         function generateCheckboxes() {
             // Generate grocery quick commerce checkboxes
@@ -1086,6 +1129,17 @@
 
             document.getElementById('groceryStoreSelector').classList.toggle('hidden', category !== 'grocery');
             document.getElementById('otherStoreSelector').classList.toggle('hidden', category === 'grocery');
+            
+            // Hide management configuration option if switched to other mode
+            const manageLink = document.getElementById('manageGroceryLink');
+            const mgmtScreen = document.getElementById('groceryManagementScreen');
+            if(category !== 'grocery') {
+                manageLink.classList.add('hidden');
+                mgmtScreen.classList.add('hidden');
+                manageLink.textContent = 'Gear: Manage List';
+            } else {
+                manageLink.classList.remove('hidden');
+            }
 
             const btn = document.getElementById('searchBtn');
             if (category === 'other') {
