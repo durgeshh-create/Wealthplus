@@ -59,8 +59,18 @@ class StrategyExecutor:
     def _get_test_quantity(self) -> int:
         return int(_load_settings().get('test_quantity', 0))
 
-    def _get_profit_target(self) -> float:
-        return float(_load_settings().get('profit_target_pct', Config.PROFIT_TARGET_PCT))
+    def _is_bnh_symbol(self, symbol: str) -> bool:
+        """Return True if symbol is managed by the Dip Accumulator (BnH) engine."""
+        bnh = _load_settings().get('bnh_symbols', ['MID150BEES'])
+        return symbol in (bnh if isinstance(bnh, list) else [bnh])
+
+    def _get_profit_target(self, symbol: str = None) -> float:
+        """Return the correct profit target: bnh_partial_profit_pct for BnH symbols,
+        profit_target_pct for active-strategy symbols."""
+        s = _load_settings()
+        if symbol and self._is_bnh_symbol(symbol):
+            return float(s.get('bnh_partial_profit_pct', 7.0))
+        return float(s.get('profit_target_pct', Config.PROFIT_TARGET_PCT))
 
     def _get_max_cash_per_transaction(self) -> float:
         return float(_load_settings().get('max_cash_per_transaction',
@@ -506,7 +516,7 @@ class StrategyExecutor:
                     pnl_amt = (etf_price - avg_price) * etf_qty
                     logger.info(
                         f"✓ PROFIT: {pnl_pct:.2f}% ₹{pnl_amt:.2f} | "
-                        f"Target was {self._get_profit_target()}%"
+                        f"Target was {self._get_profit_target(symbol)}%"
                     )
                 logger.info(f"✓ SELL SUCCESS: {symbol}")
                 # ── Telegram SELL notification ─────────────────────────────
