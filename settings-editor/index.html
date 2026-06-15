@@ -126,7 +126,14 @@ main{padding:18px 20px;max-width:960px;margin:0 auto}
   .cash-body{padding:10px}
   #stale-banner,#offline-banner,#cfg-note{font-size:10px;padding:6px 14px}
   .scroll{max-height:240px}
-  .wr-bar-wrap{min-width:50px}
+  .wr-bar-wrap{min-width:40px}
+  /* On mobile let columns size to content — fixed layout truncates on narrow screens */
+  #wr-tbl{table-layout:auto !important}
+  #wr-tbl td,#wr-tbl th{white-space:nowrap;overflow:visible;text-overflow:clip;font-size:11px;padding:7px 6px}
+  #wr-tbl td:first-child,#wr-tbl th:first-child{min-width:unset;width:auto;white-space:nowrap}
+  #wr-tbl th:first-child{padding-left:10px}
+  #wr-tbl td:first-child{padding-left:10px}
+  #wr-tbl th:last-child,#wr-tbl td:last-child{padding-right:10px}
 }
 
 /* ── panel ── */
@@ -541,9 +548,9 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       <thead><tr>
         <th style="text-align:left;padding-left:14px;width:38%">Symbol / Price</th>
         <th style="text-align:center;width:8%">Signal</th>
-        <th style="text-align:left;width:12%">Value</th>
-        <th style="text-align:left;width:14%">Signal</th>
-        <th style="text-align:right;padding-right:14px;width:14%">vs 20DMA</th>
+        <th style="text-align:left;width:13%">Value</th>
+        <th style="text-align:left;width:19%">Signal</th>
+        <th style="text-align:right;padding-right:14px;width:22%">vs 20DMA</th>
       </tr></thead>
       <tbody id="wr-tbl-body"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
     </table>
