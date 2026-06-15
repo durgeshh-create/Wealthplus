@@ -133,8 +133,22 @@ class SignalGenerator:
 
     # ── Settings helpers ──────────────────────────────────────────────────────
 
-    def _get_profit_target(self) -> float:
-        return float(_load_settings().get('profit_target_pct', Config.PROFIT_TARGET_PCT))
+    def _is_bnh_symbol(self, symbol: str) -> bool:
+        """Return True if symbol is managed by the Dip Accumulator (BnH) engine.
+        These symbols must never go through the active-strategy sell path."""
+        bnh = _load_settings().get('bnh_symbols', ['MID150BEES'])
+        return symbol in (bnh if isinstance(bnh, list) else [bnh])
+
+    def _get_profit_target(self, symbol: str = None) -> float:
+        """Return the correct profit target for a symbol.
+        BnH symbols use bnh_partial_profit_pct; active-strategy symbols use
+        profit_target_pct.  symbol=None falls back to active-strategy target
+        (safe default — callers that don't pass symbol are active-strategy only)."""
+        s = _load_settings()
+        if symbol and self._is_bnh_symbol(symbol):
+            return float(s.get('bnh_partial_profit_pct', 7.0))
+        return float(s.get('profit_target_pct', Config.PROFIT_TARGET_PCT))
+
 
     def _get_max_cash_per_stock(self) -> float:
         return float(_load_settings().get('max_cash_per_stock',
@@ -289,7 +303,10 @@ class SignalGenerator:
 
             prev_close  = float(daily_data.iloc[-1]['close'])
             buy_signal  = self._check_buy_signal(symbol, williams_r, live_price, prev_close)
-            sell_signal = self._check_sell_signal(symbol, live_price)
+            # BnH symbols (e.g. MID150BEES) are sold exclusively by IntradayEngine
+            # (_check_partial_sell at bnh_partial_profit_pct, e.g. 7%).
+            # They must never enter the active-strategy sell path (profit_target_pct, e.g. 3%).
+            sell_signal = False if self._is_bnh_symbol(symbol) else self._check_sell_signal(symbol, live_price)
 
             if buy_signal:
                 signal_type = SIGNAL_BUY
@@ -492,7 +509,7 @@ class SignalGenerator:
             return False
 
         profit_pct = ((current_price - avg_price) / avg_price) * 100
-        target = self._get_profit_target()
+        target = self._get_profit_target(symbol)
 
         if profit_pct >= target:
             logger.info(
@@ -743,6 +760,9 @@ class SignalGenerator:
         sell_signals = []
         for symbol in Config.get_all_monitored_symbols():
             if symbol == LIQUIDCASE_SYMBOL:
+                continue
+            # BnH symbols are sold by IntradayEngine, not the active-strategy sell path
+            if self._is_bnh_symbol(symbol):
                 continue
             if symbol in self.executing_symbols:
                 continue
