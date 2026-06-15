@@ -473,11 +473,6 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       background:var(--bg3);color:var(--text);font-size:11px;font-weight:600;
       cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s
     " title="Start or stop the trading bot">⏯ BOT</button>
-    <button id="bot-restart-btn" onclick="restartBot()" style="
-      padding:5px 12px;border-radius:6px;border:1px solid var(--border);
-      background:var(--bg3);color:var(--muted2);font-size:11px;font-weight:600;
-      cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s
-    " title="Restart bot (stop current run + start fresh)">↺ RESTART</button>
     <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px" title="Lock">&#128274;</button>
   </div>
 </header>
@@ -2823,76 +2818,6 @@ function render(data) {
       <div style="font-size:10px;color:var(--muted);white-space:nowrap;margin-left:6px">${tStr(t.order_timestamp||t.time)}</div>
     </div>`;
   }).join("") : `<div class="empty">No orders executed today<br><span style="font-size:11px;color:var(--muted)">Orders appear once the bot pushes a snapshot</span></div>`;
-}
-
-// ── Restart bot ──────────────────────────────────────────────────────────────
-async function restartBot() {
-  const btn    = document.getElementById("bot-restart-btn");
-  const togBtn = document.getElementById("bot-toggle-btn");
-  const cfg    = getCfg();
-  if (!cfg.owner || !cfg.repo || !cfg.token) {
-    alert("Please configure GitHub owner / repo / token first (Setup).");
-    return;
-  }
-  if (!confirm("Restart bot? This will cancel any running session and start a fresh one.")) return;
-
-  if (btn)    { btn.disabled = true;    btn.textContent = "↺ …"; }
-  if (togBtn) { togBtn.disabled = true; }
-
-  const WORKFLOW_FILE = "trading-bot.yml";
-  const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
-
-  try {
-    // Step 1: Cancel any in-progress or queued runs
-    let cancelled = 0;
-    for (const status of ["in_progress", "queued"]) {
-      const r = await fetch(`${base}/runs?status=${status}&per_page=5`, { headers: apiHeaders() });
-      if (!r.ok) continue;
-      const runs = (await r.json()).workflow_runs || [];
-      for (const run of runs) {
-        try {
-          await fetch(
-            `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${run.id}/cancel`,
-            { method: "POST", headers: apiHeaders() }
-          );
-          cancelled++;
-        } catch(_) {}
-      }
-    }
-
-    // Step 2: Wait for cancellations to settle
-    if (cancelled > 0) {
-      if (btn) btn.textContent = "↺ STOPPING…";
-      await new Promise(r => setTimeout(r, 5000));
-    }
-
-    // Step 3: Dispatch fresh run
-    if (btn) btn.textContent = "↺ STARTING…";
-    const dispResp = await fetch(`${base}/dispatches`, {
-      method: "POST",
-      headers: apiHeaders(),
-      body: JSON.stringify({ ref: "main", inputs: { triggered_by: "manual" } }),
-    });
-
-    if (dispResp.ok || dispResp.status === 204) {
-      if (btn) {
-        btn.textContent      = "↺ RESTARTED ✓";
-        btn.style.background = "var(--green-d)";
-        btn.style.color      = "var(--green)";
-      }
-      setTimeout(() => {
-        if (btn) { btn.disabled=false; btn.textContent="↺ RESTART"; btn.style.background=""; btn.style.color=""; }
-        if (togBtn) togBtn.disabled = false;
-        checkWorkflowStatus();
-      }, 8000);
-    } else {
-      throw new Error(`Dispatch failed: ${dispResp.status}`);
-    }
-  } catch(e) {
-    alert("Restart failed: " + e.message);
-    if (btn)    { btn.disabled=false; btn.textContent="↺ RESTART"; btn.style.background=""; btn.style.color=""; }
-    if (togBtn) { togBtn.disabled=false; }
-  }
 }
 
 // ── Fetch + refresh ───────────────────────────────────────────────────────────
