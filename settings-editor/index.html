@@ -501,7 +501,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       <!-- Positions panel -->
       <div class="panel">
         <div class="ph"><span class="pt">Today's Positions</span><span class="pb" id="pos-count">—</span></div>
-        <div class="scroll">
+        <div>
           <table class="tbl">
             <thead><tr><th>SYMBOL</th><th>QTY</th><th>AVG ₹</th><th>LTP ₹</th><th>UNREALISED</th><th>REALISED</th></tr></thead>
             <tbody id="pos-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
@@ -2296,9 +2296,19 @@ async function toggleBot() {
       const run = runs[0];
       const cancelResp = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${run.id}/cancel`,
         { method: "POST", headers: apiHeaders() });
-      if (!cancelResp.ok && cancelResp.status !== 202) {
+
+      // 409 = run already completed (finished naturally before we could cancel).
+      // Treat this the same as "bot is stopped" — fall through to dispatch a new run.
+      if (cancelResp.status === 409) {
+        runs = []; // force the else-branch below to dispatch
+      } else if (!cancelResp.ok && cancelResp.status !== 202) {
         throw new Error(`Cancel failed: ${cancelResp.status} ${await cancelResp.text()}`);
       }
+    }
+
+    if (runs.length > 0) {
+      // Still running (cancel accepted) — show STOPPING and poll
+      const run = runs[0];
       if (btn) {
         btn.textContent = "⏳ STOPPING…";
         btn.style.background = "var(--red-d)";
@@ -2320,7 +2330,7 @@ async function toggleBot() {
         }
         if (btn) {
           btn.disabled = false;
-          btn.textContent = "▶ START";
+          btn.textContent = "▶ START BOT";
           btn.style.background = "var(--green-d)";
           btn.style.color      = "var(--green)";
         }
