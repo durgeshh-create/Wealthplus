@@ -315,20 +315,49 @@ def write_snapshot(dashboard_state: dict):
                             break
                     # ✅ FIX: on 403 TokenException, refresh token.
                     # Try CDP first (local), fall back to fresh TOTP login (cloud/GitHub Actions).
+                    # PAUSE GUARD: never run credentials login while the dashboard Pause
+                    # button is active — that would immediately log the user out of Kite.
                     if mresp is not None and mresp.status_code == 403:
                         try:
                             import sys as _sys
                             refreshed = False
-                            # Try CDP first (works if browser is open locally)
-                            try:
-                                refreshed = auth_mgr.handle_session_expiry()
-                            except Exception:
-                                pass
-                            # If CDP didn't work, do a fresh TOTP re-login
-                            if not refreshed or getattr(auth_mgr, "enctoken", None) == enctoken:
-                                if hasattr(auth_mgr, "_login_with_credentials"):
-                                    print("[snapshot] CDP failed — attempting fresh TOTP re-login...", file=_sys.stderr)
-                                    refreshed = auth_mgr._login_with_credentials()
+
+                            # ── Pause guard ───────────────────────────────────────────────
+                            # Check both the in-process flag (set by cloud_launcher) and the
+                            # gh-pages pause_flag.json (set by the dashboard Pause button).
+                            _is_paused = getattr(auth_mgr, "_bot_paused", False)
+                            if not _is_paused:
+                                try:
+                                    import os as _os, json as _js, urllib.request as _ur, base64 as _b64
+                                    _owner = _os.environ.get("GITHUB_REPOSITORY", "/").split("/")[0]
+                                    _repo  = _os.environ.get("GITHUB_REPOSITORY", "/").split("/")[-1]
+                                    _tok   = _os.environ.get("GITHUB_TOKEN", "")
+                                    if _owner and _repo and _tok:
+                                        _preq = _ur.Request(
+                                            f"https://api.github.com/repos/{_owner}/{_repo}/contents/pause_flag.json?ref=gh-pages",
+                                            headers={"Authorization": f"token {_tok}", "Accept": "application/vnd.github.v3+json"},
+                                        )
+                                        with _ur.urlopen(_preq, timeout=5) as _pr:
+                                            _pdata = _js.loads(_pr.read())
+                                            _pflag = _js.loads(_b64.b64decode(_pdata["content"]))
+                                            _is_paused = bool(_pflag.get("paused", False))
+                                except Exception:
+                                    pass  # network error → assume not paused, safe to proceed
+
+                            if _is_paused:
+                                print("[snapshot] 403 received but bot is PAUSED — "
+                                      "credentials login suppressed to protect browser session.", file=_sys.stderr)
+                            else:
+                                # Try CDP first (works if browser is open locally)
+                                try:
+                                    refreshed = auth_mgr.handle_session_expiry()
+                                except Exception:
+                                    pass
+                                # If CDP didn't work, do a fresh TOTP re-login
+                                if not refreshed or getattr(auth_mgr, "enctoken", None) == enctoken:
+                                    if hasattr(auth_mgr, "_login_with_credentials"):
+                                        print("[snapshot] CDP failed — attempting fresh TOTP re-login...", file=_sys.stderr)
+                                        refreshed = auth_mgr._login_with_credentials()
                             if refreshed:
                                 new_enc = getattr(auth_mgr, "enctoken", None)
                                 if new_enc:
