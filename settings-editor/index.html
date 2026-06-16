@@ -102,7 +102,6 @@ main{padding:18px 20px;max-width:960px;margin:0 auto}
   .rbtn{padding:4px 8px;font-size:10px}
   /* Shrink bot toggle button */
   #bot-toggle-btn{padding:4px 8px!important;font-size:10px!important;letter-spacing:0!important}
-  #pause-resume-btn{padding:4px 8px!important;font-size:10px!important;letter-spacing:0!important}
   .tabs{padding:0 10px}
   .tab{padding:9px 12px;font-size:11px}
   main{padding:12px 10px}
@@ -469,17 +468,11 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       <div class="idx-chip" id="chip-nifty50"><span class="ic-name">NIFTY 50</span><span class="ic-val">—</span><span class="ic-chg neu">—</span></div>
       <div class="idx-chip" id="chip-indiavix"><span class="ic-name">INDIA VIX</span><span class="ic-val">—</span><span class="ic-chg neu">—</span></div>
     </div>
-    <button id="bot-toggle-btn" onclick="toggleBot()" style="
-      padding:5px 14px;border-radius:6px;border:1px solid var(--border);
-      background:var(--bg3);color:var(--text);font-size:11px;font-weight:600;
+    <button id="bot-toggle-btn" onclick="handleBotBtn()" style="
+      padding:5px 14px;border-radius:6px;border:1px solid rgba(22,163,74,.35);
+      background:var(--green-d);color:var(--green);font-size:11px;font-weight:600;
       cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s
-    " title="Start or stop the trading bot">⏯ BOT</button>
-    <button id="pause-resume-btn" onclick="togglePause()" style="
-      padding:5px 14px;border-radius:6px;border:1px solid var(--border);
-      background:var(--amber-d);color:var(--amber);font-size:11px;font-weight:600;
-      cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s;
-      border-color:rgba(217,119,6,.35)
-    " title="Pause workflow so you can manually log in to Zerodha Kite, then Resume">⏸ PAUSE</button>
+    " title="Start the trading bot" data-bot-state="stopped">▶ START BOT</button>
     <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px" title="Lock">&#128274;</button>
   </div>
 </header>
@@ -2282,194 +2275,214 @@ function togglePwEye() {
   const i = document.getElementById('pw-input');
   i.type = i.type === 'password' ? 'text' : 'password';
 }
-async function toggleBot() {
+// ── Bot button state machine ──────────────────────────────────────────────────
+// Single button with 4 states stored in data-bot-state:
+//   "stopped"  — bot not running, not paused  → ▶ START BOT  (green)
+//   "running"  — bot running, not paused       → ⏸ PAUSE & STOP (amber)
+//   "paused"   — bot stopped, paused flag set  → ▶ RESUME & START (blue)
+//
+// Flow for manual Kite login:
+//   1. Click ⏸ PAUSE & STOP  → sets pause flag + cancels workflow
+//   2. Log into Kite manually in your browser
+//   3. Click ▶ RESUME & START → clears pause flag + starts fresh workflow
+
+const WORKFLOW_FILE = "trading-bot.yml";
+
+function _botBtnState() {
+  return document.getElementById("bot-toggle-btn")?.dataset.botState || "stopped";
+}
+
+function _setBotBtn(state, busy) {
+  const btn = document.getElementById("bot-toggle-btn");
+  if (!btn) return;
+  btn.dataset.botState = state;
+  btn.disabled = !!busy;
+  if (busy) {
+    btn.textContent = "…";
+    btn.style.background = "var(--bg3)";
+    btn.style.color      = "var(--muted)";
+    btn.style.borderColor = "var(--border)";
+    return;
+  }
+  if (state === "running") {
+    btn.textContent  = "⏸ PAUSE & STOP";
+    btn.style.background  = "var(--amber-d)";
+    btn.style.color       = "var(--amber)";
+    btn.style.borderColor = "rgba(217,119,6,.35)";
+    btn.title = "Pause the workflow so you can manually log in to Kite, then restart cleanly";
+  } else if (state === "paused") {
+    btn.textContent  = "▶ RESUME & START";
+    btn.style.background  = "var(--blue-d)";
+    btn.style.color       = "var(--blue)";
+    btn.style.borderColor = "rgba(37,99,235,.35)";
+    btn.title = "Clear the pause flag and start the bot — it will use your fresh Kite session";
+  } else {
+    btn.textContent  = "▶ START BOT";
+    btn.style.background  = "var(--green-d)";
+    btn.style.color       = "var(--green)";
+    btn.style.borderColor = "rgba(22,163,74,.35)";
+    btn.title = "Start the trading bot";
+  }
+}
+
+async function _writePauseFlag(paused) {
+  const cfg = getCfg();
+  const flagUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/pause_flag.json`;
+  const headers = apiHeaders();
+  let sha = null;
+  try {
+    const ex = await fetch(flagUrl + "?ref=gh-pages", { headers });
+    if (ex.ok) sha = (await ex.json()).sha;
+  } catch (_) {}
+  const body = {
+    message: paused ? "pause: paused for manual Kite login" : "resume: pause cleared",
+    content: btoa(JSON.stringify({ paused, updated: new Date().toISOString() }, null, 2)),
+    branch: "gh-pages",
+  };
+  if (sha) body.sha = sha;
+  const r = await fetch(flagUrl, { method: "PUT", headers, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error(`pause flag write failed: ${r.status} ${await r.text()}`);
+}
+
+async function _readPauseFlag() {
+  const cfg = getCfg();
+  if (!cfg.owner || !cfg.repo || !cfg.token) return false;
+  try {
+    const r = await fetch(
+      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/pause_flag.json?ref=gh-pages`,
+      { headers: apiHeaders() }
+    );
+    if (!r.ok) return false;
+    const d = await r.json();
+    return !!JSON.parse(atob(d.content.replace(/\n/g, ""))).paused;
+  } catch (_) { return false; }
+}
+
+async function _cancelWorkflow(cfg) {
+  const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
+  const runsResp = await fetch(`${base}/runs?status=in_progress&per_page=5`, { headers: apiHeaders() });
+  if (!runsResp.ok) throw new Error(`GitHub API ${runsResp.status}`);
+  let runs = (await runsResp.json()).workflow_runs || [];
+  if (runs.length === 0) {
+    const qr = await fetch(`${base}/runs?status=queued&per_page=5`, { headers: apiHeaders() });
+    if (qr.ok) runs = (await qr.json()).workflow_runs || [];
+  }
+  if (runs.length === 0) return null; // already stopped
+  const run = runs[0];
+  const cr = await fetch(
+    `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${run.id}/cancel`,
+    { method: "POST", headers: apiHeaders() }
+  );
+  if (cr.status === 409) return null; // completed naturally
+  if (!cr.ok && cr.status !== 202) throw new Error(`Cancel failed: ${cr.status}`);
+  return run.id;
+}
+
+async function _dispatchWorkflow(cfg) {
+  const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
+  const r = await fetch(`${base}/dispatches`, {
+    method: "POST",
+    headers: apiHeaders(),
+    body: JSON.stringify({ ref: "main" }),
+  });
+  if (!r.ok && r.status !== 204) throw new Error(`Dispatch failed: ${r.status} ${await r.text()}`);
+}
+
+async function _pollUntilStopped(cfg, runId) {
+  for (let i = 0; i < 30; i++) {
+    await new Promise(r => setTimeout(r, 4000));
+    try {
+      const chk = await fetch(
+        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${runId}`,
+        { headers: apiHeaders() }
+      );
+      if (chk.ok) {
+        const rd = await chk.json();
+        if (rd.status !== "in_progress" && rd.status !== "queued") return;
+      }
+    } catch (_) {}
+  }
+}
+
+async function handleBotBtn() {
   const btn = document.getElementById("bot-toggle-btn");
   const cfg = getCfg();
   if (!cfg.owner || !cfg.repo || !cfg.token) {
     alert("Please configure GitHub owner / repo / token first (Setup).");
     return;
   }
-  if (btn) { btn.disabled = true; btn.textContent = "…"; }
-  const WORKFLOW_FILE = "trading-bot.yml";
-  const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
+
+  const state = _botBtnState();
+  _setBotBtn(state, true); // show busy spinner
 
   try {
-    // 1. Check for an in-progress / queued run
-    const runsResp = await fetch(`${base}/runs?status=in_progress&per_page=5`, { headers: apiHeaders() });
-    if (!runsResp.ok) throw new Error(`GitHub API ${runsResp.status}: ${await runsResp.text()}`);
-    const runsData = await runsResp.json();
-    let runs = runsData.workflow_runs || [];
-    if (runs.length === 0) {
-      const queuedResp = await fetch(`${base}/runs?status=queued&per_page=5`, { headers: apiHeaders() });
-      if (queuedResp.ok) runs = (await queuedResp.json()).workflow_runs || [];
-    }
-
-    if (runs.length > 0) {
-      // 2a. Running → cancel it, then poll until fully stopped before re-enabling
-      const run = runs[0];
-      const cancelResp = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${run.id}/cancel`,
-        { method: "POST", headers: apiHeaders() });
-
-      // 409 = run already completed (finished naturally before we could cancel).
-      // Treat this the same as "bot is stopped" — fall through to dispatch a new run.
-      if (cancelResp.status === 409) {
-        runs = []; // force the else-branch below to dispatch
-      } else if (!cancelResp.ok && cancelResp.status !== 202) {
-        throw new Error(`Cancel failed: ${cancelResp.status} ${await cancelResp.text()}`);
+    if (state === "running") {
+      // ── PAUSE & STOP ──────────────────────────────────────────────────────
+      // 1. Set pause flag so bot suppresses re-auth on 403s
+      await _writePauseFlag(true);
+      // 2. Cancel the workflow
+      const runId = await _cancelWorkflow(cfg);
+      _setBotBtn("paused", true);
+      // 3. Poll until fully stopped, then show RESUME & START
+      if (runId) {
+        await _pollUntilStopped(cfg, runId);
       }
-    }
+      _setBotBtn("paused", false);
+      alert("⏸ Bot stopped and paused.\n\nNow log into Zerodha Kite in your browser.\nWhen done, click ▶ RESUME & START.");
 
-    if (runs.length > 0) {
-      // Still running (cancel accepted) — show STOPPING and poll
-      const run = runs[0];
-      if (btn) {
-        btn.textContent = "⏳ STOPPING…";
-        btn.style.background = "var(--red-d)";
-        btn.style.color      = "var(--red)";
-        btn.disabled = true;
-      }
-      // Poll until the run is no longer in_progress/queued, then re-enable as START
-      (async () => {
-        for (let i = 0; i < 30; i++) {
-          await new Promise(r => setTimeout(r, 4000));
-          try {
-            const chk = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${run.id}`,
-              { headers: apiHeaders() });
-            if (chk.ok) {
-              const rd = await chk.json();
-              if (rd.status !== "in_progress" && rd.status !== "queued") break;
-            }
-          } catch(_) {}
-        }
-        if (btn) {
-          btn.disabled = false;
-          btn.textContent = "▶ START BOT";
-          btn.style.background = "var(--green-d)";
-          btn.style.color      = "var(--green)";
-        }
-      })();
+    } else if (state === "paused") {
+      // ── RESUME & START ────────────────────────────────────────────────────
+      // 1. Clear pause flag
+      await _writePauseFlag(false);
+      // 2. Start fresh workflow — it will pick up your new Kite session
+      await _dispatchWorkflow(cfg);
+      _setBotBtn("running", false);
+      // Give GitHub ~10s to register the run, then sync real status
+      setTimeout(() => syncBotButtonState(), 10000);
+
     } else {
-      // 2b. Not running → dispatch a new run
-      const dispatchResp = await fetch(`${base}/dispatches`, {
-        method: "POST",
-        headers: apiHeaders(),
-        body: JSON.stringify({ ref: "main" }),
-      });
-      if (!dispatchResp.ok && dispatchResp.status !== 204) {
-        throw new Error(`Dispatch failed: ${dispatchResp.status} ${await dispatchResp.text()}`);
-      }
-      if (btn) {
-        btn.textContent = "⏳ STARTING…";
-        btn.style.background = "var(--green-d)";
-        btn.style.color      = "var(--green)";
-      }
-      // Re-enable after delay; render() will refresh label from data.bot_running
-      setTimeout(() => { if (btn) { btn.disabled = false; btn.textContent = "⏯ BOT"; btn.style.background = ""; btn.style.color = ""; } }, 8000);
-    }
-  } catch(e) {
-    alert("Bot toggle error: " + e.message);
-    if (btn) { btn.disabled = false; btn.textContent = "⏯ BOT"; }
-  }
-}
-
-// ── Pause / Resume ────────────────────────────────────────────────────────────
-// Writes pause_flag.json to the gh-pages branch via GitHub API.
-// The trading bot (cloud_launcher.py) must poll this file and sleep while
-// paused=true. Click Pause before manually logging in to Zerodha Kite;
-// click Resume once you are done — the workflow will then continue.
-async function togglePause() {
-  const btn = document.getElementById('pause-resume-btn');
-  const cfg = getCfg();
-  if (!cfg.owner || !cfg.repo || !cfg.token) {
-    alert('Please configure GitHub owner / repo / token first (Setup).');
-    return;
-  }
-
-  const isPaused = btn.dataset.paused === 'true';
-  const newState = !isPaused;
-  btn.disabled = true;
-  btn.textContent = '…';
-
-  try {
-    const flagUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/pause_flag.json`;
-    const headers = apiHeaders();
-
-    // Check if file already exists (need its SHA to update)
-    let sha = null;
-    try {
-      const existing = await fetch(flagUrl + '?ref=gh-pages', { headers });
-      if (existing.ok) {
-        const existingData = await existing.json();
-        sha = existingData.sha;
-      }
-    } catch (_) {}
-
-    const content = JSON.stringify({ paused: newState, updated: new Date().toISOString() }, null, 2);
-    const body = {
-      message: newState ? 'pause: workflow paused for manual Kite login' : 'resume: workflow resumed',
-      content: btoa(content),
-      branch: 'gh-pages',
-    };
-    if (sha) body.sha = sha;
-
-    const resp = await fetch(flagUrl, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(body),
-    });
-    if (!resp.ok) throw new Error(`GitHub API ${resp.status}: ${await resp.text()}`);
-
-    _applyPauseState(btn, newState);
-
-    if (newState) {
-      alert('⏸ Workflow PAUSED.\n\nYou can now manually log in to Zerodha Kite.\nClick RESUME when done — the bot will continue automatically.');
-    } else {
-      alert('▶ Workflow RESUMED.\n\nThe bot will continue trading shortly.');
+      // ── START BOT (normal) ────────────────────────────────────────────────
+      await _dispatchWorkflow(cfg);
+      _setBotBtn("running", false);
+      setTimeout(() => syncBotButtonState(), 10000);
     }
   } catch (e) {
-    alert('Pause/Resume error: ' + e.message);
-    _applyPauseState(btn, isPaused); // restore previous state on error
-  } finally {
-    btn.disabled = false;
+    alert("Bot button error: " + e.message);
+    // Restore previous state on error
+    _setBotBtn(state, false);
   }
 }
 
-function _applyPauseState(btn, paused) {
-  if (!btn) return;
-  btn.dataset.paused = paused ? 'true' : 'false';
-  if (paused) {
-    btn.textContent = '▶ RESUME';
-    btn.style.background = 'var(--green-d)';
-    btn.style.color = 'var(--green)';
-    btn.style.borderColor = 'rgba(22,163,74,.35)';
-    btn.title = 'Click to Resume workflow — bot will continue trading';
-  } else {
-    btn.textContent = '⏸ PAUSE';
-    btn.style.background = 'var(--amber-d)';
-    btn.style.color = 'var(--amber)';
-    btn.style.borderColor = 'rgba(217,119,6,.35)';
-    btn.title = 'Pause workflow so you can manually log in to Zerodha Kite, then Resume';
-  }
-}
-
-async function syncPauseButton() {
-  const btn = document.getElementById('pause-resume-btn');
+// Sync button to real state: check pause flag + live workflow run
+async function syncBotButtonState() {
+  const btn = document.getElementById("bot-toggle-btn");
   const cfg = getCfg();
-  if (!btn || !cfg.owner || !cfg.repo || !cfg.token) return;
+  if (!btn || btn.disabled || !cfg.owner || !cfg.repo || !cfg.token) return;
   try {
-    const resp = await fetch(
-      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/pause_flag.json?ref=gh-pages`,
-      { headers: apiHeaders() }
-    );
-    if (resp.ok) {
-      const data = await resp.json();
-      const decoded = JSON.parse(atob(data.content.replace(/\n/g, '')));
-      _applyPauseState(btn, !!decoded.paused);
+    const [paused, liveRunning] = await Promise.all([
+      _readPauseFlag(),
+      (async () => {
+        const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
+        const r = await fetch(`${base}/runs?status=in_progress&per_page=1`, { headers: apiHeaders() });
+        if (!r.ok) return false;
+        const runs = (await r.json()).workflow_runs || [];
+        if (runs.length > 0) return true;
+        const qr = await fetch(`${base}/runs?status=queued&per_page=1`, { headers: apiHeaders() });
+        return qr.ok && ((await qr.json()).workflow_runs || []).length > 0;
+      })(),
+    ]);
+    if (paused && !liveRunning) {
+      _setBotBtn("paused", false);
+    } else if (liveRunning) {
+      _setBotBtn("running", false);
     } else {
-      _applyPauseState(btn, false);
+      _setBotBtn("stopped", false);
     }
   } catch (_) {}
 }
+
+// Legacy alias kept so existing render() / syncLiveBotStatus() calls still compile
+function syncPauseButton() { syncBotButtonState(); }
 
 function lockDashboard() {
   sessionStorage.removeItem(PW_SESSION);
@@ -2996,12 +3009,9 @@ async function refreshAll() {
   const ageMin  = !isNaN(snapDate) ? (Date.now() - snapDate.getTime()) / 60000 : 999;
   const botOn   = data.bot_running !== false;
 
-  // Update bot toggle button label to reflect current state
-  const _btgBtn = document.getElementById("bot-toggle-btn");
-  if (_btgBtn && !_btgBtn.disabled) {
-    _btgBtn.textContent = botOn ? "⏹ STOP BOT" : "▶ START BOT";
-    _btgBtn.style.background = botOn ? "var(--red-d)"   : "var(--green-d)";
-    _btgBtn.style.color      = botOn ? "var(--red)"     : "var(--green)";
+  // Update bot button via state machine (respects paused state)
+  if (!document.getElementById("bot-toggle-btn")?.disabled) {
+    syncBotButtonState();
   }
 
   // ── Market-hours awareness (IST 09:15–15:30 Mon–Fri) ─────────────────────
@@ -3084,11 +3094,9 @@ async function syncLiveBotStatus(snapshotBotOn) {
 
   if (liveRunning === snapshotBotOn) return; // snapshot already correct
 
-  // Correct the button caption (only if user isn't mid-action)
+  // Correct the button via state machine (respects paused state)
   if (_btgBtn && !_btgBtn.disabled) {
-    _btgBtn.textContent = liveRunning ? "⏹ STOP BOT" : "▶ START BOT";
-    _btgBtn.style.background = liveRunning ? "var(--red-d)"   : "var(--green-d)";
-    _btgBtn.style.color      = liveRunning ? "var(--red)"     : "var(--green)";
+    syncBotButtonState();
   }
 
   // Correct the Live/Offline dot
