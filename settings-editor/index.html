@@ -102,6 +102,7 @@ main{padding:18px 20px;max-width:960px;margin:0 auto}
   .rbtn{padding:4px 8px;font-size:10px}
   /* Shrink bot toggle button */
   #bot-toggle-btn{padding:4px 8px!important;font-size:10px!important;letter-spacing:0!important}
+  #pause-resume-btn{padding:4px 8px!important;font-size:10px!important;letter-spacing:0!important}
   .tabs{padding:0 10px}
   .tab{padding:9px 12px;font-size:11px}
   main{padding:12px 10px}
@@ -473,6 +474,12 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       background:var(--bg3);color:var(--text);font-size:11px;font-weight:600;
       cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s
     " title="Start or stop the trading bot">⏯ BOT</button>
+    <button id="pause-resume-btn" onclick="togglePause()" style="
+      padding:5px 14px;border-radius:6px;border:1px solid var(--border);
+      background:var(--amber-d);color:var(--amber);font-size:11px;font-weight:600;
+      cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s;
+      border-color:rgba(217,119,6,.35)
+    " title="Pause workflow so you can manually log in to Zerodha Kite, then Resume">⏸ PAUSE</button>
     <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px" title="Lock">&#128274;</button>
   </div>
 </header>
@@ -2365,6 +2372,105 @@ async function toggleBot() {
   }
 }
 
+// ── Pause / Resume ────────────────────────────────────────────────────────────
+// Writes pause_flag.json to the gh-pages branch via GitHub API.
+// The trading bot (cloud_launcher.py) must poll this file and sleep while
+// paused=true. Click Pause before manually logging in to Zerodha Kite;
+// click Resume once you are done — the workflow will then continue.
+async function togglePause() {
+  const btn = document.getElementById('pause-resume-btn');
+  const cfg = getCfg();
+  if (!cfg.owner || !cfg.repo || !cfg.token) {
+    alert('Please configure GitHub owner / repo / token first (Setup).');
+    return;
+  }
+
+  const isPaused = btn.dataset.paused === 'true';
+  const newState = !isPaused;
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  try {
+    const flagUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/pause_flag.json`;
+    const headers = apiHeaders();
+
+    // Check if file already exists (need its SHA to update)
+    let sha = null;
+    try {
+      const existing = await fetch(flagUrl + '?ref=gh-pages', { headers });
+      if (existing.ok) {
+        const existingData = await existing.json();
+        sha = existingData.sha;
+      }
+    } catch (_) {}
+
+    const content = JSON.stringify({ paused: newState, updated: new Date().toISOString() }, null, 2);
+    const body = {
+      message: newState ? 'pause: workflow paused for manual Kite login' : 'resume: workflow resumed',
+      content: btoa(content),
+      branch: 'gh-pages',
+    };
+    if (sha) body.sha = sha;
+
+    const resp = await fetch(flagUrl, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) throw new Error(`GitHub API ${resp.status}: ${await resp.text()}`);
+
+    _applyPauseState(btn, newState);
+
+    if (newState) {
+      alert('⏸ Workflow PAUSED.\n\nYou can now manually log in to Zerodha Kite.\nClick RESUME when done — the bot will continue automatically.');
+    } else {
+      alert('▶ Workflow RESUMED.\n\nThe bot will continue trading shortly.');
+    }
+  } catch (e) {
+    alert('Pause/Resume error: ' + e.message);
+    _applyPauseState(btn, isPaused); // restore previous state on error
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function _applyPauseState(btn, paused) {
+  if (!btn) return;
+  btn.dataset.paused = paused ? 'true' : 'false';
+  if (paused) {
+    btn.textContent = '▶ RESUME';
+    btn.style.background = 'var(--green-d)';
+    btn.style.color = 'var(--green)';
+    btn.style.borderColor = 'rgba(22,163,74,.35)';
+    btn.title = 'Click to Resume workflow — bot will continue trading';
+  } else {
+    btn.textContent = '⏸ PAUSE';
+    btn.style.background = 'var(--amber-d)';
+    btn.style.color = 'var(--amber)';
+    btn.style.borderColor = 'rgba(217,119,6,.35)';
+    btn.title = 'Pause workflow so you can manually log in to Zerodha Kite, then Resume';
+  }
+}
+
+async function syncPauseButton() {
+  const btn = document.getElementById('pause-resume-btn');
+  const cfg = getCfg();
+  if (!btn || !cfg.owner || !cfg.repo || !cfg.token) return;
+  try {
+    const resp = await fetch(
+      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/pause_flag.json?ref=gh-pages`,
+      { headers: apiHeaders() }
+    );
+    if (resp.ok) {
+      const data = await resp.json();
+      const decoded = JSON.parse(atob(data.content.replace(/\n/g, '')));
+      _applyPauseState(btn, !!decoded.paused);
+    } else {
+      _applyPauseState(btn, false);
+    }
+  } catch (_) {}
+}
+
 function lockDashboard() {
   sessionStorage.removeItem(PW_SESSION);
   document.getElementById('pw-input').value = '';
@@ -2847,6 +2953,7 @@ function renderIndices(indices) {
 async function refreshAll() {
   const btn = document.getElementById("rbtn");
   btn.classList.add("spin");
+  syncPauseButton();
 
   const url = URLS[account] + "?t=" + Date.now();
   let data = null;
