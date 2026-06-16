@@ -43,11 +43,6 @@ header{display:flex;align-items:center;padding:0 20px;border-bottom:1px solid va
 .dot.stale{background:var(--amber)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 .ts{font-size:10px;color:var(--muted)}
-.rbtn{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--muted2);cursor:pointer;font-family:var(--mono);font-size:11px;padding:5px 12px;transition:all .15s}
-.rbtn-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
-.rbtn:hover{border-color:var(--accent);color:var(--text)}
-.rbtn.spin{animation:rspin .8s linear infinite}
-@keyframes rspin{to{transform:rotate(360deg)}}
 .idx-chips{display:flex;align-items:center;gap:8px;margin-right:4px}
 .idx-chip{display:flex;flex-direction:column;align-items:flex-end;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px 8px;min-width:72px;cursor:default;transition:border-color .15s}
 .idx-chip:hover{border-color:var(--accent)}
@@ -95,11 +90,7 @@ main{padding:18px 20px;max-width:960px;margin:0 auto}
   .idx-chip .ic-name{font-size:8px}
   .idx-chip .ic-val{font-size:10.5px}
   .idx-chip .ic-chg{font-size:8.5px}
-  /* Hide timestamp row, keep only Refresh button */
-  .ts{display:none}
-  .rbtn-wrap{flex-direction:row;gap:0}
   .pill{padding:3px 8px;font-size:10px}
-  .rbtn{padding:4px 8px;font-size:10px}
   /* Shrink bot toggle button */
   #bot-toggle-btn{padding:4px 8px!important;font-size:10px!important;letter-spacing:0!important}
   .tabs{padding:0 10px}
@@ -459,10 +450,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 <header>
   <div class="logo"><h1>WealthAlgo</h1><span class="sub">Live Dashboard</span></div>
   <div class="hdr-right">
-    <div class="rbtn-wrap">
-      <button class="rbtn" id="rbtn" onclick="refreshAll()">&#8635; Refresh</button>
-      <div class="ts" id="last-ts" style="text-align:center">&mdash;</div>
-    </div>
+
     <div class="pill"><div class="dot" id="bot-dot"></div><span id="bot-txt">Loading&hellip;</span></div>
     <div class="idx-chips">
       <div class="idx-chip" id="chip-nifty50"><span class="ic-name">NIFTY 50</span><span class="ic-val">—</span><span class="ic-chg neu">—</span></div>
@@ -2534,9 +2522,7 @@ const URLS = {
 // ── State ─────────────────────────────────────────────────────────────────────
 let account = "PS5673";
 let timer   = null;
-let countdown = 0;
-let countdownTimer = null;
-const INTERVAL = 30000;   // auto-refresh every 30s
+const INTERVAL = 10000;   // auto-refresh every 10s
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const fmtL = n => {
@@ -2574,20 +2560,6 @@ function parseSnapTs(ts) {
   return isNaN(d) ? NaN : d;
 }
 
-function startCountdown() {
-  clearInterval(countdownTimer);
-  countdown = Math.round(INTERVAL / 1000);
-  const el = document.getElementById("last-ts");
-  countdownTimer = setInterval(() => {
-    countdown--;
-    if (countdown <= 0) {
-      clearInterval(countdownTimer);
-    } else {
-      const base = el.dataset.base || "";
-      el.textContent = base + (base ? "  ·  " : "") + `next in ${countdown}s`;
-    }
-  }, 1000);
-}
 
 function setDot(state) {
   const d = document.getElementById("bot-dot");
@@ -2964,9 +2936,7 @@ function renderIndices(indices) {
 }
 
 async function refreshAll() {
-  const btn = document.getElementById("rbtn");
-  btn.classList.add("spin");
-  syncPauseButton();
+  syncBotButtonState();
 
   const url = URLS[account] + "?t=" + Date.now();
   let data = null;
@@ -2980,11 +2950,11 @@ async function refreshAll() {
     fetchErr = e.message;
   }
 
-  btn.classList.remove("spin");
+
 
   if (!data) {
     setDot("off");
-    document.getElementById("last-ts").textContent = "Cannot reach snapshot";
+
     document.getElementById("stale-banner").style.display = "none";
 
     // Show helpful config note if URL not changed from placeholder
@@ -3048,19 +3018,12 @@ async function refreshAll() {
 
   // ── P&L label handled inside render() via s-pnl-label ──────────────────────
 
-  const now = new Date();
-  const tsText = now.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
-  const el = document.getElementById("last-ts");
-  el.dataset.base = tsText;
-  el.textContent = tsText;
-
   syncLiveBotStatus(botOn);
 
   render(data);
 
   clearTimeout(timer);
   timer = setTimeout(refreshAll, INTERVAL);
-  startCountdown();
 }
 
 // Verify the snapshot's bot_running flag against the live GitHub Actions
