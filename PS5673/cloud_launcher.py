@@ -31,9 +31,71 @@ import json
 import time
 import threading
 import subprocess
+import urllib.request
 from pathlib import Path
 
 import pyotp
+
+
+# ── Pause / Resume (set from dashboard Pause button) ─────────────────────────
+# The dashboard writes pause_flag.json to the gh-pages branch.
+# We poll it here so the user can manually log in to Kite without the bot
+# proceeding and invalidating that session.
+
+_GH_OWNER = os.environ.get("GITHUB_REPOSITORY", "/").split("/")[0]
+_GH_REPO  = os.environ.get("GITHUB_REPOSITORY", "/").split("/")[-1]
+_GH_TOKEN = os.environ.get("GITHUB_TOKEN", "")
+
+
+def _fetch_pause_flag() -> bool:
+    """Return True if pause_flag.json on gh-pages has paused=true."""
+    if not _GH_TOKEN or not _GH_OWNER or not _GH_REPO:
+        return False
+    try:
+        url = (
+            f"https://api.github.com/repos/{_GH_OWNER}/{_GH_REPO}"
+            f"/contents/pause_flag.json?ref=gh-pages"
+        )
+        req = urllib.request.Request(
+            url,
+            headers={
+                "Authorization": f"token {_GH_TOKEN}",
+                "Accept": "application/vnd.github.v3+json",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read())
+            content = json.loads(
+                __import__("base64").b64decode(data["content"]).decode()
+            )
+            return bool(content.get("paused", False))
+    except Exception:
+        return False  # if anything fails, do not block the bot
+
+
+def wait_for_resume(context: str = ""):
+    """
+    Block until pause_flag.json reports paused=false (or is absent).
+    Call this BEFORE the Playwright login so the user can manually log in
+    to Zerodha Kite and we don't invalidate their session.
+    """
+    if not _fetch_pause_flag():
+        return  # not paused — nothing to do
+
+    label = f" [{context}]" if context else ""
+    print(f"\n⏸  PAUSED{label} — waiting for Resume from the dashboard...")
+    telegram_notify(
+        f"⏸ <b>WealthAlgo {os.environ.get('KITE_USER_ID', '')} — PAUSED{label}</b>\n"
+        f"Waiting for manual Kite login.\n"
+        f"Click ▶ RESUME in the dashboard when done."
+    )
+    while _fetch_pause_flag():
+        time.sleep(15)
+    print(f"▶  RESUMED{label} — continuing.")
+    telegram_notify(
+        f"▶ <b>WealthAlgo {os.environ.get('KITE_USER_ID', '')} — RESUMED{label}</b>\n"
+        f"Proceeding with login / trading."
+    )
 
 try:
     from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
@@ -305,6 +367,10 @@ def main():
         print(f"  ⚠️  Token check error: {_e} — will attempt fresh login")
 
     if not saved_token_valid:
+        # ── Wait here if the dashboard Pause button was pressed ──────────────
+        # This lets you manually log in to Zerodha Kite in your browser.
+        # Click RESUME in the dashboard when done; the bot will then proceed.
+        wait_for_resume("initial login")
         print("  🔐 Saved token expired — performing fresh TOTP login...")
         for attempt in range(1, max_attempts + 1):
             try:
@@ -422,6 +488,8 @@ def main():
             )
             sys.exit(exit_code)
 
+        # Allow dashboard Pause before re-authenticating after a crash
+        wait_for_resume("re-auth after crash")
         print("  🔐 Re-authenticating before restart...")
         try:
             new_token = login_to_kite()
