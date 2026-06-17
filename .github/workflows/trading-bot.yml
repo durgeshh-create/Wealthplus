@@ -225,18 +225,15 @@ jobs:
           GITHUB_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
           GH_REPO:             ${{ github.repository }}
         run: |
-          # ── Background pusher: Contents API every 30 s (no git, no rebase) ──
+          # ── Background pusher: Contents API every 60 s (no git, no rebase) ──
           (
             cd "$GITHUB_WORKSPACE"
-            _rd_first=1
+            # Wait until bot writes its first snapshot (auth takes 60-120 s)
+            until [ -f /tmp/status_rd1858.json ]; do sleep 5; done
+            echo "[pusher-rd1858] First snapshot detected — starting push loop"
             while true; do
-              if [ "$_rd_first" = "1" ]; then
-                _rd_first=0
-                sleep 30          # wait for bot to auth + write first snapshot
-              else
-                sleep 30          # push every 30 s — Contents API call takes ~1-2 s
-              fi
               python3 push_snapshot.py /tmp/status_rd1858.json status_rd1858.json || true
+              sleep 60
             done
           ) &
           PUSHER_PID=$!
@@ -339,18 +336,15 @@ jobs:
           GITHUB_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
           GH_REPO:             ${{ github.repository }}
         run: |
-          # ── Background pusher: Contents API every 30 s (no git, no rebase) ──
+          # ── Background pusher: Contents API every 60 s (no git, no rebase) ──
           (
             cd "$GITHUB_WORKSPACE"
-            _ps_first=1
+            # Wait until bot writes its first snapshot (auth takes 60-120 s)
+            until [ -f /tmp/status_ps5673.json ]; do sleep 5; done
+            echo "[pusher-ps5673] First snapshot detected — starting push loop"
             while true; do
-              if [ "$_ps_first" = "1" ]; then
-                _ps_first=0
-                sleep 30          # wait for bot to auth + write first snapshot
-              else
-                sleep 30          # push every 30 s — Contents API call takes ~1-2 s
-              fi
               python3 push_snapshot.py /tmp/status_ps5673.json status_ps5673.json || true
+              sleep 60
             done
           ) &
           PUSHER_PID=$!
