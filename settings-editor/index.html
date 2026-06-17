@@ -2521,8 +2521,10 @@ const URLS = {
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let account = "PS5673";
-let timer   = null;
-const INTERVAL = 10000;   // auto-refresh every 10s
+let timer        = null;
+let liveTimer    = null;
+const INTERVAL      = 30000;  // snapshot refresh every 30 s (bot-state: signals, orders, slots, margins)
+const LIVE_INTERVAL = 10000;  // Kite direct-fetch every 10 s (prices, indices, holdings LTP)
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const fmtL = n => {
@@ -2935,6 +2937,197 @@ function renderIndices(indices) {
   setChip("chip-indiavix",  "INDIA VIX");
 }
 
+// ── Live Kite direct-fetch (Option 2) ─────────────────────────────────────────
+// Instrument tokens for symbols tracked by the bot.
+// Exchange prefix format: "NSE:SYMBOL" — matches what api.kite.trade/quote accepts.
+// Indices use their token numbers directly (no exchange prefix needed for OHLC).
+const KITE_QUOTE_SYMBOLS = {
+  RD1858: [
+    "NSE:MON100","NSE:GOLDBEES","NSE:SILVERBEES","NSE:JUNIORBEES",
+    "NSE:MINDSPACE-RR","NSE:EMBASSY-RR","NSE:BANKBEES","NSE:MID150BEES","NSE:LIQUIDCASE",
+  ],
+  PS5673: [
+    "NSE:MON100","NSE:GOLDBEES","NSE:SILVERBEES","NSE:JUNIORBEES",
+    "NSE:MINDSPACE-RR","NSE:EMBASSY-RR","NSE:BANKBEES","NSE:MID150BEES","NSE:LIQUIDCASE",
+  ],
+};
+// Index instrument tokens (integer tokens, fetched via /quote?i= endpoint)
+const INDEX_TOKENS = {
+  "NIFTY 50":  "256265",
+  "INDIA VIX": "264969",
+};
+
+// Holds the most recent live quote data keyed by symbol (e.g. "NSE:MON100")
+let _liveQuotes  = {};   // sym → { last_price, ohlc:{open,high,low,close}, change, change_percent }
+let _liveIndices = {};   // "NIFTY 50" / "INDIA VIX" → same shape
+// Last full snapshot data — needed so patchLive() can build the live holdings table
+let _lastSnapshot = null;
+
+/**
+ * Fetch live quotes for ETFs and indices directly from Kite API.
+ * Uses credentials:include so the enctoken cookie from the user's Kite
+ * browser session is forwarded automatically (same pattern as _fetchOptionDeltas).
+ * Falls back silently if not logged in to Kite.
+ */
+async function fetchLiveQuotes() {
+  const syms = KITE_QUOTE_SYMBOLS[account] || [];
+  if (!syms.length) return;
+
+  // ── ETF quotes ─────────────────────────────────────────────────────────────
+  try {
+    const qs = syms.map(s => "i=" + encodeURIComponent(s)).join("&");
+    const r  = await fetch("https://api.kite.trade/quote?" + qs, {
+      credentials: "include",
+      signal: AbortSignal.timeout(8000),
+    });
+    if (r.ok) {
+      const json = await r.json();
+      const qdata = json.data || {};
+      for (const [key, val] of Object.entries(qdata)) {
+        _liveQuotes[key] = val;
+      }
+    }
+  } catch (_) { /* not logged in to Kite or CORS blocked — skip silently */ }
+
+  // ── Index quotes ───────────────────────────────────────────────────────────
+  try {
+    const idxQs = Object.values(INDEX_TOKENS).map(t => "i=" + t).join("&");
+    const ir    = await fetch("https://api.kite.trade/quote?" + idxQs, {
+      credentials: "include",
+      signal: AbortSignal.timeout(8000),
+    });
+    if (ir.ok) {
+      const ijson = await ir.json();
+      const idata = ijson.data || {};
+      // Re-key by friendly name (token → name)
+      const tokenToName = Object.fromEntries(
+        Object.entries(INDEX_TOKENS).map(([name, tok]) => [tok, name])
+      );
+      for (const [tok, val] of Object.entries(idata)) {
+        const name = tokenToName[tok];
+        if (name) _liveIndices[name] = val;
+      }
+    }
+  } catch (_) {}
+}
+
+/**
+ * Patch the already-rendered UI with fresh live LTP data — without waiting
+ * for a full snapshot re-render.  Only touches price/P&L cells.
+ */
+function patchLive() {
+  if (!_lastSnapshot) return;
+
+  const holdings  = _lastSnapshot.holdings  ?? [];
+  const wr        = _lastSnapshot.williams_r ?? [];
+
+  // ── Patch holdings table rows (LTP, value, today P&L) ─────────────────────
+  const hb = document.getElementById("h-body");
+  if (hb && holdings.length) {
+    holdings.forEach(h => {
+      const key = "NSE:" + h.symbol;
+      const q   = _liveQuotes[key];
+      if (!q) return;
+      const ltp      = q.last_price;
+      const prevClose = q.ohlc?.close;
+      const curVal   = ltp * h.quantity;
+      const pnl      = prevClose ? (ltp - prevClose) * h.quantity : h.pnl;
+      const pnlPct   = prevClose && prevClose > 0 ? (ltp - prevClose) / prevClose * 100 : h.pnl_pct;
+
+      // Find the row by symbol text — resilient to row reorder
+      const rows = hb.querySelectorAll("tr");
+      for (const row of rows) {
+        const symEl = row.querySelector(".sym");
+        if (symEl && symEl.textContent.trim() === h.symbol) {
+          const cells = row.querySelectorAll("td");
+          if (cells.length >= 7) {
+            cells[3].textContent = "₹" + ltp.toLocaleString("en-IN", {maximumFractionDigits: 2});
+            cells[4].textContent = fmtL(curVal);
+            cells[6].innerHTML   = `<span class="${pnl >= 0 ? 'pos' : 'neg'}">${pnl >= 0 ? "+" : ""}${fmtL(pnl)}<br><span style="font-size:10px;opacity:.7">${fmtPct(pnlPct)}</span></span>`;
+          }
+          break;
+        }
+      }
+    });
+  }
+
+  // ── Patch Williams %R table LTP column ────────────────────────────────────
+  // WR table rows: symbol is in a .sym div inside first td
+  const wrRows = document.querySelectorAll("#wr-body tr, .wr-table tr");
+  wrRows.forEach(row => {
+    const symEl = row.querySelector(".sym");
+    if (!symEl) return;
+    const sym = symEl.textContent.trim();
+    const q   = _liveQuotes["NSE:" + sym];
+    if (!q) return;
+    const ltp      = q.last_price;
+    const prevClose = q.ohlc?.close;
+    const chgPct   = prevClose && prevClose > 0 ? (ltp - prevClose) / prevClose * 100 : null;
+    // LTP sub-line is the second child of first td — match existing render pattern
+    const ltpLine  = row.querySelector("td div[style*='font-size:10px']");
+    if (ltpLine) {
+      const sign = chgPct != null ? (chgPct >= 0 ? "+" : "") : "";
+      const chgStr = chgPct != null ? ` ${sign}${chgPct.toFixed(2)}%` : "";
+      ltpLine.textContent = "₹" + ltp.toLocaleString("en-IN", {maximumFractionDigits: 2}) + chgStr;
+    }
+  });
+
+  // ── Patch stat cards: total portfolio value + today P&L ──────────────────
+  let liveTotalVal = 0;
+  let liveTodayPnl = 0;
+  holdings.forEach(h => {
+    const q = _liveQuotes["NSE:" + h.symbol];
+    if (!q) { liveTotalVal += h.value ?? 0; liveTodayPnl += h.pnl ?? 0; return; }
+    const ltp      = q.last_price;
+    const prevClose = q.ohlc?.close;
+    liveTotalVal  += ltp * h.quantity;
+    liveTodayPnl  += prevClose ? (ltp - prevClose) * h.quantity : (h.pnl ?? 0);
+  });
+  // Add LIQUIDCASE value from snapshot (no live quote needed — stable intraday)
+  liveTotalVal += _lastSnapshot.liquidcase?.value ?? 0;
+
+  if (liveTotalVal > 0) {
+    document.getElementById("s-total").textContent = fmtL(liveTotalVal);
+  }
+  const pnlPctLive = liveTotalVal > liveTodayPnl && liveTotalVal > 0
+    ? liveTodayPnl / (liveTotalVal - liveTodayPnl) * 100
+    : 0;
+  const pnlEl = document.getElementById("s-pnl");
+  if (pnlEl) {
+    pnlEl.textContent = (liveTodayPnl >= 0 ? "+" : "") + fmtL(liveTodayPnl);
+    pnlEl.className   = "sc-val " + (liveTodayPnl >= 0 ? "pos" : "neg");
+  }
+
+  // ── Patch index chips with live data ──────────────────────────────────────
+  const fmt = v => v != null ? v.toLocaleString("en-IN", {maximumFractionDigits: 2}) : "—";
+  [["chip-nifty50", "NIFTY 50"], ["chip-indiavix", "INDIA VIX"]].forEach(([id, name]) => {
+    const d  = _liveIndices[name];
+    const el = document.getElementById(id);
+    if (!d || !el) return;
+    const ltp = d.last_price, prevClose = d.ohlc?.close;
+    const chg    = prevClose ? ltp - prevClose : null;
+    const chgPct = prevClose && prevClose > 0 ? (ltp - prevClose) / prevClose * 100 : null;
+    el.querySelector(".ic-val").textContent = ltp != null ? fmt(ltp) : "—";
+    const chgEl = el.querySelector(".ic-chg");
+    if (chg != null && chgPct != null) {
+      const sign = chg >= 0 ? "+" : "";
+      chgEl.textContent = `${sign}${fmt(chg)} (${sign}${chgPct.toFixed(2)}%)`;
+      chgEl.className   = "ic-chg " + (chg > 0 ? "pos" : chg < 0 ? "neg" : "neu");
+    }
+  });
+}
+
+/**
+ * Live refresh loop — runs every LIVE_INTERVAL (10 s).
+ * Fetches fresh Kite quotes and patches the DOM without a full re-render.
+ */
+async function liveRefresh() {
+  clearTimeout(liveTimer);
+  await fetchLiveQuotes();
+  patchLive();
+  liveTimer = setTimeout(liveRefresh, LIVE_INTERVAL);
+}
+
 async function refreshAll() {
   syncBotButtonState();
 
@@ -2992,10 +3185,10 @@ async function refreshAll() {
                      && istMin >= 555   // 09:15
                      && istMin <= 930;  // 15:30
   // Only flag stale during market hours when bot should be pushing data
-  // Snapshot writes every 2 min + GH Actions pushes every 2 min = ~4 min max lag; 7 min gives headroom
-  // Startup: pip+playwright+auth≈5-6min, first push≈30s after snapshot written → ~6.5min total
-  // 15min threshold avoids false stale on startup while still catching real bot failures
-  const isStale = botOn && isMarketHours && ageMin > 15;
+  // Snapshot writes every 30 s + Contents API push every 30 s = ~60 s max lag.
+  // Startup: pip+playwright+auth ≈ 5-6 min, first push ≈ 30 s after → ~6.5 min total.
+  // 10 min threshold avoids false stale on startup while catching real bot failures.
+  const isStale = botOn && isMarketHours && ageMin > 10;
 
   // ── Dot + banners ─────────────────────────────────────────────────────────
   const staleBanner   = document.getElementById("stale-banner");
@@ -3020,7 +3213,15 @@ async function refreshAll() {
 
   syncLiveBotStatus(botOn);
 
+  // Store snapshot for patchLive() to reference between full refreshes
+  _lastSnapshot = data;
+
   render(data);
+
+  // Start live Kite fetch loop on first successful snapshot load
+  if (!liveTimer) {
+    liveRefresh();
+  }
 
   clearTimeout(timer);
   timer = setTimeout(refreshAll, INTERVAL);
@@ -3077,6 +3278,11 @@ function switchAccount(acc) {
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   document.getElementById("tab-" + acc.toLowerCase()).classList.add("active");
   clearTimeout(timer);
+  clearTimeout(liveTimer);
+  liveTimer     = null;
+  _lastSnapshot = null;
+  _liveQuotes   = {};
+  _liveIndices  = {};
   refreshAll();
 }
 
