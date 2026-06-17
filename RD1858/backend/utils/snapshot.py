@@ -478,9 +478,13 @@ def write_snapshot(dashboard_state: dict):
                             pledged_qty = float(h.get("pledged_quantity", 0) or 0)
                             free_qty    = max(0.0, qty - pledged_qty)
                             avg_nav  = float(h.get("average_price", 0) or 0)
-                            # last_price from OMS may be T-1 NAV (last_price_date='').
-                            # Use it as-is — it is the most recent NAV Zerodha has published.
-                            ltp      = float(h.get("last_price", 0) or 0)
+                            # last_price from OMS may be T-1 NAV if the AMC hasn't
+                            # published today's NAV yet (usually arrives ~11 PM IST).
+                            # Use it as-is — it is the most recent NAV Zerodha has —
+                            # but also capture last_price_date so the UI can show
+                            # the user exactly which day this value is "as of".
+                            ltp           = float(h.get("last_price", 0) or 0)
+                            nav_date      = h.get("last_price_date", "") or ""
                             invested = round(qty * avg_nav, 2)
                             cur_val  = round(qty * ltp, 2)
                             # Zerodha OMS returns pnl=0.0 — not populated. Compute manually.
@@ -499,6 +503,7 @@ def write_snapshot(dashboard_state: dict):
                                 "pledged_units": round(pledged_qty, 3),
                                 "avg_nav":       round(avg_nav, 3),
                                 "ltp":           round(ltp, 3),
+                                "nav_date":      nav_date,
                                 "invested":      invested,
                                 "cur_val":       cur_val,
                                 "pnl":           pnl,
