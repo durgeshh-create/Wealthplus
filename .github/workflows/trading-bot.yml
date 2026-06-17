@@ -248,13 +248,8 @@ jobs:
 
           # ── Final push: mark bot_running=False then push via Contents API ───
           if [ -f /tmp/status_rd1858.json ]; then
-            python3 -c "
-import json, pathlib
-p = pathlib.Path('/tmp/status_rd1858.json')
-d = json.loads(p.read_text())
-d['bot_running'] = False
-p.write_text(json.dumps(d, indent=2))
-"
+            printf 'import json, pathlib\np = pathlib.Path("/tmp/status_rd1858.json")\nd = json.loads(p.read_text())\nd["bot_running"] = False\np.write_text(json.dumps(d, indent=2))\n' > /tmp/set_offline_rd1858.py
+            python3 /tmp/set_offline_rd1858.py
             cd "$GITHUB_WORKSPACE"
             python3 push_snapshot.py /tmp/status_rd1858.json status_rd1858.json || true
           fi
@@ -367,13 +362,8 @@ p.write_text(json.dumps(d, indent=2))
 
           # ── Final push: mark bot_running=False then push via Contents API ───
           if [ -f /tmp/status_ps5673.json ]; then
-            python3 -c "
-import json, pathlib
-p = pathlib.Path('/tmp/status_ps5673.json')
-d = json.loads(p.read_text())
-d['bot_running'] = False
-p.write_text(json.dumps(d, indent=2))
-"
+            printf 'import json, pathlib\np = pathlib.Path("/tmp/status_ps5673.json")\nd = json.loads(p.read_text())\nd["bot_running"] = False\np.write_text(json.dumps(d, indent=2))\n' > /tmp/set_offline_ps5673.py
+            python3 /tmp/set_offline_ps5673.py
             cd "$GITHUB_WORKSPACE"
             python3 push_snapshot.py /tmp/status_ps5673.json status_ps5673.json || true
           fi
