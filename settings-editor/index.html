@@ -3639,11 +3639,6 @@ function addSym(strategy, listKey) {
   sel.value = '';
 }
 
-  arr.push(sym);
-  renderChips(strategy);
-  sel.value = '';
-}
-
 function removeSym(strategy, sym) {
   if (strategy === 'active') _activeSym = _activeSym.filter(s => s !== sym);
   else                       _bnhSym    = _bnhSym.filter(s => s !== sym);
