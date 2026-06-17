@@ -19,7 +19,7 @@ from pathlib import Path
 IST           = timezone(timedelta(hours=5, minutes=30))
 SNAPSHOT_PATH = Path("/tmp/status_rd1858.json")
 ACCOUNT       = "RD1858"
-INTERVAL_SEC  = 120   # write every 2 minutes (was 300 — caused >10 min lag)
+INTERVAL_SEC  = 30    # write every 30 s — pairs with Contents API pusher (was 120 s git push)
 
 
 def _load_settings() -> dict:
@@ -594,4 +594,4 @@ def start_snapshot_thread(dashboard_state: dict):
 
     t = threading.Thread(target=_loop, daemon=True, name="SnapshotWriter-RD1858")
     t.start()
-    print(f"  → Snapshot writer started (every {INTERVAL_SEC//60} min → {SNAPSHOT_PATH}) ✅")
+    print(f"  → Snapshot writer started (every {INTERVAL_SEC}s → {SNAPSHOT_PATH}) ✅")
