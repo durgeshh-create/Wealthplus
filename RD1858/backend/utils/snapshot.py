@@ -19,7 +19,7 @@ from pathlib import Path
 IST           = timezone(timedelta(hours=5, minutes=30))
 SNAPSHOT_PATH = Path("/tmp/status_rd1858.json")
 ACCOUNT       = "RD1858"
-INTERVAL_SEC  = 30    # write every 30 s — pairs with Contents API pusher (was 120 s git push)
+INTERVAL_SEC  = 60    # write every 60 s — pairs with Contents API pusher every 60 s
 
 
 def _load_settings() -> dict:
