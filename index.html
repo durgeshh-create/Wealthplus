@@ -302,6 +302,23 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .dma-below{color:#dc2626}
 .dma-above{color:#16a34a}
 .scn-empty{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+
+/* ── MARKETWATCH ── */
+.mw-panel{margin-top:22px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);overflow:hidden}
+.mw-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.mw-title{font-size:12px;font-weight:700;color:var(--text)}
+.mw-count{font-size:10px;color:var(--muted);margin-left:6px}
+.mw-clear-btn{font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px}
+.mw-clear-btn:hover{color:#dc2626;background:rgba(220,38,38,.08)}
+.mw-chips{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px;min-height:46px}
+.mw-chip{display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--text)}
+.mw-chip .mw-rm{cursor:pointer;color:var(--muted);font-size:10px;line-height:1;padding:0 1px}
+.mw-chip .mw-rm:hover{color:#dc2626}
+.mw-empty-note{font-size:11px;color:var(--muted);padding:2px 0;align-self:center}
+.mw-add-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:4px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted);font-size:13px;line-height:1;cursor:pointer;transition:all .15s;flex-shrink:0}
+.mw-add-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.mw-add-btn.in-mw{background:rgba(22,163,74,.1);border-color:#86efac;color:#16a34a}
+.mw-add-btn.in-mw:hover{background:rgba(220,38,38,.1);border-color:#fca5a5;color:#dc2626}
 </style>
 <style>
 /* Password gate */
@@ -1344,6 +1361,15 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
           <button class="btn-add" onclick="addSym('active','mid150')">+ Add</button>
         </div>
       </div>
+      <div class="sym-group">
+        <div class="sym-group-label">⭐ From Marketwatch <span id="mw-dd-count-active" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--accent);margin-left:4px">empty</span></div>
+        <div class="sym-row">
+          <select id="dd-active-mw">
+            <option value="">— select from Marketwatch —</option>
+          </select>
+          <button class="btn-add" onclick="addSym('active','mw')">+ Add</button>
+        </div>
+      </div>
       <div class="sym-group-label" style="margin-top:12px;">Current symbols</div>
       <div class="sym-chips" id="chips-active"><span class="sym-chips-empty">None added</span></div>
     </div>
@@ -2015,6 +2041,15 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
           <button class="btn-add" onclick="addSym('bnh','mid150')">+ Add</button>
         </div>
       </div>
+      <div class="sym-group">
+        <div class="sym-group-label">⭐ From Marketwatch <span id="mw-dd-count-bnh" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--accent);margin-left:4px">empty</span></div>
+        <div class="sym-row">
+          <select id="dd-bnh-mw">
+            <option value="">— select from Marketwatch —</option>
+          </select>
+          <button class="btn-add" onclick="addSym('bnh','mw')">+ Add</button>
+        </div>
+      </div>
       <div class="sym-group-label" style="margin-top:12px;">Current symbols</div>
       <div class="sym-chips" id="chips-bnh"><span class="sym-chips-empty">None added</span></div>
     </div>
@@ -2503,6 +2538,7 @@ function switchNavTab(tab) {
       _settingsLoaded=true;
       loadSettings();
     }
+    rebuildMWDropdowns();
   }
 }
 
@@ -3294,7 +3330,11 @@ function toggleStrategy() {
   btn.textContent    = open ? "▲ Hide" : "▼ Show";
 }
 
-document.addEventListener("DOMContentLoaded", refreshAll);
+document.addEventListener("DOMContentLoaded", () => {
+  refreshAll();
+  renderMWPanel();
+  rebuildMWDropdowns();
+});
 
 
 // SETTINGS JS
@@ -3310,8 +3350,74 @@ const ALL_KNOWN_SYMS   = new Set([...NSE_ETF_LIST, ...NSE_NIFTY200, ...NSE_MIDCA
 let _instance   = 'RD1858';
 let _settings   = {};
 let _sha        = '';          // GitHub blob SHA needed for update
-let _activeSym  = [];
-let _bnhSym     = [];
+let _activeSym   = [];
+let _bnhSym      = [];
+let _marketwatch = JSON.parse(localStorage.getItem('wealthalgo_mw') || '[]');
+
+// ── Marketwatch persistence ───────────────────────────────────────────────────
+function saveMW()  { localStorage.setItem('wealthalgo_mw', JSON.stringify(_marketwatch)); }
+function loadMW()  { _marketwatch = JSON.parse(localStorage.getItem('wealthalgo_mw') || '[]'); }
+
+function addToMW(sym) {
+  if (_marketwatch.includes(sym)) { removeFromMW(sym); return; }   // toggle off
+  _marketwatch.push(sym);
+  saveMW();
+  renderMWPanel();
+  renderScanResults();  // refresh +/✓ buttons in table
+}
+
+function removeFromMW(sym) {
+  _marketwatch = _marketwatch.filter(s => s !== sym);
+  saveMW();
+  renderMWPanel();
+  renderScanResults();
+}
+
+function clearMW() {
+  if (!_marketwatch.length) return;
+  if (!confirm('Clear all symbols from Marketwatch?')) return;
+  _marketwatch = [];
+  saveMW();
+  renderMWPanel();
+  renderScanResults();
+}
+
+function renderMWPanel() {
+  const chips = document.getElementById('mw-chips');
+  const count = document.getElementById('mw-count');
+  if (!chips) return;
+  count.textContent = _marketwatch.length ? `(${_marketwatch.length})` : '';
+  if (!_marketwatch.length) {
+    chips.innerHTML = '<span class="mw-empty-note">Click + on any scan result to add symbols here</span>';
+    return;
+  }
+  chips.innerHTML = _marketwatch.map(sym => `
+    <span class="mw-chip">
+      ${sym}
+      <span class="mw-rm" onclick="removeFromMW('${sym}')" title="Remove">✕</span>
+    </span>`).join('');
+}
+
+// ── Add Marketwatch as a dropdown source in Settings ──────────────────────────
+function buildMWOption(sym) {
+  return `<option value="${sym}">${sym}</option>`;
+}
+
+function rebuildMWDropdowns() {
+  ['dd-active-mw','dd-bnh-mw'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">— select from Marketwatch —</option>' +
+      _marketwatch.map(buildMWOption).join('');
+    if (_marketwatch.includes(prev)) sel.value = prev;
+  });
+  // Update count badge in settings
+  ['mw-dd-count-active','mw-dd-count-bnh'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = _marketwatch.length ? `${_marketwatch.length} saved` : 'empty';
+  });
+}
 
 // ── Config (stored in localStorage) ─────────────────────────────────────────
 function getCfg()  { return JSON.parse(localStorage.getItem('wealthalgo_cfg') || '{}'); }
@@ -3533,6 +3639,11 @@ function addSym(strategy, listKey) {
   sel.value = '';
 }
 
+  arr.push(sym);
+  renderChips(strategy);
+  sel.value = '';
+}
+
 function removeSym(strategy, sym) {
   if (strategy === 'active') _activeSym = _activeSym.filter(s => s !== sym);
   else                       _bnhSym    = _bnhSym.filter(s => s !== sym);
@@ -3746,12 +3857,15 @@ function renderScanResults() {
     if (r.bothOk)      sig='<span class="sig-both">✅ Both</span>';
     else if (r.dOk)    sig='<span class="sig-daily">📉 Daily</span>';
     else if (r.wOk)    sig='<span class="sig-weekly">📊 Weekly</span>';
+    const inMW  = _marketwatch.includes(r.sym);
+    const mwBtn = `<button class="mw-add-btn ${inMW?'in-mw':''}" onclick="addToMW('${r.sym}')" title="${inMW?'Remove from Marketwatch':'Add to Marketwatch'}">${inMW?'✓':'+'}</button>`;
     return `<tr class="${r.bothOk&&r.below20?'row-both':''}">
       <td style="font-weight:600">${r.sym}</td>
       <td>${badge}</td><td>${ltp}</td>
       <td class="wr-val ${dCls}">${dwr}</td>
       <td class="wr-val ${wCls}">${wwr}</td>
       <td>${dmaHtml}</td><td>${sig}</td>
+      <td>${mwBtn}</td>
     </tr>`;
   }).join('');
 }
@@ -3874,6 +3988,7 @@ function _renderDeltaCell(el, delta, qty) {
             <th id="scn-th-wwr" onclick="setScanSort('wwr')">Weekly W%R ↕</th>
             <th id="scn-th-dma" onclick="setScanSort('dma')">vs 20 DMA ↕</th>
             <th>Signal</th>
+            <th title="Add to Marketwatch">⭐</th>
           </tr>
         </thead>
         <tbody id="scn-tbody"></tbody>
@@ -3882,6 +3997,17 @@ function _renderDeltaCell(el, delta, qty) {
   </div>
   <div class="scn-empty" id="scn-empty"  style="display:none">No symbols matched — try relaxing the thresholds.</div>
   <div class="scn-empty" id="scn-idle"   style="display:block">Select universe and click ▶ Run Scanner to begin.</div>
+
+  <!-- Marketwatch -->
+  <div class="mw-panel">
+    <div class="mw-header">
+      <span class="mw-title">⭐ Marketwatch <span class="mw-count" id="mw-count"></span></span>
+      <button class="mw-clear-btn" onclick="clearMW()">Clear all</button>
+    </div>
+    <div class="mw-chips" id="mw-chips">
+      <span class="mw-empty-note">Click + on any scan result to add symbols here</span>
+    </div>
+  </div>
 </main>
 </div>
 
