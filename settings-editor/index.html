@@ -2278,8 +2278,8 @@ async function sha256(s) {
 async function checkPw() {
   const v = document.getElementById('pw-input').value;
   if (!v) { pwErr('Enter your password.'); return; }
-  if (!_BAKED_HASH) {
-    pwErr('⚠ Password not configured. Add DASHBOARD_PW_HASH to GitHub Secrets.');
+  if (!_BAKED_HASH || _BAKED_HASH.startsWith('%%')) {
+    pwErr('⚠ Password not configured. Add DASHBOARD_PW_HASH to GitHub Secrets and re-run the workflow.');
     return;
   }
   const h = await sha256(v);
