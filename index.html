@@ -315,13 +315,6 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .mw-chip .mw-rm{cursor:pointer;color:var(--muted);font-size:10px;line-height:1;padding:0 1px}
 .mw-chip .mw-rm:hover{color:#dc2626}
 .mw-empty-note{font-size:11px;color:var(--muted);padding:2px 0;align-self:center}
-.mw-tbl-wrap{overflow-x:auto}
-.mw-tbl{width:100%;border-collapse:collapse;font-size:12px}
-.mw-tbl th{padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:2px solid var(--border);white-space:nowrap}
-.mw-tbl td{padding:6px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
-.mw-tbl tr:hover td{background:var(--bg3)}
-.mw-rm-cell{cursor:pointer;color:var(--muted);font-size:12px;line-height:1}
-.mw-rm-cell:hover{color:#dc2626}
 .mw-add-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:4px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted);font-size:13px;line-height:1;cursor:pointer;transition:all .15s;flex-shrink:0}
 .mw-add-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
 .mw-add-btn.in-mw{background:rgba(22,163,74,.1);border-color:#86efac;color:#16a34a}
@@ -2803,12 +2796,25 @@ function render(data) {
   if (mfBody) {
     mfBody.innerHTML = mfHoldings.length ? mfHoldings.map(h => {
       const pc = (h.pnl ?? 0) >= 0 ? "pos" : "neg";
+      // Show "as of <date>" under CUR. VAL so it's clear when the NAV is T-1
+      // (mutual fund NAVs are declared once daily by the AMC, usually late
+      // evening — Zerodha can only return whatever NAV it has at fetch time).
+      let navAsOf = "";
+      if (h.nav_date) {
+        try {
+          const d = new Date(h.nav_date);
+          const today = new Date();
+          const isToday = d.toDateString() === today.toDateString();
+          const label = isToday ? "today" : d.toLocaleDateString('en-IN', {day:'2-digit', month:'short'});
+          navAsOf = `<div style="font-size:9px;color:var(--muted);margin-top:1px" title="NAV date from Zerodha">as of ${label}</div>`;
+        } catch (_) {}
+      }
       return `<tr>
         <td style="padding-left:14px">
           <div class="sym" style="font-size:12px;white-space:normal;max-width:none">${h.name}</div>
           ${h.folio ? `<div style="font-size:10px;color:var(--muted)">Folio ${h.folio} &nbsp;·&nbsp; ${h.units} units @ ₹${h.avg_nav}${h.pledged_units > 0 ? ` &nbsp;<span title="Pledged as collateral">(P: ${h.pledged_units})</span>` : ''}</div>` : ""}
         </td>
-        <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.cur_val)}">${fmtL(h.cur_val)}</td>
+        <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.cur_val)}">${fmtL(h.cur_val)}${navAsOf}</td>
         <td style="text-align:right;padding-right:14px;font-size:12px" class="${pc}" title="${fmtRupee(h.pnl)}">${h.pnl>=0?'+':''}${fmtL(h.pnl)}<div style="font-size:10px">${(h.pnl_pct??0)>=0?'+':''}${(h.pnl_pct??0).toFixed(2)}%</div></td>
       </tr>`;
     }).join("") : `<tr><td colspan="3" class="empty" style="padding:18px">Mutual fund data not yet available — will populate on next bot snapshot</td></tr>`;
@@ -3227,11 +3233,23 @@ async function refreshAll() {
   const isMarketHours = dayOfWeek >= 1 && dayOfWeek <= 5
                      && istMin >= 555   // 09:15
                      && istMin <= 930;  // 15:30
-  // Only flag stale during market hours when bot should be pushing data
-  // Snapshot writes every 30 s + Contents API push every 30 s = ~60 s max lag.
-  // Startup: pip+playwright+auth ≈ 5-6 min, first push ≈ 30 s after → ~6.5 min total.
-  // 10 min threshold avoids false stale on startup while catching real bot failures.
-  const isStale = botOn && isMarketHours && ageMin > 10;
+  // Only use the TIGHT 10-min threshold during market hours, when the bot
+  // should be pushing every ~60s and any gap signals a real failure.
+  // ✅ FIX: previously isStale was ONLY computed when isMarketHours was true,
+  // so a snapshot frozen at workflow-timeout (e.g. last write before the
+  // GitHub Actions cron job hits its 3.5h limit) would show "Live ✓" forever
+  // outside market hours — bot_running is hardcoded true in snapshot.py and
+  // never flips to false on a hard kill, so this was the ONLY signal available.
+  // Outside market hours we use a looser threshold (90 min) just to catch a
+  // snapshot that is clearly many hours/days old, without false-flagging the
+  // few minutes right after market close while the last writes settle.
+  const STALE_THRESHOLD_MARKET_MIN  = 10;
+  const STALE_THRESHOLD_OFFHOURS_MIN = 90;
+  const isStale = botOn && (
+    isMarketHours
+      ? ageMin > STALE_THRESHOLD_MARKET_MIN
+      : ageMin > STALE_THRESHOLD_OFFHOURS_MIN
+  );
 
   // ── Dot + banners ─────────────────────────────────────────────────────────
   const staleBanner   = document.getElementById("stale-banner");
@@ -3390,50 +3408,19 @@ function clearMW() {
 }
 
 function renderMWPanel() {
-  const chips   = document.getElementById('mw-chips');
-  const tblWrap = document.getElementById('mw-tbl-wrap');
-  const tbody   = document.getElementById('mw-tbody');
-  const count   = document.getElementById('mw-count');
+  const chips = document.getElementById('mw-chips');
+  const count = document.getElementById('mw-count');
   if (!chips) return;
   count.textContent = _marketwatch.length ? `(${_marketwatch.length})` : '';
-
   if (!_marketwatch.length) {
-    chips.style.display = 'flex';
     chips.innerHTML = '<span class="mw-empty-note">Click + on any scan result to add symbols here</span>';
-    tblWrap.style.display = 'none';
     return;
   }
-
-  // Build a lookup of latest scan data so we can show live LTP / W%R / DMA
-  // for each saved symbol. Falls back to "—" if that symbol hasn't been
-  // scanned yet (e.g. user added it before running a scan).
-  const bySym = {};
-  (_scnRows || []).forEach(r => { bySym[r.sym] = r; });
-
-  chips.style.display = 'none';
-  tblWrap.style.display = 'block';
-
-  tbody.innerHTML = _marketwatch.map(sym => {
-    const r = bySym[sym];
-    const ltp = r && r.ltp != null ? '₹' + r.ltp.toFixed(2) : '—';
-    const dwr = r && r.dwr != null ? r.dwr.toFixed(1) : '—';
-    const wwr = r && r.wwr != null ? r.wwr.toFixed(1) : '—';
-    const dCls = r && r.dwr != null && r.dwr <= -80 ? 'wr-os' : r && r.dwr != null && r.dwr <= -50 ? 'wr-warn' : 'wr-ok';
-    const wCls = r && r.wwr != null && r.wwr <= -80 ? 'wr-os' : r && r.wwr != null && r.wwr <= -50 ? 'wr-warn' : 'wr-ok';
-    let dmaHtml = '—';
-    if (r && r.dma20 != null && r.ltp != null) {
-      const pct = ((r.ltp - r.dma20) / r.dma20 * 100);
-      dmaHtml = `<span class="${r.below20 ? 'dma-below' : 'dma-above'}">${(pct >= 0 ? '+' : '') + pct.toFixed(2)}%</span>`;
-    }
-    return `<tr>
-      <td style="font-weight:600">${sym}</td>
-      <td>${ltp}</td>
-      <td class="wr-val ${dCls}">${dwr}</td>
-      <td class="wr-val ${wCls}">${wwr}</td>
-      <td>${dmaHtml}</td>
-      <td><span class="mw-rm-cell" onclick="removeFromMW('${sym}')" title="Remove">✕</span></td>
-    </tr>`;
-  }).join('');
+  chips.innerHTML = _marketwatch.map(sym => `
+    <span class="mw-chip">
+      ${sym}
+      <span class="mw-rm" onclick="removeFromMW('${sym}')" title="Remove">✕</span>
+    </span>`).join('');
 }
 
 // ── Add Marketwatch as a dropdown source in Settings ──────────────────────────
@@ -3821,7 +3808,6 @@ async function runScanner() {
   }
 
   _scnRows = results;
-  renderMWPanel(); // refresh Marketwatch table with latest LTP / W%R / DMA
   document.getElementById('scn-prog-wrap').style.display='none';
   btn.disabled=false; btn.textContent='▶ Run Scanner';
 
@@ -4017,7 +4003,7 @@ function _renderDeltaCell(el, delta, qty) {
           <tr>
             <th onclick="setScanSort('sym')">Symbol ↕</th>
             <th>Type</th>
-            <th>LTP ₹</th>
+            <th>Last Close</th>
             <th id="scn-th-dwr" class="sorted-col" onclick="setScanSort('dwr')">Daily W%R ↑</th>
             <th id="scn-th-wwr" onclick="setScanSort('wwr')">Weekly W%R ↕</th>
             <th id="scn-th-dma" onclick="setScanSort('dma')">vs 20 DMA ↕</th>
@@ -4040,21 +4026,6 @@ function _renderDeltaCell(el, delta, qty) {
     </div>
     <div class="mw-chips" id="mw-chips">
       <span class="mw-empty-note">Click + on any scan result to add symbols here</span>
-    </div>
-    <div class="mw-tbl-wrap" id="mw-tbl-wrap" style="display:none">
-      <table class="mw-tbl" id="mw-tbl">
-        <thead>
-          <tr>
-            <th>Symbol</th>
-            <th>LTP ₹</th>
-            <th>Daily W%R</th>
-            <th>Weekly W%R</th>
-            <th>vs 20 DMA</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="mw-tbody"></tbody>
-      </table>
     </div>
   </div>
 </main>
