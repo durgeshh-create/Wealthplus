@@ -744,7 +744,7 @@ def main():
     # ── Snapshot writer — writes /tmp/status_rd1858.json every 5 min ─────────
     # GitHub Actions pushes this to gh-pages for the static dashboard.
     try:
-        from backend.utils.snapshot import start_snapshot_thread
+        from backend.utils.snapshot import start_snapshot_thread, SNAPSHOT_PATH
         _snap_state = {
             "portfolio_tracker":  backend["portfolio"],
             "realtime_manager":   backend["realtime"],
@@ -753,6 +753,47 @@ def main():
             "signal_generator":   backend["signals"],  # ✅ needed for per-symbol buys_today
         }
         start_snapshot_thread(_snap_state)
+
+        # ── Snapshot startup watchdog ────────────────────────────────────────
+        # ✅ FIX: previously a silent failure anywhere between "Snapshot writer
+        # started" being printed and its first successful write (e.g. a hang
+        # or unhandled exception in a code path not wrapped by write_snapshot's
+        # own try/except) could leave /tmp/status_rd1858.json never created.
+        # The GitHub Actions pusher loop (`until [ -f status_rd1858.json ]`)
+        # then waits forever with zero log output, and gh-pages keeps serving
+        # whatever snapshot was last pushed — potentially from the prior day —
+        # with no visible error anywhere (especially if Telegram is disabled).
+        # This watchdog gives the snapshot up to 3 minutes to appear; if it
+        # doesn't, it force-exits with a distinct code so cloud_launcher.py's
+        # restart loop detects the crash and tries again automatically,
+        # instead of requiring a manual workflow restart.
+        def _snapshot_startup_watchdog():
+            for _ in range(36):  # 36 × 5s = 180s
+                time.sleep(5)
+                if SNAPSHOT_PATH.exists():
+                    return  # snapshot appeared — all good, watchdog exits quietly
+            logger.error(
+                "Snapshot file never appeared within 180s of startup — "
+                "forcing exit so cloud_launcher.py restarts the bot."
+            )
+            try:
+                telegram_notify(
+                    f"⚠️ <b>WealthAlgo {os.environ.get('KITE_USER_ID', '')} — SNAPSHOT STARTUP FAILED</b>\n"
+                    f"No snapshot file appeared within 180s of startup.\n"
+                    f"Forcing restart — dashboard may have been showing stale data."
+                )
+            except Exception:
+                pass
+            os._exit(2)  # os._exit, not sys.exit — bypasses normal cleanup,
+                         # guaranteed to actually terminate the process even
+                         # if other threads are blocked
+
+        threading.Thread(
+            target=_snapshot_startup_watchdog,
+            daemon=True,
+            name="SnapshotStartupWatchdog",
+        ).start()
+
     except Exception as _snap_err:
         logger.warning(f"Snapshot writer not started: {_snap_err}")
 
