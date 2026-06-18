@@ -25,11 +25,28 @@ INTERVAL_SEC  = 60    # write every 60 s — pairs with Contents API pusher ever
 def _load_settings() -> dict:
     settings_path = Path(__file__).parent.parent.parent / "config" / "settings.json"
     if settings_path.exists():
-        try:
-            with open(settings_path) as f:
-                return json.load(f)
-        except Exception:
-            pass
+        # ✅ FIX: a single failed read here used to fall straight back to {}
+        # (and downstream to hardcoded default symbol lists), which could
+        # make a just-moved symbol (e.g. MINDSPACE-RR moved from Active to
+        # Dip Accumulator) appear to silently revert on the dashboard if this
+        # read happened to land mid-write of settings.json by routes.py.
+        # routes.py writes are now atomic (temp file + os.replace), which
+        # should eliminate that race entirely — but a brief retry here is a
+        # cheap second layer of defense against any other future writer that
+        # doesn't go through the atomic helper, and the explicit log line
+        # below means a fallback is never silent again.
+        for _attempt in range(2):
+            try:
+                with open(settings_path) as f:
+                    return json.load(f)
+            except Exception as _e:
+                if _attempt == 0:
+                    import time as _time
+                    _time.sleep(0.05)
+                    continue
+                import sys as _sys
+                print(f"[snapshot] _load_settings FAILED after retry — "
+                      f"falling back to hardcoded defaults: {_e}", file=_sys.stderr)
     return {}
 
 
@@ -69,7 +86,7 @@ def write_snapshot(dashboard_state: dict):
 
         settings    = _load_settings()
         active_etfs = settings.get("active_etfs", [
-            "MON100", "GOLDBEES", "SILVERBEES", "JUNIORBEES",
+            "GOLDBEES", "SILVERBEES", "JUNIORBEES",
             "MINDSPACE-RR", "EMBASSY-RR", "BANKBEES",
         ])
         bnh_symbols    = settings.get("bnh_symbols", ["MID150BEES"])
