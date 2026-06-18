@@ -5,6 +5,7 @@ Handles data requests from frontend.
 
 from flask import jsonify, request
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -16,6 +17,30 @@ from backend.utils.logger import get_logger
 from backend.indicators.calculator import calculate_daily_williams_r
 
 logger = get_logger(__name__)
+
+
+def _atomic_write_json(path, data):
+    """
+    Write JSON to `path` atomically: write to a temp file in the same
+    directory, then os.replace() it over the target.
+    ✅ FIX: plain `open(path, 'w')` truncates the file immediately, leaving a
+    window (a few ms, but non-zero) where the file is empty or contains
+    partial JSON. If snapshot.py's background thread reads settings.json
+    during exactly that window, json.load() raises, _load_settings() swallows
+    the error and returns {}, and the snapshot silently falls back to old
+    hardcoded default symbol lists — which can make a just-moved symbol
+    (e.g. MINDSPACE-RR moved from Active to Dip Accumulator) appear to revert
+    on the dashboard until the next successful write overwrites it.
+    os.replace() is atomic on POSIX and Windows — readers either see the
+    fully-old file or the fully-new file, never a partial one.
+    """
+    path = Path(path)
+    tmp_path = path.with_suffix(path.suffix + f".tmp{os.getpid()}")
+    with open(tmp_path, 'w') as f:
+        json.dump(data, f, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp_path, path)
 
 
 def register_routes(app, dashboard_state):
@@ -639,8 +664,7 @@ def register_routes(app, dashboard_state):
                 if val < 1.0 or val > 50.0:
                     return jsonify({'success': False, 'error': 'Harvest target must be between 1% and 50%'}), 400
                 settings['bnh_partial_profit_pct'] = val
-            with open(settings_path, 'w') as f:
-                _json.dump(settings, f, indent=2)
+            _atomic_write_json(settings_path, settings)
             return jsonify({'success': True,
                             'bnh_max_cash_per_etf': settings.get('bnh_max_cash_per_etf'),
                             'bnh_max_cash_per_transaction': settings.get('bnh_max_cash_per_transaction'),
@@ -1808,8 +1832,7 @@ def register_routes(app, dashboard_state):
             old_symbols = set(settings.get(key, []))
             settings[key] = symbols
 
-            with open(settings_path, 'w') as f:
-                json.dump(settings, f, indent=2)
+            _atomic_write_json(settings_path, settings)
             logger.info(f"Symbols updated — {key}: {symbols}")
 
             new_symbols = [s for s in symbols if s not in old_symbols]
@@ -1902,8 +1925,7 @@ def register_routes(app, dashboard_state):
             settings.update(data)
             
             # Save back to file
-            with open(settings_path, 'w') as f:
-                json.dump(settings, f, indent=2)
+            _atomic_write_json(settings_path, settings)
             
             logger.info(f"Settings updated via dashboard: {data}")
             
