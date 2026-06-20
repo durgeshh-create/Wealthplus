@@ -465,46 +465,56 @@ class IntradayEngine:
 
     # ── Weekday systematic buy (supplementary DCA tranche) ───────────────────
 
-    def _execute_weekday_buy(self, now: datetime, st: _SymState):
+    def _execute_weekday_buy(self, now: datetime, st: _SymState) -> Optional[bool]:
         """
         Once-per-week, day-gated supplementary buy — independent of the W%R
-        tier system. Small fixed fraction of bnh_max_cash_per_etf, same
-        cumulative cap and funding path as the tier engine. Skipped if a
-        W%R tier already deployed capital for this symbol today (avoids
-        double-dipping the same session) or if the cumulative ETF cap is hit.
+        tier system AND independent of buy_execution_time. Always evaluated
+        by the caller at the fixed 3:15 PM IST window (see BUY_HOUR/BUY_MIN),
+        even when the tier system runs in "anytime" mode. Small fixed
+        fraction of bnh_max_cash_per_etf, same cumulative cap and funding
+        path as the tier engine. Skipped if a W%R tier already deployed
+        capital for this symbol today (avoids double-dipping the same
+        session) or if the cumulative ETF cap is hit.
+
+        Return value tells the caller whether to latch the weekly attempt:
+          True  — order reached the broker (success or rejection) OR a cap/
+                  budget condition makes retrying later today pointless.
+                  Latch so we don't re-check uselessly every 15s all day.
+          False — transient pre-flight miss (LTP not ready yet). Don't latch;
+                  retry later the same day instead of burning the whole week.
         """
         symbol  = st.symbol
         max_etf = self._max_cash_per_etf()
 
         if st.total_deployed >= max_etf:
             logger.debug(f"[{symbol}] weekday-buy: cumulative cap reached — skipping")
-            return
+            return True   # permanent for the week — no point retrying
         if st.bought_today:
             logger.debug(f"[{symbol}] weekday-buy: W%R tier already bought today — skipping to avoid double-dip")
-            return
+            return True   # today's window is closed either way; tomorrow isn't the target day anyway
 
         weekday_cap = self._weekday_buy_max_share() * max_etf
         if st.weekday_total_deployed >= weekday_cap:
             logger.debug(f"[{symbol}] weekday-buy: lifetime tranche cap ₹{weekday_cap:,.0f} reached — "
                          f"tier system now owns all remaining budget")
-            return
+            return True   # permanent — tranche is fully spent, will never un-spend
 
         raw_budget = self._weekday_buy_frac() * max_etf
         budget     = min(raw_budget, self._max_cash_per_txn(),
                           max_etf - st.total_deployed,
                           weekday_cap - st.weekday_total_deployed)
         if budget <= 0:
-            return
+            return True   # same as above — structurally zero budget, won't change today
 
         ltp = self.realtime.get_ltp(symbol) if self.realtime else None
         if not ltp or ltp <= 0:
-            logger.warning(f"[{symbol}] weekday-buy: cannot get LTP — skipping")
-            return
+            logger.debug(f"[{symbol}] weekday-buy: LTP not ready yet — will retry later today")
+            return False  # transient — market data may not be ready yet
 
         qty = int(budget // float(ltp))
         if qty <= 0:
             logger.warning(f"[{symbol}] weekday-buy: qty=0 at LTP ₹{ltp:.2f} budget ₹{budget:.0f} — skipping")
-            return
+            return True   # price/budget mismatch won't resolve itself intraday
 
         order_type  = self._order_type()
         limit_price = None
@@ -530,11 +540,15 @@ class IntradayEngine:
             )
         except RuntimeError as e:
             logger.error(f"[{symbol}] weekday-buy smart_buy failed: {e}")
-            return
+            # Order never reached the broker — treat as transient, allow retry today.
+            return False
 
         if not success:
             logger.error(f"[{symbol}] weekday-buy smart_buy returned False")
-            return
+            # Broker rejected or order outcome uncertain — do NOT retry again
+            # this week; avoids duplicate orders if the broker silently
+            # accepted it.
+            return True
 
         exec_price = limit_price if (order_type == 'LIMIT' and limit_price) else float(ltp)
         cost = round(exec_price * qty, 2)
@@ -556,6 +570,7 @@ class IntradayEngine:
                                 f"{self._weekday_buy_frac()*100:.1f}% of Max Cash/ETF | {order_type}"),
                         now=now)
         logger.info(f"[{symbol}] ✅ WEEKDAY BUY {qty} × ₹{exec_price:.2f} = ₹{cost:.0f} | {order_type} | {funded_by}")
+        return True
 
     def force_buy_now(self) -> dict:
         """Immediately execute buys for all BnH symbols bypassing the time gate."""
@@ -632,19 +647,37 @@ class IntradayEngine:
                                 finally:
                                     st.buy_in_progress = False
 
-                            # Weekday systematic buy — runs independently of the W%R
-                            # tier system. Fires at most once per ISO week, only on
-                            # the configured weekday, and skips if a tier already
-                            # bought this symbol today (see _execute_weekday_buy).
+                        # Weekday systematic buy — runs independently of the W%R
+                        # tier system AND independently of buy_execution_time.
+                        # Always fires at the fixed 3:15 PM IST window (BUY_HOUR/
+                        # BUY_MIN), even when the tier system is set to "anytime" —
+                        # this is a scheduled weekly DCA tranche, not an oversold
+                        # signal, so it deliberately stays anchored to one
+                        # predictable time of day rather than firing as soon as
+                        # the weekday starts. Evaluated outside the at_trigger
+                        # block above on purpose: in "anytime" mode the tier buy
+                        # can fire well before 3:15 PM, and we don't want that
+                        # early tier fire to look like a same-day collision for
+                        # a tranche that hasn't had its 3:15 PM window yet.
+                        # Fires at most once per ISO week, only on the configured
+                        # weekday, and skips if a tier already bought this symbol
+                        # today (see _execute_weekday_buy). The weekly latch is
+                        # only set if the attempt genuinely reached the broker —
+                        # a pre-flight skip (e.g. LTP not ready yet at 3:15 PM)
+                        # retries on the next loop tick within the same
+                        # 3:15–3:16 PM window instead of burning the week's attempt.
+                        if not st.buy_in_progress:
+                            at_weekday_trigger = (dtime(BUY_HOUR, BUY_MIN) <= t <= dtime(BUY_HOUR, BUY_MIN + 1))
                             st.reset_weekday_buy_if_new_week()
                             if (self._weekday_buy_enabled()
                                     and not st.weekday_buy_attempted
-                                    and now.strftime('%A') == self._weekday_buy_day()):
-                                st.weekday_buy_attempted = True
-                                st.buy_in_progress       = True
-                                logger.info(f"[{sym}] 📅 {self._weekday_buy_day()} systematic buy window")
+                                    and now.strftime('%A') == self._weekday_buy_day()
+                                    and at_weekday_trigger):
+                                st.buy_in_progress = True
                                 try:
-                                    self._execute_weekday_buy(now, st)
+                                    should_latch = self._execute_weekday_buy(now, st)
+                                    if should_latch:
+                                        st.weekday_buy_attempted = True
                                 finally:
                                     st.buy_in_progress = False
                     except Exception as e:
