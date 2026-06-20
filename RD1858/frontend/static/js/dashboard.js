@@ -3571,7 +3571,17 @@ function loadBnHStatus() {
                         <td>${s.price != null ? '₹' + Number(s.price).toFixed(2) : '—'}</td>
                         <td class="${wrCls}">${wr != null ? wr.toFixed(1) : '—'}</td>
                         <td class="${stateCls}">${s.wr_state || '—'}</td>
-                        <td class="${stateCls}">${s.bought_today ? '✅ Bought today' : (s.wr_state === 'OVERSOLD' ? '🟢 BUY signal' : '😐 No signal')}</td>
+                        <td class="${stateCls}">${(() => {
+                            if (s.bought_today) return '✅ Bought today';
+                            if (s.wr_state === 'OVERSOLD') return '🟢 BUY signal';
+                            if (s.weekday_buy_enabled && !s.weekday_buy_attempted_this_week) {
+                                return `📅 ${s.weekday_buy_day || 'Monday'} buy pending`;
+                            }
+                            if (s.weekday_buy_enabled && s.weekday_buy_attempted_this_week) {
+                                return '✅ Weekly buy done';
+                            }
+                            return '😐 No signal';
+                        })()}</td>
                         <td>${h.qty != null && h.qty > 0 ? h.qty : '—'}</td>
                         <td>${h.avg_price != null ? '₹' + Number(h.avg_price).toFixed(2) : '—'}</td>
                         <td>${h.current_value != null ? '₹' + Number(h.current_value).toLocaleString('en-IN', {maximumFractionDigits:0}) : '—'}</td>
@@ -3625,6 +3635,19 @@ function loadBnHStatus() {
                 const el = document.getElementById(id);
                 if (el) el.textContent = livePct;
             });
+
+            // ── Weekday systematic buy summary (strategy card) ─────────────────
+            const wdbOn   = d.weekday_buy_enabled === true;
+            const wdbDay  = d.weekday_buy_day || 'Monday';
+            const wdbFrac = d.weekday_buy_frac != null ? (Number(d.weekday_buy_frac) * 100).toFixed(1) : '2.0';
+            const wdbCap  = d.weekday_buy_max_share != null ? (Number(d.weekday_buy_max_share) * 100).toFixed(0) : '20';
+            _bnhSet('wdb-status-badge', wdbOn ? '🟢 ON' : '⚪ OFF');
+            _bnhSet('wdb-day-label',  wdbDay);
+            _bnhSet('wdb-frac-label', wdbFrac + '%');
+            _bnhSet('wdb-cap-label',  wdbCap + '%');
+            _bnhSet('ctrl-bnh-weekday-summary',
+                wdbOn ? `${wdbDay} · ${wdbFrac}% per fire · capped at ${wdbCap}% lifetime`
+                      : 'Disabled — tiers only');
         })
         .catch(() => {});
 }
