@@ -53,6 +53,11 @@ class _SymState:
     deployed_today:         float           = 0.0
     trade_log:              List[dict]      = field(default_factory=list)
     latest:                 dict            = field(default_factory=dict)
+    # Weekday systematic-buy tranche — fires at most once per ISO week,
+    # independent of the daily W%R tier reset.
+    weekday_buy_attempted:  bool            = False
+    weekday_buy_week_key:   Optional[str]   = None
+    weekday_total_deployed: float           = 0.0
 
     def reset_session(self):
         today = _now_ist().date()
@@ -64,6 +69,13 @@ class _SymState:
         self.sold_today          = False
         self.deployed_today      = 0.0
         logger.info(f"[{self.symbol}] Session reset for {today}")
+
+    def reset_weekday_buy_if_new_week(self):
+        """Weekly latch resets on ISO year-week change, independent of daily session reset."""
+        wk = "%d-%02d" % _now_ist().date().isocalendar()[:2]
+        if self.weekday_buy_week_key != wk:
+            self.weekday_buy_week_key  = wk
+            self.weekday_buy_attempted = False
 
 
 # ── Engine ───────────────────────────────────────────────────────────────────
@@ -129,6 +141,39 @@ class IntradayEngine:
 
     def _order_type(self) -> str:
         return self._s('default_order_type', 'LIMIT')
+
+    # ── Weekday systematic buy (supplementary DCA tranche) ────────────────────
+    # Historical analysis (2020–2026 daily data, MID150BEES & MINDSPACE-RR):
+    # Monday showed the most consistent (though modest, and partly decayed)
+    # weakness vs other weekdays. This tranche is intentionally small — a
+    # fraction of bnh_max_cash_per_etf comparable to roughly a third of the
+    # lightest W%R tier (Tier 1 = 5%) — because the edge is mild, not a
+    # high-conviction oversold signal. It exists purely to add disciplined
+    # weekly accumulation on top of the W%R-driven dips, and is fully
+    # toggleable since the day-of-week edge can fade further or shift.
+
+    def _weekday_buy_enabled(self) -> bool:
+        return bool(self._s('bnh_weekday_buy_enabled', False))
+
+    def _weekday_buy_day(self) -> str:
+        """Target weekday name, e.g. 'Monday'. Case-insensitive match against %A."""
+        return str(self._s('bnh_weekday_buy_day', 'Monday')).strip().capitalize()
+
+    def _weekday_buy_frac(self) -> float:
+        """Fraction of bnh_max_cash_per_etf deployed by the weekday tranche per fire."""
+        try:    return float(self._s('bnh_weekday_buy_frac', 0.02))
+        except: return 0.02
+
+    def _weekday_buy_max_share(self) -> float:
+        """
+        Lifetime cap on the weekday tranche, as a fraction of bnh_max_cash_per_etf.
+        Without this, firing every single week (52x/yr) could out-deploy the
+        oversold-tier system in quiet/low-volatility years and crowd out the
+        higher-conviction W%R buys. Default 20% keeps it a true supplement —
+        the tier system still owns the other 80%+ of the capital budget.
+        """
+        try:    return float(self._s('bnh_weekday_buy_max_share', 0.20))
+        except: return 0.20
 
     # ── Symbol-state management ───────────────────────────────────────────────
 
@@ -418,6 +463,100 @@ class IntradayEngine:
                         now=now)
         logger.info(f"[{symbol}] ✅ BUY {qty} × ₹{exec_price:.2f} = ₹{cost:.0f} | {order_type} | {funded_by}")
 
+    # ── Weekday systematic buy (supplementary DCA tranche) ───────────────────
+
+    def _execute_weekday_buy(self, now: datetime, st: _SymState):
+        """
+        Once-per-week, day-gated supplementary buy — independent of the W%R
+        tier system. Small fixed fraction of bnh_max_cash_per_etf, same
+        cumulative cap and funding path as the tier engine. Skipped if a
+        W%R tier already deployed capital for this symbol today (avoids
+        double-dipping the same session) or if the cumulative ETF cap is hit.
+        """
+        symbol  = st.symbol
+        max_etf = self._max_cash_per_etf()
+
+        if st.total_deployed >= max_etf:
+            logger.debug(f"[{symbol}] weekday-buy: cumulative cap reached — skipping")
+            return
+        if st.bought_today:
+            logger.debug(f"[{symbol}] weekday-buy: W%R tier already bought today — skipping to avoid double-dip")
+            return
+
+        weekday_cap = self._weekday_buy_max_share() * max_etf
+        if st.weekday_total_deployed >= weekday_cap:
+            logger.debug(f"[{symbol}] weekday-buy: lifetime tranche cap ₹{weekday_cap:,.0f} reached — "
+                         f"tier system now owns all remaining budget")
+            return
+
+        raw_budget = self._weekday_buy_frac() * max_etf
+        budget     = min(raw_budget, self._max_cash_per_txn(),
+                          max_etf - st.total_deployed,
+                          weekday_cap - st.weekday_total_deployed)
+        if budget <= 0:
+            return
+
+        ltp = self.realtime.get_ltp(symbol) if self.realtime else None
+        if not ltp or ltp <= 0:
+            logger.warning(f"[{symbol}] weekday-buy: cannot get LTP — skipping")
+            return
+
+        qty = int(budget // float(ltp))
+        if qty <= 0:
+            logger.warning(f"[{symbol}] weekday-buy: qty=0 at LTP ₹{ltp:.2f} budget ₹{budget:.0f} — skipping")
+            return
+
+        order_type  = self._order_type()
+        limit_price = None
+        try:
+            top_ask = self.realtime.get_top_ask(symbol)
+            if order_type == 'LIMIT' and top_ask and top_ask > 0:
+                limit_price = round(float(top_ask), 2)
+        except Exception:
+            pass
+
+        cash_reserve = Config.get_cash_reserve()
+        try:
+            success, _ = self.orders.smart_buy(
+                buy_symbol=symbol,
+                buy_quantity=qty,
+                buy_price_estimate=float(ltp),
+                realtime_manager=self.realtime,
+                portfolio_tracker=self.portfolio,
+                buy_order_type=order_type,
+                buy_limit_price=limit_price,
+                buy_product='CNC',
+                cash_reserve=cash_reserve,
+            )
+        except RuntimeError as e:
+            logger.error(f"[{symbol}] weekday-buy smart_buy failed: {e}")
+            return
+
+        if not success:
+            logger.error(f"[{symbol}] weekday-buy smart_buy returned False")
+            return
+
+        exec_price = limit_price if (order_type == 'LIMIT' and limit_price) else float(ltp)
+        cost = round(exec_price * qty, 2)
+        st.total_deployed         += cost
+        st.deployed_today         += cost
+        st.weekday_total_deployed += cost
+        st.bought_today    = True
+        self.total_deployed += cost
+        self.deployed_today += cost
+
+        avail_cash = 0.0
+        try:    avail_cash = self.orders.get_available_cash()
+        except: pass
+        funded_by = 'Available Cash' if avail_cash >= cost else 'LIQUIDCASE + Cash'
+
+        self._log_trade(st, action='BUY', price=exec_price, qty=qty, amount=cost,
+                        wr=None, funded_by=funded_by,
+                        reason=(f"Weekly systematic buy ({self._weekday_buy_day()}) — "
+                                f"{self._weekday_buy_frac()*100:.1f}% of Max Cash/ETF | {order_type}"),
+                        now=now)
+        logger.info(f"[{symbol}] ✅ WEEKDAY BUY {qty} × ₹{exec_price:.2f} = ₹{cost:.0f} | {order_type} | {funded_by}")
+
     def force_buy_now(self) -> dict:
         """Immediately execute buys for all BnH symbols bypassing the time gate."""
         results = []
@@ -490,6 +629,22 @@ class IntradayEngine:
                                 logger.info(f"[{sym}] ⏰ {trigger_label} — W%R={wr:.1f}: executing buy")
                                 try:
                                     self._execute_buy(wr, now, st)
+                                finally:
+                                    st.buy_in_progress = False
+
+                            # Weekday systematic buy — runs independently of the W%R
+                            # tier system. Fires at most once per ISO week, only on
+                            # the configured weekday, and skips if a tier already
+                            # bought this symbol today (see _execute_weekday_buy).
+                            st.reset_weekday_buy_if_new_week()
+                            if (self._weekday_buy_enabled()
+                                    and not st.weekday_buy_attempted
+                                    and now.strftime('%A') == self._weekday_buy_day()):
+                                st.weekday_buy_attempted = True
+                                st.buy_in_progress       = True
+                                logger.info(f"[{sym}] 📅 {self._weekday_buy_day()} systematic buy window")
+                                try:
+                                    self._execute_weekday_buy(now, st)
                                 finally:
                                     st.buy_in_progress = False
                     except Exception as e:
@@ -641,6 +796,12 @@ class IntradayEngine:
             'liquidcase_val':   self._liquidcase_value(),
             'bought_today':     st.bought_today,
             'tiers_fired':      sorted(st.tiers_fired_this_cycle),
+            'weekday_buy_enabled':   self._weekday_buy_enabled(),
+            'weekday_buy_day':       self._weekday_buy_day(),
+            'weekday_buy_frac':      self._weekday_buy_frac(),
+            'weekday_buy_max_share': self._weekday_buy_max_share(),
+            'weekday_total_deployed': round(st.weekday_total_deployed, 2),
+            'weekday_buy_attempted_this_week': st.weekday_buy_attempted,
         }
 
     # ── Public API ────────────────────────────────────────────────────────────
@@ -706,4 +867,8 @@ class IntradayEngine:
             'liquidcase_qty':     self._liquidcase_qty(),
             'liquidcase_val':     self._liquidcase_value(),
             'position':           None,
+            'weekday_buy_enabled': self._weekday_buy_enabled(),
+            'weekday_buy_day':      self._weekday_buy_day(),
+            'weekday_buy_frac':     self._weekday_buy_frac(),
+            'weekday_buy_max_share': self._weekday_buy_max_share(),
         }
