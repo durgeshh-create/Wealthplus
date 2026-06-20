@@ -692,7 +692,27 @@
                     </div>
 
                     <div class="strat-section">
-                        <div class="strat-note">⏰ All buy orders execute at the configured <strong>Execution Time</strong> (default 3:15 PM IST). Select <strong>⚡ Anytime</strong> to execute as soon as the buy condition is met.</div>
+                        <div class="strat-section-title">📅 Supplementary Tranche — Weekday Systematic Buy <span id="wdb-status-badge" class="strat-hl">…</span></div>
+                        <p class="strat-desc" style="margin-bottom:10px;">A small fixed-day DCA buy layered on top of the 5-tier system, firing independently of W%R on a configured weekday. Historical analysis (2020–2026 daily data on MID150BEES &amp; MINDSPACE-RR) found no statistically reliable "cheap day of the week" — any old weekend effect has decayed to noise. This tranche is sized accordingly: small, capped, and fully toggleable rather than built around a presumed edge. Its real value is disciplined weekly accumulation, not day-of-week timing.</p>
+                        <div class="strat-rules">
+                            <div class="strat-rule">
+                                <span class="strat-rule-label trigger-a">Trigger</span>
+                                <span class="strat-rule-text">Fires <span class="strat-hl">once per calendar week</span> on <span class="strat-hl" id="wdb-day-label">Monday</span>, always at the fixed <span class="strat-hl">3:15 PM IST</span> window — regardless of W%R, and regardless of whether Execution Time above is set to 3:15 PM or ⚡ Anytime. Skipped if a tier already bought the same symbol that same day (no double-dipping one session).</span>
+                            </div>
+                            <div class="strat-rule">
+                                <span class="strat-rule-label trigger-b">Size</span>
+                                <span class="strat-rule-text"><span class="strat-hl" id="wdb-frac-label">2%</span> of Max Cash / ETF per fire — deliberately below Tier 1 (5%), reflecting the weaker conviction behind a scheduled (non-signal) buy.</span>
+                            </div>
+                            <div class="strat-rule">
+                                <span class="strat-rule-label slot-1">Lifetime Cap</span>
+                                <span class="strat-rule-text">Capped at <span class="strat-hl" id="wdb-cap-label">20%</span> of Max Cash / ETF, total, ever — so this tranche can never crowd out the oversold-tier system in a quiet year with few deep dips.</span>
+                            </div>
+                        </div>
+                        <div class="strat-note">⚙️ Toggle, day, size and cap are all editable in the settings editor (<code>bnh_weekday_buy_enabled</code>, <code>bnh_weekday_buy_day</code>, <code>bnh_weekday_buy_frac</code>, <code>bnh_weekday_buy_max_share</code>). Off by default on new deployments — turn on only if you want scheduled accumulation in addition to the dip-driven tiers.</div>
+                    </div>
+
+                    <div class="strat-section">
+                        <div class="strat-note">⏰ W%R tier buy orders execute at the configured <strong>Execution Time</strong> (default 3:15 PM IST). Select <strong>⚡ Anytime</strong> to execute as soon as the buy condition is met. The Weekday Systematic Buy tranche below always uses a fixed 3:15 PM window and ignores this setting.</div>
                     </div>
 
                     <div class="strat-section">
@@ -720,6 +740,7 @@
                             <div class="strat-kv"><span class="strat-k">Harvest threshold</span><span class="strat-v">Unrealised P&amp;L ≥ <strong><span id="bnh-kv-pct">5</span>%</strong> (editable above) → sell 50%</span></div>
                             <div class="strat-kv"><span class="strat-k">Harvest cooldown</span><span class="strat-v">30 days between harvests — prevents repeated halving during volatile rallies</span></div>
                             <div class="strat-kv"><span class="strat-k">Funding</span><span class="strat-v">Uses available cash first → auto-sells LIQUIDCASE shortfall if cash is insufficient</span></div>
+                            <div class="strat-kv"><span class="strat-k">Weekday buy</span><span class="strat-v" id="ctrl-bnh-weekday-summary">Loading…</span></div>
                         </div>
                     </div>
 
