@@ -664,11 +664,32 @@ def register_routes(app, dashboard_state):
                 if val < 1.0 or val > 50.0:
                     return jsonify({'success': False, 'error': 'Harvest target must be between 1% and 50%'}), 400
                 settings['bnh_partial_profit_pct'] = val
+            if 'bnh_weekday_buy_enabled' in body:
+                settings['bnh_weekday_buy_enabled'] = bool(body['bnh_weekday_buy_enabled'])
+            if 'bnh_weekday_buy_day' in body:
+                day = str(body['bnh_weekday_buy_day']).strip().capitalize()
+                if day not in ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'):
+                    return jsonify({'success': False, 'error': 'Day must be a weekday Monday–Friday'}), 400
+                settings['bnh_weekday_buy_day'] = day
+            if 'bnh_weekday_buy_frac' in body:
+                frac = float(body['bnh_weekday_buy_frac'])
+                if frac < 0.0 or frac > 0.20:
+                    return jsonify({'success': False, 'error': 'Weekday buy fraction must be between 0% and 20% of Max Cash/ETF'}), 400
+                settings['bnh_weekday_buy_frac'] = frac
+            if 'bnh_weekday_buy_max_share' in body:
+                share = float(body['bnh_weekday_buy_max_share'])
+                if share < 0.0 or share > 1.0:
+                    return jsonify({'success': False, 'error': 'Weekday lifetime cap must be between 0% and 100% of Max Cash/ETF'}), 400
+                settings['bnh_weekday_buy_max_share'] = share
             _atomic_write_json(settings_path, settings)
             return jsonify({'success': True,
                             'bnh_max_cash_per_etf': settings.get('bnh_max_cash_per_etf'),
                             'bnh_max_cash_per_transaction': settings.get('bnh_max_cash_per_transaction'),
-                            'bnh_partial_profit_pct': settings.get('bnh_partial_profit_pct')})
+                            'bnh_partial_profit_pct': settings.get('bnh_partial_profit_pct'),
+                            'bnh_weekday_buy_enabled': settings.get('bnh_weekday_buy_enabled'),
+                            'bnh_weekday_buy_day': settings.get('bnh_weekday_buy_day'),
+                            'bnh_weekday_buy_frac': settings.get('bnh_weekday_buy_frac'),
+                            'bnh_weekday_buy_max_share': settings.get('bnh_weekday_buy_max_share')})
         except Exception as e:
             return jsonify({'success': False, 'error': str(e)}), 500
 
