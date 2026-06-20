@@ -699,6 +699,40 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <label>Harvest Target (%)</label>
         <input type="number" id="s-bnh_partial_profit_pct" min="0.1" max="50" step="0.1">
       </div>
+      <div class="field" style="grid-column:1/-1">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div>
+            <label style="margin:0;font-weight:600">📅 Weekday Systematic Buy</label>
+            <div class="hint" style="margin-top:2px">Supplementary fixed-day DCA tranche on top of the W%R tiers — small, capped, independent of oversold signal</div>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0">
+            <span id="wdb-toggle-label" style="font-size:11px;color:var(--muted)">ON</span>
+            <input type="checkbox" id="s-bnh_weekday_buy_enabled" checked
+              onchange="document.getElementById('wdb-toggle-label').textContent=this.checked?'ON':'OFF'"
+              style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
+          </label>
+        </div>
+      </div>
+      <div class="field">
+        <label>Buy Day</label>
+        <select id="s-bnh_weekday_buy_day">
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tranche Size (% of Max Cash/ETF)</label>
+        <input type="number" id="s-bnh_weekday_buy_frac_pct" min="0" max="20" step="0.5">
+        <div class="hint" style="margin-top:2px">Per fire, e.g. 2% = ₹20,000 at a ₹10L cap. Deliberately smaller than Tier 1 (5%) since this is a scheduled buy, not an oversold signal.</div>
+      </div>
+      <div class="field">
+        <label>Lifetime Cap (% of Max Cash/ETF)</label>
+        <input type="number" id="s-bnh_weekday_buy_max_share_pct" min="0" max="100" step="5">
+        <div class="hint" style="margin-top:2px">Total this tranche can ever deploy per symbol, so it can't crowd out the W%R tier system in a quiet year. Default 20%.</div>
+      </div>
     </div>
   </div>
 
@@ -2214,6 +2248,18 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 
         <div class="strat-divider"></div>
 
+        <div class="strat-block-title">WEEKDAY SYSTEMATIC BUY — supplementary scheduled tranche</div>
+        <p style="margin-bottom:8px">A small fixed-day DCA buy layered on top of the 5-tier system, independent of W%R. Historical analysis (2020–2026 daily data) found no statistically reliable "cheap day of the week" for these instruments — any old weekend effect has decayed to noise. This tranche is sized accordingly: small, capped, and fully toggleable rather than built around a presumed edge.</p>
+        <table class="strat-tbl">
+          <tr><td class="strat-td-key">Trigger</td><td>Fires once per ISO week on <code>bnh_weekday_buy_day</code> (default Monday), regardless of W%R.</td></tr>
+          <tr><td class="strat-td-key">Size</td><td><code>bnh_weekday_buy_frac</code> of <code>bnh_max_cash_per_etf</code> per fire (default 2% — well below Tier 1's 5%, reflecting the weaker conviction).</td></tr>
+          <tr><td class="strat-td-key">Lifetime cap</td><td><code>bnh_weekday_buy_max_share</code> of <code>bnh_max_cash_per_etf</code> (default 20%) — prevents this tranche from crowding out the oversold-tier system in a low-volatility year with few deep dips.</td></tr>
+          <tr><td class="strat-td-key">Double-buy guard</td><td>Skipped if a W%R tier already bought the same symbol that same day.</td></tr>
+          <tr><td class="strat-td-key">Toggle</td><td><code>bnh_weekday_buy_enabled</code> — off by default; can be disabled instantly if the edge fades further.</td></tr>
+        </table>
+
+        <div class="strat-divider"></div>
+
         <div class="strat-cols">
           <div class="strat-col">
             <div class="strat-block-title">BUY ENTRY CONDITIONS</div>
@@ -3606,6 +3652,15 @@ function populateForm(s) {
   setVal('s-bnh_max_cash_per_etf',      s.bnh_max_cash_per_etf);
   setVal('s-bnh_max_cash_per_transaction', s.bnh_max_cash_per_transaction);
   setVal('s-bnh_partial_profit_pct',    s.bnh_partial_profit_pct);
+  // Weekday systematic buy toggle
+  const wdbEl = document.getElementById('s-bnh_weekday_buy_enabled');
+  if (wdbEl) {
+    wdbEl.checked = s.bnh_weekday_buy_enabled === true; // default OFF if key absent
+    document.getElementById('wdb-toggle-label').textContent = wdbEl.checked ? 'ON' : 'OFF';
+  }
+  setVal('s-bnh_weekday_buy_day', s.bnh_weekday_buy_day || 'Monday');
+  setVal('s-bnh_weekday_buy_frac_pct',      (s.bnh_weekday_buy_frac      ?? 0.02) * 100);
+  setVal('s-bnh_weekday_buy_max_share_pct', (s.bnh_weekday_buy_max_share ?? 0.20) * 100);
 
   _activeSym = [...(s.active_etfs  || [])];
   _bnhSym    = [...(s.bnh_symbols  || [])];
@@ -3647,6 +3702,10 @@ function collectForm() {
     bnh_max_cash_per_etf:          n('s-bnh_max_cash_per_etf'),
     bnh_max_cash_per_transaction:  n('s-bnh_max_cash_per_transaction'),
     bnh_partial_profit_pct:        n('s-bnh_partial_profit_pct'),
+    bnh_weekday_buy_enabled:       document.getElementById('s-bnh_weekday_buy_enabled')?.checked ?? false,
+    bnh_weekday_buy_day:           s('s-bnh_weekday_buy_day') || 'Monday',
+    bnh_weekday_buy_frac:          n('s-bnh_weekday_buy_frac_pct') / 100,
+    bnh_weekday_buy_max_share:     n('s-bnh_weekday_buy_max_share_pct') / 100,
     active_etfs:                   [..._activeSym],
     bnh_symbols:                   [..._bnhSym],
   };
