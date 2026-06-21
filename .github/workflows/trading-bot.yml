@@ -189,6 +189,19 @@ jobs:
           echo "📥 Seeding stale CSVs for RD1858…"
           python seed_csvs.py || echo "⚠️ Seed failed — continuing with existing CSVs"
 
+      - name: Seed Marketwatch-only CSVs (RD1858)
+        # Read-only w.r.t. trading config: seeds whatever symbols are saved in
+        # settings-editor/marketwatch.json so the Scanner page's Marketwatch
+        # panel always has data, without ever touching active_etfs/bnh_symbols.
+        working-directory: RD1858
+        timeout-minutes: 10
+        env:
+          PYTHONIOENCODING: utf-8
+          PYTHONUTF8:       "1"
+        run: |
+          echo "📥 Seeding Marketwatch-only CSVs for RD1858…"
+          python seed_marketwatch_csvs.py || echo "⚠️ Marketwatch seed failed — continuing"
+
       - name: Commit updated CSVs to repo (RD1858)
         timeout-minutes: 5
         env:
