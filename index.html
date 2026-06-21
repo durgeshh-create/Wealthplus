@@ -3462,10 +3462,12 @@ let _marketwatch    = [];   // seeded by loadMW() from marketwatch.json on GitHu
 let _mwSha          = '';   // GitHub blob SHA for marketwatch.json (needed for update)
 let _mwLoaded       = false;
 let _mwSaveTimer    = null;
-const DEFAULT_MARKETWATCH = ["MINDSPACE-RR", "INDUSINVIT-IV"];
+const DEFAULT_MARKETWATCH = ["MINDSPACE-RR", "INDUSINVIT"];
 // Symbols that were seeded under an old/incorrect name and need silent
 // correction in any already-saved marketwatch.json (one-time migration).
-const MW_SYMBOL_FIXUPS = { "INDUSINVIT": "INDUSINVIT-IV" };
+// NOTE: "INDUSINVIT-IV" was a previous incorrect guess — NSE/Zerodha's
+// actual trading symbol for Indus Infra Trust is plain "INDUSINVIT".
+const MW_SYMBOL_FIXUPS = { "INDUSINVIT-IV": "INDUSINVIT" };
 
 // ── Marketwatch persistence (stored as settings-editor/marketwatch.json in the repo) ──
 function marketwatchPath() {
@@ -3501,12 +3503,17 @@ async function loadMW() {
 }
 
 // One-time silent correction for symbols that were seeded under an old or
-// wrong name (e.g. "INDUSINVIT" -> "INDUSINVIT-IV", Kite's actual trading
-// symbol). Re-persists the corrected list if anything changed.
+// wrong name (e.g. "INDUSINVIT-IV" -> "INDUSINVIT" — NSE/Zerodha's actual
+// trading symbol has no "-IV" suffix). Re-persists the corrected list if
+// anything changed.
 function _applyMWFixups() {
   let changed = false;
   _marketwatch = _marketwatch.map(sym => {
-    if (MW_SYMBOL_FIXUPS[sym]) { changed = true; return MW_SYMBOL_FIXUPS[sym]; }
+    if (MW_SYMBOL_FIXUPS[sym]) {
+      changed = true;
+      delete _mwDataCache[sym];   // drop stale cache entry under old name
+      return MW_SYMBOL_FIXUPS[sym];
+    }
     return sym;
   });
   // De-dupe in case the corrected symbol was already present separately.
@@ -3516,7 +3523,6 @@ function _applyMWFixups() {
   if (deduped.length !== _marketwatch.length) changed = true;
   _marketwatch = deduped;
   if (changed) {
-    delete _mwDataCache['INDUSINVIT'];   // drop stale cache entry under old name
     saveMW(true);
   }
 }
