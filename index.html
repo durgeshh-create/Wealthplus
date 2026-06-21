@@ -280,12 +280,14 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .scn-chip-weekly{background:#f3e8ff;border-color:#d8b4fe;color:#7e22ce}
 .scn-chip-nodata{background:var(--bg3);border-color:var(--border2);color:var(--muted)}
 .scn-scanned{font-size:11px;color:var(--muted);align-self:center}
-.scn-tbl-wrap{overflow-x:auto}
-.scn-tbl{width:100%;border-collapse:collapse;font-size:12px}
-.scn-tbl th{padding:8px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+.scn-tbl-wrap{overflow-x:visible;width:100%}
+.scn-tbl{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+.scn-tbl th{padding:7px 6px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:2px solid var(--border);line-height:1.2;cursor:pointer;user-select:none;overflow:hidden;text-overflow:ellipsis}
 .scn-tbl th:hover{color:var(--text)}
 .scn-tbl th.sorted-col{color:var(--accent)}
-.scn-tbl td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.scn-tbl td{padding:6px 6px;border-bottom:1px solid var(--border);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;word-break:break-word}
+.scn-tbl th:first-child,.scn-tbl td:first-child{padding-left:10px}
+.scn-tbl th:last-child,.scn-tbl td:last-child{padding-right:10px;text-align:center}
 .scn-tbl tr:hover td{background:var(--bg3)}
 .scn-tbl tr.row-both td{background:rgba(22,163,74,0.04)}
 .badge-etf{background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd;border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700}
@@ -331,6 +333,11 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .mw-status{font-size:9px;color:var(--muted);margin-left:8px}
 .mw-status.ok{color:#16a34a}
 .mw-status.err{color:#dc2626}
+.mw-live{font-size:9px;color:var(--muted);margin-left:8px}
+.mw-live.on{color:#16a34a}
+.mw-live .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:3px;vertical-align:middle}
+.mw-live.on .dot{animation:mw-pulse 1.6s ease-in-out infinite}
+@keyframes mw-pulse{0%,100%{opacity:1}50%{opacity:.3}}
 /* ── Scanner + Marketwatch side-by-side layout ── */
 .scn-layout{display:flex;gap:16px;align-items:flex-start}
 .scn-layout-main{flex:1 1 0;min-width:0}
@@ -3244,6 +3251,16 @@ async function liveRefresh() {
   liveTimer = setTimeout(liveRefresh, LIVE_INTERVAL);
 }
 
+// IST market hours: 09:15–15:30, Monday–Friday.
+function isMarketHoursNow() {
+  const nowIST    = new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
+  const dayOfWeek = nowIST.getDay();           // 0=Sun,6=Sat
+  const istMin    = nowIST.getHours()*60 + nowIST.getMinutes();
+  return dayOfWeek >= 1 && dayOfWeek <= 5
+      && istMin >= 555   // 09:15
+      && istMin <= 930;  // 15:30
+}
+
 async function refreshAll() {
   syncBotButtonState();
 
@@ -3294,12 +3311,7 @@ async function refreshAll() {
   }
 
   // ── Market-hours awareness (IST 09:15–15:30 Mon–Fri) ─────────────────────
-  const nowIST    = new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
-  const dayOfWeek = nowIST.getDay();           // 0=Sun,6=Sat
-  const istMin    = nowIST.getHours()*60 + nowIST.getMinutes();
-  const isMarketHours = dayOfWeek >= 1 && dayOfWeek <= 5
-                     && istMin >= 555   // 09:15
-                     && istMin <= 930;  // 15:30
+  const isMarketHours = isMarketHoursNow();
   // Only use the TIGHT 10-min threshold during market hours, when the bot
   // should be pushing every ~60s and any gap signals a real failure.
   // ✅ FIX: previously isStale was ONLY computed when isMarketHours was true,
@@ -3427,6 +3439,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadMW();
   renderMWPanel();
   rebuildMWDropdowns();
+  startMWAutoRefresh();
 });
 
 
@@ -3449,7 +3462,10 @@ let _marketwatch    = [];   // seeded by loadMW() from marketwatch.json on GitHu
 let _mwSha          = '';   // GitHub blob SHA for marketwatch.json (needed for update)
 let _mwLoaded       = false;
 let _mwSaveTimer    = null;
-const DEFAULT_MARKETWATCH = ["MINDSPACE-RR", "INDUSINVIT"];
+const DEFAULT_MARKETWATCH = ["MINDSPACE-RR", "INDUSINVIT-IV"];
+// Symbols that were seeded under an old/incorrect name and need silent
+// correction in any already-saved marketwatch.json (one-time migration).
+const MW_SYMBOL_FIXUPS = { "INDUSINVIT": "INDUSINVIT-IV" };
 
 // ── Marketwatch persistence (stored as settings-editor/marketwatch.json in the repo) ──
 function marketwatchPath() {
@@ -3481,6 +3497,28 @@ async function loadMW() {
     _marketwatch = [...DEFAULT_MARKETWATCH];
   }
   _mwLoaded = true;
+  _applyMWFixups();
+}
+
+// One-time silent correction for symbols that were seeded under an old or
+// wrong name (e.g. "INDUSINVIT" -> "INDUSINVIT-IV", Kite's actual trading
+// symbol). Re-persists the corrected list if anything changed.
+function _applyMWFixups() {
+  let changed = false;
+  _marketwatch = _marketwatch.map(sym => {
+    if (MW_SYMBOL_FIXUPS[sym]) { changed = true; return MW_SYMBOL_FIXUPS[sym]; }
+    return sym;
+  });
+  // De-dupe in case the corrected symbol was already present separately.
+  const seen = new Set();
+  const deduped = [];
+  _marketwatch.forEach(sym => { if (!seen.has(sym)) { seen.add(sym); deduped.push(sym); } });
+  if (deduped.length !== _marketwatch.length) changed = true;
+  _marketwatch = deduped;
+  if (changed) {
+    delete _mwDataCache['INDUSINVIT'];   // drop stale cache entry under old name
+    saveMW(true);
+  }
 }
 
 // Save marketwatch list to GitHub (settings-editor/marketwatch.json).
@@ -3642,6 +3680,43 @@ async function refreshMWData(force) {
     }
   }));
   renderMWPanel();
+}
+
+// ── Marketwatch auto-refresh ──────────────────────────────────────────────────
+// During market hours (IST 09:15–15:30 Mon–Fri), force-refresh every symbol's
+// LTP / W%R / DMA on a fixed cadence so the panel stays live without manual
+// "Run Scanner" clicks. Outside market hours we still poll, just much less
+// often — mainly so the view flips to live mode automatically right at 09:15
+// without needing a page reload.
+const MW_REFRESH_MS_MARKET    = 60 * 1000;   // 60s during market hours
+const MW_REFRESH_MS_OFFHOURS  = 5 * 60 * 1000; // 5 min outside market hours
+let _mwAutoRefreshTimer = null;
+
+function startMWAutoRefresh() {
+  if (_mwAutoRefreshTimer) clearTimeout(_mwAutoRefreshTimer);
+  const tick = async () => {
+    const marketOpen = isMarketHoursNow();
+    updateMWLiveBadge(marketOpen);
+    if (marketOpen && _marketwatch.length) {
+      await refreshMWData(true);   // force re-fetch live values
+    }
+    _mwAutoRefreshTimer = setTimeout(tick, marketOpen ? MW_REFRESH_MS_MARKET : MW_REFRESH_MS_OFFHOURS);
+  };
+  tick();
+}
+
+function updateMWLiveBadge(marketOpen) {
+  const el = document.getElementById('mw-live');
+  if (!el) return;
+  if (marketOpen) {
+    el.className = 'mw-live on';
+    el.innerHTML = '<span class="dot"></span>live';
+    el.title = `Auto-refreshing every ${MW_REFRESH_MS_MARKET/1000}s during market hours`;
+  } else {
+    el.className = 'mw-live';
+    el.innerHTML = '<span class="dot"></span>closed';
+    el.title = 'Market closed — auto-refresh resumes at 09:15 IST on the next trading day';
+  }
 }
 
 // ── Add Marketwatch as a dropdown source in Settings ──────────────────────────
@@ -4237,14 +4312,24 @@ function _renderDeltaCell(el, delta, qty) {
       <div id="scn-results" style="display:none">
         <div class="scn-tbl-wrap">
           <table class="scn-tbl" id="scn-tbl">
+            <colgroup>
+              <col style="width:17%">
+              <col style="width:8%">
+              <col style="width:11%">
+              <col style="width:15%">
+              <col style="width:15%">
+              <col style="width:13%">
+              <col style="width:14%">
+              <col style="width:7%">
+            </colgroup>
             <thead>
               <tr>
                 <th onclick="setScanSort('sym')">Symbol ↕</th>
                 <th>Type</th>
                 <th>LTP ₹</th>
-                <th id="scn-th-dwr" class="sorted-col" onclick="setScanSort('dwr')">Daily W%R ↑</th>
-                <th id="scn-th-wwr" onclick="setScanSort('wwr')">Weekly W%R ↕</th>
-                <th id="scn-th-dma" onclick="setScanSort('dma')">vs 20 DMA ↕</th>
+                <th id="scn-th-dwr" class="sorted-col" onclick="setScanSort('dwr')">Daily<br>W%R ↑</th>
+                <th id="scn-th-wwr" onclick="setScanSort('wwr')">Weekly<br>W%R ↕</th>
+                <th id="scn-th-dma" onclick="setScanSort('dma')">vs 20<br>DMA ↕</th>
                 <th>Signal</th>
                 <th title="Add to Marketwatch">⭐</th>
               </tr>
@@ -4261,7 +4346,7 @@ function _renderDeltaCell(el, delta, qty) {
     <div class="scn-layout-side">
       <div class="mw-panel">
         <div class="mw-header">
-          <span class="mw-title">⭐ Marketwatch <span class="mw-count" id="mw-count"></span><span class="mw-status" id="mw-status"></span></span>
+          <span class="mw-title">⭐ Marketwatch <span class="mw-count" id="mw-count"></span><span class="mw-live" id="mw-live"></span><span class="mw-status" id="mw-status"></span></span>
           <button class="mw-clear-btn" onclick="clearMW()">Clear all</button>
         </div>
         <div class="mw-chips" id="mw-chips">
