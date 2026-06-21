@@ -304,7 +304,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .scn-empty{text-align:center;padding:40px;color:var(--muted);font-size:13px}
 
 /* ── MARKETWATCH ── */
-.mw-panel{margin-top:22px;border:1px solid var(--border);border-radius:10px;background:var(--bg2);overflow:hidden}
+.mw-panel{border:1px solid var(--border);border-radius:10px;background:var(--bg2);overflow:hidden}
 .mw-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg3)}
 .mw-title{font-size:12px;font-weight:700;color:var(--text)}
 .mw-count{font-size:10px;color:var(--muted);margin-left:6px}
@@ -326,6 +326,17 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .mw-add-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
 .mw-add-btn.in-mw{background:rgba(22,163,74,.1);border-color:#86efac;color:#16a34a}
 .mw-add-btn.in-mw:hover{background:rgba(220,38,38,.1);border-color:#fca5a5;color:#dc2626}
+.mw-status{font-size:9px;color:var(--muted);margin-left:8px}
+.mw-status.ok{color:#16a34a}
+.mw-status.err{color:#dc2626}
+/* ── Scanner + Marketwatch side-by-side layout ── */
+.scn-layout{display:flex;gap:16px;align-items:flex-start}
+.scn-layout-main{flex:1 1 auto;min-width:0}
+.scn-layout-side{flex:0 0 320px;width:320px;position:sticky;top:8px}
+@media (max-width: 980px){
+  .scn-layout{flex-direction:column}
+  .scn-layout-side{width:100%;flex:1 1 auto;position:static}
+}
 </style>
 <style>
 /* Password gate */
@@ -3409,8 +3420,9 @@ function toggleStrategy() {
   btn.textContent    = open ? "▲ Hide" : "▼ Show";
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   refreshAll();
+  await loadMW();
   renderMWPanel();
   rebuildMWDropdowns();
 });
@@ -3431,34 +3443,113 @@ let _settings   = {};
 let _sha        = '';          // GitHub blob SHA needed for update
 let _activeSym   = [];
 let _bnhSym      = [];
-let _marketwatch = JSON.parse(localStorage.getItem('wealthalgo_mw') || '[]');
+let _marketwatch    = [];   // seeded by loadMW() from marketwatch.json on GitHub
+let _mwSha          = '';   // GitHub blob SHA for marketwatch.json (needed for update)
+let _mwLoaded       = false;
+let _mwSaveTimer    = null;
+const DEFAULT_MARKETWATCH = ["MINDSPACE-RR", "INDUSINVIT"];
 
-// ── Marketwatch persistence ───────────────────────────────────────────────────
-function saveMW()  { localStorage.setItem('wealthalgo_mw', JSON.stringify(_marketwatch)); }
-function loadMW()  { _marketwatch = JSON.parse(localStorage.getItem('wealthalgo_mw') || '[]'); }
+// ── Marketwatch persistence (stored as settings-editor/marketwatch.json in the repo) ──
+function marketwatchPath() {
+  return `settings-editor/marketwatch.json`;
+}
+
+// Load marketwatch list from GitHub. If the file doesn't exist yet, seed it
+// with the defaults and create it.
+async function loadMW() {
+  if (!hasCfg()) { _marketwatch = [...DEFAULT_MARKETWATCH]; return; }
+  const cfg = getCfg();
+  try {
+    const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${marketwatchPath()}`;
+    const r   = await fetch(url, { headers: apiHeaders() });
+    if (r.ok) {
+      const data = await r.json();
+      _mwSha     = data.sha;
+      const json = JSON.parse(atob(data.content.replace(/\n/g, '')));
+      _marketwatch = Array.isArray(json) ? json : (json.symbols || []);
+    } else if (r.status === 404) {
+      // First run — seed the file with defaults so it exists in the repo.
+      _marketwatch = [...DEFAULT_MARKETWATCH];
+      await saveMW(true);
+    } else {
+      throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+    }
+  } catch (e) {
+    console.error('loadMW failed:', e);
+    _marketwatch = [...DEFAULT_MARKETWATCH];
+  }
+  _mwLoaded = true;
+}
+
+// Save marketwatch list to GitHub (settings-editor/marketwatch.json).
+// immediate=true bypasses the debounce (used for the initial seed write).
+async function saveMW(immediate) {
+  if (!hasCfg()) return;                 // nothing to persist to without creds
+  if (_mwSaveTimer) { clearTimeout(_mwSaveTimer); _mwSaveTimer = null; }
+
+  const doSave = async () => {
+    const cfg = getCfg();
+    try {
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(_marketwatch, null, 2))));
+      const url     = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${marketwatchPath()}`;
+      const body    = {
+        message: `marketwatch: updated via scanner (${new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'})} IST)`,
+        content: content,
+      };
+      if (_mwSha) body.sha = _mwSha;
+      const r = await fetch(url, { method: 'PUT', headers: apiHeaders(), body: JSON.stringify(body) });
+      if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+      const resp = await r.json();
+      _mwSha = resp.content.sha;         // keep SHA current for next save
+    } catch (e) {
+      console.error('saveMW failed:', e);
+      setMWStatus('⚠ Marketwatch save failed — check GitHub token/repo', 'err');
+    }
+  };
+
+  if (immediate) { await doSave(); return; }
+  // Debounce rapid add/remove clicks into a single commit.
+  return new Promise(resolve => {
+    _mwSaveTimer = setTimeout(() => doSave().then(resolve), 900);
+  });
+}
+
+function setMWStatus(msg, cls) {
+  const el = document.getElementById('mw-status');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.className   = 'mw-status' + (cls ? ' ' + cls : '');
+  if (msg) setTimeout(() => { if (el.textContent === msg) { el.textContent=''; el.className='mw-status'; } }, 3000);
+}
 
 function addToMW(sym) {
   if (_marketwatch.includes(sym)) { removeFromMW(sym); return; }   // toggle off
   _marketwatch.push(sym);
-  saveMW();
   renderMWPanel();
   renderScanResults();  // refresh +/✓ buttons in table
+  rebuildMWDropdowns();
+  setMWStatus('Saving…', '');
+  saveMW().then(() => setMWStatus('✓ Saved', 'ok'));
 }
 
 function removeFromMW(sym) {
   _marketwatch = _marketwatch.filter(s => s !== sym);
-  saveMW();
   renderMWPanel();
   renderScanResults();
+  rebuildMWDropdowns();
+  setMWStatus('Saving…', '');
+  saveMW().then(() => setMWStatus('✓ Saved', 'ok'));
 }
 
 function clearMW() {
   if (!_marketwatch.length) return;
   if (!confirm('Clear all symbols from Marketwatch?')) return;
   _marketwatch = [];
-  saveMW();
   renderMWPanel();
   renderScanResults();
+  rebuildMWDropdowns();
+  setMWStatus('Saving…', '');
+  saveMW(true).then(() => setMWStatus('✓ Saved', 'ok'));
 }
 
 function renderMWPanel() {
@@ -3580,6 +3671,7 @@ function saveConfig() {
   document.getElementById('setup-modal').style.display = 'none';
   _settingsLoaded = true;
   loadSettings();
+  loadMW().then(() => { renderMWPanel(); rebuildMWDropdowns(); });
 }
 
 // ── Instance switch ───────────────────────────────────────────────────────────
@@ -4082,64 +4174,70 @@ function _renderDeltaCell(el, delta, qty) {
     <button class="scn-run-btn" id="scn-run-btn" onclick="runScanner()">▶ Run Scanner</button>
   </div>
 
-  <div class="scn-progress-wrap" id="scn-prog-wrap">
-    <div class="scn-progress-bar"><div class="scn-progress-fill" id="scn-prog-fill"></div></div>
-    <span class="scn-progress-label" id="scn-prog-lbl">Scanning…</span>
-  </div>
+  <div class="scn-layout">
+    <div class="scn-layout-main">
+      <div class="scn-progress-wrap" id="scn-prog-wrap">
+        <div class="scn-progress-bar"><div class="scn-progress-fill" id="scn-prog-fill"></div></div>
+        <span class="scn-progress-label" id="scn-prog-lbl">Scanning…</span>
+      </div>
 
-  <div class="scn-summary" id="scn-summary">
-    <span class="scn-chip scn-chip-both"   id="scn-c-both">0 both ✓</span>
-    <span class="scn-chip scn-chip-daily"  id="scn-c-daily">0 daily ✓</span>
-    <span class="scn-chip scn-chip-weekly" id="scn-c-weekly">0 weekly ✓</span>
-    <span class="scn-chip scn-chip-nodata" id="scn-c-nodata">0 no data</span>
-    <span class="scn-scanned"              id="scn-scanned"></span>
-  </div>
+      <div class="scn-summary" id="scn-summary">
+        <span class="scn-chip scn-chip-both"   id="scn-c-both">0 both ✓</span>
+        <span class="scn-chip scn-chip-daily"  id="scn-c-daily">0 daily ✓</span>
+        <span class="scn-chip scn-chip-weekly" id="scn-c-weekly">0 weekly ✓</span>
+        <span class="scn-chip scn-chip-nodata" id="scn-c-nodata">0 no data</span>
+        <span class="scn-scanned"              id="scn-scanned"></span>
+      </div>
 
-  <div id="scn-results" style="display:none">
-    <div class="scn-tbl-wrap">
-      <table class="scn-tbl" id="scn-tbl">
-        <thead>
-          <tr>
-            <th onclick="setScanSort('sym')">Symbol ↕</th>
-            <th>Type</th>
-            <th>LTP ₹</th>
-            <th id="scn-th-dwr" class="sorted-col" onclick="setScanSort('dwr')">Daily W%R ↑</th>
-            <th id="scn-th-wwr" onclick="setScanSort('wwr')">Weekly W%R ↕</th>
-            <th id="scn-th-dma" onclick="setScanSort('dma')">vs 20 DMA ↕</th>
-            <th>Signal</th>
-            <th title="Add to Marketwatch">⭐</th>
-          </tr>
-        </thead>
-        <tbody id="scn-tbody"></tbody>
-      </table>
+      <div id="scn-results" style="display:none">
+        <div class="scn-tbl-wrap">
+          <table class="scn-tbl" id="scn-tbl">
+            <thead>
+              <tr>
+                <th onclick="setScanSort('sym')">Symbol ↕</th>
+                <th>Type</th>
+                <th>LTP ₹</th>
+                <th id="scn-th-dwr" class="sorted-col" onclick="setScanSort('dwr')">Daily W%R ↑</th>
+                <th id="scn-th-wwr" onclick="setScanSort('wwr')">Weekly W%R ↕</th>
+                <th id="scn-th-dma" onclick="setScanSort('dma')">vs 20 DMA ↕</th>
+                <th>Signal</th>
+                <th title="Add to Marketwatch">⭐</th>
+              </tr>
+            </thead>
+            <tbody id="scn-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="scn-empty" id="scn-empty"  style="display:none">No symbols matched — try relaxing the thresholds.</div>
+      <div class="scn-empty" id="scn-idle"   style="display:block">Select universe and click ▶ Run Scanner to begin.</div>
     </div>
-  </div>
-  <div class="scn-empty" id="scn-empty"  style="display:none">No symbols matched — try relaxing the thresholds.</div>
-  <div class="scn-empty" id="scn-idle"   style="display:block">Select universe and click ▶ Run Scanner to begin.</div>
 
-  <!-- Marketwatch -->
-  <div class="mw-panel">
-    <div class="mw-header">
-      <span class="mw-title">⭐ Marketwatch <span class="mw-count" id="mw-count"></span></span>
-      <button class="mw-clear-btn" onclick="clearMW()">Clear all</button>
-    </div>
-    <div class="mw-chips" id="mw-chips">
-      <span class="mw-empty-note">Click + on any scan result to add symbols here</span>
-    </div>
-    <div class="mw-tbl-wrap" id="mw-tbl-wrap" style="display:none">
-      <table class="mw-tbl" id="mw-tbl">
-        <thead>
-          <tr>
-            <th>Symbol</th>
-            <th>LTP ₹</th>
-            <th>Daily W%R</th>
-            <th>Weekly W%R</th>
-            <th>vs 20 DMA</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="mw-tbody"></tbody>
-      </table>
+    <!-- Marketwatch — always visible alongside the scanner -->
+    <div class="scn-layout-side">
+      <div class="mw-panel">
+        <div class="mw-header">
+          <span class="mw-title">⭐ Marketwatch <span class="mw-count" id="mw-count"></span><span class="mw-status" id="mw-status"></span></span>
+          <button class="mw-clear-btn" onclick="clearMW()">Clear all</button>
+        </div>
+        <div class="mw-chips" id="mw-chips">
+          <span class="mw-empty-note">Click + on any scan result to add symbols here</span>
+        </div>
+        <div class="mw-tbl-wrap" id="mw-tbl-wrap" style="display:none">
+          <table class="mw-tbl" id="mw-tbl">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>LTP ₹</th>
+                <th>Daily W%R</th>
+                <th>Weekly W%R</th>
+                <th>vs 20 DMA</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="mw-tbody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </main>
