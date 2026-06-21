@@ -315,10 +315,12 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .mw-chip .mw-rm{cursor:pointer;color:var(--muted);font-size:10px;line-height:1;padding:0 1px}
 .mw-chip .mw-rm:hover{color:#dc2626}
 .mw-empty-note{font-size:11px;color:var(--muted);padding:2px 0;align-self:center}
-.mw-tbl-wrap{overflow-x:auto}
-.mw-tbl{width:100%;border-collapse:collapse;font-size:12px}
-.mw-tbl th{padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:2px solid var(--border);white-space:nowrap}
-.mw-tbl td{padding:6px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.mw-tbl-wrap{overflow-x:visible;width:100%}
+.mw-tbl{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+.mw-tbl th{padding:6px 4px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:2px solid var(--border);line-height:1.2;overflow:hidden;text-overflow:ellipsis}
+.mw-tbl td{padding:6px 4px;border-bottom:1px solid var(--border);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;word-break:break-word}
+.mw-tbl th:first-child,.mw-tbl td:first-child{padding-left:10px}
+.mw-tbl th:last-child,.mw-tbl td:last-child{padding-right:10px}
 .mw-tbl tr:hover td{background:var(--bg3)}
 .mw-rm-cell{cursor:pointer;color:var(--muted);font-size:12px;line-height:1}
 .mw-rm-cell:hover{color:#dc2626}
@@ -331,11 +333,11 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .mw-status.err{color:#dc2626}
 /* ── Scanner + Marketwatch side-by-side layout ── */
 .scn-layout{display:flex;gap:16px;align-items:flex-start}
-.scn-layout-main{flex:1 1 auto;min-width:0}
-.scn-layout-side{flex:0 0 320px;width:320px;position:sticky;top:8px}
-@media (max-width: 980px){
+.scn-layout-main{flex:1 1 0;min-width:0}
+.scn-layout-side{flex:1 1 0;min-width:380px;max-width:520px}
+@media (max-width: 1100px){
   .scn-layout{flex-direction:column}
-  .scn-layout-side{width:100%;flex:1 1 auto;position:static}
+  .scn-layout-side{width:100%;max-width:none;min-width:0;flex:1 1 auto}
 }
 </style>
 <style>
@@ -3552,6 +3554,9 @@ function clearMW() {
   saveMW(true).then(() => setMWStatus('✓ Saved', 'ok'));
 }
 
+let _mwDataCache = {};   // sym -> scanned row {sym, ltp, dwr, wwr, dma20, below20, ...}
+let _mwDataLoading = new Set();
+
 function renderMWPanel() {
   const chips   = document.getElementById('mw-chips');
   const tblWrap = document.getElementById('mw-tbl-wrap');
@@ -3567,9 +3572,11 @@ function renderMWPanel() {
     return;
   }
 
-  // Build a lookup of latest scan data so we can show live LTP / W%R / DMA
-  // for each saved symbol. Falls back to "—" if that symbol hasn't been
-  // scanned yet (e.g. user added it before running a scan).
+  // Build a lookup of latest data so we can show live LTP / W%R / DMA for
+  // each saved symbol. Prefer a fresh universe-scan row if one exists
+  // (it's already in memory), otherwise fall back to Marketwatch's own
+  // independently-fetched cache (covers symbols outside any scanned
+  // universe, e.g. MINDSPACE-RR, INDUSINVIT).
   const bySym = {};
   (_scnRows || []).forEach(r => { bySym[r.sym] = r; });
 
@@ -3577,16 +3584,19 @@ function renderMWPanel() {
   tblWrap.style.display = 'block';
 
   tbody.innerHTML = _marketwatch.map(sym => {
-    const r = bySym[sym];
-    const ltp = r && r.ltp != null ? '₹' + r.ltp.toFixed(2) : '—';
-    const dwr = r && r.dwr != null ? r.dwr.toFixed(1) : '—';
-    const wwr = r && r.wwr != null ? r.wwr.toFixed(1) : '—';
+    const r = bySym[sym] || _mwDataCache[sym];
+    const loading = _mwDataLoading.has(sym);
+    const ltp = r && r.ltp != null ? '₹' + r.ltp.toFixed(2) : (loading ? '…' : '—');
+    const dwr = r && r.dwr != null ? r.dwr.toFixed(1) : (loading ? '…' : '—');
+    const wwr = r && r.wwr != null ? r.wwr.toFixed(1) : (loading ? '…' : '—');
     const dCls = r && r.dwr != null && r.dwr <= -80 ? 'wr-os' : r && r.dwr != null && r.dwr <= -50 ? 'wr-warn' : 'wr-ok';
     const wCls = r && r.wwr != null && r.wwr <= -80 ? 'wr-os' : r && r.wwr != null && r.wwr <= -50 ? 'wr-warn' : 'wr-ok';
-    let dmaHtml = '—';
+    let dmaHtml = loading ? '…' : '—';
     if (r && r.dma20 != null && r.ltp != null) {
       const pct = ((r.ltp - r.dma20) / r.dma20 * 100);
       dmaHtml = `<span class="${r.below20 ? 'dma-below' : 'dma-above'}">${(pct >= 0 ? '+' : '') + pct.toFixed(2)}%</span>`;
+    } else if (r && !loading) {
+      dmaHtml = '<span title="No CSV data found for this symbol in the repo">n/a</span>';
     }
     return `<tr>
       <td style="font-weight:600">${sym}</td>
@@ -3597,6 +3607,41 @@ function renderMWPanel() {
       <td><span class="mw-rm-cell" onclick="removeFromMW('${sym}')" title="Remove">✕</span></td>
     </tr>`;
   }).join('');
+
+  // Kick off background fetches for any symbol that has no data yet
+  // (not in the last universe scan, not already cached, not already loading).
+  refreshMWData();
+}
+
+// Fetch live LTP/W%R/DMA for every Marketwatch symbol that isn't already
+// covered by the last universe scan or the MW cache. Safe to call often —
+// it skips symbols that are already loading or already resolved.
+async function refreshMWData(force) {
+  const dailyT  = parseFloat(document.getElementById('scn-daily-t')?.value  || -50);
+  const weeklyT = parseFloat(document.getElementById('scn-weekly-t')?.value || -50);
+  const bySym = {};
+  (_scnRows || []).forEach(r => { bySym[r.sym] = r; });
+
+  const need = _marketwatch.filter(sym =>
+    (force || (!bySym[sym] && !_mwDataCache[sym])) && !_mwDataLoading.has(sym)
+  );
+  if (!need.length) return;
+
+  need.forEach(sym => _mwDataLoading.add(sym));
+  renderMWPanel();   // show "…" loading state immediately
+
+  await Promise.all(need.map(async sym => {
+    try {
+      const row = await _scanOne(sym, dailyT, weeklyT);
+      _mwDataCache[sym] = row || { sym, ltp:null, dwr:null, wwr:null, dma20:null, below20:false };
+    } catch (e) {
+      console.error('Marketwatch fetch failed for', sym, e);
+      _mwDataCache[sym] = { sym, ltp:null, dwr:null, wwr:null, dma20:null, below20:false };
+    } finally {
+      _mwDataLoading.delete(sym);
+    }
+  }));
+  renderMWPanel();
 }
 
 // ── Add Marketwatch as a dropdown source in Settings ──────────────────────────
@@ -4152,30 +4197,30 @@ function _renderDeltaCell(el, delta, qty) {
     <p style="font-size:11px;color:var(--muted);margin-top:2px">Reads CSVs from repo · Daily W%R(14), Weekly W%R(14) derived from daily · No backend needed</p>
   </div>
 
-  <div class="scn-toolbar">
-    <div class="scn-fg">
-      <label>Scan Universe</label>
-      <label class="scn-chk-label"><input type="checkbox" id="scn-chk-etf" checked> 📊 ETFs (285)</label>
-      <label class="scn-chk-label"><input type="checkbox" id="scn-chk-n200"> 🏦 NIFTY 200 (200)</label>
-      <label class="scn-chk-label"><input type="checkbox" id="scn-chk-mid150"> 📈 NIFTY MIDCAP 150 (150)</label>
-    </div>
-    <div class="scn-fg">
-      <label>Daily W%R ≤</label>
-      <input type="number" id="scn-daily-t" class="scn-thresh" value="-50" min="-100" max="0" step="5">
-    </div>
-    <div class="scn-fg">
-      <label>Weekly W%R ≤</label>
-      <input type="number" id="scn-weekly-t" class="scn-thresh" value="-50" min="-100" max="0" step="5">
-    </div>
-    <div class="scn-fg">
-      <label>Filter</label>
-      <label class="scn-chk-label"><input type="checkbox" id="scn-20dma" checked onchange="renderScanResults()"> Below 20 DMA</label>
-    </div>
-    <button class="scn-run-btn" id="scn-run-btn" onclick="runScanner()">▶ Run Scanner</button>
-  </div>
-
   <div class="scn-layout">
     <div class="scn-layout-main">
+      <div class="scn-toolbar">
+        <div class="scn-fg">
+          <label>Scan Universe</label>
+          <label class="scn-chk-label"><input type="checkbox" id="scn-chk-etf" checked> 📊 ETFs (285)</label>
+          <label class="scn-chk-label"><input type="checkbox" id="scn-chk-n200"> 🏦 NIFTY 200 (200)</label>
+          <label class="scn-chk-label"><input type="checkbox" id="scn-chk-mid150"> 📈 NIFTY MIDCAP 150 (150)</label>
+        </div>
+        <div class="scn-fg">
+          <label>Daily W%R ≤</label>
+          <input type="number" id="scn-daily-t" class="scn-thresh" value="-50" min="-100" max="0" step="5">
+        </div>
+        <div class="scn-fg">
+          <label>Weekly W%R ≤</label>
+          <input type="number" id="scn-weekly-t" class="scn-thresh" value="-50" min="-100" max="0" step="5">
+        </div>
+        <div class="scn-fg">
+          <label>Filter</label>
+          <label class="scn-chk-label"><input type="checkbox" id="scn-20dma" checked onchange="renderScanResults()"> Below 20 DMA</label>
+        </div>
+        <button class="scn-run-btn" id="scn-run-btn" onclick="runScanner()">▶ Run Scanner</button>
+      </div>
+
       <div class="scn-progress-wrap" id="scn-prog-wrap">
         <div class="scn-progress-bar"><div class="scn-progress-fill" id="scn-prog-fill"></div></div>
         <span class="scn-progress-label" id="scn-prog-lbl">Scanning…</span>
@@ -4224,13 +4269,21 @@ function _renderDeltaCell(el, delta, qty) {
         </div>
         <div class="mw-tbl-wrap" id="mw-tbl-wrap" style="display:none">
           <table class="mw-tbl" id="mw-tbl">
+            <colgroup>
+              <col style="width:26%">
+              <col style="width:19%">
+              <col style="width:18%">
+              <col style="width:18%">
+              <col style="width:13%">
+              <col style="width:6%">
+            </colgroup>
             <thead>
               <tr>
                 <th>Symbol</th>
                 <th>LTP ₹</th>
-                <th>Daily W%R</th>
-                <th>Weekly W%R</th>
-                <th>vs 20 DMA</th>
+                <th>Daily<br>W%R</th>
+                <th>Weekly<br>W%R</th>
+                <th>vs 20<br>DMA</th>
                 <th></th>
               </tr>
             </thead>
