@@ -31,6 +31,9 @@ INSTRUMENTS_URL = 'https://api.kite.trade/instruments'
 FETCH_DAYS   = 400   # days of history to download
 MAX_WORKERS  = 3     # Zerodha rate limit ~3 req/s
 STALE_DAYS   = 1     # re-download if last candle is older than this
+MAX_RETRIES  = 4      # retries on HTTP 429 before giving up on a symbol
+RETRY_BACKOFF_BASE = 2.0   # seconds; doubles each retry (2s, 4s, 8s, 16s)
+REQUEST_PACING_SEC = 0.6   # pause between completed requests (was 0.35 — too aggressive, caused cascading 429s)
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
@@ -109,9 +112,15 @@ def fetch_and_save(sym, token, session):
 
     try:
         url = f'{API_BASE}/instruments/historical/{token}/day'
-        r   = session.get(url, params={
-            'from': fetch_from, 'to': fetch_to, 'continuous': 0, 'oi': 1
-        }, timeout=30)
+        r   = None
+        for attempt in range(MAX_RETRIES + 1):
+            r = session.get(url, params={
+                'from': fetch_from, 'to': fetch_to, 'continuous': 0, 'oi': 1
+            }, timeout=30)
+            if r.status_code != 429:
+                break
+            if attempt < MAX_RETRIES:
+                time.sleep(RETRY_BACKOFF_BASE * (2 ** attempt))
 
         if r.status_code != 200:
             return sym, f'http_{r.status_code}'
@@ -238,8 +247,11 @@ def main():
             else:
                 failed += 1
                 print(f'  ✗ [{i:>4}/{len(to_download)}] {sym:<20} {result}')
-            # Small sleep to respect Zerodha rate limit
-            time.sleep(0.35)
+            # Pace requests to respect Zerodha's rate limit. With MAX_WORKERS
+            # concurrent threads, this sleep happens once per completed
+            # request, so the *effective* rate is roughly
+            # MAX_WORKERS / REQUEST_PACING_SEC requests/sec.
+            time.sleep(REQUEST_PACING_SEC)
 
     print(f'\n[seed] Done — ✓ {ok} downloaded, ✗ {failed} failed, ⏭ {len(no_token)} not found')
     print(f'[seed] CSVs saved to: {DAILY_DIR}\n')
