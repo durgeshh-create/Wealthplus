@@ -331,7 +331,28 @@ function unlockPage() {
   loadDivisorSettings();
   renderDivisorTable();
   renderFormulaPreview();
-  startAutoRefresh();
+  showPausedNotice();
+  // NOTE: startAutoRefresh() is intentionally NOT called.
+  // api.kite.trade does not send CORS headers and rejects direct browser
+  // fetch() calls from any page not served by Zerodha itself — confirmed via
+  // Kite Connect's own developer forum. That means this page cannot fetch
+  // live Nifty/VIX/option data as a static GitHub Pages site, no matter what
+  // Kite session is active in the browser. This page is paused pending a
+  // server-side relay (e.g. a small endpoint exposed by the existing bot)
+  // to actually proxy these Kite calls. Don't re-enable startAutoRefresh()
+  // until that relay exists — it will only ever show dashes.
+}
+
+function showPausedNotice() {
+  document.getElementById('live-dot').className = 'dot off';
+  document.getElementById('live-label').textContent = 'Paused — see notice below';
+  showBanner('warn',
+    '⏸ This page is paused. Live data here depends on calling api.kite.trade directly from the browser, ' +
+    'but Zerodha\'s API does not allow that (no CORS support) — it only works from server-side code, not a ' +
+    'static page like this one. Being logged into Kite does not change this. A fix requires a small backend ' +
+    'relay (e.g. an endpoint on the bot) to fetch Kite data and serve it to this page instead. ' +
+    'No spot price, VIX, strike, LTP, or delta will appear until that relay exists.'
+  );
 }
 
 if (sessionStorage.getItem(PW_SESSION) === '1') {
