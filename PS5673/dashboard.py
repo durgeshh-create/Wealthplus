@@ -805,6 +805,29 @@ def main():
         dashboard_state["bot_running"] = True
         logger.info("☁️  Cloud mode — bot_running auto-set to True (no dashboard button needed)")
 
+        # ✅ FIX: the dip-accumulator / weekday-systematic-buy engine
+        # (IntradayEngine) was only ever started via the dashboard's
+        # "▶ START BOT" button hitting POST /api/intraday/start — a route
+        # that requires a human to click it. In cloud/GitHub-Actions mode
+        # there is no one present to click anything, so the engine's
+        # background loop (which contains the entire 15:15 IST buy-window
+        # logic, including the Monday weekday-systematic buy) never ran at
+        # all, every single cloud run, regardless of settings or W%R.
+        # Mirror exactly what that button does so cloud runs get the same
+        # behavior as a manually-started local session.
+        engine = dashboard_state.get('intraday_engine')
+        if engine:
+            started = engine.start()
+            logger.info(
+                f"☁️  Cloud mode — intraday/dip-accumulator engine auto-start "
+                f"{'succeeded' if started else 'skipped (already running)'}"
+            )
+        else:
+            logger.warning(
+                "☁️  Cloud mode — intraday_engine not found in dashboard_state; "
+                "dip-accumulator buys (including the Monday weekday tranche) will NOT run this session."
+            )
+
     # ── Cloud auto-shutdown watchdog ──────────────────────────────────────────
     if IS_CLOUD:
         watchdog_thread = threading.Thread(
