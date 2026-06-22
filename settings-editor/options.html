@@ -117,10 +117,39 @@ main{max-width:1100px;margin:0 auto;padding:20px}
 
 .warn-banner{margin-top:14px;font-size:11px;color:#92400e;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px 14px}
 .err-banner{margin-top:14px;font-size:11px;color:#991b1b;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px}
+
+/* Password gate (same mechanism as index.html — baked hash, sessionStorage) */
+#pw-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
+.pw-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:36px 32px;width:360px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,.25);text-align:center}
+.pw-logo{font-family:var(--head);font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px}
+.pw-sub{font-size:11px;color:var(--muted);margin-bottom:24px;letter-spacing:.06em;text-transform:uppercase}
+.pw-input-wrap{position:relative;margin-bottom:12px}
+.pw-input-wrap input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:10px 40px 10px 14px;color:var(--text);font-size:14px;font-family:var(--head);transition:border-color .15s}
+.pw-input-wrap input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0}
+.pw-btn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:14px;font-family:var(--head);font-weight:700;cursor:pointer;transition:opacity .15s;margin-top:2px}
+.pw-btn:hover{opacity:.88}
+.pw-err{font-size:11px;color:#f87171;margin-top:10px;min-height:16px}
+#page-content{display:none}
 </style>
 </head>
 <body>
 
+<!-- PASSWORD GATE -->
+<div id="pw-overlay">
+  <div class="pw-box">
+    <div class="pw-logo">&#9889; WealthAlgo</div>
+    <div class="pw-sub">Private Dashboard</div>
+    <div class="pw-input-wrap">
+      <input type="password" id="pw-input" placeholder="Password" autofocus onkeydown="if(event.key==='Enter')checkPw()">
+      <button class="pw-eye" onclick="togglePwEye()" title="Show/hide">&#128065;</button>
+    </div>
+    <button class="pw-btn" onclick="checkPw()">Unlock &#8594;</button>
+    <div class="pw-err" id="pw-err"></div>
+  </div>
+</div>
+
+<div id="page-content">
 <header>
   <div class="logo">
     <h1>WealthAlgo</h1>
@@ -259,8 +288,56 @@ main{max-width:1100px;margin:0 auto;padding:20px}
     <span id="refresh-label">—</span>
   </div>
 </main>
+</div>
 
 <script>
+// PASSWORD GATE — mirrors index.html exactly. Same baked hash placeholder,
+// same sessionStorage key, so unlocking either page unlocks both for this
+// browser tab/session.
+const _BAKED_HASH = '%%DASHBOARD_PW_HASH%%';   // replaced by workflow at deploy
+const PW_SESSION  = 'wealthalgo_unlocked';
+
+async function sha256(s) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkPw() {
+  const v = document.getElementById('pw-input').value;
+  if (!v) { pwErr('Enter your password.'); return; }
+  if (!_BAKED_HASH || _BAKED_HASH.startsWith('%%')) {
+    pwErr('⚠ Password not configured. Add DASHBOARD_PW_HASH to GitHub Secrets and re-run the workflow.');
+    return;
+  }
+  const h = await sha256(v);
+  if (h === _BAKED_HASH) {
+    sessionStorage.setItem(PW_SESSION, '1');
+    unlockPage();
+  } else {
+    pwErr('Incorrect password.');
+    document.getElementById('pw-input').select();
+  }
+}
+
+function pwErr(m) { document.getElementById('pw-err').textContent = m; }
+function togglePwEye() {
+  const i = document.getElementById('pw-input');
+  i.type = i.type === 'password' ? 'text' : 'password';
+}
+
+function unlockPage() {
+  document.getElementById('pw-overlay').style.display = 'none';
+  document.getElementById('page-content').style.display = 'block';
+  loadDivisorSettings();
+  renderDivisorTable();
+  renderFormulaPreview();
+  startAutoRefresh();
+}
+
+if (sessionStorage.getItem(PW_SESSION) === '1') {
+  unlockPage();
+}
+
 // ── Constants ──────────────────────────────────────────────────────────────────
 const NIFTY_TOKEN    = "256265";   // NIFTY 50 index instrument token
 const VIX_TOKEN       = "264969";  // INDIA VIX index instrument token
@@ -590,12 +667,9 @@ function startAutoRefresh() {
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  loadDivisorSettings();
-  renderDivisorTable();
-  renderFormulaPreview();
-  startAutoRefresh();
-});
+// (startup happens inside unlockPage(), only after password verification —
+// see PASSWORD GATE block above)
+
 </script>
 </body>
 </html>
