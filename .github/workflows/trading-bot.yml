@@ -93,25 +93,35 @@ jobs:
             echo "ERROR: index.html not found anywhere" && exit 1
           fi
 
+          # options.html is optional — only deploy it if it exists on main.
+          if [ -f settings-editor/options.html ]; then
+            echo "Copying options.html from main/settings-editor/"
+            cp settings-editor/options.html /tmp/ghp/options.html
+          fi
+
           # ── Inject DASHBOARD_PW_HASH secret into placeholder ────────────────
           # Runs unconditionally so the hash is always current, even when the
           # source file came from gh-pages (no settings-editor/ copy on main).
           # grep guard makes this idempotent — won't corrupt an already-injected file.
-          if [ -n "${DASHBOARD_PW_HASH}" ]; then
-            if grep -q "%%DASHBOARD_PW_HASH%%" /tmp/ghp/index.html; then
-              sed -i "s|%%DASHBOARD_PW_HASH%%|${DASHBOARD_PW_HASH}|g" /tmp/ghp/index.html
-              echo "✅ Password hash injected into index.html"
+          for f in /tmp/ghp/index.html /tmp/ghp/options.html; do
+            [ -f "$f" ] || continue
+            if [ -n "${DASHBOARD_PW_HASH}" ]; then
+              if grep -q "%%DASHBOARD_PW_HASH%%" "$f"; then
+                sed -i "s|%%DASHBOARD_PW_HASH%%|${DASHBOARD_PW_HASH}|g" "$f"
+                echo "✅ Password hash injected into $(basename $f)"
+              else
+                echo "ℹ Placeholder not found in $(basename $f) — upload the latest from settings-editor/"
+              fi
             else
-              echo "ℹ Placeholder not found in index.html — upload the latest index.html from settings-editor/"
+              echo "⚠ DASHBOARD_PW_HASH secret not set — password gate will show config error"
             fi
-          else
-            echo "⚠ DASHBOARD_PW_HASH secret not set — password gate will show config error"
-          fi
+          done
 
           cd /tmp/ghp
           git add index.html
-          git diff --cached --quiet && echo "index.html unchanged, skipping commit" || \
-            git commit -m "deploy index.html $(date -u +'%Y-%m-%d')"
+          [ -f options.html ] && git add options.html
+          git diff --cached --quiet && echo "No changes, skipping commit" || \
+            git commit -m "deploy index.html + options.html $(date -u +'%Y-%m-%d')"
           for _retry in 1 2 3; do
             git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
             git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
