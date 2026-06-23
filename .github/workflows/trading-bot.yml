@@ -29,9 +29,15 @@ jobs:
   bootstrap-ghpages:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # ✅ FIX: previously cancel-in-progress was true for manual triggers, which
+    # meant clicking "Run workflow" again while a deploy was still mid-push
+    # would kill it before the final `git push` landed — silently leaving
+    # gh-pages stale with no error shown anywhere. This job is short (~1 min)
+    # and idempotent (re-running it is always safe), so new manual runs now
+    # queue behind an in-progress one instead of cancelling it.
     concurrency:
       group: bootstrap-ghpages
-      cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
+      cancel-in-progress: false
 
     steps:
       - name: Time-window guard (abort stale scheduled runs)
@@ -75,9 +81,36 @@ jobs:
           GH_REPO:           ${{ github.repository }}
           DASHBOARD_PW_HASH: ${{ secrets.DASHBOARD_PW_HASH }}
         run: |
-          git fetch origin gh-pages 2>/dev/null || true
-          git worktree add /tmp/ghp gh-pages 2>/dev/null || \
+          set -e
+
+          # ✅ FIX: previously "git fetch origin gh-pages 2>/dev/null || true"
+          # silently swallowed any fetch failure, and "git worktree add /tmp/ghp
+          # gh-pages" would then check out whatever LOCAL gh-pages ref happened
+          # to exist (possibly stale/absent), instead of guaranteed-fresh remote
+          # content. This produced "No changes, skipping commit" even when
+          # main's settings-editor/index.html or options.html had genuinely
+          # changed, because the worktree was silently diffing against stale
+          # data — not against the real current gh-pages HEAD.
+          echo "Fetching gh-pages from origin..."
+          git fetch origin gh-pages
+
+          # Remove any leftover worktree directory from a previous (possibly
+          # failed) run on this same runner, and any stale local gh-pages
+          # branch ref, so this always starts from the just-fetched remote
+          # state with zero ambiguity.
+          git worktree remove --force /tmp/ghp 2>/dev/null || true
+          rm -rf /tmp/ghp
+          git branch -D gh-pages 2>/dev/null || true
+
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            echo "Creating worktree from freshly-fetched origin/gh-pages"
+            git worktree add /tmp/ghp -B gh-pages origin/gh-pages
+          else
+            echo "origin/gh-pages does not exist yet — creating orphan branch"
             git worktree add /tmp/ghp --orphan gh-pages
+          fi
+
+          echo "gh-pages worktree HEAD: $(git -C /tmp/ghp log -1 --format='%H %s' 2>/dev/null || echo '(no commits yet)')"
 
           # Source: prefer main/settings-editor/, otherwise use existing gh-pages file
           if [ -f settings-editor/index.html ]; then
@@ -93,30 +126,50 @@ jobs:
             echo "ERROR: index.html not found anywhere" && exit 1
           fi
 
+          # options.html is optional — only deploy it if it exists on main.
+          if [ -f settings-editor/options.html ]; then
+            echo "Copying options.html from main/settings-editor/"
+            cp settings-editor/options.html /tmp/ghp/options.html
+          fi
+
           # ── Inject DASHBOARD_PW_HASH secret into placeholder ────────────────
           # Runs unconditionally so the hash is always current, even when the
           # source file came from gh-pages (no settings-editor/ copy on main).
           # grep guard makes this idempotent — won't corrupt an already-injected file.
-          if [ -n "${DASHBOARD_PW_HASH}" ]; then
-            if grep -q "%%DASHBOARD_PW_HASH%%" /tmp/ghp/index.html; then
-              sed -i "s|%%DASHBOARD_PW_HASH%%|${DASHBOARD_PW_HASH}|g" /tmp/ghp/index.html
-              echo "✅ Password hash injected into index.html"
+          for f in /tmp/ghp/index.html /tmp/ghp/options.html; do
+            [ -f "$f" ] || continue
+            if [ -n "${DASHBOARD_PW_HASH}" ]; then
+              if grep -q "%%DASHBOARD_PW_HASH%%" "$f"; then
+                sed -i "s|%%DASHBOARD_PW_HASH%%|${DASHBOARD_PW_HASH}|g" "$f"
+                echo "✅ Password hash injected into $(basename $f)"
+              else
+                echo "ℹ Placeholder not found in $(basename $f) — upload the latest from settings-editor/"
+              fi
             else
-              echo "ℹ Placeholder not found in index.html — upload the latest index.html from settings-editor/"
+              echo "⚠ DASHBOARD_PW_HASH secret not set — password gate will show config error"
             fi
-          else
-            echo "⚠ DASHBOARD_PW_HASH secret not set — password gate will show config error"
-          fi
+          done
 
           cd /tmp/ghp
           git add index.html
-          git diff --cached --quiet && echo "index.html unchanged, skipping commit" || \
-            git commit -m "deploy index.html $(date -u +'%Y-%m-%d')"
-          for _retry in 1 2 3; do
-            git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
-            git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
-            sleep 3
-          done
+          [ -f options.html ] && git add options.html
+          echo "--- git status before diff check ---"
+          git status --short
+          if git diff --cached --quiet; then
+            echo "No changes, skipping commit"
+          else
+            echo "Changes detected — committing"
+            git commit -m "deploy index.html + options.html $(date -u +'%Y-%m-%d %H:%M')"
+            for _retry in 1 2 3; do
+              git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+              if git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages; then
+                echo "✅ Pushed to gh-pages successfully"
+                break
+              fi
+              echo "Push attempt ${_retry} failed — retrying..."
+              sleep 3
+            done
+          fi
 
   # ────────────────────────────────────────────────────────────────────────────
   # RD1858 — runs in parallel with PS5673, after bootstrap
@@ -179,15 +232,12 @@ jobs:
           git config user.email "bot@wealthalgo.local"
           git fetch origin gh-pages 2>/dev/null || echo "gh-pages branch not yet created"
 
-      - name: Seed / refresh daily CSVs (RD1858)
-        working-directory: RD1858
-        timeout-minutes: 20
-        env:
-          PYTHONIOENCODING: utf-8
-          PYTHONUTF8:       "1"
-        run: |
-          echo "📥 Seeding stale CSVs for RD1858…"
-          python seed_csvs.py || echo "⚠️ Seed failed — continuing with existing CSVs"
+      # Full Scanner-universe seeding (~575 ETF/NIFTY200/Midcap150 symbols)
+      # moved out of this regular bot session — it was adding significant
+      # time to every single run even though the bot only trades a couple
+      # of symbols. Use the "⬇ Seed Scanner Data" button on the Scanner
+      # page (or the "Seed Scanner Data (On-Demand)" workflow) instead,
+      # whenever the Scanner's data actually needs refreshing.
 
       - name: Seed Marketwatch-only CSVs (RD1858)
         # Read-only w.r.t. trading config: seeds whatever symbols are saved in
