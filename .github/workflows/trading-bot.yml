@@ -75,9 +75,36 @@ jobs:
           GH_REPO:           ${{ github.repository }}
           DASHBOARD_PW_HASH: ${{ secrets.DASHBOARD_PW_HASH }}
         run: |
-          git fetch origin gh-pages 2>/dev/null || true
-          git worktree add /tmp/ghp gh-pages 2>/dev/null || \
+          set -e
+
+          # ✅ FIX: previously "git fetch origin gh-pages 2>/dev/null || true"
+          # silently swallowed any fetch failure, and "git worktree add /tmp/ghp
+          # gh-pages" would then check out whatever LOCAL gh-pages ref happened
+          # to exist (possibly stale/absent), instead of guaranteed-fresh remote
+          # content. This produced "No changes, skipping commit" even when
+          # main's settings-editor/index.html or options.html had genuinely
+          # changed, because the worktree was silently diffing against stale
+          # data — not against the real current gh-pages HEAD.
+          echo "Fetching gh-pages from origin..."
+          git fetch origin gh-pages
+
+          # Remove any leftover worktree directory from a previous (possibly
+          # failed) run on this same runner, and any stale local gh-pages
+          # branch ref, so this always starts from the just-fetched remote
+          # state with zero ambiguity.
+          git worktree remove --force /tmp/ghp 2>/dev/null || true
+          rm -rf /tmp/ghp
+          git branch -D gh-pages 2>/dev/null || true
+
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            echo "Creating worktree from freshly-fetched origin/gh-pages"
+            git worktree add /tmp/ghp -B gh-pages origin/gh-pages
+          else
+            echo "origin/gh-pages does not exist yet — creating orphan branch"
             git worktree add /tmp/ghp --orphan gh-pages
+          fi
+
+          echo "gh-pages worktree HEAD: $(git -C /tmp/ghp log -1 --format='%H %s' 2>/dev/null || echo '(no commits yet)')"
 
           # Source: prefer main/settings-editor/, otherwise use existing gh-pages file
           if [ -f settings-editor/index.html ]; then
@@ -120,13 +147,23 @@ jobs:
           cd /tmp/ghp
           git add index.html
           [ -f options.html ] && git add options.html
-          git diff --cached --quiet && echo "No changes, skipping commit" || \
-            git commit -m "deploy index.html + options.html $(date -u +'%Y-%m-%d')"
-          for _retry in 1 2 3; do
-            git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
-            git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages && break
-            sleep 3
-          done
+          echo "--- git status before diff check ---"
+          git status --short
+          if git diff --cached --quiet; then
+            echo "No changes, skipping commit"
+          else
+            echo "Changes detected — committing"
+            git commit -m "deploy index.html + options.html $(date -u +'%Y-%m-%d %H:%M')"
+            for _retry in 1 2 3; do
+              git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+              if git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages; then
+                echo "✅ Pushed to gh-pages successfully"
+                break
+              fi
+              echo "Push attempt ${_retry} failed — retrying..."
+              sleep 3
+            done
+          fi
 
   # ────────────────────────────────────────────────────────────────────────────
   # RD1858 — runs in parallel with PS5673, after bootstrap
