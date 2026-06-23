@@ -346,10 +346,6 @@ const STRIKE_STEP    = 100;        // round PUT/CALL strikes to nearest 100
 const REFRESH_MS_MARKET   = 60 * 1000;    // 60s during market hours
 const REFRESH_MS_OFFHOURS = 5 * 60 * 1000; // 5 min outside market hours
 
-// Snapshot JSON pushed to gh-pages by the bot every ~60s.
-// Primary source for Nifty spot + India VIX — no CORS issues, no Kite login needed.
-const SNAPSHOT_URL = "https://durgeshh-create.github.io/Wealthplus/status_ps5673.json";
-
 const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const DEFAULT_DIVISORS = { 1: 3300, 2: 3800, 3: 4500, 4: 6000, 5: 8000 }; // Mon..Fri
 const DIVISOR_NOTES = {
@@ -437,7 +433,7 @@ function ceilTo(x, step)  { return Math.ceil(x / step) * step; }
 function thisWeekExpiry(ref) {
   const d = new Date(ref);
   const day = d.getDay();           // 0=Sun..6=Sat
-  const diff = (2 - day + 7) % 7;   // days until next Tuesday (0 if today is Tuesday)
+  const diff = (4 - day + 7) % 7;   // days until next Thursday (Nifty weekly expiry day)
   d.setDate(d.getDate() + diff);
   return d;
 }
@@ -460,22 +456,21 @@ function fmtExpiry(d) {
 let _spot = null, _vix = null, _kiteOk = false;
 
 async function fetchIndexQuotes() {
-  // ── Primary: bot snapshot JSON on gh-pages (no CORS, no Kite login needed) ──
+  // Primary: snapshot JSON pushed to gh-pages by the bot every ~60s.
+  // No CORS issues, no Kite login needed.
   try {
-    const r = await fetch(SNAPSHOT_URL + "?t=" + Date.now(), {
-      signal: AbortSignal.timeout(8000),
-    });
+    const snapUrl = window.location.origin + window.location.pathname.replace('options.html','') + 'status_ps5673.json?t=' + Date.now();
+    const r = await fetch(snapUrl, { signal: AbortSignal.timeout(8000) });
     if (r.ok) {
       const snap = await r.json();
-      const indices = snap.indices || {};
-      const nifty = indices["NIFTY 50"];
-      const vix   = indices["INDIA VIX"];
-      if (nifty && nifty.ltp != null) _spot = nifty.ltp;
-      if (vix   && vix.ltp   != null) _vix  = vix.ltp;
+      const idx  = snap.indices || {};
+      if (idx['NIFTY 50']  && idx['NIFTY 50'].ltp  != null) _spot = idx['NIFTY 50'].ltp;
+      if (idx['INDIA VIX'] && idx['INDIA VIX'].ltp != null) _vix  = idx['INDIA VIX'].ltp;
     }
   } catch (_) {}
 
-  // ── Fallback / enhancement: Kite direct (works if logged into kite.zerodha.com) ──
+  // Fallback: Kite direct (works if logged into kite.zerodha.com in this browser).
+  // Iterate response entries — API may key by "256265" or "NSE:256265".
   if (!_spot || !_vix) {
     try {
       const qs = `i=${NIFTY_TOKEN}&i=${VIX_TOKEN}`;
@@ -484,12 +479,14 @@ async function fetchIndexQuotes() {
         signal: AbortSignal.timeout(6000),
       });
       if (r.ok) {
-        const json = await r.json();
-        const data = json.data || {};
-        const niftyQ = data[NIFTY_TOKEN];
-        const vixQ   = data[VIX_TOKEN];
-        if (niftyQ && niftyQ.last_price != null) _spot = niftyQ.last_price;
-        if (vixQ   && vixQ.last_price   != null) _vix  = vixQ.last_price;
+        const data = (await r.json()).data || {};
+        const tokenToKey = { [NIFTY_TOKEN]: '_spot', [VIX_TOKEN]: '_vix' };
+        for (const [key, val] of Object.entries(data)) {
+          // key may be "256265" or "NSE:256265" — match by suffix
+          const tok = key.split(':').pop();
+          if (tok === NIFTY_TOKEN && val.last_price != null) _spot = val.last_price;
+          if (tok === VIX_TOKEN   && val.last_price != null) _vix  = val.last_price;
+        }
       }
     } catch (_) {}
   }
@@ -506,7 +503,7 @@ function updateKiteStatus() {
     lbl.textContent = 'Live';
   } else {
     dot.className = 'dot off';
-    lbl.textContent = 'Waiting for bot snapshot…';
+    lbl.textContent = 'Waiting for snapshot / Kite login…';
   }
 }
 
