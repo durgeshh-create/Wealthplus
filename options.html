@@ -331,7 +331,7 @@ function unlockPage() {
   loadDivisorSettings();
   renderDivisorTable();
   renderFormulaPreview();
-  startAutoRefresh();   // ← data now arrives via /api/options/* bot proxy
+  startAutoRefresh();
 }
 
 
@@ -345,6 +345,10 @@ const VIX_TOKEN       = "264969";  // INDIA VIX index instrument token
 const STRIKE_STEP    = 100;        // round PUT/CALL strikes to nearest 100
 const REFRESH_MS_MARKET   = 60 * 1000;    // 60s during market hours
 const REFRESH_MS_OFFHOURS = 5 * 60 * 1000; // 5 min outside market hours
+
+// Snapshot JSON pushed to gh-pages by the bot every ~60s.
+// Primary source for Nifty spot + India VIX — no CORS issues, no Kite login needed.
+const SNAPSHOT_URL = "https://durgeshh-create.github.io/Wealthplus/status_ps5673.json";
 
 const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const DEFAULT_DIVISORS = { 1: 3300, 2: 3800, 3: 4500, 4: 6000, 5: 8000 }; // Mon..Fri
@@ -456,18 +460,41 @@ function fmtExpiry(d) {
 let _spot = null, _vix = null, _kiteOk = false;
 
 async function fetchIndexQuotes() {
+  // ── Primary: bot snapshot JSON on gh-pages (no CORS, no Kite login needed) ──
   try {
-    const r = await fetch('/api/options/quotes', { signal: AbortSignal.timeout(8000) });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const json = await r.json();
-    if (json.error) throw new Error(json.error);
-    _spot = json.nifty;
-    _vix  = json.vix;
-    _kiteOk = (_spot != null && _vix != null);
-  } catch (e) {
-    _kiteOk = false;
-    console.warn('fetchIndexQuotes:', e.message);
+    const r = await fetch(SNAPSHOT_URL + "?t=" + Date.now(), {
+      signal: AbortSignal.timeout(8000),
+    });
+    if (r.ok) {
+      const snap = await r.json();
+      const indices = snap.indices || {};
+      const nifty = indices["NIFTY 50"];
+      const vix   = indices["INDIA VIX"];
+      if (nifty && nifty.ltp != null) _spot = nifty.ltp;
+      if (vix   && vix.ltp   != null) _vix  = vix.ltp;
+    }
+  } catch (_) {}
+
+  // ── Fallback / enhancement: Kite direct (works if logged into kite.zerodha.com) ──
+  if (!_spot || !_vix) {
+    try {
+      const qs = `i=${NIFTY_TOKEN}&i=${VIX_TOKEN}`;
+      const r  = await fetch("https://api.kite.trade/quote?" + qs, {
+        credentials: "include",
+        signal: AbortSignal.timeout(6000),
+      });
+      if (r.ok) {
+        const json = await r.json();
+        const data = json.data || {};
+        const niftyQ = data[NIFTY_TOKEN];
+        const vixQ   = data[VIX_TOKEN];
+        if (niftyQ && niftyQ.last_price != null) _spot = niftyQ.last_price;
+        if (vixQ   && vixQ.last_price   != null) _vix  = vixQ.last_price;
+      }
+    } catch (_) {}
   }
+
+  _kiteOk = (_spot != null && _vix != null);
   updateKiteStatus();
 }
 
@@ -476,31 +503,38 @@ function updateKiteStatus() {
   const lbl = document.getElementById('live-label');
   if (_kiteOk) {
     dot.className = 'dot live';
-    lbl.textContent = 'Live — bot relay active';
+    lbl.textContent = 'Live';
   } else {
     dot.className = 'dot off';
-    lbl.textContent = 'Bot offline or not logged in';
+    lbl.textContent = 'Waiting for bot snapshot…';
   }
 }
 
 // ── Option chain delta + LTP fetch (mirrors _fetchOptionDeltas in index.html) ──
 async function fetchOptionData(symbol, underlying, expiryDate, strike, type) {
-  const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-  const expiryStr = `${String(expiryDate.getDate()).padStart(2,'0')}${MONTHS[expiryDate.getMonth()]}${String(expiryDate.getFullYear()).slice(-2)}`;
+  const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  const expiryStr = `${String(expiryDate.getDate()).padStart(2,'0')}${months[expiryDate.getMonth()]}${String(expiryDate.getFullYear()).slice(-2)}`;
   try {
-    const url = `/api/options/chain?expiry=${expiryStr}&strike=${strike}&type=${type}`;
-    const r   = await fetch(url, { signal: AbortSignal.timeout(10000) });
-    if (!r.ok && r.status !== 404) throw new Error('HTTP ' + r.status);
+    const url = `https://api.kite.trade/oi/chain/${underlying}?expiry=${expiryStr}`;
+    const r   = await fetch(url, { credentials: "include", signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
-    if (d.error) return { ltp: null, delta: null, oi: null, iv: null };
+    const chain = d.data || [];
+    const entry = chain.find(e => e.strike_price == strike);
+    if (!entry) return { ltp: null, delta: null, oi: null, iv: null };
+    const key  = type === "CE" ? "call_options" : "put_options";
+    const leg  = entry[key] || {};
+    const ltp  = leg.last_price ?? leg.option_chain?.last_price ?? null;
+    const delta = leg.greeks?.delta ?? leg.option_chain?.delta ?? null;
+    const oi    = leg.oi ?? leg.option_chain?.oi ?? null;
+    const iv    = leg.greeks?.iv ?? leg.option_chain?.iv ?? null;
     return {
-      ltp:   d.ltp   != null ? parseFloat(d.ltp)   : null,
-      delta: d.delta != null ? parseFloat(d.delta) : null,
-      oi:    d.oi    != null ? parseFloat(d.oi)    : null,
-      iv:    d.iv    != null ? parseFloat(d.iv)    : null,
+      ltp:   ltp != null ? parseFloat(ltp) : null,
+      delta: delta != null ? parseFloat(delta) : null,
+      oi:    oi != null ? parseFloat(oi) : null,
+      iv:    iv != null ? parseFloat(iv) : null,
     };
   } catch (e) {
-    console.warn('fetchOptionData:', e.message);
     return { ltp: null, delta: null, oi: null, iv: null, error: true };
   }
 }
