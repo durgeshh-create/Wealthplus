@@ -515,7 +515,6 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
   <div class="nav-tab"        id="ntab-settings"  onclick="switchNavTab('settings')">&#9881;&#65039; Settings</div>
   <div class="nav-tab"        id="ntab-strategy"  onclick="switchNavTab('strategy')">&#128214; Strategy</div>
   <div class="nav-tab"        id="ntab-scanner"   onclick="switchNavTab('scanner')">&#128269; Scanner</div>
-  <div class="nav-tab" onclick="window.location.href='options.html'" title="Paused — needs a backend relay for live Kite data">&#127919; Options &#9208;</div>
 </div>
 
 <!-- PANE: DASHBOARD -->
@@ -2486,85 +2485,6 @@ async function _dispatchWorkflow(cfg) {
   if (!r.ok && r.status !== 204) throw new Error(`Dispatch failed: ${r.status} ${await r.text()}`);
 }
 
-const SEED_WORKFLOW_FILE = "seed-scanner.yml";
-
-async function _findRecentRun(cfg, workflowFile, sinceISO) {
-  const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${workflowFile}`;
-  const r = await fetch(`${base}/runs?per_page=5`, { headers: apiHeaders() });
-  if (!r.ok) return null;
-  const runs = (await r.json()).workflow_runs || [];
-  // Most recent run created at/after dispatch time — GitHub's dispatch API
-  // doesn't return a run id directly, so we find it by timestamp instead.
-  return runs.find(rn => new Date(rn.created_at) >= new Date(sinceISO)) || runs[0] || null;
-}
-
-async function seedScannerData() {
-  const btn    = document.getElementById('scn-seed-btn');
-  const status = document.getElementById('scn-seed-status');
-  const cfg    = getCfg();
-  if (!hasCfg()) { alert("Please configure GitHub owner / repo / token first (Setup)."); return; }
-
-  if (!confirm(
-    "This refreshes all ~575 ETF/NIFTY200/Midcap150 CSVs via a separate GitHub Actions " +
-    "workflow (takes a few minutes; doesn't block this page or the trading bot).\n\n" +
-    "Run it now?"
-  )) return;
-
-  btn.disabled = true;
-  status.className = 'mw-status';
-  status.textContent = 'Starting…';
-
-  try {
-    const dispatchTime = new Date().toISOString();
-    const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${SEED_WORKFLOW_FILE}/dispatches`;
-    const r = await fetch(base, {
-      method: "POST",
-      headers: apiHeaders(),
-      body: JSON.stringify({ ref: "main" }),
-    });
-    if (!r.ok && r.status !== 204) throw new Error(`Dispatch failed: ${r.status} ${await r.text()}`);
-
-    status.textContent = 'Queued…';
-    // Give GitHub a moment to register the run before we look for it.
-    await new Promise(res => setTimeout(res, 5000));
-    const run = await _findRecentRun(cfg, SEED_WORKFLOW_FILE, dispatchTime);
-
-    if (!run) {
-      status.className = 'mw-status';
-      status.textContent = 'Dispatched — check the Actions tab for progress.';
-      btn.disabled = false;
-      return;
-    }
-
-    status.innerHTML = `Running… <a href="${run.html_url}" target="_blank" style="color:var(--accent)">view log</a>`;
-
-    // Poll every 10s, up to ~25 min (seed-scanner.yml has a 30 min timeout).
-    for (let i = 0; i < 150; i++) {
-      await new Promise(res => setTimeout(res, 10000));
-      const chk = await fetch(
-        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${run.id}`,
-        { headers: apiHeaders() }
-      );
-      if (!chk.ok) continue;
-      const rd = await chk.json();
-      if (rd.status === 'completed') {
-        const ok = rd.conclusion === 'success';
-        status.className = 'mw-status ' + (ok ? 'ok' : 'err');
-        status.innerHTML = (ok ? '✓ Seed complete' : '⚠ Seed finished with errors') +
-          ` — <a href="${run.html_url}" target="_blank" style="color:inherit">view log</a>`;
-        btn.disabled = false;
-        return;
-      }
-    }
-    status.className = 'mw-status';
-    status.innerHTML = `Still running — <a href="${run.html_url}" target="_blank" style="color:var(--accent)">check Actions tab</a>`;
-    btn.disabled = false;
-  } catch (e) {
-    status.className = 'mw-status err';
-    status.textContent = '⚠ ' + e.message;
-    btn.disabled = false;
-  }
-}
 async function _pollUntilStopped(cfg, runId) {
   for (let i = 0; i < 30; i++) {
     await new Promise(r => setTimeout(r, 4000));
@@ -4380,8 +4300,6 @@ function _renderDeltaCell(el, delta, qty) {
           <label class="scn-chk-label"><input type="checkbox" id="scn-20dma" checked onchange="renderScanResults()"> Below 20 DMA</label>
         </div>
         <button class="scn-run-btn" id="scn-run-btn" onclick="runScanner()">▶ Run Scanner</button>
-        <button class="scn-run-btn" id="scn-seed-btn" onclick="seedScannerData()" style="background:var(--bg2);border:1px solid var(--border2);color:var(--text)" title="Refreshes all ~575 ETF/NIFTY200/Midcap150 CSVs in the repo via a separate GitHub Actions workflow. Takes a few minutes — does not block this page.">⬇ Seed Scanner Data</button>
-        <span class="mw-status" id="scn-seed-status" style="margin-left:0"></span>
       </div>
 
       <div class="scn-progress-wrap" id="scn-prog-wrap">
