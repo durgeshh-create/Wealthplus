@@ -189,15 +189,12 @@ jobs:
           git config user.email "bot@wealthalgo.local"
           git fetch origin gh-pages 2>/dev/null || echo "gh-pages branch not yet created"
 
-      - name: Seed / refresh daily CSVs (RD1858)
-        working-directory: RD1858
-        timeout-minutes: 20
-        env:
-          PYTHONIOENCODING: utf-8
-          PYTHONUTF8:       "1"
-        run: |
-          echo "📥 Seeding stale CSVs for RD1858…"
-          python seed_csvs.py || echo "⚠️ Seed failed — continuing with existing CSVs"
+      # Full Scanner-universe seeding (~575 ETF/NIFTY200/Midcap150 symbols)
+      # moved out of this regular bot session — it was adding significant
+      # time to every single run even though the bot only trades a couple
+      # of symbols. Use the "⬇ Seed Scanner Data" button on the Scanner
+      # page (or the "Seed Scanner Data (On-Demand)" workflow) instead,
+      # whenever the Scanner's data actually needs refreshing.
 
       - name: Seed Marketwatch-only CSVs (RD1858)
         # Read-only w.r.t. trading config: seeds whatever symbols are saved in
