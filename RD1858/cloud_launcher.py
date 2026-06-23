@@ -491,14 +491,40 @@ def main():
 
         # Allow dashboard Pause before re-authenticating after a crash
         wait_for_resume("re-auth after crash")
-        print("  🔐 Re-authenticating before restart...")
+        print("  🔐 Re-checking token before restart...")
+
+        # ── CRITICAL: try saved token first — same as initial startup ─────────
+        # A fresh TOTP login creates a NEW Zerodha session and immediately
+        # invalidates the user's browser session. Only do it if the current
+        # token is genuinely expired.
+        reauth_ok = False
         try:
-            new_token = login_to_kite()
-            save_enctoken(USER_ID, new_token)
-            print("  ✅ Re-authentication successful")
-        except Exception as re_err:
-            print(f"  ❌ Re-authentication failed: {re_err}")
-            sys.exit(1)
+            from backend.auth.token_store import load_token
+            import requests as _req
+            saved = load_token()
+            if saved and saved.get("enctoken"):
+                _s = _req.Session()
+                _s.headers.update({
+                    "Authorization": f"enctoken {saved['enctoken']}",
+                    "User-Agent":    "Mozilla/5.0",
+                    "Referer":       "https://kite.zerodha.com/",
+                })
+                _r = _s.get("https://kite.zerodha.com/oms/user/profile", timeout=8)
+                if _r.status_code == 200 and _r.json().get("data", {}).get("user_name"):
+                    print(f"  ✅ Saved token still valid — skipping login (browser session untouched)")
+                    reauth_ok = True
+        except Exception as _ce:
+            print(f"  ⚠️  Token re-check error: {_ce}")
+
+        if not reauth_ok:
+            print("  🔐 Token expired — performing fresh TOTP login...")
+            try:
+                new_token = login_to_kite()
+                save_enctoken(USER_ID, new_token)
+                print("  ✅ Re-authentication successful")
+            except Exception as re_err:
+                print(f"  ❌ Re-authentication failed: {re_err}")
+                sys.exit(1)
 
         time.sleep(10)
 
