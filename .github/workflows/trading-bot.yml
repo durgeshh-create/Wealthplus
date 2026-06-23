@@ -29,9 +29,15 @@ jobs:
   bootstrap-ghpages:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # ✅ FIX: previously cancel-in-progress was true for manual triggers, which
+    # meant clicking "Run workflow" again while a deploy was still mid-push
+    # would kill it before the final `git push` landed — silently leaving
+    # gh-pages stale with no error shown anywhere. This job is short (~1 min)
+    # and idempotent (re-running it is always safe), so new manual runs now
+    # queue behind an in-progress one instead of cancelling it.
     concurrency:
       group: bootstrap-ghpages
-      cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
+      cancel-in-progress: false
 
     steps:
       - name: Time-window guard (abort stale scheduled runs)
