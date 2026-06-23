@@ -1,0 +1,121 @@
+name: Seed Scanner Data (On-Demand)
+
+# Triggered manually (GitHub Actions UI) or via the "⬇ Seed Scanner Data"
+# button on the settings-editor Scanner page, which dispatches this
+# workflow through the GitHub API.
+#
+# This used to run automatically inside every trading-bot.yml session
+# (twice daily), refreshing all ~575 ETF/NIFTY200/Midcap150 CSVs every
+# time even though the bot itself only trades a couple of symbols. Moved
+# here so it only runs when the Scanner data is actually needed, instead
+# of slowing down every bot session.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: seed-scanner-data
+  cancel-in-progress: false   # let an in-flight seed finish rather than restart
+
+jobs:
+  seed-rd1858:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: rd1858-${{ hashFiles('RD1858/requirements.txt') }}
+          restore-keys: rd1858-
+
+      - name: Cache playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-v1
+          restore-keys: playwright-chromium-${{ runner.os }}-
+
+      # Falls back to a same-day token saved by the regular trading-bot.yml
+      # run, if one exists — avoids a fresh Playwright login (and avoiding
+      # invalidating any other active Kite session) whenever possible.
+      - name: Restore enctoken cache (RD1858)
+        uses: actions/cache/restore@v4
+        with:
+          path: RD1858/config/enctoken.json
+          key: enctoken-rd1858-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            enctoken-rd1858-${{ github.run_id }}-
+            enctoken-rd1858-
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip -q
+          pip install -r RD1858/requirements.txt -q
+          pip install playwright pyotp -q
+
+      - name: Install Playwright Chromium browser
+        run: playwright install chromium --with-deps
+
+      - name: Configure git
+        run: |
+          git config user.name  "WealthAlgo Bot"
+          git config user.email "bot@wealthalgo.local"
+
+      - name: Seed full Scanner universe (RD1858)
+        working-directory: RD1858
+        timeout-minutes: 25
+        env:
+          PYTHONIOENCODING:   utf-8
+          PYTHONUTF8:         "1"
+          KITE_USER_ID:        ${{ secrets.RD1858_USER_ID }}
+          KITE_PASSWORD:       ${{ secrets.RD1858_PASSWORD }}
+          KITE_TOTP_SECRET:    ${{ secrets.RD1858_TOTP_SECRET }}
+          BOT_PORT:            "5000"
+          GITHUB_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
+          TELEGRAM_BOT_TOKEN:  ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:    ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          echo "📥 Seeding full Scanner universe for RD1858 (on demand)…"
+          python seed_scanner_oncall.py || echo "⚠️ Seed failed — see logs above"
+
+      - name: Commit updated CSVs to repo (RD1858)
+        timeout-minutes: 5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO:      ${{ github.repository }}
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          git add --force RD1858/data/daily/*.csv 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            COUNT=$(git diff --cached --name-only | wc -l)
+            git commit -m "seed: on-demand scanner refresh — ${COUNT} CSVs (RD1858) $(date -u +'%Y-%m-%d %H:%M')"
+            for _retry in 1 2 3; do
+              git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" main 2>/dev/null || true
+              git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" main && break
+              sleep 5
+            done
+            echo "✅ CSVs committed and pushed"
+          else
+            echo "ℹ️ No CSV changes to commit"
+          fi
+
+      - name: Save enctoken cache (RD1858)
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: RD1858/config/enctoken.json
+          key: enctoken-rd1858-${{ github.run_id }}-${{ github.run_attempt }}
