@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WealthAlgo — Nifty Weekly Options</title>
+<style>
+:root {
+  --bg:      #f8f9fb;
+  --bg2:     #ffffff;
+  --bg3:     #f1f5f9;
+  --border:  #e2e8f0;
+  --border2: #cbd5e1;
+  --text:    #1e293b;
+  --muted:   #64748b;
+  --muted2:  #475569;
+
+  --green:   #16a34a;
+  --green-d: rgba(22,163,74,0.10);
+  --red:     #dc2626;
+  --red-d:   rgba(220,38,38,0.10);
+
+  --accent:  #4f46e5;
+
+  --mono:    'DM Mono', monospace;
+  --head:    'Syne', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;line-height:1.6}
+
+header{display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06);height:52px;gap:14px}
+.logo{display:flex;flex-direction:column;justify-content:center;margin-right:8px}
+.logo h1{font-family:var(--head);font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--accent)}
+.logo .sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.back-link{font-size:11px;color:var(--muted2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:5px 12px;transition:all .15s}
+.back-link:hover{border-color:var(--accent);color:var(--accent)}
+.pill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px;margin-left:auto}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+.dot.live{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
+.dot.off{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.idx-chips{display:flex;gap:8px}
+.idx-chip{display:flex;flex-direction:column;align-items:flex-end;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px 8px;min-width:78px;cursor:default}
+.idx-chip .ic-name{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-family:var(--head);line-height:1.2}
+.idx-chip .ic-val{font-size:12px;font-weight:700;font-family:var(--head);color:var(--text);line-height:1.3}
+
+main{max-width:1100px;margin:0 auto;padding:20px}
+
+.intro h2{font-family:var(--head);font-size:16px;font-weight:800;color:var(--accent)}
+.intro p{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ── Formula / settings panel ── */
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:16px}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-bottom:1px solid var(--border)}
+.pt{font-family:var(--head);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted2)}
+.pb{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);color:var(--muted2)}
+.panel-body{padding:14px 15px}
+
+.formula-row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:4px;min-width:90px}
+.fg label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.fg input{font-family:var(--mono);font-size:12px;padding:6px 8px;border:1px solid var(--border2);border-radius:6px;background:var(--bg2);color:var(--text);width:100%}
+.fg input:focus{outline:none;border-color:var(--accent)}
+.fg-wide{flex:1 1 auto;min-width:220px}
+
+.day-table{margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
+.day-table table{width:100%;border-collapse:collapse;font-size:11px}
+.day-table th{text-align:left;padding:5px 8px;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--border)}
+.day-table td{padding:5px 8px;border-bottom:1px solid var(--border)}
+.day-table tr.today td{background:var(--green-d);font-weight:700}
+.day-table input{width:70px;font-family:var(--mono);font-size:11px;padding:4px 6px;border:1px solid var(--border2);border-radius:5px;background:var(--bg2);color:var(--text)}
+.day-table input:focus{outline:none;border-color:var(--accent)}
+
+.btn{font-family:var(--head);font-size:11px;font-weight:700;letter-spacing:.03em;padding:7px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);cursor:pointer;transition:all .15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{opacity:.9;color:#fff}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+
+/* ── Result cards ── */
+.calc-summary{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:13px 15px;position:relative;overflow:hidden;flex:1 1 150px}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);opacity:.5}
+.sc-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.sc-val{font-family:var(--head);font-size:21px;font-weight:700;color:var(--text);line-height:1.1}
+.sc-sub{font-size:10px;color:var(--muted);margin-top:3px}
+
+.opt-cards{display:flex;gap:14px;margin-top:16px;flex-wrap:wrap}
+.opt-card{flex:1 1 320px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.opt-card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;border-bottom:1px solid var(--border)}
+.opt-card.put .opt-card-head{background:var(--red-d)}
+.opt-card.call .opt-card-head{background:var(--green-d)}
+.opt-card-title{font-family:var(--head);font-size:13px;font-weight:800}
+.opt-card.put .opt-card-title{color:var(--red)}
+.opt-card.call .opt-card-title{color:var(--green)}
+.opt-card-badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);color:var(--muted2)}
+
+.opt-symbol{font-family:var(--head);font-size:18px;font-weight:800;padding:14px 15px 4px;word-break:break-all;color:var(--text)}
+.opt-symbol .strike{color:var(--accent)}
+.opt-meta{font-size:10px;color:var(--muted);padding:0 15px 12px}
+
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border)}
+.opt-cell{padding:12px 15px;border-right:1px solid var(--border)}
+.opt-cell:last-child{border-right:none}
+.opt-cell-label{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
+.opt-cell-val{font-family:var(--head);font-size:18px;font-weight:700}
+.opt-cell-val.dim{color:var(--muted);font-size:14px;font-weight:600}
+.opt-cell-sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+.copy-btn{font-size:9px;color:var(--accent);cursor:pointer;border:1px solid var(--accent);border-radius:5px;padding:2px 8px;background:none;font-family:var(--mono);margin-left:8px;transition:all .15s}
+.copy-btn:hover{background:var(--accent);color:#fff}
+.copy-btn.copied{background:var(--green);border-color:var(--green);color:#fff}
+
+.status-line{font-size:10px;color:var(--muted);margin-top:14px;display:flex;align-items:center;gap:6px}
+.status-line .dot{width:6px;height:6px}
+
+.warn-banner{margin-top:14px;font-size:11px;color:#92400e;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px 14px}
+.err-banner{margin-top:14px;font-size:11px;color:#991b1b;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px}
+
+/* Password gate (same mechanism as index.html — baked hash, sessionStorage) */
+#pw-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
+.pw-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:36px 32px;width:360px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,.25);text-align:center}
+.pw-logo{font-family:var(--head);font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px}
+.pw-sub{font-size:11px;color:var(--muted);margin-bottom:24px;letter-spacing:.06em;text-transform:uppercase}
+.pw-input-wrap{position:relative;margin-bottom:12px}
+.pw-input-wrap input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:10px 40px 10px 14px;color:var(--text);font-size:14px;font-family:var(--head);transition:border-color .15s}
+.pw-input-wrap input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0}
+.pw-btn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:14px;font-family:var(--head);font-weight:700;cursor:pointer;transition:opacity .15s;margin-top:2px}
+.pw-btn:hover{opacity:.88}
+.pw-err{font-size:11px;color:#f87171;margin-top:10px;min-height:16px}
+#page-content{display:none}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div id="pw-overlay">
+  <div class="pw-box">
+    <div class="pw-logo">&#9889; WealthAlgo</div>
+    <div class="pw-sub">Private Dashboard</div>
+    <div class="pw-input-wrap">
+      <input type="password" id="pw-input" placeholder="Password" autofocus onkeydown="if(event.key==='Enter')checkPw()">
+      <button class="pw-eye" onclick="togglePwEye()" title="Show/hide">&#128065;</button>
+    </div>
+    <button class="pw-btn" onclick="checkPw()">Unlock &#8594;</button>
+    <div class="pw-err" id="pw-err"></div>
+  </div>
+</div>
+
+<div id="page-content">
+<header>
+  <div class="logo">
+    <h1>WealthAlgo</h1>
+    <span class="sub">Nifty Weekly Options</span>
+  </div>
+  <a class="back-link" href="index.html">← Dashboard</a>
+  <div class="idx-chips">
+    <div class="idx-chip">
+      <span class="ic-name">Nifty 50</span>
+      <span class="ic-val" id="chip-nifty">—</span>
+    </div>
+    <div class="idx-chip">
+      <span class="ic-name">India VIX</span>
+      <span class="ic-val" id="chip-vix">—</span>
+    </div>
+  </div>
+  <div class="pill">
+    <span class="dot" id="live-dot"></span>
+    <span id="live-label">checking…</span>
+  </div>
+</header>
+
+<main>
+  <div class="intro">
+    <h2>🎯 Weekly Put / Call Strike Finder</h2>
+    <p>Computes today's OTM strike from Nifty spot + India VIX range, builds the Kite tradingsymbol, and fetches live LTP &amp; delta — no GitHub config needed, just a logged-in Kite session in this browser.</p>
+  </div>
+
+  <!-- Formula / day divisors panel -->
+  <div class="panel">
+    <div class="ph">
+      <span class="pt">Range Formula</span>
+      <span class="pb" id="formula-readout">spot × √(vix × mult / divisor)</span>
+    </div>
+    <div class="panel-body">
+      <div class="formula-row">
+        <div class="fg">
+          <label>VIX Multiplier %</label>
+          <input type="number" id="cfg-mult" value="150" step="5" min="0">
+        </div>
+        <div class="fg fg-wide">
+          <label>Range = Spot × √(VIX × Mult% / Divisor)</label>
+          <input type="text" id="formula-preview" readonly style="color:var(--muted)">
+        </div>
+        <button class="btn btn-primary" onclick="recalc()">↻ Recalculate</button>
+      </div>
+
+      <div class="day-table">
+        <table>
+          <thead>
+            <tr><th>Weekday</th><th>Divisor</th><th>Note</th></tr>
+          </thead>
+          <tbody id="day-divisor-body"></tbody>
+        </table>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" onclick="resetDivisors()">Reset to defaults</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spot / VIX / range summary -->
+  <div class="calc-summary">
+    <div class="sc">
+      <div class="sc-label">Nifty Spot</div>
+      <div class="sc-val" id="sum-spot">—</div>
+      <div class="sc-sub" id="sum-spot-sub">awaiting live quote</div>
+    </div>
+    <div class="sc">
+      <div class="sc-label">India VIX</div>
+      <div class="sc-val" id="sum-vix">—</div>
+      <div class="sc-sub">used in range formula</div>
+    </div>
+    <div class="sc">
+      <div class="sc-label">Today's Divisor</div>
+      <div class="sc-val" id="sum-divisor">—</div>
+      <div class="sc-sub" id="sum-weekday">—</div>
+    </div>
+    <div class="sc">
+      <div class="sc-label">Computed Range</div>
+      <div class="sc-val" id="sum-range">—</div>
+      <div class="sc-sub">points OTM (rounded to 100)</div>
+    </div>
+  </div>
+
+  <div id="banner-area"></div>
+
+  <!-- Put / Call cards -->
+  <div class="opt-cards">
+    <div class="opt-card put">
+      <div class="opt-card-head">
+        <span class="opt-card-title">PUT (OTM below spot)</span>
+        <span class="opt-card-badge">FLOOR(spot − range, 100)</span>
+      </div>
+      <div class="opt-symbol" id="put-symbol">—</div>
+      <div class="opt-meta" id="put-meta">—<button class="copy-btn" onclick="copySym('put')">Copy</button></div>
+      <div class="opt-grid">
+        <div class="opt-cell">
+          <div class="opt-cell-label">LTP</div>
+          <div class="opt-cell-val" id="put-ltp">—</div>
+          <div class="opt-cell-sub" id="put-ltp-sub"></div>
+        </div>
+        <div class="opt-cell">
+          <div class="opt-cell-label">Delta</div>
+          <div class="opt-cell-val" id="put-delta">—</div>
+          <div class="opt-cell-sub" id="put-delta-sub"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="opt-card call">
+      <div class="opt-card-head">
+        <span class="opt-card-title">CALL (OTM above spot)</span>
+        <span class="opt-card-badge">CEILING(spot + range, 100)</span>
+      </div>
+      <div class="opt-symbol" id="call-symbol">—</div>
+      <div class="opt-meta" id="call-meta">—<button class="copy-btn" onclick="copySym('call')">Copy</button></div>
+      <div class="opt-grid">
+        <div class="opt-cell">
+          <div class="opt-cell-label">LTP</div>
+          <div class="opt-cell-val" id="call-ltp">—</div>
+          <div class="opt-cell-sub" id="call-ltp-sub"></div>
+        </div>
+        <div class="opt-cell">
+          <div class="opt-cell-label">Delta</div>
+          <div class="opt-cell-val" id="call-delta">—</div>
+          <div class="opt-cell-sub" id="call-delta-sub"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-line">
+    <span class="dot" id="refresh-dot"></span>
+    <span id="refresh-label">—</span>
+  </div>
+</main>
+</div>
+
+<script>
+// PASSWORD GATE — mirrors index.html exactly. Same baked hash placeholder,
+// same sessionStorage key, so unlocking either page unlocks both for this
+// browser tab/session.
+const _BAKED_HASH = '%%DASHBOARD_PW_HASH%%';   // replaced by workflow at deploy
+const PW_SESSION  = 'wealthalgo_unlocked';
+
+async function sha256(s) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkPw() {
+  const v = document.getElementById('pw-input').value;
+  if (!v) { pwErr('Enter your password.'); return; }
+  if (!_BAKED_HASH || _BAKED_HASH.startsWith('%%')) {
+    pwErr('⚠ Password not configured. Add DASHBOARD_PW_HASH to GitHub Secrets and re-run the workflow.');
+    return;
+  }
+  const h = await sha256(v);
+  if (h === _BAKED_HASH) {
+    sessionStorage.setItem(PW_SESSION, '1');
+    unlockPage();
+  } else {
+    pwErr('Incorrect password.');
+    document.getElementById('pw-input').select();
+  }
+}
+
+function pwErr(m) { document.getElementById('pw-err').textContent = m; }
+function togglePwEye() {
+  const i = document.getElementById('pw-input');
+  i.type = i.type === 'password' ? 'text' : 'password';
+}
+
+function unlockPage() {
+  document.getElementById('pw-overlay').style.display = 'none';
+  document.getElementById('page-content').style.display = 'block';
+  loadDivisorSettings();
+  renderDivisorTable();
+  renderFormulaPreview();
+  showPausedNotice();
+  // NOTE: startAutoRefresh() is intentionally NOT called.
+  // api.kite.trade does not send CORS headers and rejects direct browser
+  // fetch() calls from any page not served by Zerodha itself — confirmed via
+  // Kite Connect's own developer forum. That means this page cannot fetch
+  // live Nifty/VIX/option data as a static GitHub Pages site, no matter what
+  // Kite session is active in the browser. This page is paused pending a
+  // server-side relay (e.g. a small endpoint exposed by the existing bot)
+  // to actually proxy these Kite calls. Don't re-enable startAutoRefresh()
+  // until that relay exists — it will only ever show dashes.
+}
+
+function showPausedNotice() {
+  document.getElementById('live-dot').className = 'dot off';
+  document.getElementById('live-label').textContent = 'Paused — see notice below';
+  showBanner('warn',
+    '⏸ This page is paused. Live data here depends on calling api.kite.trade directly from the browser, ' +
+    'but Zerodha\'s API does not allow that (no CORS support) — it only works from server-side code, not a ' +
+    'static page like this one. Being logged into Kite does not change this. A fix requires a small backend ' +
+    'relay (e.g. an endpoint on the bot) to fetch Kite data and serve it to this page instead. ' +
+    'No spot price, VIX, strike, LTP, or delta will appear until that relay exists.'
+  );
+}
+
+if (sessionStorage.getItem(PW_SESSION) === '1') {
+  unlockPage();
+}
+
+// ── Constants ──────────────────────────────────────────────────────────────────
+const NIFTY_TOKEN    = "256265";   // NIFTY 50 index instrument token
+const VIX_TOKEN       = "264969";  // INDIA VIX index instrument token
+const STRIKE_STEP    = 100;        // round PUT/CALL strikes to nearest 100
+const REFRESH_MS_MARKET   = 60 * 1000;    // 60s during market hours
+const REFRESH_MS_OFFHOURS = 5 * 60 * 1000; // 5 min outside market hours
+
+const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const DEFAULT_DIVISORS = { 1: 3300, 2: 3800, 3: 4500, 4: 6000, 5: 8000 }; // Mon..Fri
+const DIVISOR_NOTES = {
+  1: "Monday — furthest from weekly expiry",
+  2: "Tuesday — expiry day (tightest historically, widest divisor here is illustrative only)",
+  3: "Wednesday",
+  4: "Thursday",
+  5: "Friday — closest to next expiry",
+};
+
+let _divisors = { ...DEFAULT_DIVISORS };
+let _mult = 150;
+
+// ── Market hours (IST 09:15–15:30 Mon–Fri) ─────────────────────────────────────
+function isMarketHoursNow() {
+  const nowIST    = new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
+  const dayOfWeek = nowIST.getDay();
+  const istMin    = nowIST.getHours()*60 + nowIST.getMinutes();
+  return dayOfWeek >= 1 && dayOfWeek <= 5 && istMin >= 555 && istMin <= 930;
+}
+
+function nowIST() {
+  return new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
+}
+
+// ── Divisor settings persistence (localStorage — purely local UI prefs) ────────
+function loadDivisorSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('wealthalgo_opt_divisors') || 'null');
+    if (saved && saved.divisors) _divisors = { ...DEFAULT_DIVISORS, ...saved.divisors };
+    if (saved && saved.mult != null) _mult = saved.mult;
+  } catch (_) {}
+}
+function saveDivisorSettings() {
+  localStorage.setItem('wealthalgo_opt_divisors', JSON.stringify({ divisors: _divisors, mult: _mult }));
+}
+
+function renderDivisorTable() {
+  const today = nowIST().getDay();
+  const body  = document.getElementById('day-divisor-body');
+  body.innerHTML = [1,2,3,4,5].map(d => `
+    <tr class="${d === today ? 'today' : ''}">
+      <td>${DAY_NAMES[d]}${d === today ? ' ← today' : ''}</td>
+      <td><input type="number" id="div-${d}" value="${_divisors[d]}" min="100" step="50" onchange="onDivisorEdit(${d})"></td>
+      <td style="color:var(--muted);font-size:10px">${DIVISOR_NOTES[d]}</td>
+    </tr>
+  `).join('');
+  document.getElementById('cfg-mult').value = _mult;
+}
+
+function onDivisorEdit(day) {
+  const v = parseFloat(document.getElementById(`div-${day}`).value);
+  if (!isNaN(v) && v > 0) _divisors[day] = v;
+  saveDivisorSettings();
+  recalc();
+}
+
+document.getElementById('cfg-mult').addEventListener('change', () => {
+  const v = parseFloat(document.getElementById('cfg-mult').value);
+  if (!isNaN(v) && v >= 0) _mult = v;
+  saveDivisorSettings();
+  recalc();
+});
+
+function resetDivisors() {
+  _divisors = { ...DEFAULT_DIVISORS };
+  _mult = 150;
+  saveDivisorSettings();
+  renderDivisorTable();
+  recalc();
+}
+
+// ── Symbol construction ────────────────────────────────────────────────────────
+// Kite weekly-options tradingsymbol grammar (per NSE/Zerodha convention):
+//   <UNDERLYING><YY><M><DD><strike><CE|PE>
+// where M is a SINGLE character month code: 1-9 for Jan-Sep, O for Oct, N for Nov, D for Dec.
+const MONTH_CODES = ["1","2","3","4","5","6","7","8","9","O","N","D"];
+
+function floorTo(x, step) { return Math.floor(x / step) * step; }
+function ceilTo(x, step)  { return Math.ceil(x / step) * step; }
+
+// Find this week's Nifty expiry (Tuesday; shifts to Monday if Tuesday is a holiday —
+// holiday data isn't available client-side, so this assumes Tuesday unless that's
+// later overridden manually).
+function thisWeekExpiry(ref) {
+  const d = new Date(ref);
+  const day = d.getDay();           // 0=Sun..6=Sat
+  const diff = (2 - day + 7) % 7;   // days until next Tuesday (0 if today is Tuesday)
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+function buildOptionSymbol(underlying, expiryDate, strike, type) {
+  const yy    = String(expiryDate.getFullYear()).slice(-2);
+  const m     = MONTH_CODES[expiryDate.getMonth()];
+  const dd    = String(expiryDate.getDate()).padStart(2, '0');
+  return `${underlying}${yy}${m}${dd}${strike}${type}`;
+}
+
+function fmtExpiry(d) {
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return `${String(d.getDate()).padStart(2,'0')}-${months[d.getMonth()]}-${d.getFullYear()}`;
+}
+
+// ── Live index quotes (Nifty spot + India VIX) via Kite, same cookie-auth
+// pattern as the dashboard's fetchLiveQuotes(). Requires the user to be
+// logged into kite.zerodha.com in this browser. ─────────────────────────────────
+let _spot = null, _vix = null, _kiteOk = false;
+
+async function fetchIndexQuotes() {
+  try {
+    const qs = `i=${NIFTY_TOKEN}&i=${VIX_TOKEN}`;
+    const r  = await fetch("https://api.kite.trade/quote?" + qs, {
+      credentials: "include",
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const json = await r.json();
+    const data = json.data || {};
+    const niftyQ = data[NIFTY_TOKEN];
+    const vixQ   = data[VIX_TOKEN];
+    if (niftyQ && niftyQ.last_price != null) _spot = niftyQ.last_price;
+    if (vixQ && vixQ.last_price != null)     _vix  = vixQ.last_price;
+    _kiteOk = (_spot != null && _vix != null);
+  } catch (e) {
+    _kiteOk = false;
+  }
+  updateKiteStatus();
+}
+
+function updateKiteStatus() {
+  const dot = document.getElementById('live-dot');
+  const lbl = document.getElementById('live-label');
+  if (_kiteOk) {
+    dot.className = 'dot live';
+    lbl.textContent = 'Kite connected';
+  } else {
+    dot.className = 'dot off';
+    lbl.textContent = 'Not logged into Kite';
+  }
+}
+
+// ── Option chain delta + LTP fetch (mirrors _fetchOptionDeltas in index.html) ──
+async function fetchOptionData(symbol, underlying, expiryDate, strike, type) {
+  const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  const expiryStr = `${String(expiryDate.getDate()).padStart(2,'0')}${months[expiryDate.getMonth()]}${String(expiryDate.getFullYear()).slice(-2)}`;
+  try {
+    const url = `https://api.kite.trade/oi/chain/${underlying}?expiry=${expiryStr}`;
+    const r   = await fetch(url, { credentials: "include", signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    const chain = d.data || [];
+    const entry = chain.find(e => e.strike_price == strike);
+    if (!entry) return { ltp: null, delta: null, oi: null, iv: null };
+    const key  = type === "CE" ? "call_options" : "put_options";
+    const leg  = entry[key] || {};
+    const ltp  = leg.last_price ?? leg.option_chain?.last_price ?? null;
+    const delta = leg.greeks?.delta ?? leg.option_chain?.delta ?? null;
+    const oi    = leg.oi ?? leg.option_chain?.oi ?? null;
+    const iv    = leg.greeks?.iv ?? leg.option_chain?.iv ?? null;
+    return {
+      ltp:   ltp != null ? parseFloat(ltp) : null,
+      delta: delta != null ? parseFloat(delta) : null,
+      oi:    oi != null ? parseFloat(oi) : null,
+      iv:    iv != null ? parseFloat(iv) : null,
+    };
+  } catch (e) {
+    return { ltp: null, delta: null, oi: null, iv: null, error: true };
+  }
+}
+
+// ── Main recalculation + render ────────────────────────────────────────────────
+let _lastComputed = null;
+
+function recalc() {
+  renderFormulaPreview();
+  if (_spot == null || _vix == null) {
+    showBanner('warn', 'Waiting for live Nifty/VIX quote from Kite — log into kite.zerodha.com in this browser, then refresh.');
+    return;
+  }
+  clearBanner();
+
+  const today = nowIST().getDay();   // 0=Sun..6=Sat
+  const divisor = _divisors[today];
+  if (!divisor) {
+    showBanner('warn', `No divisor configured for ${DAY_NAMES[today]} (market closed today) — showing Monday's settings as a preview.`);
+  }
+  const effDivisor = divisor || _divisors[1];
+
+  const range = _spot * Math.sqrt(_vix * (_mult/100) / effDivisor);
+  const rangeRounded = Math.round(range);
+
+  const putStrike  = floorTo(_spot - range, STRIKE_STEP);
+  const callStrike = ceilTo(_spot + range, STRIKE_STEP);
+
+  const expiry = thisWeekExpiry(nowIST());
+  const putSym  = buildOptionSymbol("NIFTY", expiry, putStrike,  "PE");
+  const callSym = buildOptionSymbol("NIFTY", expiry, callStrike, "CE");
+
+  document.getElementById('sum-spot').textContent = '₹' + _spot.toFixed(2);
+  document.getElementById('sum-spot-sub').textContent = 'live from Kite';
+  document.getElementById('sum-vix').textContent = _vix.toFixed(2);
+  document.getElementById('sum-divisor').textContent = effDivisor;
+  document.getElementById('sum-weekday').textContent = DAY_NAMES[today] + (divisor ? '' : ' (preview)');
+  document.getElementById('sum-range').textContent = '±' + rangeRounded;
+
+  document.getElementById('put-symbol').innerHTML  = putSym.replace(String(putStrike),  `<span class="strike">${putStrike}</span>`);
+  document.getElementById('call-symbol').innerHTML = callSym.replace(String(callStrike), `<span class="strike">${callStrike}</span>`);
+  document.getElementById('put-meta').innerHTML  = `Expiry ${fmtExpiry(expiry)} · Strike ${putStrike} · ${(_spot-putStrike).toFixed(0)} pts OTM<button class="copy-btn" onclick="copySym('put')">Copy</button>`;
+  document.getElementById('call-meta').innerHTML = `Expiry ${fmtExpiry(expiry)} · Strike ${callStrike} · ${(callStrike-_spot).toFixed(0)} pts OTM<button class="copy-btn" onclick="copySym('call')">Copy</button>`;
+
+  _lastComputed = { putSym, callSym, putStrike, callStrike, expiry };
+
+  refreshOptionData();
+}
+
+function renderFormulaPreview() {
+  document.getElementById('formula-preview').value =
+    `spot × √(vix × ${_mult}% / divisor)`;
+}
+
+async function refreshOptionData() {
+  if (!_lastComputed) return;
+  const { putSym, callSym, putStrike, callStrike, expiry } = _lastComputed;
+
+  setCellLoading('put');
+  setCellLoading('call');
+
+  const [putData, callData] = await Promise.all([
+    fetchOptionData(putSym,  "NIFTY", expiry, putStrike,  "PE"),
+    fetchOptionData(callSym, "NIFTY", expiry, callStrike, "CE"),
+  ]);
+
+  renderOptionCell('put',  putData);
+  renderOptionCell('call', callData);
+
+  const dot = document.getElementById('refresh-dot');
+  const lbl = document.getElementById('refresh-label');
+  const marketOpen = isMarketHoursNow();
+  dot.className = 'dot ' + (marketOpen ? 'live' : 'off');
+  lbl.textContent = marketOpen
+    ? `Live — refreshing every ${REFRESH_MS_MARKET/1000}s · last update ${nowIST().toLocaleTimeString('en-IN')}`
+    : `Market closed — refreshing every ${REFRESH_MS_OFFHOURS/60000} min · last update ${nowIST().toLocaleTimeString('en-IN')}`;
+}
+
+function setCellLoading(side) {
+  document.getElementById(`${side}-ltp`).textContent = '…';
+  document.getElementById(`${side}-delta`).textContent = '…';
+}
+
+function renderOptionCell(side, data) {
+  const ltpEl   = document.getElementById(`${side}-ltp`);
+  const ltpSub  = document.getElementById(`${side}-ltp-sub`);
+  const dEl     = document.getElementById(`${side}-delta`);
+  const dSub    = document.getElementById(`${side}-delta-sub`);
+
+  if (data.error) {
+    ltpEl.innerHTML = '<span class="dim">n/a</span>';
+    ltpSub.textContent = 'fetch failed';
+    dEl.innerHTML = '<span class="dim">n/a</span>';
+    dSub.textContent = '';
+    return;
+  }
+  if (data.ltp != null) {
+    ltpEl.textContent = '₹' + data.ltp.toFixed(2);
+    ltpSub.textContent = data.oi != null ? `OI ${Number(data.oi).toLocaleString('en-IN')}` : '';
+  } else {
+    ltpEl.innerHTML = '<span class="dim">—</span>';
+    ltpSub.textContent = 'not found in chain';
+  }
+  if (data.delta != null) {
+    dEl.textContent = (data.delta >= 0 ? '+' : '') + data.delta.toFixed(3);
+    dSub.textContent = data.iv != null ? `IV ${data.iv.toFixed(1)}%` : '';
+  } else {
+    dEl.innerHTML = '<span class="dim">—</span>';
+    dSub.textContent = '';
+  }
+}
+
+function copySym(side) {
+  if (!_lastComputed) return;
+  const sym = side === 'put' ? _lastComputed.putSym : _lastComputed.callSym;
+  navigator.clipboard?.writeText(sym).then(() => {
+    const btns = document.querySelectorAll(`#${side}-meta .copy-btn, #${side}-symbol + .opt-meta .copy-btn`);
+    document.querySelectorAll('.opt-meta .copy-btn').forEach(b => {
+      if (b.closest(`#${side}-meta`)) {
+        b.textContent = 'Copied!';
+        b.classList.add('copied');
+        setTimeout(() => { b.textContent = 'Copy'; b.classList.remove('copied'); }, 1500);
+      }
+    });
+  });
+}
+
+function showBanner(kind, msg) {
+  document.getElementById('banner-area').innerHTML =
+    `<div class="${kind === 'warn' ? 'warn-banner' : 'err-banner'}">${msg}</div>`;
+}
+function clearBanner() {
+  document.getElementById('banner-area').innerHTML = '';
+}
+
+function updateIndexChips() {
+  document.getElementById('chip-nifty').textContent = _spot != null ? _spot.toFixed(2) : '—';
+  document.getElementById('chip-vix').textContent   = _vix  != null ? _vix.toFixed(2)  : '—';
+}
+
+// ── Auto-refresh loop (mirrors startMWAutoRefresh in index.html) ───────────────
+let _refreshTimer = null;
+function startAutoRefresh() {
+  if (_refreshTimer) clearTimeout(_refreshTimer);
+  const tick = async () => {
+    await fetchIndexQuotes();
+    updateIndexChips();
+    recalc();
+    const marketOpen = isMarketHoursNow();
+    _refreshTimer = setTimeout(tick, marketOpen ? REFRESH_MS_MARKET : REFRESH_MS_OFFHOURS);
+  };
+  tick();
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+// (startup happens inside unlockPage(), only after password verification —
+// see PASSWORD GATE block above)
+
+</script>
+</body>
+</html>
