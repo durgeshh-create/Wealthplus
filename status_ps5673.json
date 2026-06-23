@@ -1,16 +1,16 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-06-23 11:13:49 IST",
+  "timestamp": "2026-06-23 11:14:50 IST",
   "bot_running": true,
-  "total_value": 9444896.38,
-  "today_pnl": -12963.92,
+  "total_value": 9444339.4,
+  "today_pnl": -12769.02,
   "today_pnl_pct": -0.14,
   "liquidcase": {
     "quantity": 75188,
     "free_quantity": 7870,
-    "price": 114.66,
-    "value": 8621056.08,
-    "pct": 91.28
+    "price": 114.65,
+    "value": 8620304.2,
+    "pct": 91.27
   },
   "slots": {
     "total": 7,
@@ -38,8 +38,8 @@
       "value": 29869.0,
       "pnl": 28.0,
       "pnl_pct": 0.09,
-      "unrealised_pnl": 21.0,
-      "unrealised_pnl_pct": 0.07,
+      "unrealised_pnl": 31.5,
+      "unrealised_pnl_pct": 0.11,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 7
@@ -48,12 +48,12 @@
       "symbol": "GOLDBEES",
       "quantity": 2243,
       "avg": 124.68,
-      "ltp": 119.06,
-      "value": 267051.58,
-      "pnl": -4620.58,
-      "pnl_pct": -1.7,
-      "unrealised_pnl": -12606.74,
-      "unrealised_pnl_pct": -4.51,
+      "ltp": 119.07,
+      "value": 267074.01,
+      "pnl": -4598.15,
+      "pnl_pct": -1.69,
+      "unrealised_pnl": -12741.32,
+      "unrealised_pnl_pct": -4.56,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 7
@@ -76,12 +76,12 @@
       "symbol": "MINDSPACE-RR",
       "quantity": 43,
       "avg": 458.0,
-      "ltp": 462.12,
-      "value": 19871.16,
-      "pnl": -84.28,
-      "pnl_pct": -0.42,
-      "unrealised_pnl": 176.3,
-      "unrealised_pnl_pct": 0.9,
+      "ltp": 461.97,
+      "value": 19864.71,
+      "pnl": -90.73,
+      "pnl_pct": -0.45,
+      "unrealised_pnl": 135.45,
+      "unrealised_pnl_pct": 0.69,
       "strategy": "bnh",
       "buys_today": 1,
       "max_slots": 7
@@ -90,12 +90,12 @@
       "symbol": "SILVERBEES",
       "quantity": 852,
       "avg": 234.71,
-      "ltp": 215.78,
-      "value": 183844.56,
-      "pnl": -7974.72,
-      "pnl_pct": -4.16,
-      "unrealised_pnl": -16129.05,
-      "unrealised_pnl_pct": -8.07,
+      "ltp": 215.99,
+      "value": 184023.48,
+      "pnl": -7795.8,
+      "pnl_pct": -4.06,
+      "unrealised_pnl": -16043.85,
+      "unrealised_pnl_pct": -8.02,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 7
@@ -154,27 +154,27 @@
   "williams_r": [
     {
       "symbol": "GOLDBEES",
-      "ltp": 119.06,
-      "change_pct": -1.7,
-      "williams_r": -67.26,
+      "ltp": 119.07,
+      "change_pct": -1.69,
+      "williams_r": -67.2,
       "is_held": true,
       "avg_price": 124.68,
       "strategy": "active"
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 215.78,
-      "change_pct": -4.16,
-      "williams_r": -97.65,
+      "ltp": 215.99,
+      "change_pct": -4.06,
+      "williams_r": -97.0,
       "is_held": true,
       "avg_price": 234.71,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 785.75,
-      "change_pct": -0.14,
-      "williams_r": -8.05,
+      "ltp": 785.4,
+      "change_pct": -0.18,
+      "williams_r": -8.72,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -190,9 +190,9 @@
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 598.5,
-      "change_pct": -0.08,
-      "williams_r": -3.3,
+      "ltp": 598.6,
+      "change_pct": -0.06,
+      "williams_r": -3.08,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -208,9 +208,9 @@
     },
     {
       "symbol": "MINDSPACE-RR",
-      "ltp": 462.12,
-      "change_pct": -0.42,
-      "williams_r": -51.07,
+      "ltp": 461.97,
+      "change_pct": -0.45,
+      "williams_r": -52.84,
       "is_held": true,
       "avg_price": 458.0,
       "strategy": "bnh"
@@ -220,9 +220,9 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24111.9,
+      "ltp": 24111.7,
       "prev_close": 24102.9,
-      "change": 9.0,
+      "change": 8.8,
       "change_pct": 0.04,
       "open": 24071.3,
       "high": 24135.5,
@@ -365,6 +365,6 @@
     }
   },
   "available_cash": 15296.65,
-  "available_margin": 202476.39,
+  "available_margin": 204473.97,
   "available_margin_note": null
 }
