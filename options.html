@@ -166,6 +166,11 @@ main{max-width:760px;margin:0 auto;padding:24px 20px}
 const _BAKED_HASH = '408311ba9b03d5d2d41463f1b49280625f826a70a7dc5ccd92d0b41b93b26be2';
 const PW_SESSION  = 'wealthalgo_unlocked';
 
+// ── Constants (must come before unlockPage() can possibly auto-fire below) ───
+const REFRESH_MS_MARKET   = 60 * 1000;
+const REFRESH_MS_OFFHOURS = 5 * 60 * 1000;
+const WATCH_PATH = "RD1858/config/options_watch.json";
+
 async function sha256(s) {
   const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
   return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2,'0')).join('');
@@ -198,7 +203,6 @@ function unlockPage() {
   loadSavedSymbols();
   startAutoRefresh();
 }
-if (sessionStorage.getItem(PW_SESSION) === '1') unlockPage();
 
 // ── GitHub config (shared with index.html via localStorage) ──────────────────
 function getCfg()  { return JSON.parse(localStorage.getItem('wealthalgo_cfg') || '{}'); }
@@ -218,10 +222,6 @@ function isMarketHoursNow() {
   const istMin    = nowIST.getHours()*60 + nowIST.getMinutes();
   return dayOfWeek >= 1 && dayOfWeek <= 5 && istMin >= 555 && istMin <= 930;
 }
-
-const REFRESH_MS_MARKET   = 60 * 1000;
-const REFRESH_MS_OFFHOURS = 5 * 60 * 1000;
-const WATCH_PATH = "RD1858/config/options_watch.json";
 
 // ── Save Put/Call symbols to the repo (same GitHub Contents API pattern as
 // settings-editor/marketwatch.json) — options_snapshot.py reads this file
@@ -421,6 +421,14 @@ function startAutoRefresh() {
   };
   tick();
 }
+
+// ── Auto-unlock if already verified this session ──────────────────────────────
+// Placed at the very end of the script, after every function/const/let above
+// is defined, so there's no risk of a temporal-dead-zone error (referencing a
+// const/let before its own declaration line has executed) regardless of how
+// the code above gets reordered in the future.
+if (sessionStorage.getItem(PW_SESSION) === '1') unlockPage();
+
 </script>
 </body>
 </html>
