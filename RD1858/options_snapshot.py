@@ -55,8 +55,12 @@ def make_session(enctoken):
     s = requests.Session()
     s.headers.update({
         "Authorization": f"enctoken {enctoken}",
-        "User-Agent": "Mozilla/5.0",
-        "Referer": "https://kite.zerodha.com/",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Referer":    "https://kite.zerodha.com/",
+        "Origin":     "https://kite.zerodha.com",
+        "Accept":     "application/json, text/plain, */*",
+        # No X-Kite-Version — that is for api.kite.trade (official API key only).
+        # OMS (kite.zerodha.com/oms) uses enctoken + browser-style headers.
     })
     return s
 
@@ -128,7 +132,7 @@ def fetch_leg_data(session, sym):
     if not info:
         return {"ltp": None, "delta": None, "oi": None, "iv": None, "error": "unparseable_symbol"}
     try:
-        url = f"https://api.kite.trade/oi/chain/{info['underlying']}"
+        url = f"https://kite.zerodha.com/oms/oi/chain/{info['underlying']}"
         r = session.get(url, params={"expiry": info["expiry_str"]}, timeout=10)
         if r.status_code != 200:
             return {"ltp": None, "delta": None, "oi": None, "iv": None, "error": f"http_{r.status_code}"}
