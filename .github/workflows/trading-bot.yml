@@ -301,10 +301,36 @@ jobs:
           ) &
           PUSHER_PID=$!
 
+          # ── Options snapshot: server-side relay for options.html ────────────
+          # options.html (static GitHub Pages) cannot call Kite directly from
+          # the browser (no CORS support on Zerodha's side). This loop runs
+          # options_snapshot.py server-side instead — it has the bot's
+          # authenticated session already — and pushes the result as a plain
+          # static JSON file options.html can fetch with a normal same-origin
+          # GET, no CORS issue at all since it's not a live Kite call from the
+          # browser's perspective.
+          (
+            cd "$GITHUB_WORKSPACE/RD1858"
+            until [ -f config/enctoken.json ]; do sleep 5; done
+            sleep 10  # let auth settle before the first attempt
+            echo "[options-snap-rd1858] enctoken detected — starting snapshot loop"
+            while true; do
+              python3 options_snapshot.py || true
+              if [ -f /tmp/options_snapshot_rd1858.json ]; then
+                cd "$GITHUB_WORKSPACE"
+                python3 push_snapshot.py /tmp/options_snapshot_rd1858.json options_snapshot_rd1858.json || true
+                cd "$GITHUB_WORKSPACE/RD1858"
+              fi
+              sleep 60
+            done
+          ) &
+          OPTIONS_PUSHER_PID=$!
+
           python cloud_launcher.py
           BOT_EXIT=$?
 
           kill $PUSHER_PID 2>/dev/null || true
+          kill $OPTIONS_PUSHER_PID 2>/dev/null || true
 
           # ── Final push: mark bot_running=False then push via Contents API ───
           if [ -f /tmp/status_rd1858.json ]; then
