@@ -261,12 +261,17 @@ async function saveSymbols() {
     setSaveStatus('Enter at least one symbol.', 'err');
     return;
   }
-  if (put && !/^[A-Z]+\d{2}[1-9OND]\d{2}\d+PE$/.test(put)) {
-    setSaveStatus('⚠ Put symbol doesn\'t look like a valid option (expected e.g. NIFTY2662322200PE).', 'err');
+  // Accept both Kite weekly (NIFTY2627025200PE) and monthly (NIFTY26JUN25200PE) formats.
+  // Weekly:  YY + single-char-month-code(1-9/O/N/D) + DD + strike + CE/PE
+  // Monthly: YY + 3-letter-month(JAN..DEC) + strike + CE/PE
+  const OPT_RE_PUT  = /^[A-Z]+(\d{2}([1-9OND]\d{2}|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC))\d+PE$/;
+  const OPT_RE_CALL = /^[A-Z]+(\d{2}([1-9OND]\d{2}|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC))\d+CE$/;
+  if (put && !OPT_RE_PUT.test(put)) {
+    setSaveStatus('⚠ Put symbol doesn\'t look like a valid option (expected e.g. NIFTY2662322200PE or NIFTY26JUN22200PE).', 'err');
     return;
   }
-  if (call && !/^[A-Z]+\d{2}[1-9OND]\d{2}\d+CE$/.test(call)) {
-    setSaveStatus('⚠ Call symbol doesn\'t look like a valid option (expected e.g. NIFTY2662326000CE).', 'err');
+  if (call && !OPT_RE_CALL.test(call)) {
+    setSaveStatus('⚠ Call symbol doesn\'t look like a valid option (expected e.g. NIFTY2662326000CE or NIFTY26JUN26000CE).', 'err');
     return;
   }
 
