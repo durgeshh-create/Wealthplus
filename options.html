@@ -175,32 +175,32 @@ main{max-width:1100px;margin:0 auto;padding:20px}
 <main>
   <div class="intro">
     <h2>🎯 Weekly Put / Call Strike Finder</h2>
-    <p>Computes today's OTM strike from Nifty spot + India VIX range, builds the Kite tradingsymbol, and fetches live LTP &amp; delta — no GitHub config needed, just a logged-in Kite session in this browser.</p>
+    <p>Shows today's OTM Put/Call strike, computed server-side from Nifty spot + India VIX by the bot (no Kite login needed in this browser — that's a server-to-server call now).</p>
   </div>
 
   <!-- Formula / day divisors panel -->
   <div class="panel">
     <div class="ph">
-      <span class="pt">Range Formula</span>
+      <span class="pt">Range Formula <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(reference — computed server-side)</span></span>
       <span class="pb" id="formula-readout">spot × √(vix × mult / divisor)</span>
     </div>
     <div class="panel-body">
       <div class="formula-row">
         <div class="fg">
-          <label>VIX Multiplier %</label>
+          <label>VIX Multiplier % <span style="font-weight:400">(reference only)</span></label>
           <input type="number" id="cfg-mult" value="150" step="5" min="0">
         </div>
         <div class="fg fg-wide">
           <label>Range = Spot × √(VIX × Mult% / Divisor)</label>
           <input type="text" id="formula-preview" readonly style="color:var(--muted)">
         </div>
-        <button class="btn btn-primary" onclick="recalc()">↻ Recalculate</button>
+        <button class="btn btn-primary" onclick="startAutoRefresh()">↻ Refresh now</button>
       </div>
 
       <div class="day-table">
         <table>
           <thead>
-            <tr><th>Weekday</th><th>Divisor</th><th>Note</th></tr>
+            <tr><th>Weekday</th><th>Divisor <span style="font-weight:400">(reference)</span></th><th>Note</th></tr>
           </thead>
           <tbody id="day-divisor-body"></tbody>
         </table>
@@ -217,7 +217,7 @@ main{max-width:1100px;margin:0 auto;padding:20px}
     <div class="sc">
       <div class="sc-label">Nifty Spot</div>
       <div class="sc-val" id="sum-spot">—</div>
-      <div class="sc-sub" id="sum-spot-sub">awaiting live quote</div>
+      <div class="sc-sub" id="sum-spot-sub">awaiting server snapshot</div>
     </div>
     <div class="sc">
       <div class="sc-label">India VIX</div>
@@ -332,21 +332,30 @@ function unlockPage() {
   renderDivisorTable();
   renderFormulaPreview();
   startAutoRefresh();
+  // NOTE: this page no longer calls api.kite.trade directly — Zerodha's API
+  // rejects browser-origin requests outright regardless of login state. Data
+  // now comes from options_snapshot_rd1858.json, a static file the bot
+  // pushes to gh-pages roughly every 60s during market hours (see
+  // RD1858/options_snapshot.py + the "Options snapshot" pusher loop in
+  // trading-bot.yml). This page just fetches that file like any other
+  // static asset — no CORS issue, since the real Kite calls happen
+  // server-side inside the bot's authenticated session.
 }
-
 
 if (sessionStorage.getItem(PW_SESSION) === '1') {
   unlockPage();
 }
 
 // ── Constants ──────────────────────────────────────────────────────────────────
-const NIFTY_TOKEN    = "256265";   // NIFTY 50 index instrument token
-const VIX_TOKEN       = "264969";  // INDIA VIX index instrument token
-const STRIKE_STEP    = 100;        // round PUT/CALL strikes to nearest 100
 const REFRESH_MS_MARKET   = 60 * 1000;    // 60s during market hours
 const REFRESH_MS_OFFHOURS = 5 * 60 * 1000; // 5 min outside market hours
 
 const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+// Reference only — the live Put/Call strikes are computed server-side in
+// RD1858/options_snapshot.py using these same defaults. Editing the fields
+// below updates what's SHOWN here for your own reference, but does not
+// change the actual strike in options_snapshot_rd1858.json — that's
+// controlled by the constants in options_snapshot.py on the server side.
 const DEFAULT_DIVISORS = { 1: 3300, 2: 3800, 3: 4500, 4: 6000, 5: 8000 }; // Mon..Fri
 const DIVISOR_NOTES = {
   1: "Monday — furthest from weekly expiry",
@@ -400,14 +409,12 @@ function onDivisorEdit(day) {
   const v = parseFloat(document.getElementById(`div-${day}`).value);
   if (!isNaN(v) && v > 0) _divisors[day] = v;
   saveDivisorSettings();
-  recalc();
 }
 
 document.getElementById('cfg-mult').addEventListener('change', () => {
   const v = parseFloat(document.getElementById('cfg-mult').value);
   if (!isNaN(v) && v >= 0) _mult = v;
   saveDivisorSettings();
-  recalc();
 });
 
 function resetDivisors() {
@@ -415,34 +422,18 @@ function resetDivisors() {
   _mult = 150;
   saveDivisorSettings();
   renderDivisorTable();
-  recalc();
 }
-
-// ── Symbol construction ────────────────────────────────────────────────────────
-// Kite weekly-options tradingsymbol grammar (per NSE/Zerodha convention):
-//   <UNDERLYING><YY><M><DD><strike><CE|PE>
-// where M is a SINGLE character month code: 1-9 for Jan-Sep, O for Oct, N for Nov, D for Dec.
-const MONTH_CODES = ["1","2","3","4","5","6","7","8","9","O","N","D"];
-
-function floorTo(x, step) { return Math.floor(x / step) * step; }
-function ceilTo(x, step)  { return Math.ceil(x / step) * step; }
 
 // Find this week's Nifty expiry (Tuesday; shifts to Monday if Tuesday is a holiday —
 // holiday data isn't available client-side, so this assumes Tuesday unless that's
-// later overridden manually).
+// later overridden manually). Used only as a fallback display if the server-side
+// snapshot doesn't have an expiry yet.
 function thisWeekExpiry(ref) {
   const d = new Date(ref);
   const day = d.getDay();           // 0=Sun..6=Sat
-  const diff = (4 - day + 7) % 7;   // days until next Thursday (Nifty weekly expiry day)
+  const diff = (2 - day + 7) % 7;   // days until next Tuesday (0 if today is Tuesday)
   d.setDate(d.getDate() + diff);
   return d;
-}
-
-function buildOptionSymbol(underlying, expiryDate, strike, type) {
-  const yy    = String(expiryDate.getFullYear()).slice(-2);
-  const m     = MONTH_CODES[expiryDate.getMonth()];
-  const dd    = String(expiryDate.getDate()).padStart(2, '0');
-  return `${underlying}${yy}${m}${dd}${strike}${type}`;
 }
 
 function fmtExpiry(d) {
@@ -450,169 +441,107 @@ function fmtExpiry(d) {
   return `${String(d.getDate()).padStart(2,'0')}-${months[d.getMonth()]}-${d.getFullYear()}`;
 }
 
-// ── Live index quotes (Nifty spot + India VIX) via Kite, same cookie-auth
-// pattern as the dashboard's fetchLiveQuotes(). Requires the user to be
-// logged into kite.zerodha.com in this browser. ─────────────────────────────────
-let _spot = null, _vix = null, _kiteOk = false;
+// ── Server-side relay ──────────────────────────────────────────────────────────
+// options_snapshot.py runs inside the bot's authenticated GitHub Actions
+// session (server-side — not subject to Kite's CORS restrictions) and
+// pushes its result here as a plain static JSON file, the same way
+// status_rd1858.json already works. This page just fetches that file —
+// an ordinary same-origin GET, no CORS issue at all, since it's not a
+// live Kite call from the browser's perspective.
+const SNAPSHOT_URL = "https://durgeshh-create.github.io/Wealthplus/options_snapshot_rd1858.json";
+let _snapshot = null;
+let _snapshotOk = false;
 
-async function fetchIndexQuotes() {
-  // Primary: snapshot JSON pushed to gh-pages by the bot every ~60s.
-  // No CORS issues, no Kite login needed.
+async function fetchSnapshot() {
   try {
-    const snapUrl = window.location.origin + window.location.pathname.replace('options.html','') + 'status_ps5673.json?t=' + Date.now();
-    const r = await fetch(snapUrl, { signal: AbortSignal.timeout(8000) });
-    if (r.ok) {
-      const snap = await r.json();
-      const idx  = snap.indices || {};
-      if (idx['NIFTY 50']  && idx['NIFTY 50'].ltp  != null) _spot = idx['NIFTY 50'].ltp;
-      if (idx['INDIA VIX'] && idx['INDIA VIX'].ltp != null) _vix  = idx['INDIA VIX'].ltp;
-    }
-  } catch (_) {}
-
-  // Fallback: Kite direct (works if logged into kite.zerodha.com in this browser).
-  // Iterate response entries — API may key by "256265" or "NSE:256265".
-  if (!_spot || !_vix) {
-    try {
-      const qs = `i=${NIFTY_TOKEN}&i=${VIX_TOKEN}`;
-      const r  = await fetch("https://api.kite.trade/quote?" + qs, {
-        credentials: "include",
-        signal: AbortSignal.timeout(6000),
-      });
-      if (r.ok) {
-        const data = (await r.json()).data || {};
-        const tokenToKey = { [NIFTY_TOKEN]: '_spot', [VIX_TOKEN]: '_vix' };
-        for (const [key, val] of Object.entries(data)) {
-          // key may be "256265" or "NSE:256265" — match by suffix
-          const tok = key.split(':').pop();
-          if (tok === NIFTY_TOKEN && val.last_price != null) _spot = val.last_price;
-          if (tok === VIX_TOKEN   && val.last_price != null) _vix  = val.last_price;
-        }
-      }
-    } catch (_) {}
+    const r = await fetch(SNAPSHOT_URL + "?t=" + Date.now(), { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    _snapshot = await r.json();
+    _snapshotOk = !_snapshot.error;
+  } catch (e) {
+    _snapshotOk = false;
   }
-
-  _kiteOk = (_spot != null && _vix != null);
   updateKiteStatus();
 }
 
 function updateKiteStatus() {
   const dot = document.getElementById('live-dot');
   const lbl = document.getElementById('live-label');
-  if (_kiteOk) {
+  if (_snapshotOk) {
     dot.className = 'dot live';
-    lbl.textContent = 'Live';
+    lbl.textContent = 'Connected';
+  } else if (_snapshot && _snapshot.error === 'no_enctoken') {
+    dot.className = 'dot off';
+    lbl.textContent = 'Bot not authenticated yet';
   } else {
     dot.className = 'dot off';
-    lbl.textContent = 'Waiting for snapshot / Kite login…';
+    lbl.textContent = 'No data yet';
   }
 }
 
-// ── Option chain delta + LTP fetch (mirrors _fetchOptionDeltas in index.html) ──
-async function fetchOptionData(symbol, underlying, expiryDate, strike, type) {
-  const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-  const expiryStr = `${String(expiryDate.getDate()).padStart(2,'0')}${months[expiryDate.getMonth()]}${String(expiryDate.getFullYear()).slice(-2)}`;
-  try {
-    const url = `https://api.kite.trade/oi/chain/${underlying}?expiry=${expiryStr}`;
-    const r   = await fetch(url, { credentials: "include", signal: AbortSignal.timeout(8000) });
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    const d = await r.json();
-    const chain = d.data || [];
-    const entry = chain.find(e => e.strike_price == strike);
-    if (!entry) return { ltp: null, delta: null, oi: null, iv: null };
-    const key  = type === "CE" ? "call_options" : "put_options";
-    const leg  = entry[key] || {};
-    const ltp  = leg.last_price ?? leg.option_chain?.last_price ?? null;
-    const delta = leg.greeks?.delta ?? leg.option_chain?.delta ?? null;
-    const oi    = leg.oi ?? leg.option_chain?.oi ?? null;
-    const iv    = leg.greeks?.iv ?? leg.option_chain?.iv ?? null;
-    return {
-      ltp:   ltp != null ? parseFloat(ltp) : null,
-      delta: delta != null ? parseFloat(delta) : null,
-      oi:    oi != null ? parseFloat(oi) : null,
-      iv:    iv != null ? parseFloat(iv) : null,
-    };
-  } catch (e) {
-    return { ltp: null, delta: null, oi: null, iv: null, error: true };
-  }
-}
-
-// ── Main recalculation + render ────────────────────────────────────────────────
+// ── Main render ────────────────────────────────────────────────────────────────
 let _lastComputed = null;
 
 function recalc() {
   renderFormulaPreview();
-  if (_spot == null || _vix == null) {
-    showBanner('warn', 'Waiting for live Nifty/VIX quote from Kite — log into kite.zerodha.com in this browser, then refresh.');
+  if (!_snapshotOk || _snapshot.spot == null || _snapshot.vix == null) {
+    showBanner('warn',
+      'Waiting for the bot\'s server-side snapshot (options_snapshot_rd1858.json) — this updates every ~60s ' +
+      'while the bot is running during market hours. If the bot session hasn\'t started yet today, this will ' +
+      'stay empty until it does.'
+    );
     return;
   }
   clearBanner();
 
-  const today = nowIST().getDay();   // 0=Sun..6=Sat
-  const divisor = _divisors[today];
-  if (!divisor) {
-    showBanner('warn', `No divisor configured for ${DAY_NAMES[today]} (market closed today) — showing Monday's settings as a preview.`);
+  const spot = _snapshot.spot, vix = _snapshot.vix;
+  const today = nowIST().getDay();
+
+  if (!_snapshot.put || !_snapshot.put.symbol) {
+    showBanner('warn', `No divisor configured for ${DAY_NAMES[today]} (market closed today) — spot/VIX shown, but no strike computed.`);
+    document.getElementById('sum-spot').textContent = '₹' + spot.toFixed(2);
+    document.getElementById('sum-spot-sub').textContent = `as of snapshot (${fmtAge(_snapshot.updated_at)})`;
+    document.getElementById('sum-vix').textContent = vix.toFixed(2);
+    return;
   }
-  const effDivisor = divisor || _divisors[1];
 
-  const range = _spot * Math.sqrt(_vix * (_mult/100) / effDivisor);
-  const rangeRounded = Math.round(range);
+  document.getElementById('sum-spot').textContent = '₹' + spot.toFixed(2);
+  document.getElementById('sum-spot-sub').textContent = `as of snapshot (${fmtAge(_snapshot.updated_at)})`;
+  document.getElementById('sum-vix').textContent = vix.toFixed(2);
+  document.getElementById('sum-divisor').textContent = _snapshot.divisor ?? '—';
+  document.getElementById('sum-weekday').textContent = DAY_NAMES[today];
+  document.getElementById('sum-range').textContent = _snapshot.range != null ? '±' + _snapshot.range : '—';
 
-  const putStrike  = floorTo(_spot - range, STRIKE_STEP);
-  const callStrike = ceilTo(_spot + range, STRIKE_STEP);
+  const expiry = _snapshot.expiry ? new Date(_snapshot.expiry + 'T00:00:00') : thisWeekExpiry(nowIST());
+  const put  = _snapshot.put,  call = _snapshot.call;
 
-  const expiry = thisWeekExpiry(nowIST());
-  const putSym  = buildOptionSymbol("NIFTY", expiry, putStrike,  "PE");
-  const callSym = buildOptionSymbol("NIFTY", expiry, callStrike, "CE");
+  document.getElementById('put-symbol').innerHTML  = put.symbol.replace(String(put.strike),  `<span class="strike">${put.strike}</span>`);
+  document.getElementById('call-symbol').innerHTML = call.symbol.replace(String(call.strike), `<span class="strike">${call.strike}</span>`);
+  document.getElementById('put-meta').innerHTML  = `Expiry ${fmtExpiry(expiry)} · Strike ${put.strike} · ${(spot-put.strike).toFixed(0)} pts OTM<button class="copy-btn" onclick="copySym('put')">Copy</button>`;
+  document.getElementById('call-meta').innerHTML = `Expiry ${fmtExpiry(expiry)} · Strike ${call.strike} · ${(call.strike-spot).toFixed(0)} pts OTM<button class="copy-btn" onclick="copySym('call')">Copy</button>`;
 
-  document.getElementById('sum-spot').textContent = '₹' + _spot.toFixed(2);
-  document.getElementById('sum-spot-sub').textContent = 'live from Kite';
-  document.getElementById('sum-vix').textContent = _vix.toFixed(2);
-  document.getElementById('sum-divisor').textContent = effDivisor;
-  document.getElementById('sum-weekday').textContent = DAY_NAMES[today] + (divisor ? '' : ' (preview)');
-  document.getElementById('sum-range').textContent = '±' + rangeRounded;
+  _lastComputed = { putSym: put.symbol, callSym: call.symbol };
 
-  document.getElementById('put-symbol').innerHTML  = putSym.replace(String(putStrike),  `<span class="strike">${putStrike}</span>`);
-  document.getElementById('call-symbol').innerHTML = callSym.replace(String(callStrike), `<span class="strike">${callStrike}</span>`);
-  document.getElementById('put-meta').innerHTML  = `Expiry ${fmtExpiry(expiry)} · Strike ${putStrike} · ${(_spot-putStrike).toFixed(0)} pts OTM<button class="copy-btn" onclick="copySym('put')">Copy</button>`;
-  document.getElementById('call-meta').innerHTML = `Expiry ${fmtExpiry(expiry)} · Strike ${callStrike} · ${(callStrike-_spot).toFixed(0)} pts OTM<button class="copy-btn" onclick="copySym('call')">Copy</button>`;
-
-  _lastComputed = { putSym, callSym, putStrike, callStrike, expiry };
-
-  refreshOptionData();
-}
-
-function renderFormulaPreview() {
-  document.getElementById('formula-preview').value =
-    `spot × √(vix × ${_mult}% / divisor)`;
-}
-
-async function refreshOptionData() {
-  if (!_lastComputed) return;
-  const { putSym, callSym, putStrike, callStrike, expiry } = _lastComputed;
-
-  setCellLoading('put');
-  setCellLoading('call');
-
-  const [putData, callData] = await Promise.all([
-    fetchOptionData(putSym,  "NIFTY", expiry, putStrike,  "PE"),
-    fetchOptionData(callSym, "NIFTY", expiry, callStrike, "CE"),
-  ]);
-
-  renderOptionCell('put',  putData);
-  renderOptionCell('call', callData);
+  renderOptionCell('put',  put);
+  renderOptionCell('call', call);
 
   const dot = document.getElementById('refresh-dot');
   const lbl = document.getElementById('refresh-label');
   const marketOpen = isMarketHoursNow();
   dot.className = 'dot ' + (marketOpen ? 'live' : 'off');
-  lbl.textContent = marketOpen
-    ? `Live — refreshing every ${REFRESH_MS_MARKET/1000}s · last update ${nowIST().toLocaleTimeString('en-IN')}`
-    : `Market closed — refreshing every ${REFRESH_MS_OFFHOURS/60000} min · last update ${nowIST().toLocaleTimeString('en-IN')}`;
+  lbl.textContent = `Snapshot age: ${fmtAge(_snapshot.updated_at)} · refreshing every ${marketOpen ? REFRESH_MS_MARKET/1000 + 's' : REFRESH_MS_OFFHOURS/60000 + ' min'}`;
 }
 
-function setCellLoading(side) {
-  document.getElementById(`${side}-ltp`).textContent = '…';
-  document.getElementById(`${side}-delta`).textContent = '…';
+function fmtAge(isoTs) {
+  if (!isoTs) return 'unknown';
+  const ageSec = Math.max(0, Math.round((Date.now() - new Date(isoTs).getTime()) / 1000));
+  if (ageSec < 90) return `${ageSec}s ago`;
+  return `${Math.round(ageSec/60)} min ago`;
+}
+
+function renderFormulaPreview() {
+  document.getElementById('formula-preview').value =
+    `spot × √(vix × ${_mult}% / divisor)`;
 }
 
 function renderOptionCell(side, data) {
@@ -621,13 +550,6 @@ function renderOptionCell(side, data) {
   const dEl     = document.getElementById(`${side}-delta`);
   const dSub    = document.getElementById(`${side}-delta-sub`);
 
-  if (data.error) {
-    ltpEl.innerHTML = '<span class="dim">n/a</span>';
-    ltpSub.textContent = 'fetch failed';
-    dEl.innerHTML = '<span class="dim">n/a</span>';
-    dSub.textContent = '';
-    return;
-  }
   if (data.ltp != null) {
     ltpEl.textContent = '₹' + data.ltp.toFixed(2);
     ltpSub.textContent = data.oi != null ? `OI ${Number(data.oi).toLocaleString('en-IN')}` : '';
@@ -648,7 +570,6 @@ function copySym(side) {
   if (!_lastComputed) return;
   const sym = side === 'put' ? _lastComputed.putSym : _lastComputed.callSym;
   navigator.clipboard?.writeText(sym).then(() => {
-    const btns = document.querySelectorAll(`#${side}-meta .copy-btn, #${side}-symbol + .opt-meta .copy-btn`);
     document.querySelectorAll('.opt-meta .copy-btn').forEach(b => {
       if (b.closest(`#${side}-meta`)) {
         b.textContent = 'Copied!';
@@ -668,16 +589,16 @@ function clearBanner() {
 }
 
 function updateIndexChips() {
-  document.getElementById('chip-nifty').textContent = _spot != null ? _spot.toFixed(2) : '—';
-  document.getElementById('chip-vix').textContent   = _vix  != null ? _vix.toFixed(2)  : '—';
+  document.getElementById('chip-nifty').textContent = _snapshot?.spot != null ? _snapshot.spot.toFixed(2) : '—';
+  document.getElementById('chip-vix').textContent   = _snapshot?.vix  != null ? _snapshot.vix.toFixed(2)  : '—';
 }
 
-// ── Auto-refresh loop (mirrors startMWAutoRefresh in index.html) ───────────────
+// ── Auto-refresh loop ──────────────────────────────────────────────────────────
 let _refreshTimer = null;
 function startAutoRefresh() {
   if (_refreshTimer) clearTimeout(_refreshTimer);
   const tick = async () => {
-    await fetchIndexQuotes();
+    await fetchSnapshot();
     updateIndexChips();
     recalc();
     const marketOpen = isMarketHoursNow();
@@ -689,6 +610,7 @@ function startAutoRefresh() {
 // ── Init ─────────────────────────────────────────────────────────────────────
 // (startup happens inside unlockPage(), only after password verification —
 // see PASSWORD GATE block above)
+
 
 </script>
 </body>
