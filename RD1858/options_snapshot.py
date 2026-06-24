@@ -53,15 +53,22 @@ def load_enctoken():
 def make_session(enctoken):
     import requests
     s = requests.Session()
+    # Set enctoken as BOTH Authorization header AND cookie.
+    # api.kite.trade/oi/chain requires the cookie (it is what the Kite web app
+    # sends); the Authorization header alone results in a 404 on that endpoint.
+    # OMS endpoints (/oms/...) accept the header alone, but /oi/chain lives on
+    # api.kite.trade and needs the full browser-session cookie jar.
     s.headers.update({
         "Authorization": f"enctoken {enctoken}",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         "Referer":    "https://kite.zerodha.com/",
         "Origin":     "https://kite.zerodha.com",
         "Accept":     "application/json, text/plain, */*",
-        # No X-Kite-Version — that is for api.kite.trade (official API key only).
-        # OMS (kite.zerodha.com/oms) uses enctoken + browser-style headers.
+        "X-Kite-Version": "3",
     })
+    # Plant the enctoken cookie on api.kite.trade so /oi/chain recognises the session.
+    s.cookies.set("enctoken", enctoken, domain="kite.zerodha.com")
+    s.cookies.set("enctoken", enctoken, domain="api.kite.trade")
     return s
 
 
@@ -132,7 +139,7 @@ def fetch_leg_data(session, sym):
     if not info:
         return {"ltp": None, "delta": None, "oi": None, "iv": None, "error": "unparseable_symbol"}
     try:
-        url = f"https://kite.zerodha.com/oms/oi/chain/{info['underlying']}"
+        url = f"https://api.kite.trade/oi/chain/{info['underlying']}"
         r = session.get(url, params={"expiry": info["expiry_str"]}, timeout=10)
         if r.status_code != 200:
             return {"ltp": None, "delta": None, "oi": None, "iv": None, "error": f"http_{r.status_code}"}
