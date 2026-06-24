@@ -78,14 +78,34 @@ def load_watch_symbols():
 # function (no Flask/auth-object dependency) since this script runs
 # standalone, outside the Flask app, with its own requests.Session.
 import re
-_OPT_SYM_RE = re.compile(r'^([A-Z]+)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$')
+
+# Weekly format:  NIFTY2627025200CE  -> YY + single-char-month + DD + strike + CE/PE
+_OPT_SYM_WEEKLY_RE = re.compile(r'^([A-Z]+)(\d{2})([1-9OND])(\d{2})(\d+)(CE|PE)$')
+# Monthly format: NIFTY26JUN25200CE  -> YY + 3-letter-month + strike + CE/PE (no day)
+_OPT_SYM_MONTHLY_RE = re.compile(r'^([A-Z]+)(\d{2})(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(\d+)(CE|PE)$')
+
 _MONTH_CODE_TO_NUM = {c: i + 1 for i, c in enumerate("123456789")}
 _MONTH_CODE_TO_NUM.update({'O': 10, 'N': 11, 'D': 12})
 _MONTHS_3LETTER = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]
 
 
 def parse_option_symbol(sym):
-    m = _OPT_SYM_RE.match(sym)
+    # Try monthly first (3-letter month, e.g. NIFTY26JUN25200PE)
+    m = _OPT_SYM_MONTHLY_RE.match(sym)
+    if m:
+        underlying, yy, month_str, strike, opt_type = m.groups()
+        # Kite chain API accepts "MMMYY" expiry for monthly contracts
+        expiry_str = f"{month_str}{yy}"  # e.g. "JUN26"
+        return {
+            "underlying": underlying,
+            "expiry_str": expiry_str,
+            "strike": int(strike),
+            "opt_type": opt_type,
+            "is_monthly": True,
+        }
+
+    # Try weekly format (single-char month code, e.g. NIFTY2627025200PE)
+    m = _OPT_SYM_WEEKLY_RE.match(sym)
     if not m:
         return None
     underlying, yy, month_code, dd, strike, opt_type = m.groups()
@@ -94,11 +114,11 @@ def parse_option_symbol(sym):
         return None
     return {
         "underlying": underlying,
-        "expiry_str": f"{dd}{_MONTHS_3LETTER[month_num-1]}{yy}",  # e.g. "23JUN26"
+        "expiry_str": f"{dd}{_MONTHS_3LETTER[month_num-1]}{yy}",  # e.g. "27JUN26"
         "strike": int(strike),
         "opt_type": opt_type,
+        "is_monthly": False,
     }
-
 
 def fetch_leg_data(session, sym):
     """Fetch LTP + delta + OI + IV for one option tradingsymbol via Kite's
