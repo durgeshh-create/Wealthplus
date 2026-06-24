@@ -430,7 +430,7 @@ class StrategyExecutor:
                     )
                     if self.signal_generator:
                         self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=True)
-                    return False, "Outside market hours"
+                    return False
 
             etf_qty = self.portfolio.get_quantity_held(symbol)
             if etf_qty <= 0:

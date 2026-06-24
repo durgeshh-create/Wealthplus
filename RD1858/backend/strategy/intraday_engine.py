@@ -420,7 +420,7 @@ class IntradayEngine:
 
         cash_reserve = Config.get_cash_reserve()
         try:
-            success, _ = self.orders.smart_buy(
+            success = self.orders.smart_buy(
                 buy_symbol=symbol,
                 buy_quantity=qty,
                 buy_price_estimate=float(ltp),
@@ -527,7 +527,7 @@ class IntradayEngine:
 
         cash_reserve = Config.get_cash_reserve()
         try:
-            success, _ = self.orders.smart_buy(
+            success = self.orders.smart_buy(
                 buy_symbol=symbol,
                 buy_quantity=qty,
                 buy_price_estimate=float(ltp),
