@@ -644,6 +644,58 @@ class OrderManager:
         portfolio_tracker.sync()
         return True
 
+    def smart_sell(
+        self,
+        symbol: str,
+        quantity: int,
+        portfolio_tracker,
+        sell_order_type: str = 'MARKET',
+        sell_limit_price: float = None,
+        sell_product: str = None,
+    ) -> Tuple[bool, str]:
+        """
+        Sell `quantity` of `symbol` directly (no swap leg needed — proceeds
+        land as free cash). Used by IntradayEngine's partial profit-take
+        harvest sell.
+
+        Returns:
+            (success, message) — success=True only if the order reached
+            COMPLETE status with the broker. Never raises; all failure paths
+            are returned as (False, reason) so callers can safely do
+            `success, msg = smart_sell(...)`.
+        """
+        try:
+            logger.info(f"smart_sell {quantity} × {symbol} [{sell_order_type}]")
+
+            sell_oid, sell_msg = self.place_order(
+                symbol, 'SELL', quantity,
+                order_type=sell_order_type,
+                price=sell_limit_price,
+                product=sell_product,
+            )
+            if not sell_oid:
+                err = f"Sell order rejected: {sell_msg}"
+                logger.error(f"✗ smart_sell failed: {err}")
+                return False, err
+
+            if not self.monitor_order(sell_oid):
+                status = self.get_order_status(sell_oid)
+                sm = status.get('status_message', '') if status else ''
+                err = f"Sell order did not complete: {sm}" if sm else f"Sell order {sell_oid} timed out"
+                logger.error(f"✗ smart_sell failed: {err}")
+                return False, err
+
+            logger.info(f"✓ smart_sell complete: {quantity} × {symbol}")
+            try:
+                portfolio_tracker.sync()
+            except Exception as e:
+                logger.warning(f"smart_sell: portfolio sync failed (non-fatal): {e}")
+            return True, "Success"
+
+        except Exception as e:
+            logger.error(f"Error in smart_sell: {e}", exc_info=True)
+            return False, str(e)
+
     def check_margin_availability(self, symbol: str, quantity: int, price: float) -> tuple[bool, str]:
         """
         Check if there's enough margin to execute a BUY order for CNC
