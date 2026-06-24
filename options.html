@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WealthAlgo — Nifty Weekly Options</title>
+<title>WealthAlgo — Nifty Options</title>
 <style>
 :root {
   --bg:      #f8f9fb;
@@ -14,14 +14,11 @@
   --text:    #1e293b;
   --muted:   #64748b;
   --muted2:  #475569;
-
   --green:   #16a34a;
   --green-d: rgba(22,163,74,0.10);
   --red:     #dc2626;
   --red-d:   rgba(220,38,38,0.10);
-
   --accent:  #4f46e5;
-
   --mono:    'DM Mono', monospace;
   --head:    'Syne', sans-serif;
 }
@@ -40,85 +37,53 @@ header{display:flex;align-items:center;padding:0 20px;border-bottom:1px solid va
 .dot.off{background:var(--red)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-.idx-chips{display:flex;gap:8px}
-.idx-chip{display:flex;flex-direction:column;align-items:flex-end;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px 8px;min-width:78px;cursor:default}
-.idx-chip .ic-name{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-family:var(--head);line-height:1.2}
-.idx-chip .ic-val{font-size:12px;font-weight:700;font-family:var(--head);color:var(--text);line-height:1.3}
-
-main{max-width:1100px;margin:0 auto;padding:20px}
+main{max-width:760px;margin:0 auto;padding:24px 20px}
 
 .intro h2{font-family:var(--head);font-size:16px;font-weight:800;color:var(--accent)}
-.intro p{font-size:11px;color:var(--muted);margin-top:2px}
+.intro p{font-size:11px;color:var(--muted);margin-top:4px}
 
-/* ── Formula / settings panel ── */
-.panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:16px}
-.ph{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-bottom:1px solid var(--border)}
-.pt{font-family:var(--head);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted2)}
-.pb{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);color:var(--muted2)}
-.panel-body{padding:14px 15px}
+/* Symbol entry panel */
+.entry-panel{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-top:18px}
+.entry-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:5px;flex:1 1 220px;min-width:200px}
+.fg label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.fg input{font-family:var(--mono);font-size:13px;padding:9px 11px;border:1px solid var(--border2);border-radius:7px;background:var(--bg2);color:var(--text);text-transform:uppercase}
+.fg input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+.fg input::placeholder{text-transform:none;color:#9ca3af}
+.btn{font-family:var(--head);font-size:12px;font-weight:700;letter-spacing:.02em;padding:9px 18px;border-radius:7px;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.btn:hover{opacity:.88}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.save-status{font-size:10px;color:var(--muted);margin-top:8px;min-height:14px}
+.save-status.ok{color:var(--green)}
+.save-status.err{color:var(--red)}
 
-.formula-row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
-.fg{display:flex;flex-direction:column;gap:4px;min-width:90px}
-.fg label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
-.fg input{font-family:var(--mono);font-size:12px;padding:6px 8px;border:1px solid var(--border2);border-radius:6px;background:var(--bg2);color:var(--text);width:100%}
-.fg input:focus{outline:none;border-color:var(--accent)}
-.fg-wide{flex:1 1 auto;min-width:220px}
-
-.day-table{margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
-.day-table table{width:100%;border-collapse:collapse;font-size:11px}
-.day-table th{text-align:left;padding:5px 8px;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--border)}
-.day-table td{padding:5px 8px;border-bottom:1px solid var(--border)}
-.day-table tr.today td{background:var(--green-d);font-weight:700}
-.day-table input{width:70px;font-family:var(--mono);font-size:11px;padding:4px 6px;border:1px solid var(--border2);border-radius:5px;background:var(--bg2);color:var(--text)}
-.day-table input:focus{outline:none;border-color:var(--accent)}
-
-.btn{font-family:var(--head);font-size:11px;font-weight:700;letter-spacing:.03em;padding:7px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);cursor:pointer;transition:all .15s}
-.btn:hover{border-color:var(--accent);color:var(--accent)}
-.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn-primary:hover{opacity:.9;color:#fff}
-.btn-row{display:flex;gap:8px;margin-top:12px}
-
-/* ── Result cards ── */
-.calc-summary{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
-.sc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:13px 15px;position:relative;overflow:hidden;flex:1 1 150px}
-.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);opacity:.5}
-.sc-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
-.sc-val{font-family:var(--head);font-size:21px;font-weight:700;color:var(--text);line-height:1.1}
-.sc-sub{font-size:10px;color:var(--muted);margin-top:3px}
-
-.opt-cards{display:flex;gap:14px;margin-top:16px;flex-wrap:wrap}
-.opt-card{flex:1 1 320px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
-.opt-card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;border-bottom:1px solid var(--border)}
+/* Results */
+.results{margin-top:20px;display:flex;flex-direction:column;gap:12px}
+.opt-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.opt-card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
 .opt-card.put .opt-card-head{background:var(--red-d)}
 .opt-card.call .opt-card-head{background:var(--green-d)}
-.opt-card-title{font-family:var(--head);font-size:13px;font-weight:800}
-.opt-card.put .opt-card-title{color:var(--red)}
-.opt-card.call .opt-card-title{color:var(--green)}
-.opt-card-badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);color:var(--muted2)}
-
-.opt-symbol{font-family:var(--head);font-size:18px;font-weight:800;padding:14px 15px 4px;word-break:break-all;color:var(--text)}
-.opt-symbol .strike{color:var(--accent)}
-.opt-meta{font-size:10px;color:var(--muted);padding:0 15px 12px}
-
-.opt-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border)}
-.opt-cell{padding:12px 15px;border-right:1px solid var(--border)}
+.opt-symbol{font-family:var(--head);font-size:16px;font-weight:800}
+.opt-card.put .opt-symbol{color:var(--red)}
+.opt-card.call .opt-symbol{color:var(--green)}
+.opt-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 9px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);color:var(--muted2)}
+.opt-grid{display:grid;grid-template-columns:1fr 1fr}
+.opt-cell{padding:14px 16px;border-right:1px solid var(--border)}
 .opt-cell:last-child{border-right:none}
-.opt-cell-label{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
-.opt-cell-val{font-family:var(--head);font-size:18px;font-weight:700}
-.opt-cell-val.dim{color:var(--muted);font-size:14px;font-weight:600}
-.opt-cell-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.opt-cell-label{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px}
+.opt-cell-val{font-family:var(--head);font-size:21px;font-weight:700}
+.opt-cell-val.dim{color:var(--muted);font-size:15px;font-weight:600}
+.opt-cell-sub{font-size:10px;color:var(--muted);margin-top:3px}
 
-.copy-btn{font-size:9px;color:var(--accent);cursor:pointer;border:1px solid var(--accent);border-radius:5px;padding:2px 8px;background:none;font-family:var(--mono);margin-left:8px;transition:all .15s}
-.copy-btn:hover{background:var(--accent);color:#fff}
-.copy-btn.copied{background:var(--green);border-color:var(--green);color:#fff}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:12px}
 
-.status-line{font-size:10px;color:var(--muted);margin-top:14px;display:flex;align-items:center;gap:6px}
+.status-line{font-size:10px;color:var(--muted);margin-top:16px;display:flex;align-items:center;gap:6px;justify-content:center}
 .status-line .dot{width:6px;height:6px}
 
 .warn-banner{margin-top:14px;font-size:11px;color:#92400e;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px 14px}
 .err-banner{margin-top:14px;font-size:11px;color:#991b1b;background:#fee2e2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px}
 
-/* Password gate (same mechanism as index.html — baked hash, sessionStorage) */
+/* Password gate */
 #pw-overlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
 .pw-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:36px 32px;width:360px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,.25);text-align:center}
 .pw-logo{font-family:var(--head);font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px}
@@ -153,19 +118,9 @@ main{max-width:1100px;margin:0 auto;padding:20px}
 <header>
   <div class="logo">
     <h1>WealthAlgo</h1>
-    <span class="sub">Nifty Weekly Options</span>
+    <span class="sub">Nifty Options</span>
   </div>
-  <a class="back-link" href="index.html">← Dashboard</a>
-  <div class="idx-chips">
-    <div class="idx-chip">
-      <span class="ic-name">Nifty 50</span>
-      <span class="ic-val" id="chip-nifty">—</span>
-    </div>
-    <div class="idx-chip">
-      <span class="ic-name">India VIX</span>
-      <span class="ic-val" id="chip-vix">—</span>
-    </div>
-  </div>
+  <a class="back-link" href="index.html">&#8592; Dashboard</a>
   <div class="pill">
     <span class="dot" id="live-dot"></span>
     <span id="live-label">checking…</span>
@@ -174,113 +129,29 @@ main{max-width:1100px;margin:0 auto;padding:20px}
 
 <main>
   <div class="intro">
-    <h2>🎯 Weekly Put / Call Strike Finder</h2>
-    <p>Shows today's OTM Put/Call strike, computed server-side from Nifty spot + India VIX by the bot (no Kite login needed in this browser — that's a server-to-server call now).</p>
+    <h2>&#127919; Put / Call Tracker</h2>
+    <p>Enter your Put and Call tradingsymbols (e.g. NIFTY2662322200PE) — LTP and delta are fetched server-side from Kite, refreshed automatically during market hours.</p>
   </div>
 
-  <!-- Formula / day divisors panel -->
-  <div class="panel">
-    <div class="ph">
-      <span class="pt">Range Formula <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(reference — computed server-side)</span></span>
-      <span class="pb" id="formula-readout">spot × √(vix × mult / divisor)</span>
-    </div>
-    <div class="panel-body">
-      <div class="formula-row">
-        <div class="fg">
-          <label>VIX Multiplier % <span style="font-weight:400">(reference only)</span></label>
-          <input type="number" id="cfg-mult" value="150" step="5" min="0">
-        </div>
-        <div class="fg fg-wide">
-          <label>Range = Spot × √(VIX × Mult% / Divisor)</label>
-          <input type="text" id="formula-preview" readonly style="color:var(--muted)">
-        </div>
-        <button class="btn btn-primary" onclick="startAutoRefresh()">↻ Refresh now</button>
+  <div class="entry-panel">
+    <div class="entry-row">
+      <div class="fg">
+        <label>Put Symbol</label>
+        <input type="text" id="put-input" placeholder="NIFTY2662322200PE">
       </div>
-
-      <div class="day-table">
-        <table>
-          <thead>
-            <tr><th>Weekday</th><th>Divisor <span style="font-weight:400">(reference)</span></th><th>Note</th></tr>
-          </thead>
-          <tbody id="day-divisor-body"></tbody>
-        </table>
+      <div class="fg">
+        <label>Call Symbol</label>
+        <input type="text" id="call-input" placeholder="NIFTY2662326000CE">
       </div>
-
-      <div class="btn-row">
-        <button class="btn" onclick="resetDivisors()">Reset to defaults</button>
-      </div>
+      <button class="btn" onclick="saveSymbols()">Save &amp; Track</button>
     </div>
-  </div>
-
-  <!-- Spot / VIX / range summary -->
-  <div class="calc-summary">
-    <div class="sc">
-      <div class="sc-label">Nifty Spot</div>
-      <div class="sc-val" id="sum-spot">—</div>
-      <div class="sc-sub" id="sum-spot-sub">awaiting server snapshot</div>
-    </div>
-    <div class="sc">
-      <div class="sc-label">India VIX</div>
-      <div class="sc-val" id="sum-vix">—</div>
-      <div class="sc-sub">used in range formula</div>
-    </div>
-    <div class="sc">
-      <div class="sc-label">Today's Divisor</div>
-      <div class="sc-val" id="sum-divisor">—</div>
-      <div class="sc-sub" id="sum-weekday">—</div>
-    </div>
-    <div class="sc">
-      <div class="sc-label">Computed Range</div>
-      <div class="sc-val" id="sum-range">—</div>
-      <div class="sc-sub">points OTM (rounded to 100)</div>
-    </div>
+    <div class="save-status" id="save-status"></div>
   </div>
 
   <div id="banner-area"></div>
 
-  <!-- Put / Call cards -->
-  <div class="opt-cards">
-    <div class="opt-card put">
-      <div class="opt-card-head">
-        <span class="opt-card-title">PUT (OTM below spot)</span>
-        <span class="opt-card-badge">FLOOR(spot − range, 100)</span>
-      </div>
-      <div class="opt-symbol" id="put-symbol">—</div>
-      <div class="opt-meta" id="put-meta">—<button class="copy-btn" onclick="copySym('put')">Copy</button></div>
-      <div class="opt-grid">
-        <div class="opt-cell">
-          <div class="opt-cell-label">LTP</div>
-          <div class="opt-cell-val" id="put-ltp">—</div>
-          <div class="opt-cell-sub" id="put-ltp-sub"></div>
-        </div>
-        <div class="opt-cell">
-          <div class="opt-cell-label">Delta</div>
-          <div class="opt-cell-val" id="put-delta">—</div>
-          <div class="opt-cell-sub" id="put-delta-sub"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="opt-card call">
-      <div class="opt-card-head">
-        <span class="opt-card-title">CALL (OTM above spot)</span>
-        <span class="opt-card-badge">CEILING(spot + range, 100)</span>
-      </div>
-      <div class="opt-symbol" id="call-symbol">—</div>
-      <div class="opt-meta" id="call-meta">—<button class="copy-btn" onclick="copySym('call')">Copy</button></div>
-      <div class="opt-grid">
-        <div class="opt-cell">
-          <div class="opt-cell-label">LTP</div>
-          <div class="opt-cell-val" id="call-ltp">—</div>
-          <div class="opt-cell-sub" id="call-ltp-sub"></div>
-        </div>
-        <div class="opt-cell">
-          <div class="opt-cell-label">Delta</div>
-          <div class="opt-cell-val" id="call-delta">—</div>
-          <div class="opt-cell-sub" id="call-delta-sub"></div>
-        </div>
-      </div>
-    </div>
+  <div class="results" id="results-area">
+    <div class="empty-state" id="empty-state">No symbols saved yet — enter a Put and/or Call symbol above.</div>
   </div>
 
   <div class="status-line">
@@ -291,10 +162,8 @@ main{max-width:1100px;margin:0 auto;padding:20px}
 </div>
 
 <script>
-// PASSWORD GATE — mirrors index.html exactly. Same baked hash placeholder,
-// same sessionStorage key, so unlocking either page unlocks both for this
-// browser tab/session.
-const _BAKED_HASH = '408311ba9b03d5d2d41463f1b49280625f826a70a7dc5ccd92d0b41b93b26be2';   // replaced by workflow at deploy
+// ── PASSWORD GATE — same mechanism as index.html ──────────────────────────────
+const _BAKED_HASH = '408311ba9b03d5d2d41463f1b49280625f826a70a7dc5ccd92d0b41b93b26be2';
 const PW_SESSION  = 'wealthalgo_unlocked';
 
 async function sha256(s) {
@@ -318,57 +187,31 @@ async function checkPw() {
     document.getElementById('pw-input').select();
   }
 }
-
 function pwErr(m) { document.getElementById('pw-err').textContent = m; }
 function togglePwEye() {
   const i = document.getElementById('pw-input');
   i.type = i.type === 'password' ? 'text' : 'password';
 }
-
 function unlockPage() {
   document.getElementById('pw-overlay').style.display = 'none';
   document.getElementById('page-content').style.display = 'block';
-  loadDivisorSettings();
-  renderDivisorTable();
-  renderFormulaPreview();
+  loadSavedSymbols();
   startAutoRefresh();
-  // NOTE: this page no longer calls api.kite.trade directly — Zerodha's API
-  // rejects browser-origin requests outright regardless of login state. Data
-  // now comes from options_snapshot_rd1858.json, a static file the bot
-  // pushes to gh-pages roughly every 60s during market hours (see
-  // RD1858/options_snapshot.py + the "Options snapshot" pusher loop in
-  // trading-bot.yml). This page just fetches that file like any other
-  // static asset — no CORS issue, since the real Kite calls happen
-  // server-side inside the bot's authenticated session.
+}
+if (sessionStorage.getItem(PW_SESSION) === '1') unlockPage();
+
+// ── GitHub config (shared with index.html via localStorage) ──────────────────
+function getCfg()  { return JSON.parse(localStorage.getItem('wealthalgo_cfg') || '{}'); }
+function hasCfg()  { const c = getCfg(); return c.owner && c.repo && c.token; }
+function apiHeaders() {
+  return {
+    'Authorization': 'token ' + getCfg().token,
+    'Accept':        'application/vnd.github.v3+json',
+    'Content-Type':  'application/json',
+  };
 }
 
-if (sessionStorage.getItem(PW_SESSION) === '1') {
-  unlockPage();
-}
-
-// ── Constants ──────────────────────────────────────────────────────────────────
-const REFRESH_MS_MARKET   = 60 * 1000;    // 60s during market hours
-const REFRESH_MS_OFFHOURS = 5 * 60 * 1000; // 5 min outside market hours
-
-const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-// Reference only — the live Put/Call strikes are computed server-side in
-// RD1858/options_snapshot.py using these same defaults. Editing the fields
-// below updates what's SHOWN here for your own reference, but does not
-// change the actual strike in options_snapshot_rd1858.json — that's
-// controlled by the constants in options_snapshot.py on the server side.
-const DEFAULT_DIVISORS = { 1: 3300, 2: 3800, 3: 4500, 4: 6000, 5: 8000 }; // Mon..Fri
-const DIVISOR_NOTES = {
-  1: "Monday — furthest from weekly expiry",
-  2: "Tuesday — expiry day (tightest historically, widest divisor here is illustrative only)",
-  3: "Wednesday",
-  4: "Thursday",
-  5: "Friday — closest to next expiry",
-};
-
-let _divisors = { ...DEFAULT_DIVISORS };
-let _mult = 150;
-
-// ── Market hours (IST 09:15–15:30 Mon–Fri) ─────────────────────────────────────
+// ── Market hours (IST 09:15–15:30 Mon–Fri) ────────────────────────────────────
 function isMarketHoursNow() {
   const nowIST    = new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
   const dayOfWeek = nowIST.getDay();
@@ -376,78 +219,92 @@ function isMarketHoursNow() {
   return dayOfWeek >= 1 && dayOfWeek <= 5 && istMin >= 555 && istMin <= 930;
 }
 
-function nowIST() {
-  return new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
-}
+const REFRESH_MS_MARKET   = 60 * 1000;
+const REFRESH_MS_OFFHOURS = 5 * 60 * 1000;
+const WATCH_PATH = "RD1858/config/options_watch.json";
 
-// ── Divisor settings persistence (localStorage — purely local UI prefs) ────────
-function loadDivisorSettings() {
+// ── Save Put/Call symbols to the repo (same GitHub Contents API pattern as
+// settings-editor/marketwatch.json) — options_snapshot.py reads this file
+// server-side to know which two symbols to fetch LTP/delta for. ──────────────
+let _watchSha = '';
+
+async function loadSavedSymbols() {
+  if (!hasCfg()) {
+    showBanner('warn', 'GitHub owner/repo/token not configured — open index.html → Setup first, then come back here.');
+    return;
+  }
   try {
-    const saved = JSON.parse(localStorage.getItem('wealthalgo_opt_divisors') || 'null');
-    if (saved && saved.divisors) _divisors = { ...DEFAULT_DIVISORS, ...saved.divisors };
-    if (saved && saved.mult != null) _mult = saved.mult;
-  } catch (_) {}
-}
-function saveDivisorSettings() {
-  localStorage.setItem('wealthalgo_opt_divisors', JSON.stringify({ divisors: _divisors, mult: _mult }));
-}
-
-function renderDivisorTable() {
-  const today = nowIST().getDay();
-  const body  = document.getElementById('day-divisor-body');
-  body.innerHTML = [1,2,3,4,5].map(d => `
-    <tr class="${d === today ? 'today' : ''}">
-      <td>${DAY_NAMES[d]}${d === today ? ' ← today' : ''}</td>
-      <td><input type="number" id="div-${d}" value="${_divisors[d]}" min="100" step="50" onchange="onDivisorEdit(${d})"></td>
-      <td style="color:var(--muted);font-size:10px">${DIVISOR_NOTES[d]}</td>
-    </tr>
-  `).join('');
-  document.getElementById('cfg-mult').value = _mult;
+    const cfg = getCfg();
+    const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${WATCH_PATH}`;
+    const r = await fetch(url, { headers: apiHeaders() });
+    if (r.ok) {
+      const data = await r.json();
+      _watchSha = data.sha;
+      const json = JSON.parse(atob(data.content.replace(/\n/g, '')));
+      document.getElementById('put-input').value  = json.put  || '';
+      document.getElementById('call-input').value = json.call || '';
+    }
+    // 404 is fine — just means nothing saved yet.
+  } catch (e) {
+    console.error('loadSavedSymbols failed:', e);
+  }
 }
 
-function onDivisorEdit(day) {
-  const v = parseFloat(document.getElementById(`div-${day}`).value);
-  if (!isNaN(v) && v > 0) _divisors[day] = v;
-  saveDivisorSettings();
+async function saveSymbols() {
+  if (!hasCfg()) {
+    setSaveStatus('⚠ GitHub not configured — open index.html → Setup first.', 'err');
+    return;
+  }
+  const put  = document.getElementById('put-input').value.trim().toUpperCase();
+  const call = document.getElementById('call-input').value.trim().toUpperCase();
+  if (!put && !call) {
+    setSaveStatus('Enter at least one symbol.', 'err');
+    return;
+  }
+  if (put && !/^[A-Z]+\d{2}[1-9OND]\d{2}\d+PE$/.test(put)) {
+    setSaveStatus('⚠ Put symbol doesn\'t look like a valid option (expected e.g. NIFTY2662322200PE).', 'err');
+    return;
+  }
+  if (call && !/^[A-Z]+\d{2}[1-9OND]\d{2}\d+CE$/.test(call)) {
+    setSaveStatus('⚠ Call symbol doesn\'t look like a valid option (expected e.g. NIFTY2662326000CE).', 'err');
+    return;
+  }
+
+  setSaveStatus('Saving…', '');
+  try {
+    const cfg = getCfg();
+    const content = btoa(JSON.stringify({ put, call }, null, 2));
+    const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${WATCH_PATH}`;
+    const body = {
+      message: `options watch: ${put || '—'} / ${call || '—'} (${new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'})} IST)`,
+      content,
+    };
+    if (_watchSha) body.sha = _watchSha;
+    const r = await fetch(url, { method: 'PUT', headers: apiHeaders(), body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+    const resp = await r.json();
+    _watchSha = resp.content.sha;
+    setSaveStatus('✓ Saved — will appear in the snapshot within ~60s once the bot session is running.', 'ok');
+    clearBanner();
+    fetchSnapshot().then(() => { updateStatus(); render(); });
+  } catch (e) {
+    console.error('saveSymbols failed:', e);
+    setSaveStatus('⚠ Save failed: ' + e.message, 'err');
+  }
 }
 
-document.getElementById('cfg-mult').addEventListener('change', () => {
-  const v = parseFloat(document.getElementById('cfg-mult').value);
-  if (!isNaN(v) && v >= 0) _mult = v;
-  saveDivisorSettings();
-});
-
-function resetDivisors() {
-  _divisors = { ...DEFAULT_DIVISORS };
-  _mult = 150;
-  saveDivisorSettings();
-  renderDivisorTable();
+function setSaveStatus(msg, cls) {
+  const el = document.getElementById('save-status');
+  el.textContent = msg;
+  el.className = 'save-status' + (cls ? ' ' + cls : '');
 }
 
-// Find this week's Nifty expiry (Tuesday; shifts to Monday if Tuesday is a holiday —
-// holiday data isn't available client-side, so this assumes Tuesday unless that's
-// later overridden manually). Used only as a fallback display if the server-side
-// snapshot doesn't have an expiry yet.
-function thisWeekExpiry(ref) {
-  const d = new Date(ref);
-  const day = d.getDay();           // 0=Sun..6=Sat
-  const diff = (2 - day + 7) % 7;   // days until next Tuesday (0 if today is Tuesday)
-  d.setDate(d.getDate() + diff);
-  return d;
-}
-
-function fmtExpiry(d) {
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  return `${String(d.getDate()).padStart(2,'0')}-${months[d.getMonth()]}-${d.getFullYear()}`;
-}
-
-// ── Server-side relay ──────────────────────────────────────────────────────────
+// ── Server-side snapshot fetch ────────────────────────────────────────────────
 // options_snapshot.py runs inside the bot's authenticated GitHub Actions
-// session (server-side — not subject to Kite's CORS restrictions) and
-// pushes its result here as a plain static JSON file, the same way
-// status_rd1858.json already works. This page just fetches that file —
-// an ordinary same-origin GET, no CORS issue at all, since it's not a
-// live Kite call from the browser's perspective.
+// session, reads RD1858/config/options_watch.json (the file saved above),
+// fetches LTP + delta for each symbol from Kite, and pushes the result here
+// as a plain static JSON file — an ordinary same-origin GET, no CORS issue,
+// since the real Kite calls happen server-side.
 const SNAPSHOT_URL = "https://durgeshh-create.github.io/Wealthplus/options_snapshot_rd1858.json";
 let _snapshot = null;
 let _snapshotOk = false;
@@ -461,10 +318,9 @@ async function fetchSnapshot() {
   } catch (e) {
     _snapshotOk = false;
   }
-  updateKiteStatus();
 }
 
-function updateKiteStatus() {
+function updateStatus() {
   const dot = document.getElementById('live-dot');
   const lbl = document.getElementById('live-label');
   if (_snapshotOk) {
@@ -472,112 +328,76 @@ function updateKiteStatus() {
     lbl.textContent = 'Connected';
   } else if (_snapshot && _snapshot.error === 'no_enctoken') {
     dot.className = 'dot off';
-    lbl.textContent = 'Bot not authenticated yet';
+    lbl.textContent = 'Bot not running yet';
   } else {
     dot.className = 'dot off';
     lbl.textContent = 'No data yet';
   }
-}
 
-// ── Main render ────────────────────────────────────────────────────────────────
-let _lastComputed = null;
-
-function recalc() {
-  renderFormulaPreview();
-  if (!_snapshotOk || _snapshot.spot == null || _snapshot.vix == null) {
-    showBanner('warn',
-      'Waiting for the bot\'s server-side snapshot (options_snapshot_rd1858.json) — this updates every ~60s ' +
-      'while the bot is running during market hours. If the bot session hasn\'t started yet today, this will ' +
-      'stay empty until it does.'
-    );
-    return;
-  }
-  clearBanner();
-
-  const spot = _snapshot.spot, vix = _snapshot.vix;
-  const today = nowIST().getDay();
-
-  if (!_snapshot.put || !_snapshot.put.symbol) {
-    showBanner('warn', `No divisor configured for ${DAY_NAMES[today]} (market closed today) — spot/VIX shown, but no strike computed.`);
-    document.getElementById('sum-spot').textContent = '₹' + spot.toFixed(2);
-    document.getElementById('sum-spot-sub').textContent = `as of snapshot (${fmtAge(_snapshot.updated_at)})`;
-    document.getElementById('sum-vix').textContent = vix.toFixed(2);
-    return;
-  }
-
-  document.getElementById('sum-spot').textContent = '₹' + spot.toFixed(2);
-  document.getElementById('sum-spot-sub').textContent = `as of snapshot (${fmtAge(_snapshot.updated_at)})`;
-  document.getElementById('sum-vix').textContent = vix.toFixed(2);
-  document.getElementById('sum-divisor').textContent = _snapshot.divisor ?? '—';
-  document.getElementById('sum-weekday').textContent = DAY_NAMES[today];
-  document.getElementById('sum-range').textContent = _snapshot.range != null ? '±' + _snapshot.range : '—';
-
-  const expiry = _snapshot.expiry ? new Date(_snapshot.expiry + 'T00:00:00') : thisWeekExpiry(nowIST());
-  const put  = _snapshot.put,  call = _snapshot.call;
-
-  document.getElementById('put-symbol').innerHTML  = put.symbol.replace(String(put.strike),  `<span class="strike">${put.strike}</span>`);
-  document.getElementById('call-symbol').innerHTML = call.symbol.replace(String(call.strike), `<span class="strike">${call.strike}</span>`);
-  document.getElementById('put-meta').innerHTML  = `Expiry ${fmtExpiry(expiry)} · Strike ${put.strike} · ${(spot-put.strike).toFixed(0)} pts OTM<button class="copy-btn" onclick="copySym('put')">Copy</button>`;
-  document.getElementById('call-meta').innerHTML = `Expiry ${fmtExpiry(expiry)} · Strike ${call.strike} · ${(call.strike-spot).toFixed(0)} pts OTM<button class="copy-btn" onclick="copySym('call')">Copy</button>`;
-
-  _lastComputed = { putSym: put.symbol, callSym: call.symbol };
-
-  renderOptionCell('put',  put);
-  renderOptionCell('call', call);
-
-  const dot = document.getElementById('refresh-dot');
-  const lbl = document.getElementById('refresh-label');
+  const rdot = document.getElementById('refresh-dot');
+  const rlbl = document.getElementById('refresh-label');
   const marketOpen = isMarketHoursNow();
-  dot.className = 'dot ' + (marketOpen ? 'live' : 'off');
-  lbl.textContent = `Snapshot age: ${fmtAge(_snapshot.updated_at)} · refreshing every ${marketOpen ? REFRESH_MS_MARKET/1000 + 's' : REFRESH_MS_OFFHOURS/60000 + ' min'}`;
+  rdot.className = 'dot ' + (marketOpen ? 'live' : 'off');
+  rlbl.textContent = _snapshot && _snapshot.updated_at
+    ? `Snapshot age: ${fmtAge(_snapshot.updated_at)} · refreshing every ${marketOpen ? REFRESH_MS_MARKET/1000 + 's' : REFRESH_MS_OFFHOURS/60000 + ' min'}`
+    : (marketOpen ? 'Waiting for first snapshot…' : 'Market closed — refresh resumes at 09:15 IST');
 }
 
 function fmtAge(isoTs) {
-  if (!isoTs) return 'unknown';
   const ageSec = Math.max(0, Math.round((Date.now() - new Date(isoTs).getTime()) / 1000));
-  if (ageSec < 90) return `${ageSec}s ago`;
-  return `${Math.round(ageSec/60)} min ago`;
+  return ageSec < 90 ? `${ageSec}s ago` : `${Math.round(ageSec/60)} min ago`;
 }
 
-function renderFormulaPreview() {
-  document.getElementById('formula-preview').value =
-    `spot × √(vix × ${_mult}% / divisor)`;
-}
+function render() {
+  const area = document.getElementById('results-area');
+  const put  = document.getElementById('put-input').value.trim().toUpperCase();
+  const call = document.getElementById('call-input').value.trim().toUpperCase();
 
-function renderOptionCell(side, data) {
-  const ltpEl   = document.getElementById(`${side}-ltp`);
-  const ltpSub  = document.getElementById(`${side}-ltp-sub`);
-  const dEl     = document.getElementById(`${side}-delta`);
-  const dSub    = document.getElementById(`${side}-delta-sub`);
-
-  if (data.ltp != null) {
-    ltpEl.textContent = '₹' + data.ltp.toFixed(2);
-    ltpSub.textContent = data.oi != null ? `OI ${Number(data.oi).toLocaleString('en-IN')}` : '';
-  } else {
-    ltpEl.innerHTML = '<span class="dim">—</span>';
-    ltpSub.textContent = 'not found in chain';
+  if (!put && !call) {
+    area.innerHTML = '<div class="empty-state" id="empty-state">No symbols saved yet — enter a Put and/or Call symbol above.</div>';
+    return;
   }
-  if (data.delta != null) {
-    dEl.textContent = (data.delta >= 0 ? '+' : '') + data.delta.toFixed(3);
-    dSub.textContent = data.iv != null ? `IV ${data.iv.toFixed(1)}%` : '';
-  } else {
-    dEl.innerHTML = '<span class="dim">—</span>';
-    dSub.textContent = '';
+  if (!_snapshotOk || !_snapshot.legs) {
+    area.innerHTML = '<div class="empty-state">Waiting for the bot\'s server-side snapshot — this updates roughly every 60s while a bot session is running during market hours.</div>';
+    return;
   }
+
+  const cards = [];
+  if (put)  cards.push(buildCard('put',  put,  _snapshot.legs[put]));
+  if (call) cards.push(buildCard('call', call, _snapshot.legs[call]));
+  area.innerHTML = cards.join('');
 }
 
-function copySym(side) {
-  if (!_lastComputed) return;
-  const sym = side === 'put' ? _lastComputed.putSym : _lastComputed.callSym;
-  navigator.clipboard?.writeText(sym).then(() => {
-    document.querySelectorAll('.opt-meta .copy-btn').forEach(b => {
-      if (b.closest(`#${side}-meta`)) {
-        b.textContent = 'Copied!';
-        b.classList.add('copied');
-        setTimeout(() => { b.textContent = 'Copy'; b.classList.remove('copied'); }, 1500);
-      }
-    });
-  });
+function buildCard(side, sym, data) {
+  data = data || {};
+  const ltpHtml = data.ltp != null
+    ? `₹${data.ltp.toFixed(2)}`
+    : '<span class="dim">—</span>';
+  const ltpSub = data.oi != null ? `OI ${Number(data.oi).toLocaleString('en-IN')}` : (data.ltp == null ? 'not found in chain' : '');
+  const deltaHtml = data.delta != null
+    ? `${data.delta >= 0 ? '+' : ''}${data.delta.toFixed(3)}`
+    : '<span class="dim">—</span>';
+  const deltaSub = data.iv != null ? `IV ${data.iv.toFixed(1)}%` : '';
+
+  return `
+    <div class="opt-card ${side}">
+      <div class="opt-card-head">
+        <span class="opt-symbol">${sym}</span>
+        <span class="opt-tag">${side === 'put' ? 'PUT' : 'CALL'}</span>
+      </div>
+      <div class="opt-grid">
+        <div class="opt-cell">
+          <div class="opt-cell-label">LTP</div>
+          <div class="opt-cell-val ${data.ltp == null ? 'dim' : ''}">${ltpHtml}</div>
+          <div class="opt-cell-sub">${ltpSub}</div>
+        </div>
+        <div class="opt-cell">
+          <div class="opt-cell-label">Delta</div>
+          <div class="opt-cell-val ${data.delta == null ? 'dim' : ''}">${deltaHtml}</div>
+          <div class="opt-cell-sub">${deltaSub}</div>
+        </div>
+      </div>
+    </div>`;
 }
 
 function showBanner(kind, msg) {
@@ -588,30 +408,19 @@ function clearBanner() {
   document.getElementById('banner-area').innerHTML = '';
 }
 
-function updateIndexChips() {
-  document.getElementById('chip-nifty').textContent = _snapshot?.spot != null ? _snapshot.spot.toFixed(2) : '—';
-  document.getElementById('chip-vix').textContent   = _snapshot?.vix  != null ? _snapshot.vix.toFixed(2)  : '—';
-}
-
 // ── Auto-refresh loop ──────────────────────────────────────────────────────────
 let _refreshTimer = null;
 function startAutoRefresh() {
   if (_refreshTimer) clearTimeout(_refreshTimer);
   const tick = async () => {
     await fetchSnapshot();
-    updateIndexChips();
-    recalc();
+    updateStatus();
+    render();
     const marketOpen = isMarketHoursNow();
     _refreshTimer = setTimeout(tick, marketOpen ? REFRESH_MS_MARKET : REFRESH_MS_OFFHOURS);
   };
   tick();
 }
-
-// ── Init ─────────────────────────────────────────────────────────────────────
-// (startup happens inside unlockPage(), only after password verification —
-// see PASSWORD GATE block above)
-
-
 </script>
 </body>
 </html>
