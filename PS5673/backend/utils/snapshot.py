@@ -63,11 +63,14 @@ def _safe_buys_today(signal_gen, sym, bnh_symbols):
 def write_snapshot(dashboard_state: dict):
     """Build and write the full status snapshot. Never raises."""
     try:
-        # Guard: don't overwrite good snapshot with empty data
+        # Guard: don't overwrite good snapshot with empty data.
+        # portfolio.holdings is initialised to [] (not None), so we must check
+        # for BOTH None AND empty-list to detect "not yet populated".
         import json as _jg
         _port = dashboard_state.get("portfolio_tracker")
         _holdings_attr = getattr(_port, "holdings", None) if _port else None
-        if _holdings_attr is None:
+        _holdings_empty = _holdings_attr is None or (isinstance(_holdings_attr, list) and len(_holdings_attr) == 0 and _port is not None)
+        if _holdings_empty:
             try:
                 if SNAPSHOT_PATH.exists():
                     _prev = _jg.loads(SNAPSHOT_PATH.read_text())
@@ -411,24 +414,37 @@ def write_snapshot(dashboard_state: dict):
         # ── Today's Net Positions ─────────────────────────────────────────────
         positions_data = []
         try:
-            if portfolio and hasattr(portfolio, "positions"):
-                for pos in (portfolio.positions.get("net", []) or []):
-                    sym = pos.get("tradingsymbol", "")
-                    qty = int(pos.get("quantity", 0) or 0)
-                    if qty == 0:
-                        continue
-                    positions_data.append({
-                        "symbol":       sym,
-                        "quantity":     qty,
-                        "avg":          round(float(pos.get("average_price", 0) or 0), 2),
-                        "ltp":          round(float(pos.get("last_price", 0) or 0), 2),
-                        "pnl":          round(float(pos.get("pnl", 0) or 0), 2),
-                        "unrealised":   round(float(pos.get("unrealised", 0) or 0), 2),
-                        "realised":     round(float(pos.get("realised", 0) or 0), 2),
-                        "buy_qty":      int(pos.get("buy_quantity", 0) or 0),
-                        "sell_qty":     int(pos.get("sell_quantity", 0) or 0),
-                        "product":      pos.get("product", ""),
-                    })
+            if portfolio and hasattr(portfolio, "_fetch_positions"):
+                # Always fetch fresh positions so closed trades are immediately
+                # reflected (portfolio.positions is only updated on portfolio.sync()
+                # which runs on a 60s cycle and may lag behind an actual close).
+                _fresh_pos = portfolio._fetch_positions()
+                _net_list  = (_fresh_pos or {}).get("net", []) if _fresh_pos else None
+                # Fall back to cached if the live fetch fails
+                if _net_list is None and hasattr(portfolio, "positions"):
+                    _net_list = portfolio.positions.get("net", []) or []
+            elif portfolio and hasattr(portfolio, "positions"):
+                _net_list = portfolio.positions.get("net", []) or []
+            else:
+                _net_list = []
+
+            for pos in (_net_list or []):
+                sym = pos.get("tradingsymbol", "")
+                qty = int(pos.get("quantity", 0) or 0)
+                if qty == 0:
+                    continue
+                positions_data.append({
+                    "symbol":       sym,
+                    "quantity":     qty,
+                    "avg":          round(float(pos.get("average_price", 0) or 0), 2),
+                    "ltp":          round(float(pos.get("last_price", 0) or 0), 2),
+                    "pnl":          round(float(pos.get("pnl", 0) or 0), 2),
+                    "unrealised":   round(float(pos.get("unrealised", 0) or 0), 2),
+                    "realised":     round(float(pos.get("realised", 0) or 0), 2),
+                    "buy_qty":      int(pos.get("buy_quantity", 0) or 0),
+                    "sell_qty":     int(pos.get("sell_quantity", 0) or 0),
+                    "product":      pos.get("product", ""),
+                })
         except Exception:
             pass
 
@@ -481,8 +497,11 @@ def write_snapshot(dashboard_state: dict):
                     mf_resp = _mf_sess.get(
                         f"{Config.ZERODHA_API_BASE}/oms/mf/holdings",
                         timeout=15,
-                        allow_redirects=False,
+                        allow_redirects=True,   # follow any redirects
                     )
+                    if mf_resp.status_code != 200:
+                        import sys as _mfsys2
+                        print(f"[snapshot] MF holdings HTTP {mf_resp.status_code}: {mf_resp.text[:200]}", file=_mfsys2.stderr)
                     if mf_resp.status_code == 200 and mf_resp.text.strip().startswith("{"):
                         mf_data  = mf_resp.json()
                         raw_list = mf_data.get("data", []) or []
@@ -548,15 +567,6 @@ def write_snapshot(dashboard_state: dict):
             "account":     ACCOUNT,
             "timestamp":   datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S IST"),
             "bot_running": True,
-            # ✅ FIX: distinct from "timestamp" above (which is just "when did
-            # this snapshot file get written"). Lets the frontend detect a
-            # stalled portfolio.sync() even when the snapshot write itself
-            # keeps running healthily on its own timer.
-            "data_last_synced": (
-                _port.last_synced_at.strftime("%Y-%m-%d %H:%M:%S")
-                if _port and getattr(_port, "last_synced_at", None) else None
-            ),
-            "data_sync_error": getattr(_port, "last_sync_error", None) if _port else None,
             "total_value": round(total_value, 2),
             "today_pnl":   round(today_pnl, 2),
             "today_pnl_pct": round(today_pnl / (total_value - today_pnl) * 100, 2)
