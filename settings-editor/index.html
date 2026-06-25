@@ -486,7 +486,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 </div>
 
 <!-- SHARED BANNERS -->
-<div id="stale-banner">&#9888; Data is stale &mdash; bot may have stopped. Last synced: <span id="stale-ts">&mdash;</span><span id="stale-reason"></span></div>
+<div id="stale-banner">&#9888; Data is stale &mdash; bot may have stopped. Last update: <span id="stale-ts">&mdash;</span></div>
 <div id="offline-banner">&#128308; Bot offline &mdash; last session ended <span id="offline-ts">&mdash;</span>. P&amp;L shown is from last session.</div>
 <div id="cfg-note"></div>
 
@@ -505,6 +505,11 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       background:var(--green-d);color:var(--green);font-size:11px;font-weight:600;
       cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s
     " title="Start the trading bot" data-bot-state="stopped">▶ START BOT</button>
+    <button id="bot-restart-btn" onclick="handleRestartBtn()" style="
+      display:none;padding:5px 12px;border-radius:6px;border:1px solid rgba(217,119,6,.35);
+      background:var(--amber-d);color:var(--amber);font-size:11px;font-weight:600;
+      cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s;margin-left:4px
+    " title="Stop the running workflow and immediately start a fresh one">⟳ RESTART</button>
     <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px" title="Lock">&#128274;</button>
   </div>
 </header>
@@ -2373,55 +2378,104 @@ function togglePwEye() {
   i.type = i.type === 'password' ? 'text' : 'password';
 }
 // ── Bot button state machine ──────────────────────────────────────────────────
-// Single button with 2 states stored in data-bot-state:
-//   "stopped"  — bot not running  → ▶ START BOT   (green)
-//   "running"  — bot running      → &#8635; RESTART (amber)
+// Single button with 4 states stored in data-bot-state:
+//   "stopped"  — bot not running, not paused  → ▶ START BOT  (green)
+//   "running"  — bot running, not paused       → ⏸ PAUSE & STOP (amber)
+//   "paused"   — bot stopped, paused flag set  → ▶ RESUME & START (blue)
 //
-// Restart = cancel the in-progress workflow run, wait for it to fully stop
-// (minimum 30s, even if it reports "stopped" sooner — gives Kite/Flask time
-// to release cleanly before a fresh process tries to log in again), then
-// dispatch a brand-new run.
-//
-// Previously this was a 2-click PAUSE → manually log into Kite → RESUME flow
-// that wrote a pause_flag.json to gh-pages via the GitHub Contents API. That
-// write could race against the bot's own snapshot-pusher (which also commits
-// to gh-pages every ~60s), causing intermittent 409 "sha does not match"
-// errors. Restart no longer touches pause_flag.json at all, so that race
-// is gone — it's just cancel-and-redispatch, both API calls index.html
-// already used safely elsewhere.
+// Flow for manual Kite login:
+//   1. Click ⏸ PAUSE & STOP  → sets pause flag + cancels workflow
+//   2. Log into Kite manually in your browser
+//   3. Click ▶ RESUME & START → clears pause flag + starts fresh workflow
 
 const WORKFLOW_FILE = "trading-bot.yml";
-const RESTART_MIN_WAIT_MS = 30000;   // minimum gap between stop and start
 
 function _botBtnState() {
   return document.getElementById("bot-toggle-btn")?.dataset.botState || "stopped";
 }
 
-function _setBotBtn(state, busyLabel) {
-  const btn = document.getElementById("bot-toggle-btn");
+function _setBotBtn(state, busy) {
+  const btn  = document.getElementById("bot-toggle-btn");
+  const rbtn = document.getElementById("bot-restart-btn");
   if (!btn) return;
   btn.dataset.botState = state;
-  btn.disabled = !!busyLabel;
-  if (busyLabel) {
-    btn.textContent = busyLabel;
-    btn.style.background = "var(--bg3)";
-    btn.style.color      = "var(--muted)";
+  btn.disabled = !!busy;
+  if (rbtn) rbtn.disabled = !!busy;
+  if (busy) {
+    btn.textContent = "…";
+    btn.style.background  = "var(--bg3)";
+    btn.style.color       = "var(--muted)";
     btn.style.borderColor = "var(--border)";
+    if (rbtn) rbtn.style.display = "none";
     return;
   }
   if (state === "running") {
-    btn.textContent  = "↻ RESTART";
+    btn.textContent  = "⏸ PAUSE & STOP";
     btn.style.background  = "var(--amber-d)";
     btn.style.color       = "var(--amber)";
     btn.style.borderColor = "rgba(217,119,6,.35)";
-    btn.title = "Stop the bot, wait for a clean shutdown, then start a fresh session";
+    btn.title = "Pause the workflow so you can manually log in to Kite, then restart cleanly";
+    if (rbtn) rbtn.style.display = "inline-block";
+  } else if (state === "paused") {
+    btn.textContent  = "▶ RESUME & START";
+    btn.style.background  = "var(--blue-d)";
+    btn.style.color       = "var(--blue)";
+    btn.style.borderColor = "rgba(37,99,235,.35)";
+    btn.title = "Clear the pause flag and start the bot — it will use your fresh Kite session";
+    if (rbtn) rbtn.style.display = "none";
   } else {
     btn.textContent  = "▶ START BOT";
     btn.style.background  = "var(--green-d)";
     btn.style.color       = "var(--green)";
     btn.style.borderColor = "rgba(22,163,74,.35)";
     btn.title = "Start the trading bot";
+    if (rbtn) rbtn.style.display = "none";
   }
+}
+
+async function _writePauseFlag(paused) {
+  const cfg = getCfg();
+  const flagUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/pause_flag.json`;
+  const headers = apiHeaders();
+
+  async function _fetchSha() {
+    try {
+      const ex = await fetch(flagUrl + "?ref=gh-pages", { headers });
+      if (ex.ok) return (await ex.json()).sha || null;
+    } catch (_) {}
+    return null;
+  }
+
+  const content   = btoa(JSON.stringify({ paused, updated: new Date().toISOString() }, null, 2));
+  const commitMsg = paused ? "pause: paused for manual Kite login" : "resume: pause cleared";
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const sha  = await _fetchSha();
+    const body = { message: commitMsg, content, branch: "gh-pages" };
+    if (sha) body.sha = sha;
+    const r = await fetch(flagUrl, { method: "PUT", headers, body: JSON.stringify(body) });
+    if (r.ok) return;
+    if (r.status === 409 && attempt < 3) {
+      await new Promise(res => setTimeout(res, 500 * attempt));
+      continue;
+    }
+    throw new Error(`pause flag write failed: ${r.status} ${await r.text()}`);
+  }
+}
+}
+
+async function _readPauseFlag() {
+  const cfg = getCfg();
+  if (!cfg.owner || !cfg.repo || !cfg.token) return false;
+  try {
+    const r = await fetch(
+      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/pause_flag.json?ref=gh-pages`,
+      { headers: apiHeaders() }
+    );
+    if (!r.ok) return false;
+    const d = await r.json();
+    return !!JSON.parse(atob(d.content.replace(/\n/g, ""))).paused;
+  } catch (_) { return false; }
 }
 
 async function _cancelWorkflow(cfg) {
@@ -2535,7 +2589,7 @@ async function seedScannerData() {
 }
 async function _pollUntilStopped(cfg, runId) {
   for (let i = 0; i < 30; i++) {
-    await new Promise(r => setTimeout(r, 4000));
+    await new Promise(r => setTimeout(r, 2000));
     try {
       const chk = await fetch(
         `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${runId}`,
@@ -2550,6 +2604,7 @@ async function _pollUntilStopped(cfg, runId) {
 }
 
 async function handleBotBtn() {
+  const btn = document.getElementById("bot-toggle-btn");
   const cfg = getCfg();
   if (!cfg.owner || !cfg.repo || !cfg.token) {
     alert("Please configure GitHub owner / repo / token first (Setup).");
@@ -2557,30 +2612,35 @@ async function handleBotBtn() {
   }
 
   const state = _botBtnState();
+  _setBotBtn(state, true); // show busy spinner
 
   try {
     if (state === "running") {
-      // ── RESTART: cancel → wait ≥30s for a clean shutdown → start fresh ───
-      _setBotBtn("running", "Stopping…");
+      // ── PAUSE & STOP ──────────────────────────────────────────────────────
+      // 1. Set pause flag so bot suppresses re-auth on 403s
+      await _writePauseFlag(true);
+      // 2. Cancel the workflow
       const runId = await _cancelWorkflow(cfg);
+      _setBotBtn("paused", true);
+      // 3. Poll until fully stopped, then show RESUME & START
+      if (runId) {
+        await _pollUntilStopped(cfg, runId);
+      }
+      _setBotBtn("paused", false);
+      alert("⏸ Bot stopped and paused.\n\nNow log into Zerodha Kite in your browser.\nWhen done, click ▶ RESUME & START.");
 
-      const minWait = new Promise(res => setTimeout(res, RESTART_MIN_WAIT_MS));
-      const pollDone = runId ? _pollUntilStopped(cfg, runId) : Promise.resolve();
-      // Wait for BOTH: the real run to report stopped, AND the minimum
-      // 30s grace period — whichever finishes later. This gives Kite's
-      // session and the Flask process time to fully release even if
-      // GitHub reports the run as "completed" faster than that.
-      _setBotBtn("running", "Waiting for clean stop…");
-      await Promise.all([minWait, pollDone]);
-
-      _setBotBtn("running", "Starting…");
+    } else if (state === "paused") {
+      // ── RESUME & START ────────────────────────────────────────────────────
+      // 1. Clear pause flag
+      await _writePauseFlag(false);
+      // 2. Start fresh workflow — it will pick up your new Kite session
       await _dispatchWorkflow(cfg);
       _setBotBtn("running", false);
+      // Give GitHub ~10s to register the run, then sync real status
       setTimeout(() => syncBotButtonState(), 10000);
 
     } else {
-      // ── START BOT (from fully stopped) ────────────────────────────────────
-      _setBotBtn("stopped", "Starting…");
+      // ── START BOT (normal) ────────────────────────────────────────────────
       await _dispatchWorkflow(cfg);
       _setBotBtn("running", false);
       setTimeout(() => syncBotButtonState(), 10000);
@@ -2592,24 +2652,61 @@ async function handleBotBtn() {
   }
 }
 
-// Sync button to real state: just checks whether a workflow run is live.
+// ── RESTART button — stop running workflow then immediately dispatch a new one ─
+// Unlike PAUSE & STOP, this does NOT set the pause flag and does NOT require
+// a manual Kite login — it assumes the existing enctoken is still valid.
+async function handleRestartBtn() {
+  const cfg = getCfg();
+  if (!cfg.owner || !cfg.repo || !cfg.token) {
+    alert("Please configure GitHub owner / repo / token first (Setup).");
+    return;
+  }
+  const btn  = document.getElementById("bot-toggle-btn");
+  const rbtn = document.getElementById("bot-restart-btn");
+  if (rbtn) { rbtn.textContent = "…"; rbtn.disabled = true; }
+  if (btn)  btn.disabled = true;
+
+  try {
+    // 1. Cancel running workflow
+    const runId = await _cancelWorkflow(cfg);
+    // 2. Wait for it to actually stop (max ~30s at 2s polls)
+    if (runId) await _pollUntilStopped(cfg, runId);
+    // 3. Dispatch fresh run — no pause flag touched
+    await _dispatchWorkflow(cfg);
+    _setBotBtn("running", false);
+    // Give GitHub ~10s to register the new run, then verify
+    setTimeout(() => syncBotButtonState(), 10000);
+  } catch (e) {
+    alert("Restart error: " + e.message);
+    _setBotBtn("running", false);
+  }
+}
+
+// Sync button to real state: check pause flag + live workflow run
 async function syncBotButtonState() {
   const btn = document.getElementById("bot-toggle-btn");
   const cfg = getCfg();
   if (!btn || btn.disabled || !cfg.owner || !cfg.repo || !cfg.token) return;
   try {
-    const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
-    const r = await fetch(`${base}/runs?status=in_progress&per_page=1`, { headers: apiHeaders() });
-    let liveRunning = false;
-    if (r.ok) {
-      const runs = (await r.json()).workflow_runs || [];
-      liveRunning = runs.length > 0;
-      if (!liveRunning) {
+    const [paused, liveRunning] = await Promise.all([
+      _readPauseFlag(),
+      (async () => {
+        const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
+        const r = await fetch(`${base}/runs?status=in_progress&per_page=1`, { headers: apiHeaders() });
+        if (!r.ok) return false;
+        const runs = (await r.json()).workflow_runs || [];
+        if (runs.length > 0) return true;
         const qr = await fetch(`${base}/runs?status=queued&per_page=1`, { headers: apiHeaders() });
-        liveRunning = qr.ok && ((await qr.json()).workflow_runs || []).length > 0;
-      }
+        return qr.ok && ((await qr.json()).workflow_runs || []).length > 0;
+      })(),
+    ]);
+    if (paused && !liveRunning) {
+      _setBotBtn("paused", false);
+    } else if (liveRunning) {
+      _setBotBtn("running", false);
+    } else {
+      _setBotBtn("stopped", false);
     }
-    _setBotBtn(liveRunning ? "running" : "stopped", false);
   } catch (_) {}
 }
 
@@ -3336,21 +3433,7 @@ async function refreshAll() {
 
   // ── Parse snapshot timestamp "2026-06-04 09:17:39 IST" ───────────────────
   const snapTs  = data.timestamp ?? "";
-  // ✅ FIX: previously staleness was judged ONLY by how recently the
-  // snapshot FILE was written — but the snapshot writer runs on its own
-  // independent timer and just reads whatever is currently cached in the
-  // portfolio tracker. If the actual Kite sync (positions/holdings) stalls
-  // or fails silently while the writer keeps ticking along fine, the file
-  // gets a fresh timestamp every cycle while wrapping genuinely frozen
-  // data — "Live ✓" would show indefinitely even with hours-old positions.
-  // data_last_synced (when present) reflects when the underlying data was
-  // actually last confirmed fresh from Kite, which is the real signal to
-  // judge staleness by. Falls back to the snapshot timestamp on older
-  // backend versions that don't yet send this field.
-  const dataSyncTs = data.data_last_synced
-    ? data.data_last_synced + " IST"
-    : snapTs;
-  const snapDate = parseSnapTs(dataSyncTs);
+  const snapDate = parseSnapTs(snapTs);
   const ageMin  = !isNaN(snapDate) ? (Date.now() - snapDate.getTime()) / 60000 : 999;
   const botOn   = data.bot_running !== false;
 
@@ -3393,9 +3476,7 @@ async function refreshAll() {
   } else if (isStale) {
     setDot("stale");
     staleBanner.style.display = "block";
-    document.getElementById("stale-ts").textContent = dataSyncTs || snapTs;
-    const reasonEl = document.getElementById("stale-reason");
-    reasonEl.textContent = data.data_sync_error ? ` (${data.data_sync_error})` : "";
+    document.getElementById("stale-ts").textContent = snapTs;
   } else {
     setDot("live");
   }
