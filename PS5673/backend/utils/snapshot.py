@@ -548,6 +548,15 @@ def write_snapshot(dashboard_state: dict):
             "account":     ACCOUNT,
             "timestamp":   datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S IST"),
             "bot_running": True,
+            # ✅ FIX: distinct from "timestamp" above (which is just "when did
+            # this snapshot file get written"). Lets the frontend detect a
+            # stalled portfolio.sync() even when the snapshot write itself
+            # keeps running healthily on its own timer.
+            "data_last_synced": (
+                _port.last_synced_at.strftime("%Y-%m-%d %H:%M:%S")
+                if _port and getattr(_port, "last_synced_at", None) else None
+            ),
+            "data_sync_error": getattr(_port, "last_sync_error", None) if _port else None,
             "total_value": round(total_value, 2),
             "today_pnl":   round(today_pnl, 2),
             "today_pnl_pct": round(today_pnl / (total_value - today_pnl) * 100, 2)
