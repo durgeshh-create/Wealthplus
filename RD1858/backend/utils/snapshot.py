@@ -63,11 +63,14 @@ def _safe_buys_today(signal_gen, sym, bnh_symbols):
 def write_snapshot(dashboard_state: dict):
     """Build and write the full status snapshot. Never raises."""
     try:
-        # Guard: don't overwrite good snapshot with empty data
+        # Guard: don't overwrite good snapshot with empty data.
+        # portfolio.holdings is initialised to [] (not None), so we must check
+        # for BOTH None AND empty-list to detect "not yet populated".
         import json as _jg
         _port = dashboard_state.get("portfolio_tracker")
         _holdings_attr = getattr(_port, "holdings", None) if _port else None
-        if _holdings_attr is None:
+        _holdings_empty = _holdings_attr is None or (isinstance(_holdings_attr, list) and len(_holdings_attr) == 0 and _port is not None)
+        if _holdings_empty:
             try:
                 if SNAPSHOT_PATH.exists():
                     _prev = _jg.loads(SNAPSHOT_PATH.read_text())
@@ -411,24 +414,37 @@ def write_snapshot(dashboard_state: dict):
         # ── Today's Net Positions ─────────────────────────────────────────────
         positions_data = []
         try:
-            if portfolio and hasattr(portfolio, "positions"):
-                for pos in (portfolio.positions.get("net", []) or []):
-                    sym = pos.get("tradingsymbol", "")
-                    qty = int(pos.get("quantity", 0) or 0)
-                    if qty == 0:
-                        continue
-                    positions_data.append({
-                        "symbol":       sym,
-                        "quantity":     qty,
-                        "avg":          round(float(pos.get("average_price", 0) or 0), 2),
-                        "ltp":          round(float(pos.get("last_price", 0) or 0), 2),
-                        "pnl":          round(float(pos.get("pnl", 0) or 0), 2),
-                        "unrealised":   round(float(pos.get("unrealised", 0) or 0), 2),
-                        "realised":     round(float(pos.get("realised", 0) or 0), 2),
-                        "buy_qty":      int(pos.get("buy_quantity", 0) or 0),
-                        "sell_qty":     int(pos.get("sell_quantity", 0) or 0),
-                        "product":      pos.get("product", ""),
-                    })
+            if portfolio and hasattr(portfolio, "_fetch_positions"):
+                # Always fetch fresh positions so closed trades are immediately
+                # reflected (portfolio.positions is only updated on portfolio.sync()
+                # which runs on a 60s cycle and may lag behind an actual close).
+                _fresh_pos = portfolio._fetch_positions()
+                _net_list  = (_fresh_pos or {}).get("net", []) if _fresh_pos else None
+                # Fall back to cached if the live fetch fails
+                if _net_list is None and hasattr(portfolio, "positions"):
+                    _net_list = portfolio.positions.get("net", []) or []
+            elif portfolio and hasattr(portfolio, "positions"):
+                _net_list = portfolio.positions.get("net", []) or []
+            else:
+                _net_list = []
+
+            for pos in (_net_list or []):
+                sym = pos.get("tradingsymbol", "")
+                qty = int(pos.get("quantity", 0) or 0)
+                if qty == 0:
+                    continue
+                positions_data.append({
+                    "symbol":       sym,
+                    "quantity":     qty,
+                    "avg":          round(float(pos.get("average_price", 0) or 0), 2),
+                    "ltp":          round(float(pos.get("last_price", 0) or 0), 2),
+                    "pnl":          round(float(pos.get("pnl", 0) or 0), 2),
+                    "unrealised":   round(float(pos.get("unrealised", 0) or 0), 2),
+                    "realised":     round(float(pos.get("realised", 0) or 0), 2),
+                    "buy_qty":      int(pos.get("buy_quantity", 0) or 0),
+                    "sell_qty":     int(pos.get("sell_quantity", 0) or 0),
+                    "product":      pos.get("product", ""),
+                })
         except Exception:
             pass
 
@@ -481,34 +497,33 @@ def write_snapshot(dashboard_state: dict):
                     mf_resp = _mf_sess.get(
                         f"{Config.ZERODHA_API_BASE}/oms/mf/holdings",
                         timeout=15,
-                        allow_redirects=False,
+                        allow_redirects=True,   # follow any redirects
                     )
+                    if mf_resp.status_code != 200:
+                        import sys as _mfsys2
+                        print(f"[snapshot] MF holdings HTTP {mf_resp.status_code}: {mf_resp.text[:200]}", file=_mfsys2.stderr)
                     if mf_resp.status_code == 200 and mf_resp.text.strip().startswith("{"):
                         mf_data  = mf_resp.json()
                         raw_list = mf_data.get("data", []) or []
                         # DEBUG: log raw field names + values from first holding so we
                         for h in raw_list:
                             # quantity field from Zerodha OMS = TOTAL units (free + pledged).
-                            # pledged_quantity is a SUBSET of quantity — do NOT add them.
-                            # Adding both double-counts pledged units.
+                            # pledged_quantity is a SUBSET — do NOT add it to quantity.
                             qty         = float(h.get("quantity", 0) or 0)
                             pledged_qty = float(h.get("pledged_quantity", 0) or 0)
                             free_qty    = max(0.0, qty - pledged_qty)
                             avg_nav  = float(h.get("average_price", 0) or 0)
-                            # last_price from OMS may be T-1 NAV if the AMC hasn't
-                            # published today's NAV yet (usually arrives ~11 PM IST).
-                            # Use it as-is — it is the most recent NAV Zerodha has —
-                            # but also capture last_price_date so the UI can show
-                            # the user exactly which day this value is "as of".
-                            ltp           = float(h.get("last_price", 0) or 0)
-                            nav_date      = h.get("last_price_date", "") or ""
+                            # last_price = most recent NAV Zerodha has published (may be T-1).
+                            # Capture last_price_date too so the UI can show the user
+                            # exactly which day this NAV is "as of".
+                            ltp      = float(h.get("last_price", 0) or 0)
+                            nav_date = h.get("last_price_date", "") or ""
                             invested = round(qty * avg_nav, 2)
                             cur_val  = round(qty * ltp, 2)
                             # Zerodha OMS returns pnl=0.0 — not populated. Compute manually.
                             pnl      = round(cur_val - invested, 2)
                             pnl_pct  = round(pnl / invested * 100, 2) if invested else 0
-                            # day_change = per-unit NAV change from previous close.
-                            # Multiply by total qty for ₹ impact.
+                            # day_change = per-unit NAV Δ from previous close × total qty.
                             day_chg_abs = float(h.get("day_change", 0) or 0)
                             day_chg_pct = float(h.get("day_change_percentage", 0) or 0)
                             day_pnl_h   = round(day_chg_abs * qty, 2)
@@ -552,17 +567,6 @@ def write_snapshot(dashboard_state: dict):
             "account":     ACCOUNT,
             "timestamp":   datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S IST"),
             "bot_running": True,
-            # ✅ FIX: distinct from "timestamp" above (which is just "when did
-            # this snapshot file get written"). The snapshot writer runs on
-            # its own timer regardless of whether the underlying Kite sync
-            # actually succeeded — without this field, a stalled sync()
-            # (holdings/positions frozen) would still show a fresh-looking
-            # "timestamp" forever, with no way to tell the data itself is old.
-            "data_last_synced": (
-                _port.last_synced_at.strftime("%Y-%m-%d %H:%M:%S")
-                if _port and getattr(_port, "last_synced_at", None) else None
-            ),
-            "data_sync_error": getattr(_port, "last_sync_error", None) if _port else None,
             "total_value": round(total_value, 2),
             "today_pnl":   round(today_pnl, 2),
             "today_pnl_pct": round(today_pnl / (total_value - today_pnl) * 100, 2)
