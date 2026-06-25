@@ -16,6 +16,11 @@ on:
 permissions:
   contents: write
 
+# Suppress Node 20 deprecation warnings from any third-party actions that
+# haven't yet pinned to Node 24. Remove once all actions are updated.
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
 # ✅ FIX: Removed single top-level concurrency group.
 # Each job now carries its own concurrency group (defined inline) so that
 # Session 2 (07:05 UTC) never contends with a still-running Session 1 job
@@ -189,21 +194,21 @@ jobs:
           python-version: '3.11'
 
       - name: Cache pip packages
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           path: ~/.cache/pip
           key: rd1858-${{ hashFiles('RD1858/requirements.txt') }}
           restore-keys: rd1858-
 
       - name: Cache playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-v1
           restore-keys: playwright-chromium-${{ runner.os }}-
 
       - name: Restore enctoken cache (RD1858)
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v4.2.3
         with:
           path: RD1858/config/enctoken.json
           key: enctoken-rd1858-${{ github.run_id }}-${{ github.run_attempt }}
@@ -313,10 +318,7 @@ jobs:
 
       - name: Save enctoken cache (RD1858)
         if: always()
-        uses: actions/cache/save@v4
-        with:
-          path: RD1858/config/enctoken.json
-          key: enctoken-rd1858-${{ github.run_id }}-${{ github.run_attempt }}
+        uses: actions/cache/save@v4.2.3
 
       - name: Force bot_running=False on timeout / cancellation (RD1858)
         # ✅ FIX: the "Final push" inside the bot run step only executes on a
@@ -371,21 +373,21 @@ jobs:
           python-version: '3.11'
 
       - name: Cache pip packages
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           path: ~/.cache/pip
           key: ps5673-${{ hashFiles('PS5673/requirements.txt') }}
           restore-keys: ps5673-
 
       - name: Cache playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-v1
           restore-keys: playwright-chromium-${{ runner.os }}-
 
       - name: Restore enctoken cache (PS5673)
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v4.2.3
         with:
           path: PS5673/config/enctoken.json
           key: enctoken-ps5673-${{ github.run_id }}-${{ github.run_attempt }}
@@ -453,10 +455,7 @@ jobs:
 
       - name: Save enctoken cache (PS5673)
         if: always()
-        uses: actions/cache/save@v4
-        with:
-          path: PS5673/config/enctoken.json
-          key: enctoken-ps5673-${{ github.run_id }}-${{ github.run_attempt }}
+        uses: actions/cache/save@v4.2.3
 
       - name: Force bot_running=False on timeout / cancellation (PS5673)
         # See matching RD1858 step above for the full explanation.
