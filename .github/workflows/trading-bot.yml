@@ -172,7 +172,6 @@ jobs:
             echo "Push attempt ${_retry} failed — retrying..."
             sleep 3
           done
-          fi
 
   # ────────────────────────────────────────────────────────────────────────────
   # RD1858 — runs in parallel with PS5673, after bootstrap
