@@ -30,6 +30,15 @@ class PortfolioTracker:
         self.liquidcase_value = 0.0
         self.available_slots = Config.SLOTS_COUNT
         self.locked_symbols: set = set()
+        # ✅ FIX: the snapshot writer runs on its own timer and just reads
+        # whatever is in self.positions/self.holdings — it never itself
+        # triggers a fresh Kite fetch. If sync() stops succeeding, the
+        # snapshot writer keeps stamping a fresh "timestamp" every cycle
+        # regardless, wrapped around silently frozen data. Tracking the
+        # real last-successful-sync time here lets the snapshot carry a
+        # separate, honest "data last confirmed fresh" timestamp.
+        self.last_synced_at: Optional[datetime] = None
+        self.last_sync_error: Optional[str] = None
     
     def sync(self) -> bool:
         """
@@ -46,12 +55,14 @@ class PortfolioTracker:
             holdings = self._fetch_holdings()
             if holdings is None:
                 logger.debug("Failed to fetch holdings — retaining cached state")
+                self.last_sync_error = "holdings fetch failed"
                 return False
             
             # Fetch positions
             positions = self._fetch_positions()
             if positions is None:
                 logger.debug("Failed to fetch positions — retaining cached state")
+                self.last_sync_error = "positions fetch failed"
                 return False
             
             # Update state
@@ -70,10 +81,13 @@ class PortfolioTracker:
             logger.info("✓ Portfolio synced successfully")
             self._log_portfolio_summary()
             
+            self.last_synced_at = datetime.now()
+            self.last_sync_error = None
             return True
             
         except Exception as e:
             logger.error(f"Error syncing portfolio: {e}")
+            self.last_sync_error = str(e)[:200]
             return False
     
     def _fetch_holdings(self) -> Optional[List[Dict]]:
