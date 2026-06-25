@@ -2426,19 +2426,33 @@ async function _writePauseFlag(paused) {
   const cfg = getCfg();
   const flagUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/pause_flag.json`;
   const headers = apiHeaders();
-  let sha = null;
-  try {
-    const ex = await fetch(flagUrl + "?ref=gh-pages", { headers });
-    if (ex.ok) sha = (await ex.json()).sha;
-  } catch (_) {}
-  const body = {
-    message: paused ? "pause: paused for manual Kite login" : "resume: pause cleared",
-    content: btoa(JSON.stringify({ paused, updated: new Date().toISOString() }, null, 2)),
-    branch: "gh-pages",
-  };
-  if (sha) body.sha = sha;
-  const r = await fetch(flagUrl, { method: "PUT", headers, body: JSON.stringify(body) });
-  if (!r.ok) throw new Error(`pause flag write failed: ${r.status} ${await r.text()}`);
+
+  // Helper: fetch the current SHA from gh-pages (returns null if file doesn't exist yet)
+  async function _fetchSha() {
+    try {
+      const ex = await fetch(flagUrl + "?ref=gh-pages", { headers });
+      if (ex.ok) return (await ex.json()).sha || null;
+    } catch (_) {}
+    return null;
+  }
+
+  const content = btoa(JSON.stringify({ paused, updated: new Date().toISOString() }, null, 2));
+  const commitMsg = paused ? "pause: paused for manual Kite login" : "resume: pause cleared";
+
+  // Retry up to 3 times on 409 (stale SHA conflict) — re-fetch SHA each attempt
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const sha = await _fetchSha();
+    const body = { message: commitMsg, content, branch: "gh-pages" };
+    if (sha) body.sha = sha;
+    const r = await fetch(flagUrl, { method: "PUT", headers, body: JSON.stringify(body) });
+    if (r.ok) return; // success
+    if (r.status === 409 && attempt < 3) {
+      // SHA became stale between fetch and PUT — wait briefly then retry with fresh SHA
+      await new Promise(res => setTimeout(res, 500 * attempt));
+      continue;
+    }
+    throw new Error(`pause flag write failed: ${r.status} ${await r.text()}`);
+  }
 }
 
 async function _readPauseFlag() {
