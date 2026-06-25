@@ -133,18 +133,17 @@ jobs:
 
 
           # ── Inject DASHBOARD_PW_HASH secret into placeholder ────────────────
-          # Runs unconditionally so the hash is always current, even when the
-          # source file came from gh-pages (no settings-editor/ copy on main).
-          # grep guard makes this idempotent — won't corrupt an already-injected file.
+          # IMPORTANT: inject BEFORE the git diff so the hash is always present
+          # in the committed file, even on runs where index.html itself hasn't
+          # changed (which would otherwise skip the commit and leave the live
+          # file with the literal %%DASHBOARD_PW_HASH%% placeholder).
           for f in /tmp/ghp/index.html; do
             [ -f "$f" ] || continue
             if [ -n "${DASHBOARD_PW_HASH}" ]; then
-              if grep -q "%%DASHBOARD_PW_HASH%%" "$f"; then
-                sed -i "s|%%DASHBOARD_PW_HASH%%|${DASHBOARD_PW_HASH}|g" "$f"
-                echo "✅ Password hash injected into $(basename $f)"
-              else
-                echo "ℹ Placeholder not found in $(basename $f) — upload the latest from settings-editor/"
-              fi
+              # Always force-replace: first restore placeholder if already injected
+              # (idempotent — sed is a no-op if string absent), then inject fresh.
+              sed -i "s|%%DASHBOARD_PW_HASH%%|${DASHBOARD_PW_HASH}|g" "$f"
+              echo "✅ Password hash injected into $(basename $f)"
             else
               echo "⚠ DASHBOARD_PW_HASH secret not set — password gate will show config error"
             fi
@@ -152,22 +151,27 @@ jobs:
 
           cd /tmp/ghp
           git add index.html
-          echo "--- git status before diff check ---"
+          echo "--- git status before commit ---"
           git status --short
+          # Always commit — even if index.html source bytes look identical, the
+          # hash injection above may have changed the content (placeholder → real hash).
+          # Using --allow-empty ensures the step never silently skips.
           if git diff --cached --quiet; then
-            echo "No changes, skipping commit"
+            echo "No file changes detected — forcing commit to ensure hash is live"
+            git commit --allow-empty -m "deploy index.html + ensure pw hash $(date -u +'%Y-%m-%d %H:%M')"
           else
             echo "Changes detected — committing"
             git commit -m "deploy index.html $(date -u +'%Y-%m-%d %H:%M')"
-            for _retry in 1 2 3; do
-              git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
-              if git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages; then
-                echo "✅ Pushed to gh-pages successfully"
-                break
-              fi
-              echo "Push attempt ${_retry} failed — retrying..."
-              sleep 3
-            done
+          fi
+          for _retry in 1 2 3; do
+            git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+            if git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages; then
+              echo "✅ Pushed to gh-pages successfully"
+              break
+            fi
+            echo "Push attempt ${_retry} failed — retrying..."
+            sleep 3
+          done
           fi
 
   # ────────────────────────────────────────────────────────────────────────────
