@@ -552,6 +552,17 @@ def write_snapshot(dashboard_state: dict):
             "account":     ACCOUNT,
             "timestamp":   datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S IST"),
             "bot_running": True,
+            # ✅ FIX: distinct from "timestamp" above (which is just "when did
+            # this snapshot file get written"). The snapshot writer runs on
+            # its own timer regardless of whether the underlying Kite sync
+            # actually succeeded — without this field, a stalled sync()
+            # (holdings/positions frozen) would still show a fresh-looking
+            # "timestamp" forever, with no way to tell the data itself is old.
+            "data_last_synced": (
+                _port.last_synced_at.strftime("%Y-%m-%d %H:%M:%S")
+                if _port and getattr(_port, "last_synced_at", None) else None
+            ),
+            "data_sync_error": getattr(_port, "last_sync_error", None) if _port else None,
             "total_value": round(total_value, 2),
             "today_pnl":   round(today_pnl, 2),
             "today_pnl_pct": round(today_pnl / (total_value - today_pnl) * 100, 2)
