@@ -358,11 +358,28 @@ def main():
                 "User-Agent":    "Mozilla/5.0",
                 "Referer":       "https://kite.zerodha.com/",
             })
-            _r = _s.get("https://kite.zerodha.com/oms/user/profile", timeout=8)
-            if _r.status_code == 200 and _r.json().get("data", {}).get("user_name"):
-                enctoken = saved["enctoken"]
-                saved_token_valid = True
-                print(f"  ✅ Saved token valid for {saved.get('user_id')} — skipping login (browser session untouched)")
+            # Two attempts with a short timeout — if Zerodha is slow we fall
+            # through to a fresh TOTP login rather than hanging indefinitely.
+            for _attempt in range(2):
+                try:
+                    _r = _s.get(
+                        "https://kite.zerodha.com/oms/user/profile",
+                        timeout=6,
+                        allow_redirects=False,   # redirects mean session expired
+                    )
+                    if _r.status_code == 200 and _r.json().get("data", {}).get("user_name"):
+                        enctoken = saved["enctoken"]
+                        saved_token_valid = True
+                        print(f"  ✅ Saved token valid for {saved.get('user_id')} — skipping login (browser session untouched)")
+                    else:
+                        print(f"  ℹ Saved token check: HTTP {_r.status_code} — will do fresh login")
+                    break
+                except (_req.exceptions.Timeout, _req.exceptions.ConnectionError) as _te:
+                    if _attempt == 0:
+                        print(f"  ⚠️  Token check timeout (attempt 1) — retrying once...")
+                        time.sleep(2)
+                    else:
+                        print(f"  ⚠️  Token check failed after retry ({_te}) — proceeding to fresh login")
     except Exception as _e:
         print(f"  ⚠️  Token check error: {_e} — will attempt fresh login")
 
@@ -508,10 +525,20 @@ def main():
                     "User-Agent":    "Mozilla/5.0",
                     "Referer":       "https://kite.zerodha.com/",
                 })
-                _r = _s.get("https://kite.zerodha.com/oms/user/profile", timeout=8)
-                if _r.status_code == 200 and _r.json().get("data", {}).get("user_name"):
-                    print(f"  ✅ Saved token still valid — skipping login (browser session untouched)")
-                    reauth_ok = True
+                for _attempt in range(2):
+                    try:
+                        _r = _s.get(
+                            "https://kite.zerodha.com/oms/user/profile",
+                            timeout=6,
+                            allow_redirects=False,
+                        )
+                        if _r.status_code == 200 and _r.json().get("data", {}).get("user_name"):
+                            print(f"  ✅ Saved token still valid — skipping login (browser session untouched)")
+                            reauth_ok = True
+                        break
+                    except (_req.exceptions.Timeout, _req.exceptions.ConnectionError):
+                        if _attempt == 0:
+                            time.sleep(2)
         except Exception as _ce:
             print(f"  ⚠️  Token re-check error: {_ce}")
 
