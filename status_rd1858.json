@@ -1,16 +1,16 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-06-25 09:07:01 IST",
+  "timestamp": "2026-06-25 09:08:03 IST",
   "bot_running": true,
-  "total_value": 9517825.51,
-  "today_pnl": 0.0,
-  "today_pnl_pct": 0.0,
+  "total_value": 9517281.6,
+  "today_pnl": -543.91,
+  "today_pnl_pct": -0.01,
   "liquidcase": {
     "quantity": 71901,
     "free_quantity": 5130,
     "price": 114.68,
     "value": 8245606.68,
-    "pct": 86.63
+    "pct": 86.64
   },
   "slots": {
     "total": 7,
@@ -34,10 +34,10 @@
       "symbol": "EMBASSY-RR",
       "quantity": 46,
       "avg": 426.82,
-      "ltp": 428.5,
-      "value": 19711.0,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
+      "ltp": 427.2,
+      "value": 19651.2,
+      "pnl": -59.8,
+      "pnl_pct": -0.3,
       "unrealised_pnl": 77.28,
       "unrealised_pnl_pct": 0.39,
       "strategy": "active",
@@ -76,10 +76,10 @@
       "symbol": "MINDSPACE-RR",
       "quantity": 489,
       "avg": 459.5,
-      "ltp": 461.99,
-      "value": 225913.11,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
+      "ltp": 461.0,
+      "value": 225429.0,
+      "pnl": -484.11,
+      "pnl_pct": -0.21,
       "unrealised_pnl": 1215.86,
       "unrealised_pnl_pct": 0.54,
       "strategy": "bnh",
@@ -157,9 +157,9 @@
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 428.5,
-      "change_pct": 0.0,
-      "williams_r": -50.05,
+      "ltp": 427.2,
+      "change_pct": -0.3,
+      "williams_r": -62.32,
       "is_held": true,
       "avg_price": 426.82,
       "strategy": "active"
@@ -184,9 +184,9 @@
     },
     {
       "symbol": "MINDSPACE-RR",
-      "ltp": 461.99,
-      "change_pct": 0.0,
-      "williams_r": -55.29,
+      "ltp": 461.0,
+      "change_pct": -0.21,
+      "williams_r": -67.62,
       "is_held": true,
       "avg_price": 459.5,
       "strategy": "bnh"
@@ -196,13 +196,13 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24122.1,
+      "ltp": 24125.85,
       "prev_close": 24021.65,
-      "change": 100.45,
-      "change_pct": 0.42,
-      "open": null,
-      "high": null,
-      "low": null
+      "change": 104.2,
+      "change_pct": 0.43,
+      "open": 24125.85,
+      "high": 24125.85,
+      "low": 24125.85
     },
     "INDIA VIX": {
       "ltp": 13.39,
@@ -375,6 +375,6 @@
     }
   },
   "available_cash": 123144.3,
-  "available_margin": 2530220.53,
+  "available_margin": 2528286.52,
   "available_margin_note": null
 }
