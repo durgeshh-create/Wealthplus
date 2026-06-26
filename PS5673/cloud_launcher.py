@@ -352,43 +352,53 @@ def main():
     # A fresh login creates a NEW Zerodha session, immediately invalidating the
     # old one and logging you out of Kite in your local browser.
     # Only perform a fresh login when the saved token is actually expired.
+    #
+    # ON GITHUB ACTIONS: skip the HTTP validity check entirely — network calls to
+    # kite.zerodha.com from GH Actions runners hang silently (TCP SYN dropped,
+    # no RST) even with connect timeouts. Instead, just load the cached token and
+    # use it directly. If it's expired, the first real trading API call will get
+    # a 403 and trigger a fresh TOTP login automatically.
     print("\n  🔍 Checking existing token validity before login...")
     saved_token_valid = False
+    _on_gha = os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
     try:
         from backend.auth.token_store import load_token
-        import requests as _req
         saved = load_token()
         if saved and saved.get("enctoken"):
-            _s = _req.Session()
-            _s.headers.update({
-                "Authorization": f"enctoken {saved['enctoken']}",
-                "User-Agent":    "Mozilla/5.0",
-                "Referer":       "https://kite.zerodha.com/",
-            })
-            # timeout=(connect_timeout, read_timeout) — the single-int form only
-            # covers read, leaving TCP connect() to hang indefinitely if GH Actions
-            # network drops SYN packets to kite.zerodha.com (no RST, silent drop).
-            # 4s connect + 6s read = guaranteed <11s total per attempt.
-            for _attempt in range(2):
-                try:
-                    _r = _s.get(
-                        "https://kite.zerodha.com/oms/user/profile",
-                        timeout=(4, 6),
-                        allow_redirects=False,   # redirects mean session expired
-                    )
-                    if _r.status_code == 200 and _r.json().get("data", {}).get("user_name"):
-                        enctoken = saved["enctoken"]
-                        saved_token_valid = True
-                        print(f"  ✅ Saved token valid for {saved.get('user_id')} — skipping login (browser session untouched)")
-                    else:
-                        print(f"  ℹ Saved token check: HTTP {_r.status_code} — will do fresh login")
-                    break
-                except (_req.exceptions.Timeout, _req.exceptions.ConnectionError) as _te:
-                    if _attempt == 0:
-                        print(f"  ⚠️  Token check timeout (attempt 1) — retrying once...")
-                        time.sleep(1)
-                    else:
-                        print(f"  ⚠️  Token check failed after retry ({type(_te).__name__}) — proceeding to fresh login")
+            if _on_gha:
+                # On GH Actions: trust the cached token without a network round-trip.
+                # Avoids the silent TCP-connect hang to kite.zerodha.com.
+                enctoken = saved["enctoken"]
+                saved_token_valid = True
+                print(f"  ✅ Using cached token for {saved.get('user_id')} (GH Actions — skipping network check)")
+            else:
+                import requests as _req
+                _s = _req.Session()
+                _s.headers.update({
+                    "Authorization": f"enctoken {saved['enctoken']}",
+                    "User-Agent":    "Mozilla/5.0",
+                    "Referer":       "https://kite.zerodha.com/",
+                })
+                for _attempt in range(2):
+                    try:
+                        _r = _s.get(
+                            "https://kite.zerodha.com/oms/user/profile",
+                            timeout=(4, 6),
+                            allow_redirects=False,
+                        )
+                        if _r.status_code == 200 and _r.json().get("data", {}).get("user_name"):
+                            enctoken = saved["enctoken"]
+                            saved_token_valid = True
+                            print(f"  ✅ Saved token valid for {saved.get('user_id')} — skipping login (browser session untouched)")
+                        else:
+                            print(f"  ℹ Saved token check: HTTP {_r.status_code} — will do fresh login")
+                        break
+                    except (_req.exceptions.Timeout, _req.exceptions.ConnectionError) as _te:
+                        if _attempt == 0:
+                            print(f"  ⚠️  Token check timeout (attempt 1) — retrying once...")
+                            time.sleep(1)
+                        else:
+                            print(f"  ⚠️  Token check failed after retry ({type(_te).__name__}) — proceeding to fresh login")
     except Exception as _e:
         print(f"  ⚠️  Token check error: {_e} — will attempt fresh login")
 
@@ -525,29 +535,33 @@ def main():
         reauth_ok = False
         try:
             from backend.auth.token_store import load_token
-            import requests as _req
             saved = load_token()
             if saved and saved.get("enctoken"):
-                _s = _req.Session()
-                _s.headers.update({
-                    "Authorization": f"enctoken {saved['enctoken']}",
-                    "User-Agent":    "Mozilla/5.0",
-                    "Referer":       "https://kite.zerodha.com/",
-                })
-                for _attempt in range(2):
-                    try:
-                        _r = _s.get(
-                            "https://kite.zerodha.com/oms/user/profile",
-                            timeout=(4, 6),
-                            allow_redirects=False,
-                        )
-                        if _r.status_code == 200 and _r.json().get("data", {}).get("user_name"):
-                            print(f"  ✅ Saved token still valid — skipping login (browser session untouched)")
-                            reauth_ok = True
-                        break
-                    except (_req.exceptions.Timeout, _req.exceptions.ConnectionError):
-                        if _attempt == 0:
-                            time.sleep(1)
+                if _on_gha:
+                    print(f"  ✅ Using cached token (GH Actions — skipping network re-check)")
+                    reauth_ok = True
+                else:
+                    import requests as _req
+                    _s = _req.Session()
+                    _s.headers.update({
+                        "Authorization": f"enctoken {saved['enctoken']}",
+                        "User-Agent":    "Mozilla/5.0",
+                        "Referer":       "https://kite.zerodha.com/",
+                    })
+                    for _attempt in range(2):
+                        try:
+                            _r = _s.get(
+                                "https://kite.zerodha.com/oms/user/profile",
+                                timeout=(4, 6),
+                                allow_redirects=False,
+                            )
+                            if _r.status_code == 200 and _r.json().get("data", {}).get("user_name"):
+                                print(f"  ✅ Saved token still valid — skipping login (browser session untouched)")
+                                reauth_ok = True
+                            break
+                        except (_req.exceptions.Timeout, _req.exceptions.ConnectionError):
+                            if _attempt == 0:
+                                time.sleep(1)
         except Exception as _ce:
             print(f"  ⚠️  Token re-check error: {_ce}")
 
