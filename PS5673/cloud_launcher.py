@@ -37,47 +37,16 @@ from pathlib import Path
 import pyotp
 
 
-# ── Pause / Resume (set from dashboard Pause button) ─────────────────────────
-# The dashboard writes pause_flag.json to the gh-pages branch.
-# We poll it here so the user can manually log in to Kite without the bot
-# proceeding and invalidating that session.
+# ── Pause flag self-heal ───────────────────────────────────────────────────────
+# The frontend no longer has any way to set pause_flag.json to true at all
+# (the old PAUSE & STOP / RESUME flow was replaced with a plain Start/Stop
+# toggle that never touches this file). _clear_pause_flag() below still runs
+# unconditionally at the top of every fresh run as a safety net, in case the
+# flag was ever left at paused=true by something else.
 
 _GH_OWNER = os.environ.get("GITHUB_REPOSITORY", "/").split("/")[0]
 _GH_REPO  = os.environ.get("GITHUB_REPOSITORY", "/").split("/")[-1]
 _GH_TOKEN = os.environ.get("GITHUB_TOKEN", "")
-
-
-def _fetch_pause_flag() -> bool:
-    """Return True if pause_flag.json on gh-pages has paused=true."""
-    if not _GH_TOKEN or not _GH_OWNER or not _GH_REPO:
-        return False
-    try:
-        url = (
-            f"https://api.github.com/repos/{_GH_OWNER}/{_GH_REPO}"
-            f"/contents/pause_flag.json?ref=gh-pages"
-        )
-        req = urllib.request.Request(
-            url,
-            headers={
-                "Authorization": f"token {_GH_TOKEN}",
-                "Accept": "application/vnd.github.v3+json",
-            },
-        )
-        # urllib timeout covers read only; set socket default to also cap connect.
-        import socket as _sock
-        _old_to = _sock.getdefaulttimeout()
-        _sock.setdefaulttimeout(8)
-        try:
-            with urllib.request.urlopen(req, timeout=8) as resp:
-                data = json.loads(resp.read())
-                content = json.loads(
-                    __import__("base64").b64decode(data["content"]).decode()
-                )
-                return bool(content.get("paused", False))
-        finally:
-            _sock.setdefaulttimeout(_old_to)
-    except Exception:
-        return False  # if anything fails, do not block the bot
 
 
 def _clear_pause_flag():
@@ -148,30 +117,6 @@ def _clear_pause_flag():
     except Exception as _e:
         print(f"  ⚠️  Could not clear pause_flag.json: {_e} (non-fatal)")
 
-
-def wait_for_resume(context: str = ""):
-    """
-    Block until pause_flag.json reports paused=false (or is absent).
-    Call this BEFORE the Playwright login so the user can manually log in
-    to Zerodha Kite and we don't invalidate their session.
-    """
-    if not _fetch_pause_flag():
-        return  # not paused — nothing to do
-
-    label = f" [{context}]" if context else ""
-    print(f"\n⏸  PAUSED{label} — waiting for Resume from the dashboard...")
-    telegram_notify(
-        f"⏸ <b>WealthAlgo {os.environ.get('KITE_USER_ID', '')} — PAUSED{label}</b>\n"
-        f"Waiting for manual Kite login.\n"
-        f"Click ▶ RESUME in the dashboard when done."
-    )
-    while _fetch_pause_flag():
-        time.sleep(15)
-    print(f"▶  RESUMED{label} — continuing.")
-    telegram_notify(
-        f"▶ <b>WealthAlgo {os.environ.get('KITE_USER_ID', '')} — RESUMED{label}</b>\n"
-        f"Proceeding with login / trading."
-    )
 
 try:
     from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
@@ -414,6 +359,14 @@ def main():
     print(f"  Session: {'Afternoon Pickup' if is_afternoon_session else 'Morning Open'}")
     print("=" * 60)
 
+    # ── Always clear any stale pause flag, unconditionally, before anything
+    # else. Previously this only ran AFTER a successful login — but the old
+    # wait_for_resume() gate (now removed) blocked execution BEFORE that
+    # point whenever the flag was stuck at paused=true, so the self-heal
+    # could never actually fire in the one scenario it existed to fix.
+    print("  → Clearing pause_flag.json on startup...")
+    _clear_pause_flag()
+
     enctoken      = None
     max_attempts  = 3
 
@@ -472,10 +425,6 @@ def main():
         print(f"  ⚠️  Token check error: {_e} — will attempt fresh login")
 
     if not saved_token_valid:
-        # ── Wait here if the dashboard Pause button was pressed ──────────────
-        # This lets you manually log in to Zerodha Kite in your browser.
-        # Click RESUME in the dashboard when done; the bot will then proceed.
-        wait_for_resume("initial login")
         print("  🔐 Saved token expired — performing fresh TOTP login...")
         for attempt in range(1, max_attempts + 1):
             try:
@@ -500,14 +449,6 @@ def main():
                     sys.exit(1)
 
     save_enctoken(USER_ID, enctoken)
-
-    # ── Always clear any stale pause flag on fresh startup ───────────────────
-    # If the bot was PAUSED and then RESTARTED without clicking RESUME first,
-    # pause_flag.json on gh-pages still has paused=true. The snapshot thread
-    # sees this and suppresses the 403 re-login, leaving cash/margin as blank.
-    # Writing paused=false here ensures every fresh run starts unpaused.
-    print("  → Clearing pause_flag.json on startup...")
-    _clear_pause_flag()
 
     # ── Write credentials.json so dashboard.py's AuthManager can do a fresh
     # TOTP login if the saved enctoken is stale after a subprocess restart.
@@ -619,8 +560,6 @@ def main():
             )
             sys.exit(exit_code)
 
-        # Allow dashboard Pause before re-authenticating after a crash
-        wait_for_resume("re-auth after crash")
         print("  🔐 Re-checking token before restart...")
 
         # ── CRITICAL: try saved token first — same as initial startup ─────────
