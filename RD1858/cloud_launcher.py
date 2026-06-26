@@ -432,6 +432,24 @@ def main():
 
     save_enctoken(USER_ID, enctoken)
 
+    # ── Write credentials.json so dashboard.py's AuthManager can do a fresh
+    # TOTP login if the saved enctoken is stale after a subprocess restart.
+    # On GH Actions the env vars are always set; locally this is a no-op if
+    # credentials.json already exists with the correct values.
+    try:
+        import re as _re
+        if USER_ID and PASSWORD and TOTP_SECRET and _re.match(r'^[A-Z2-7]+=*$', TOTP_SECRET.upper()):
+            _cred_file = CONFIG_DIR / "credentials.json"
+            CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+            _cred_file.write_text(json.dumps({
+                "user_id":  USER_ID,
+                "password": PASSWORD,
+                "totp_key": TOTP_SECRET,
+            }, indent=2))
+            print(f"  → credentials.json written for dashboard subprocess")
+    except Exception as _ce:
+        print(f"  ⚠️  Could not write credentials.json: {_ce}")
+
     # Find dashboard script — supports both dashboard.py and frontend/app.py
     for candidate in ["dashboard.py", "frontend/app.py"]:
         bot_script = Path(__file__).parent / candidate
