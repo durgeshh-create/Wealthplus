@@ -98,7 +98,7 @@ class OrderManager:
                 f"{Config.ZERODHA_API_BASE}/oms/orders/{variety}",
                 data=payload,
                 headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                timeout=10
+                timeout=(4, 10)
             )
             
             if response.status_code == 200:
@@ -123,7 +123,7 @@ class OrderManager:
                             f"{Config.ZERODHA_API_BASE}/oms/orders/amo",
                             data=payload,
                             headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                            timeout=10
+                            timeout=(4, 10)
                         )
                         if amo_response.status_code == 200:
                             amo_result = amo_response.json()
@@ -182,7 +182,7 @@ class OrderManager:
             
             response = self.auth.session.get(
                 f"{Config.ZERODHA_API_BASE}/oms/orders",
-                timeout=10
+                timeout=(4, 10)
             )
             
             if response.status_code == 200:
@@ -278,7 +278,7 @@ class OrderManager:
     def get_open_buy_orders(self) -> list:
         """Fetch all open/pending BUY orders blocking margin."""
         try:
-            r = self.auth.session.get(f"{Config.ZERODHA_API_BASE}/oms/orders", timeout=10)
+            r = self.auth.session.get(f"{Config.ZERODHA_API_BASE}/oms/orders", timeout=(4, 10))
             if r.status_code != 200:
                 return []
             return [o for o in r.json().get('data', [])
@@ -297,7 +297,7 @@ class OrderManager:
             variety = o.get('variety', Config.ORDER_VARIETY)
             try:
                 r = self.auth.session.delete(
-                    f"{Config.ZERODHA_API_BASE}/oms/orders/{variety}/{oid}", timeout=10)
+                    f"{Config.ZERODHA_API_BASE}/oms/orders/{variety}/{oid}", timeout=(4, 10))
                 if r.status_code == 200:
                     logger.info(f"[smart_buy] Cancelled open BUY {oid} ({sym}) to free margin")
                     cancelled += 1
@@ -314,7 +314,7 @@ class OrderManager:
             
             response = self.auth.session.delete(
                 f"{Config.ZERODHA_API_BASE}/oms/orders/{Config.ORDER_VARIETY}/{order_id}",
-                timeout=10
+                timeout=(4, 10)
             )
             
             if response.status_code == 200:
@@ -346,7 +346,7 @@ class OrderManager:
 
             response = self.auth.session.get(
                 f"{Config.ZERODHA_API_BASE}/oms/user/margins",
-                timeout=10
+                timeout=(4, 10)
             )
             if response.status_code == 403:
                 # ✅ FIX: surface 403 explicitly — happens when market is closed
@@ -552,7 +552,7 @@ class OrderManager:
         def _fetch_live_balance():
             try:
                 r = self.auth.session.get(
-                    f"{Config.ZERODHA_API_BASE}/oms/user/margins", timeout=10
+                    f"{Config.ZERODHA_API_BASE}/oms/user/margins", timeout=(4, 10)
                 )
                 if r.status_code != 200:
                     return None
@@ -710,7 +710,7 @@ class OrderManager:
             
             response = self.auth.session.get(
                 f"{Config.ZERODHA_API_BASE}/oms/user/margins",
-                timeout=10
+                timeout=(4, 10)
             )
             
             if response.status_code != 200:
