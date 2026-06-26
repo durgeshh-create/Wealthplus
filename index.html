@@ -505,11 +505,6 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       background:var(--green-d);color:var(--green);font-size:11px;font-weight:600;
       cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s
     " title="Start the trading bot" data-bot-state="stopped">▶ START</button>
-    <button id="bot-restart-btn" onclick="handleRestartBtn()" style="
-      display:none;padding:5px 12px;border-radius:6px;border:1px solid rgba(217,119,6,.35);
-      background:var(--amber-d);color:var(--amber);font-size:11px;font-weight:600;
-      cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s;margin-left:4px
-    " title="Stop the running workflow and immediately start a fresh one">⟳ RESTART</button>
     <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px" title="Lock">&#128274;</button>
   </div>
 </header>
@@ -2378,15 +2373,11 @@ function togglePwEye() {
   i.type = i.type === 'password' ? 'text' : 'password';
 }
 // ── Bot button state machine ──────────────────────────────────────────────────
-// Single button with 4 states stored in data-bot-state:
-//   "stopped"  — bot not running, not paused  → ▶ START BOT  (green)
-//   "running"  — bot running, not paused       → ⏸ PAUSE & STOP (amber)
-//   "paused"   — bot stopped, paused flag set  → ▶ RESUME & START (blue)
-//
-// Flow for manual Kite login:
-//   1. Click ⏸ PAUSE & STOP  → sets pause flag + cancels workflow
-//   2. Log into Kite manually in your browser
-//   3. Click ▶ RESUME & START → clears pause flag + starts fresh workflow
+// Single button, 2 states stored in data-bot-state:
+//   "stopped" — bot not running → ▶ START (green)
+//   "running" — bot running     → ⏹ STOP  (red)
+// No pause flag involved at all — Start/Stop just dispatches/cancels the
+// GitHub Actions workflow directly.
 
 const WORKFLOW_FILE = "trading-bot.yml";
 
@@ -2395,18 +2386,15 @@ function _botBtnState() {
 }
 
 function _setBotBtn(state, busy) {
-  const btn  = document.getElementById("bot-toggle-btn");
-  const rbtn = document.getElementById("bot-restart-btn");
+  const btn = document.getElementById("bot-toggle-btn");
   if (!btn) return;
   btn.dataset.botState = state;
   btn.disabled = !!busy;
-  if (rbtn) rbtn.disabled = !!busy;
   if (busy) {
     btn.textContent = "…";
     btn.style.background  = "var(--bg3)";
     btn.style.color       = "var(--muted)";
     btn.style.borderColor = "var(--border)";
-    if (rbtn) rbtn.style.display = "none";
     return;
   }
   if (state === "running") {
@@ -2415,62 +2403,13 @@ function _setBotBtn(state, busy) {
     btn.style.color       = "var(--red,#f87171)";
     btn.style.borderColor = "rgba(239,68,68,.35)";
     btn.title = "Stop the running workflow";
-    if (rbtn) rbtn.style.display = "inline-block";
   } else {
-    // stopped OR paused — both show START (pause flag auto-cleared on launch)
     btn.textContent       = "▶ START";
     btn.style.background  = "var(--green-d)";
     btn.style.color       = "var(--green)";
     btn.style.borderColor = "rgba(22,163,74,.35)";
-    btn.title = state === "paused"
-      ? "Start the bot — pause flag will be cleared automatically on launch"
-      : "Start the trading bot";
-    if (rbtn) rbtn.style.display = "none";
+    btn.title = "Start the trading bot";
   }
-}
-
-async function _writePauseFlag(paused) {
-  const cfg = getCfg();
-  const flagUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/pause_flag.json`;
-  const headers = apiHeaders();
-
-  async function _fetchSha() {
-    try {
-      const ex = await fetch(flagUrl + "?ref=gh-pages", { headers });
-      if (ex.ok) return (await ex.json()).sha || null;
-    } catch (_) {}
-    return null;
-  }
-
-  const content   = btoa(JSON.stringify({ paused, updated: new Date().toISOString() }, null, 2));
-  const commitMsg = paused ? "pause: paused for manual Kite login" : "resume: pause cleared";
-
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    const sha  = await _fetchSha();
-    const body = { message: commitMsg, content, branch: "gh-pages" };
-    if (sha) body.sha = sha;
-    const r = await fetch(flagUrl, { method: "PUT", headers, body: JSON.stringify(body) });
-    if (r.ok) return;
-    if (r.status === 409 && attempt < 3) {
-      await new Promise(res => setTimeout(res, 500 * attempt));
-      continue;
-    }
-    throw new Error(`pause flag write failed: ${r.status} ${await r.text()}`);
-  }
-}
-
-async function _readPauseFlag() {
-  const cfg = getCfg();
-  if (!cfg.owner || !cfg.repo || !cfg.token) return false;
-  try {
-    const r = await fetch(
-      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/pause_flag.json?ref=gh-pages`,
-      { headers: apiHeaders() }
-    );
-    if (!r.ok) return false;
-    const d = await r.json();
-    return !!JSON.parse(atob(d.content.replace(/\n/g, ""))).paused;
-  } catch (_) { return false; }
 }
 
 async function _cancelWorkflow(cfg) {
@@ -2628,31 +2567,24 @@ async function handleBotBtn() {
   }
 }
 
-// Sync button to real state: check pause flag + live workflow run
+// Sync button to real state: just check for a live/queued workflow run.
 async function syncBotButtonState() {
   const btn = document.getElementById("bot-toggle-btn");
   const cfg = getCfg();
   if (!btn || btn.disabled || !cfg.owner || !cfg.repo || !cfg.token) return;
   try {
-    const [paused, liveRunning] = await Promise.all([
-      _readPauseFlag(),
-      (async () => {
-        const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
-        const r = await fetch(`${base}/runs?status=in_progress&per_page=1`, { headers: apiHeaders() });
-        if (!r.ok) return false;
-        const runs = (await r.json()).workflow_runs || [];
-        if (runs.length > 0) return true;
+    const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}`;
+    const r = await fetch(`${base}/runs?status=in_progress&per_page=1`, { headers: apiHeaders() });
+    let liveRunning = false;
+    if (r.ok) {
+      const runs = (await r.json()).workflow_runs || [];
+      liveRunning = runs.length > 0;
+      if (!liveRunning) {
         const qr = await fetch(`${base}/runs?status=queued&per_page=1`, { headers: apiHeaders() });
-        return qr.ok && ((await qr.json()).workflow_runs || []).length > 0;
-      })(),
-    ]);
-    if (paused && !liveRunning) {
-      _setBotBtn("paused", false);
-    } else if (liveRunning) {
-      _setBotBtn("running", false);
-    } else {
-      _setBotBtn("stopped", false);
+        liveRunning = qr.ok && ((await qr.json()).workflow_runs || []).length > 0;
+      }
     }
+    _setBotBtn(liveRunning ? "running" : "stopped", false);
   } catch (_) {}
 }
 
@@ -3501,35 +3433,7 @@ function switchAccount(acc) {
   refreshAll();
 }
 
-// ── RESTART button — stop running workflow then immediately dispatch a new one ─
-// Unlike PAUSE & STOP, this does NOT set the pause flag and does NOT require
-// a manual Kite login — it assumes the existing enctoken is still valid.
-async function handleRestartBtn() {
-  const cfg = getCfg();
-  if (!cfg.owner || !cfg.repo || !cfg.token) {
-    alert("Please configure GitHub owner / repo / token first (Setup).");
-    return;
-  }
-  const btn  = document.getElementById("bot-toggle-btn");
-  const rbtn = document.getElementById("bot-restart-btn");
-  if (rbtn) { rbtn.textContent = "…"; rbtn.disabled = true; }
-  if (btn)  btn.disabled = true;
 
-  try {
-    // 1. Cancel running workflow
-    const runId = await _cancelWorkflow(cfg);
-    // 2. Wait for it to actually stop (max ~30s at 2s polls)
-    if (runId) await _pollUntilStopped(cfg, runId);
-    // 3. Dispatch fresh run — no pause flag touched
-    await _dispatchWorkflow(cfg);
-    _setBotBtn("running", false);
-    // Give GitHub ~10s to register the new run, then verify
-    setTimeout(() => syncBotButtonState(), 10000);
-  } catch (e) {
-    alert("Restart error: " + e.message);
-    _setBotBtn("running", false);
-  }
-}
 
 function toggleStrategy() {
   const body = document.getElementById("strat-body");
