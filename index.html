@@ -504,13 +504,13 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       padding:5px 14px;border-radius:6px;border:1px solid rgba(22,163,74,.35);
       background:var(--green-d);color:var(--green);font-size:11px;font-weight:600;
       cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s
-    " title="Start the trading bot" data-bot-state="stopped">▶ START BOT</button>
-    <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px" title="Lock">&#128274;</button>
+    " title="Start the trading bot" data-bot-state="stopped">▶ START</button>
     <button id="bot-restart-btn" onclick="handleRestartBtn()" style="
       display:none;padding:5px 12px;border-radius:6px;border:1px solid rgba(217,119,6,.35);
       background:var(--amber-d);color:var(--amber);font-size:11px;font-weight:600;
       cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s;margin-left:4px
     " title="Stop the running workflow and immediately start a fresh one">⟳ RESTART</button>
+    <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px" title="Lock">&#128274;</button>
   </div>
 </header>
 
@@ -2403,29 +2403,29 @@ function _setBotBtn(state, busy) {
   if (rbtn) rbtn.disabled = !!busy;
   if (busy) {
     btn.textContent = "…";
-    btn.style.background = "var(--bg3)";
-    btn.style.color      = "var(--muted)";
+    btn.style.background  = "var(--bg3)";
+    btn.style.color       = "var(--muted)";
     btn.style.borderColor = "var(--border)";
+    if (rbtn) rbtn.style.display = "none";
     return;
   }
   if (state === "running") {
-    btn.textContent  = "⏸ PAUSE & STOP";
-    btn.style.background  = "var(--amber-d)";
-    btn.style.color       = "var(--amber)";
-    btn.style.borderColor = "rgba(217,119,6,.35)";
-    btn.title = "Pause the workflow so you can manually log in to Kite, then restart cleanly";
-  } else if (state === "paused") {
-    btn.textContent  = "▶ RESUME & START";
-    btn.style.background  = "var(--blue-d)";
-    btn.style.color       = "var(--blue)";
-    btn.style.borderColor = "rgba(37,99,235,.35)";
-    btn.title = "Clear the pause flag and start the bot — it will use your fresh Kite session";
+    btn.textContent       = "⏹ STOP";
+    btn.style.background  = "var(--red-d,#3f1a1a)";
+    btn.style.color       = "var(--red,#f87171)";
+    btn.style.borderColor = "rgba(239,68,68,.35)";
+    btn.title = "Stop the running workflow";
+    if (rbtn) rbtn.style.display = "inline-block";
   } else {
-    btn.textContent  = "▶ START BOT";
+    // stopped OR paused — both show START (pause flag auto-cleared on launch)
+    btn.textContent       = "▶ START";
     btn.style.background  = "var(--green-d)";
     btn.style.color       = "var(--green)";
     btn.style.borderColor = "rgba(22,163,74,.35)";
-    btn.title = "Start the trading bot";
+    btn.title = state === "paused"
+      ? "Start the bot — pause flag will be cleared automatically on launch"
+      : "Start the trading bot";
+    if (rbtn) rbtn.style.display = "none";
   }
 }
 
@@ -2599,7 +2599,6 @@ async function _pollUntilStopped(cfg, runId) {
 }
 
 async function handleBotBtn() {
-  const btn = document.getElementById("bot-toggle-btn");
   const cfg = getCfg();
   if (!cfg.owner || !cfg.repo || !cfg.token) {
     alert("Please configure GitHub owner / repo / token first (Setup).");
@@ -2607,42 +2606,24 @@ async function handleBotBtn() {
   }
 
   const state = _botBtnState();
-  _setBotBtn(state, true); // show busy spinner
+  _setBotBtn(state, true);
 
   try {
     if (state === "running") {
-      // ── PAUSE & STOP ──────────────────────────────────────────────────────
-      // 1. Set pause flag so bot suppresses re-auth on 403s
-      await _writePauseFlag(true);
-      // 2. Cancel the workflow
+      // ── STOP ─────────────────────────────────────────────────────────────
       const runId = await _cancelWorkflow(cfg);
-      _setBotBtn("paused", true);
-      // 3. Poll until fully stopped, then show RESUME & START
-      if (runId) {
-        await _pollUntilStopped(cfg, runId);
-      }
-      _setBotBtn("paused", false);
-      alert("⏸ Bot stopped and paused.\n\nNow log into Zerodha Kite in your browser.\nWhen done, click ▶ RESUME & START.");
-
-    } else if (state === "paused") {
-      // ── RESUME & START ────────────────────────────────────────────────────
-      // 1. Clear pause flag
-      await _writePauseFlag(false);
-      // 2. Start fresh workflow — it will pick up your new Kite session
-      await _dispatchWorkflow(cfg);
-      _setBotBtn("running", false);
-      // Give GitHub ~10s to register the run, then sync real status
-      setTimeout(() => syncBotButtonState(), 10000);
+      if (runId) await _pollUntilStopped(cfg, runId);
+      _setBotBtn("stopped", false);
 
     } else {
-      // ── START BOT (normal) ────────────────────────────────────────────────
+      // ── START (covers stopped + paused — pause flag auto-cleared on launch) ─
       await _dispatchWorkflow(cfg);
       _setBotBtn("running", false);
+      // Give GitHub ~10s to register the run, then verify real status
       setTimeout(() => syncBotButtonState(), 10000);
     }
   } catch (e) {
-    alert("Bot button error: " + e.message);
-    // Restore previous state on error
+    alert("Bot error: " + e.message);
     _setBotBtn(state, false);
   }
 }
@@ -2730,7 +2711,7 @@ const URLS = {
 let account = "PS5673";
 let timer        = null;
 let liveTimer    = null;
-const INTERVAL      = 30000;  // snapshot refresh every 30 s (bot-state: signals, orders, slots, margins)
+const INTERVAL      = 10000;  // full data refresh every 10 s (snapshot + button state + signals)
 const LIVE_INTERVAL = 10000;  // Kite direct-fetch every 10 s (prices, indices, holdings LTP)
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
