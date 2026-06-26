@@ -98,7 +98,7 @@ class OrderManager:
                 f"{Config.ZERODHA_API_BASE}/oms/orders/{variety}",
                 data=payload,
                 headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                timeout=10
+                timeout=(4, 10)
             )
             
             if response.status_code == 200:
@@ -123,7 +123,7 @@ class OrderManager:
                             f"{Config.ZERODHA_API_BASE}/oms/orders/amo",
                             data=payload,
                             headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                            timeout=10
+                            timeout=(4, 10)
                         )
                         if amo_response.status_code == 200:
                             amo_result = amo_response.json()
@@ -182,7 +182,7 @@ class OrderManager:
             
             response = self.auth.session.get(
                 f"{Config.ZERODHA_API_BASE}/oms/orders",
-                timeout=10
+                timeout=(4, 10)
             )
             
             if response.status_code == 200:
@@ -278,7 +278,7 @@ class OrderManager:
     def get_open_buy_orders(self) -> list:
         """Fetch all open/pending BUY orders blocking margin."""
         try:
-            r = self.auth.session.get(f"{Config.ZERODHA_API_BASE}/oms/orders", timeout=10)
+            r = self.auth.session.get(f"{Config.ZERODHA_API_BASE}/oms/orders", timeout=(4, 10))
             if r.status_code != 200:
                 return []
             return [o for o in r.json().get('data', [])
@@ -297,7 +297,7 @@ class OrderManager:
             variety = o.get('variety', Config.ORDER_VARIETY)
             try:
                 r = self.auth.session.delete(
-                    f"{Config.ZERODHA_API_BASE}/oms/orders/{variety}/{oid}", timeout=10)
+                    f"{Config.ZERODHA_API_BASE}/oms/orders/{variety}/{oid}", timeout=(4, 10))
                 if r.status_code == 200:
                     logger.info(f"[smart_buy] Cancelled open BUY {oid} ({sym}) to free margin")
                     cancelled += 1
@@ -314,7 +314,7 @@ class OrderManager:
             
             response = self.auth.session.delete(
                 f"{Config.ZERODHA_API_BASE}/oms/orders/{Config.ORDER_VARIETY}/{order_id}",
-                timeout=10
+                timeout=(4, 10)
             )
             
             if response.status_code == 200:
@@ -346,7 +346,7 @@ class OrderManager:
 
             response = self.auth.session.get(
                 f"{Config.ZERODHA_API_BASE}/oms/user/margins",
-                timeout=10
+                timeout=(4, 10)
             )
             if response.status_code == 403:
                 # ✅ FIX: surface 403 explicitly — happens when market is closed
@@ -368,6 +368,7 @@ class OrderManager:
             live_bal    = float(avail.get('live_balance', 0))
             net_bal     = float(avail.get('cash', 0))
             adhoc_bal   = float(avail.get('adhoc_margin', 0))
+            opening_bal = float(avail.get('opening_balance', 0))
 
             # ── Which field to use ────────────────────────────────────────────
             # live_balance: includes pledged collateral/securities margin.
@@ -380,19 +381,14 @@ class OrderManager:
             #                 cash available for CNC (delivery) purchases.
             #                 May be 0 before market open until recalculated.
             #
-            # opening_balance: cash at start of day — useful as a floor when
-            #                  both live_balance and cash are 0 (pre-market).
-            #
-            # Rule: prefer cash (net_bal) as it accurately reflects spendable
-            # cash for CNC. Use live_balance only as a last resort (both zero).
-            opening_bal = float(avail.get('opening_balance', 0))
-
+            # Rule: prefer cash (net_bal) for CNC accuracy.
+            # Fall back to live_balance, then opening_balance if both are zero.
             if net_bal > 0:
-                cash = net_bal               # settled cash — correct for CNC
+                cash = net_bal
             elif live_bal > 0:
-                cash = live_bal              # fallback (pre-settlement)
+                cash = live_bal
             else:
-                cash = opening_bal           # pre-market fallback
+                cash = opening_bal
 
             logger.info(
                 f"Available cash: live=₹{live_bal:,.2f} net(cash)=₹{net_bal:,.2f} "
@@ -556,7 +552,7 @@ class OrderManager:
         def _fetch_live_balance():
             try:
                 r = self.auth.session.get(
-                    f"{Config.ZERODHA_API_BASE}/oms/user/margins", timeout=10
+                    f"{Config.ZERODHA_API_BASE}/oms/user/margins", timeout=(4, 10)
                 )
                 if r.status_code != 200:
                     return None
@@ -714,7 +710,7 @@ class OrderManager:
             
             response = self.auth.session.get(
                 f"{Config.ZERODHA_API_BASE}/oms/user/margins",
-                timeout=10
+                timeout=(4, 10)
             )
             
             if response.status_code != 200:
@@ -722,8 +718,6 @@ class OrderManager:
             
             margins_data = response.json()
             avail_data = margins_data.get('data', {}).get('equity', {}).get('available', {})
-            # Use cash (settled balance) not live_balance — live_balance includes
-            # pledged collateral which cannot fund CNC delivery purchases.
             net_bal     = float(avail_data.get('cash', 0))
             live_bal    = float(avail_data.get('live_balance', 0))
             opening_bal = float(avail_data.get('opening_balance', 0))
