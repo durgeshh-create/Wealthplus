@@ -12,7 +12,7 @@ Environment variables (set as GitHub Secrets):
     KITE_USER_ID        — Zerodha user ID  (e.g. RD1858)
     KITE_PASSWORD       — Kite login password
     KITE_TOTP_SECRET    — TOTP secret key from your 2FA setup (base32, no spaces)
-    BOT_PORT            — Flask port (5000 for RD1858)
+    BOT_PORT            — Flask port (5001 for RD1858)
     TELEGRAM_BOT_TOKEN  — Telegram bot token for notifications
     TELEGRAM_CHAT_ID    — Your Telegram chat ID
 
@@ -63,12 +63,19 @@ def _fetch_pause_flag() -> bool:
                 "Accept": "application/vnd.github.v3+json",
             },
         )
-        with urllib.request.urlopen(req, timeout=8) as resp:
-            data = json.loads(resp.read())
-            content = json.loads(
-                __import__("base64").b64decode(data["content"]).decode()
-            )
-            return bool(content.get("paused", False))
+        # urllib timeout covers read only; set socket default to also cap connect.
+        import socket as _sock
+        _old_to = _sock.getdefaulttimeout()
+        _sock.setdefaulttimeout(8)
+        try:
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                data = json.loads(resp.read())
+                content = json.loads(
+                    __import__("base64").b64decode(data["content"]).decode()
+                )
+                return bool(content.get("paused", False))
+        finally:
+            _sock.setdefaulttimeout(_old_to)
     except Exception:
         return False  # if anything fails, do not block the bot
 
@@ -358,13 +365,15 @@ def main():
                 "User-Agent":    "Mozilla/5.0",
                 "Referer":       "https://kite.zerodha.com/",
             })
-            # Two attempts with a short timeout — if Zerodha is slow we fall
-            # through to a fresh TOTP login rather than hanging indefinitely.
+            # timeout=(connect_timeout, read_timeout) — the single-int form only
+            # covers read, leaving TCP connect() to hang indefinitely if GH Actions
+            # network drops SYN packets to kite.zerodha.com (no RST, silent drop).
+            # 4s connect + 6s read = guaranteed <11s total per attempt.
             for _attempt in range(2):
                 try:
                     _r = _s.get(
                         "https://kite.zerodha.com/oms/user/profile",
-                        timeout=6,
+                        timeout=(4, 6),
                         allow_redirects=False,   # redirects mean session expired
                     )
                     if _r.status_code == 200 and _r.json().get("data", {}).get("user_name"):
@@ -377,9 +386,9 @@ def main():
                 except (_req.exceptions.Timeout, _req.exceptions.ConnectionError) as _te:
                     if _attempt == 0:
                         print(f"  ⚠️  Token check timeout (attempt 1) — retrying once...")
-                        time.sleep(2)
+                        time.sleep(1)
                     else:
-                        print(f"  ⚠️  Token check failed after retry ({_te}) — proceeding to fresh login")
+                        print(f"  ⚠️  Token check failed after retry ({type(_te).__name__}) — proceeding to fresh login")
     except Exception as _e:
         print(f"  ⚠️  Token check error: {_e} — will attempt fresh login")
 
@@ -529,7 +538,7 @@ def main():
                     try:
                         _r = _s.get(
                             "https://kite.zerodha.com/oms/user/profile",
-                            timeout=6,
+                            timeout=(4, 6),
                             allow_redirects=False,
                         )
                         if _r.status_code == 200 and _r.json().get("data", {}).get("user_name"):
@@ -538,7 +547,7 @@ def main():
                         break
                     except (_req.exceptions.Timeout, _req.exceptions.ConnectionError):
                         if _attempt == 0:
-                            time.sleep(2)
+                            time.sleep(1)
         except Exception as _ce:
             print(f"  ⚠️  Token re-check error: {_ce}")
 
