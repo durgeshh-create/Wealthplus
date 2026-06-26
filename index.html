@@ -505,12 +505,12 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       background:var(--green-d);color:var(--green);font-size:11px;font-weight:600;
       cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s
     " title="Start the trading bot" data-bot-state="stopped">▶ START BOT</button>
+    <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px" title="Lock">&#128274;</button>
     <button id="bot-restart-btn" onclick="handleRestartBtn()" style="
       display:none;padding:5px 12px;border-radius:6px;border:1px solid rgba(217,119,6,.35);
       background:var(--amber-d);color:var(--amber);font-size:11px;font-weight:600;
       cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s;margin-left:4px
     " title="Stop the running workflow and immediately start a fresh one">⟳ RESTART</button>
-    <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px" title="Lock">&#128274;</button>
   </div>
 </header>
 
@@ -2403,10 +2403,9 @@ function _setBotBtn(state, busy) {
   if (rbtn) rbtn.disabled = !!busy;
   if (busy) {
     btn.textContent = "…";
-    btn.style.background  = "var(--bg3)";
-    btn.style.color       = "var(--muted)";
+    btn.style.background = "var(--bg3)";
+    btn.style.color      = "var(--muted)";
     btn.style.borderColor = "var(--border)";
-    if (rbtn) rbtn.style.display = "none";
     return;
   }
   if (state === "running") {
@@ -2415,21 +2414,18 @@ function _setBotBtn(state, busy) {
     btn.style.color       = "var(--amber)";
     btn.style.borderColor = "rgba(217,119,6,.35)";
     btn.title = "Pause the workflow so you can manually log in to Kite, then restart cleanly";
-    if (rbtn) rbtn.style.display = "inline-block";
   } else if (state === "paused") {
     btn.textContent  = "▶ RESUME & START";
     btn.style.background  = "var(--blue-d)";
     btn.style.color       = "var(--blue)";
     btn.style.borderColor = "rgba(37,99,235,.35)";
     btn.title = "Clear the pause flag and start the bot — it will use your fresh Kite session";
-    if (rbtn) rbtn.style.display = "none";
   } else {
     btn.textContent  = "▶ START BOT";
     btn.style.background  = "var(--green-d)";
     btn.style.color       = "var(--green)";
     btn.style.borderColor = "rgba(22,163,74,.35)";
     btn.title = "Start the trading bot";
-    if (rbtn) rbtn.style.display = "none";
   }
 }
 
@@ -2651,36 +2647,6 @@ async function handleBotBtn() {
   }
 }
 
-// ── RESTART button — stop running workflow then immediately dispatch a new one ─
-// Unlike PAUSE & STOP, this does NOT set the pause flag and does NOT require
-// a manual Kite login — it assumes the existing enctoken is still valid.
-async function handleRestartBtn() {
-  const cfg = getCfg();
-  if (!cfg.owner || !cfg.repo || !cfg.token) {
-    alert("Please configure GitHub owner / repo / token first (Setup).");
-    return;
-  }
-  const btn  = document.getElementById("bot-toggle-btn");
-  const rbtn = document.getElementById("bot-restart-btn");
-  if (rbtn) { rbtn.textContent = "…"; rbtn.disabled = true; }
-  if (btn)  btn.disabled = true;
-
-  try {
-    // 1. Cancel running workflow
-    const runId = await _cancelWorkflow(cfg);
-    // 2. Wait for it to actually stop (max ~30s at 2s polls)
-    if (runId) await _pollUntilStopped(cfg, runId);
-    // 3. Dispatch fresh run — no pause flag touched
-    await _dispatchWorkflow(cfg);
-    _setBotBtn("running", false);
-    // Give GitHub ~10s to register the new run, then verify
-    setTimeout(() => syncBotButtonState(), 10000);
-  } catch (e) {
-    alert("Restart error: " + e.message);
-    _setBotBtn("running", false);
-  }
-}
-
 // Sync button to real state: check pause flag + live workflow run
 async function syncBotButtonState() {
   const btn = document.getElementById("bot-toggle-btn");
@@ -2756,8 +2722,8 @@ function switchNavTab(tab) {
 const BASE = "https://durgeshh-create.github.io/Wealthplus/";
 
 const URLS = {
-  PS5673: BASE + "status_ps5673.json",
-  RD1858: BASE + "status_rd1858.json",
+  PS5673: BASE + "/status_ps5673.json",
+  RD1858: BASE + "/status_rd1858.json",
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -3013,7 +2979,7 @@ function render(data) {
           <div class="sym" style="font-size:12px;white-space:normal;max-width:none">${h.name}</div>
           ${h.folio ? `<div style="font-size:10px;color:var(--muted)">Folio ${h.folio} &nbsp;·&nbsp; ${h.units} units @ ₹${h.avg_nav}${h.pledged_units > 0 ? ` &nbsp;<span title="Pledged as collateral">(P: ${h.pledged_units})</span>` : ''}</div>` : ""}
         </td>
-        <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.cur_val)}">${fmtL(h.cur_val)}</td>
+        <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.cur_val)}">${fmtL(h.cur_val)}${navAsOf}</td>
         <td style="text-align:right;padding-right:14px;font-size:12px" class="${pc}" title="${fmtRupee(h.pnl)}">${h.pnl>=0?'+':''}${fmtL(h.pnl)}<div style="font-size:10px">${(h.pnl_pct??0)>=0?'+':''}${(h.pnl_pct??0).toFixed(2)}%</div></td>
       </tr>`;
     }).join("") : `<tr><td colspan="3" class="empty" style="padding:18px">Mutual fund data not yet available — will populate on next bot snapshot</td></tr>`;
@@ -3300,8 +3266,8 @@ function patchLive() {
   }
 
   // ── Patch Williams %R table LTP column ────────────────────────────────────
-  // FIX: was querying "#wr-body tr, .wr-table tr" — neither selector exists.
-  // The actual table body element has id="wr-tbl-body".
+  // WR table rows: symbol is in a .sym div inside first td
+  // FIX: was querying "#wr-body tr, .wr-table tr" — actual tbody id is "wr-tbl-body"
   const wrRows = document.querySelectorAll("#wr-tbl-body tr");
   wrRows.forEach(row => {
     const symEl = row.querySelector(".sym");
@@ -3549,9 +3515,39 @@ function switchAccount(acc) {
   _lastSnapshot = null;
   _liveQuotes   = {};
   _liveIndices  = {};
-  // FIX: clear DMA cache so the new account fetches its own CSVs (not stale cross-account data)
+  // FIX: clear stale DMA cache so new account fetches its own CSVs
   Object.keys(_dma20Cache).forEach(k => delete _dma20Cache[k]);
   refreshAll();
+}
+
+// ── RESTART button — stop running workflow then immediately dispatch a new one ─
+// Unlike PAUSE & STOP, this does NOT set the pause flag and does NOT require
+// a manual Kite login — it assumes the existing enctoken is still valid.
+async function handleRestartBtn() {
+  const cfg = getCfg();
+  if (!cfg.owner || !cfg.repo || !cfg.token) {
+    alert("Please configure GitHub owner / repo / token first (Setup).");
+    return;
+  }
+  const btn  = document.getElementById("bot-toggle-btn");
+  const rbtn = document.getElementById("bot-restart-btn");
+  if (rbtn) { rbtn.textContent = "…"; rbtn.disabled = true; }
+  if (btn)  btn.disabled = true;
+
+  try {
+    // 1. Cancel running workflow
+    const runId = await _cancelWorkflow(cfg);
+    // 2. Wait for it to actually stop (max ~30s at 2s polls)
+    if (runId) await _pollUntilStopped(cfg, runId);
+    // 3. Dispatch fresh run — no pause flag touched
+    await _dispatchWorkflow(cfg);
+    _setBotBtn("running", false);
+    // Give GitHub ~10s to register the new run, then verify
+    setTimeout(() => syncBotButtonState(), 10000);
+  } catch (e) {
+    alert("Restart error: " + e.message);
+    _setBotBtn("running", false);
+  }
 }
 
 function toggleStrategy() {
@@ -4156,7 +4152,7 @@ if(sessionStorage.getItem(PW_SESSION)==='1'){document.getElementById('pw-overlay
 const SCN_ETF    = ["ABSL10BANK", "ABSLBANETF", "ABSLMSCIN", "ABSLNN50ET", "ABSLPSE", "ALPHA", "ALPHAETF", "ALPL30IETF", "AONEGOLD", "AONENIFTY", "AONESILVER", "AONETMMQ50", "AONETOTAL", "AUTOBEES", "AUTOIETF", "AXISBNKETF", "AXISCETF", "AXISGOLD", "AXISHCETF", "AXISILVER", "AXISNIFTY", "AXISTECETF", "AXISVALUE", "AXSENSEX", "BANK10ADD", "BANKADD", "BANKBEES", "BANKBETA", "BANKBETF", "BANKETF", "BANKIETF", "BANKNIFTY1", "BANKPSU", "BBNPNBETF", "BBNPPGOLD", "BFSI", "BSE500IETF", "BSLGOLDETF", "BSLNIFTY", "BSLSENETFG", "CHEMICAL", "CHOICEGOLD", "COMMOIETF", "CONS", "CONSUMBEES", "CONSUMER", "CONSUMIETF", "CPSEETF", "DEFENCE", "DIVIDEND", "DIVOPPBEES", "EBANKNIFTY", "ECAPINSURE", "EGOLD", "ELM250", "EMULTIMQ", "ENERGY", "ENIFTY", "EQUAL200", "EQUAL50", "EQUAL50ADD", "ESENSEX", "ESG", "ESILVER", "EVIETF", "EVINDIA", "FINIETF", "FLEXIADD", "FMCGADD", "FMCGIETF", "GOLD1", "GOLD360", "GOLDADD", "GOLDBEES", "GOLDBETA", "GOLDBND", "GOLDCASE", "GOLDETF", "GOLDIETF", "GROWWCAPM", "GROWWCHEM", "GROWWDEFNC", "GROWWEV", "GROWWGOLD", "GROWWHOSPI", "GROWWLOVOL", "GROWWMC150", "GROWWMETAL", "GROWWMOM50", "GROWWN200", "GROWWNET", "GROWWNIFTY", "GROWWNXT50", "GROWWPOWER", "GROWWPSE", "GROWWPSUBK", "GROWWRAIL", "GROWWRLTY", "GROWWSC250", "GROWWSLVR", "HDFCBSE500", "HDFCGOLD", "HDFCGROWTH", "HDFCLOWVOL", "HDFCMID150", "HDFCMOMENT", "HDFCNEXT50", "HDFCNIF100", "HDFCNIFBAN", "HDFCNIFIT", "HDFCNIFTY", "HDFCPSUBK", "HDFCPVTBAN", "HDFCQUAL", "HDFCSENSEX", "HDFCSILVER", "HDFCSML250", "HDFCVALUE", "HEALTHADD", "HEALTHCARE", "HEALTHIETF", "HEALTHY", "HNGSNGBEES", "HSBCGOLD", "ICICIB22", "IDFNIFTYET", "INFRA", "INFRABEES", "INFRAIETF", "INTERNET", "IT", "ITADD", "ITBEES", "ITBETA", "ITETF", "ITIETF", "IVZINGOLD", "IVZINNIFTY", "JUNIORBEES", "LICMFGOLD", "LICNETFGSC", "LICNETFN50", "LICNETFSEN", "LICNFNHGP", "LICNMID100", "LOWVOL", "LOWVOL1", "LOWVOLIETF", "MAFANG", "MAHKTECH", "MAKEINDIA", "MANUFGBEES", "MASPTOP50", "METAL", "METALIETF", "MID150", "MID150BEES", "MID150CASE", "MIDCAP", "MIDCAPADD", "MIDCAPBETA", "MIDCAPETF", "MIDCAPIETF", "MIDQ50ADD", "MIDSELIETF", "MIDSMALL", "MNC", "MOALPHA50", "MOBANK10", "MOCAPITAL", "MODEFENCE", "MOENERGY", "MOGOLD", "MOHEALTH", "MOINFRA", "MOIPO", "MOLOWVOL", "MOM100", "MOM30IETF", "MOM50", "MOMENTUM", "MOMENTUM30", "MOMENTUM50", "MOMGF", "MOMIDMTM", "MOMNC", "MOMOMENTUM", "MON100", "MON50EQUAL", "MONEXT50", "MONIFTY100", "MONIFTY500", "MONQ50", "MOPSE", "MOQUALITY", "MOREALTY", "MOSERVICE", "MOSILVER", "MOSMALL250", "MOTOUR", "MOVALUE", "MSCIADD", "MSCIINDIA", "MULTICAP", "NETF", "NEXT30ADD", "NEXT50", "NEXT50ADD", "NEXT50BETA", "NEXT50ETF", "NEXT50IETF", "NIF100BEES", "NIF100IETF", "NIFTY1", "NIFTY100EW", "NIFTYADD", "NIFTYBEES", "NIFTYBETA", "NIFTYBETF", "NIFTYCASE", "NIFTYETF", "NIFTYIETF", "NIFTYQLITY", "NV20", "NV20BEES", "NV20IETF", "OILIETF", "PHARMABEES", "PSUBANK", "PSUBANKADD", "PSUBNKBEES", "PSUBNKIETF", "PVTBANIETF", "PVTBANKADD", "QGOLDHALF", "QNIFTY", "QUAL30IETF", "QUALITY30", "SBIBPB", "SBIETFCON", "SBIETFIT", "SBIETFPB", "SBIETFQLTY", "SBIMIDMOM", "SBINEQWETF", "SBINMID150", "SBISILVER", "SELECTIPO", "SENSEXADD", "SENSEXBETA", "SENSEXETF", "SENSEXIETF", "SETFGOLD", "SETFNIF50", "SETFNIFBK", "SETFNN50", "SHARIABEES", "SILVER", "SILVER1", "SILVER360", "SILVERADD", "SILVERAG", "SILVERBEES", "SILVERBETA", "SILVERBND", "SILVERCASE", "SILVERIETF", "SMALL250", "SMALLADD", "SMALLCAP", "SML100CASE", "SNXT30BEES", "SNXT50BETA", "TATAGOLD", "TATSILV", "TECH", "TNIDETF", "TOP100CASE", "TOP10ADD", "TOP15IETF", "TOP20", "TWCGOLDETF", "UNIONGOLD", "VAL30IETF", "VALUE"];
 const SCN_N200   = ["360ONE", "ABB", "ABCAPITAL", "ADANIENSOL", "ADANIENT", "ADANIGREEN", "ADANIPORTS", "ADANIPOWER", "ALKEM", "AMBUJACEM", "APLAPOLLO", "APOLLOHOSP", "ASHOKLEY", "ASIANPAINT", "ASTRAL", "ATGL", "AUBANK", "AUROPHARMA", "AXISBANK", "BAJAJ-AUTO", "BAJAJFINSV", "BAJAJHLDNG", "BAJFINANCE", "BANKBARODA", "BANKINDIA", "BDL", "BEL", "BHARATFORG", "BHARTIARTL", "BHEL", "BIOCON", "BLUESTARCO", "BOSCHLTD", "BPCL", "BRITANNIA", "BSE", "CANBK", "CGPOWER", "CHOLAFIN", "CIPLA", "COALINDIA", "COCHINSHIP", "COFORGE", "COLPAL", "CONCOR", "COROMANDEL", "CUMMINSIND", "DABUR", "DIVISLAB", "DIXON", "DLF", "DMART", "DRREDDY", "EICHERMOT", "ENRIN", "ETERNAL", "EXIDEIND", "FEDERALBNK", "FORTIS", "GAIL", "GLENMARK", "GMRAIRPORT", "GODFRYPHLP", "GODREJCP", "GODREJPROP", "GRASIM", "GROWW", "GVT&D", "HAL", "HAVELLS", "HCLTECH", "HDFCAMC", "HDFCBANK", "HDFCLIFE", "HEROMOTOCO", "HINDALCO", "HINDPETRO", "HINDUNILVR", "HINDZINC", "HUDCO", "HYUNDAI", "ICICIAMC", "ICICIBANK", "ICICIGI", "IDEA", "IDFCFIRSTB", "INDHOTEL", "INDIANB", "INDIGO", "INDUSINDBK", "INDUSTOWER", "INFY", "IOC", "IRCTC", "IREDA", "IRFC", "ITC", "JINDALSTEL", "JIOFIN", "JSWENERGY", "JSWSTEEL", "JUBLFOOD", "KALYANKJIL", "KEI", "KOTAKBANK", "KPITTECH", "LAURUSLABS", "LENSKART", "LGEINDIA", "LICHSGFIN", "LODHA", "LT", "LTF", "LTM", "LUPIN", "M&M", "M&MFIN", "MANKIND", "MARICO", "MARUTI", "MAXHEALTH", "MAZDOCK", "MCX", "MFSL", "MOTHERSON", "MOTILALOFS", "MPHASIS", "MRF", "MUTHOOTFIN", "NATIONALUM", "NAUKRI", "NESTLEIND", "NHPC", "NMDC", "NTPC", "NYKAA", "OBEROIRLTY", "OFSS", "OIL", "ONGC", "PAGEIND", "PATANJALI", "PAYTM", "PERSISTENT", "PFC", "PHOENIXLTD", "PIDILITIND", "PIIND", "PNB", "POLICYBZR", "POLYCAB", "POWERGRID", "POWERINDIA", "PREMIERENE", "PRESTIGE", "RADICO", "RECLTD", "RELIANCE", "RVNL", "SAIL", "SBICARD", "SBILIFE", "SBIN", "SHREECEM", "SHRIRAMFIN", "SIEMENS", "SOLARINDS", "SRF", "SUNPHARMA", "SUPREMEIND", "SUZLON", "SWIGGY", "TATACAP", "TATACOMM", "TATACONSUM", "TATAELXSI", "TATAINVEST", "TATAPOWER", "TATASTEEL", "TCS", "TECHM", "TIINDIA", "TITAN", "TMCV", "TMPV", "TORNTPHARM", "TRENT", "TVSMOTOR", "ULTRACEMCO", "UNIONBANK", "UNITDSPR", "UPL", "VBL", "VEDL", "VMM", "VOLTAS", "WAAREEENER", "WIPRO", "YESBANK", "ZYDUSLIFE"];
 const SCN_MID150 = ["360ONE", "3MINDIA", "ACC", "AIAENG", "APLAPOLLO", "AUBANK", "AWL", "ABBOTINDIA", "ATGL", "ABCAPITAL", "AJANTPHARM", "ALKEM", "ANTHEM", "APARINDS", "APOLLOTYRE", "ASHOKLEY", "ASTRAL", "AUROPHARMA", "AIIL", "BSE", "BAJAJHFL", "BALKRISIND", "BANKINDIA", "MAHABANK", "BERGEPAINT", "BDL", "BHARATFORG", "BHEL", "BHARTIHEXA", "GROWW", "BIOCON", "BLUESTARCO", "CRISIL", "COCHINSHIP", "COFORGE", "COLPAL", "CONCOR", "COROMANDEL", "DABUR", "DALBHARAT", "DIXON", "ENDURANCE", "ESCORTS", "EXIDEIND", "NYKAA", "FEDERALBNK", "FORTIS", "GVT&D", "GMRAIRPORT", "GICRE", "GLAXO", "GLENMARK", "MEDANTA", "GODFRYPHLP", "GODREJIND", "GODREJPROP", "FLUOROCHEM", "HDBFS", "HAVELLS", "HEROMOTOCO", "HEXT", "HINDPETRO", "POWERINDIA", "HONAUT", "HUDCO", "ICICIGI", "ICICIAMC", "ICICIPRULI", "IDFCFIRSTB", "ITCHOTELS", "INDIANB", "IRCTC", "IREDA", "INDUSTOWER", "INDUSINDBK", "NAUKRI", "IPCALAB", "JKCEMENT", "JSWENERGY", "JSWINFRA", "JSL", "JUBLFOOD", "KPRMILL", "KEI", "KPITTECH", "KALYANKJIL", "LTF", "LTTS", "LGEINDIA", "LICHSGFIN", "LAURUSLABS", "LENSKART", "LICI", "LINDEINDIA", "LLOYDSME", "LUPIN", "MRF", "M&MFIN", "MANKIND", "MARICO", "MFSL", "MOTILALOFS", "MPHASIS", "MCX", "NHPC", "NLCINDIA", "NMDC", "NTPCGREEN", "NATIONALUM", "NAM-INDIA", "OBEROIRLTY", "OIL", "PAYTM", "OFSS", "POLICYBZR", "PIIND", "PAGEIND", "PATANJALI", "PERSISTENT", "PETRONET", "PHOENIXLTD", "POLYCAB", "PREMIERENE", "PRESTIGE", "RADICO", "RVNL", "SBICARD", "SJVN", "SRF", "SCHAEFFLER", "SAIL", "SUNDARMFIN", "SUPREMEIND", "SUZLON", "SWIGGY", "TATACOMM", "TATAELXSI", "TATAINVEST", "NIACL", "THERMAX", "TORNTPOWER", "TIINDIA", "UNOMINDA", "UPL", "UBL", "VMM", "IDEA", "VOLTAS", "WAAREEENER", "YESBANK"];
-// FIX: was hardcoded to RD1858 — derive from current account so PS5673 fetches its own CSVs
+// FIX: was hardcoded to RD1858 — use current account so PS5673 fetches its own CSVs
 function getRepoRaw() {
   return `https://raw.githubusercontent.com/durgeshh-create/Wealthplus/main/${account}/data`;
 }
