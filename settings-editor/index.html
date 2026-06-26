@@ -744,10 +744,10 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
           <option value="Monday">Monday</option>
           <option value="Tuesday">Tuesday</option>
           <option value="Wednesday">Wednesday</option>
-          <option value="Thursday">Thursday</option>
+          <option value="Thursday" selected>Thursday</option>
           <option value="Friday">Friday</option>
         </select>
-        <div class="hint" style="margin-top:2px">Always fires at the fixed 3:15 PM IST window on this day, regardless of the tier system's Execution Time setting (3:15 PM or Anytime).</div>
+        <div class="hint" style="margin-top:2px">Always fires at the fixed 3:15 PM IST window on this day, regardless of the tier system's Execution Time setting. If Thursday is an NSE market holiday, the buy automatically shifts to Friday of the same week.</div>
       </div>
       <div class="field">
         <label>Tranche Size (% of Max Cash/ETF)</label>
@@ -2275,9 +2275,9 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <div class="strat-divider"></div>
 
         <div class="strat-block-title">WEEKDAY SYSTEMATIC BUY — supplementary scheduled tranche</div>
-        <p style="margin-bottom:8px">A small fixed-day DCA buy layered on top of the 5-tier system, independent of W%R. Historical analysis (2020–2026 daily data) found no statistically reliable "cheap day of the week" for these instruments — any old weekend effect has decayed to noise. This tranche is sized accordingly: small, capped, and fully toggleable rather than built around a presumed edge.</p>
+        <p style="margin-bottom:8px">A small fixed-day DCA buy layered on top of the 5-tier system, independent of W%R. Historical analysis (2020–2026 daily data) found no statistically reliable "cheap day of the week" for these instruments — any old weekend effect has decayed to noise. Thursday is chosen as the anchor day as it sits late enough in the week to capture intra-week weakness while still leaving Friday as a natural fallback if Thursday is an NSE market holiday. This tranche is sized accordingly: small, capped, and fully toggleable rather than built around a presumed edge.</p>
         <table class="strat-tbl">
-          <tr><td class="strat-td-key">Trigger</td><td>Fires once per ISO week on <code>bnh_weekday_buy_day</code> (default Monday), regardless of W%R. Always at the fixed <strong>3:15 PM IST</strong> window — independent of <code>buy_execution_time</code>, even when that's set to "anytime" for the tier system.</td></tr>
+          <tr><td class="strat-td-key">Trigger</td><td>Fires once per ISO week on <code>bnh_weekday_buy_day</code> (default <strong>Thursday</strong>), regardless of W%R. Always at the fixed <strong>3:15 PM IST</strong> window — independent of <code>buy_execution_time</code>, even when that's set to "anytime" for the tier system. <strong>Holiday fallback:</strong> if Thursday is an NSE market holiday, the buy automatically shifts to Friday of the same week.</td></tr>
           <tr><td class="strat-td-key">Size</td><td><code>bnh_weekday_buy_frac</code> of <code>bnh_max_cash_per_etf</code> per fire (default 2% — well below Tier 1's 5%, reflecting the weaker conviction).</td></tr>
           <tr><td class="strat-td-key">Lifetime cap</td><td><code>bnh_weekday_buy_max_share</code> of <code>bnh_max_cash_per_etf</code> (default 20%) — prevents this tranche from crowding out the oversold-tier system in a low-volatility year with few deep dips.</td></tr>
           <tr><td class="strat-td-key">Double-buy guard</td><td>Skipped if a W%R tier already bought the same symbol that same day.</td></tr>
