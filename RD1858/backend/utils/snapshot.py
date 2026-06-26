@@ -256,7 +256,7 @@ def write_snapshot(dashboard_state: dict):
                 from backend.core.config import Config
                 resp = order_mgr.auth.session.get(
                     f"{Config.ZERODHA_API_BASE}/oms/orders",
-                    timeout=10,
+                    timeout=(4, 10),
                 )
                 if resp.status_code == 200:
                     raw_orders = resp.json().get("data", []) or []
@@ -323,7 +323,9 @@ def write_snapshot(dashboard_state: dict):
                     mresp = None
                     for _attempt in range(2):
                         try:
-                            mresp = _snap_session.get(margins_url, timeout=15)
+                            # timeout=(connect, read) — single-int only covers read;
+                            # a silent TCP drop on GH Actions would hang forever otherwise.
+                            mresp = _snap_session.get(margins_url, timeout=(4, 15))
                             break
                         except _req.exceptions.Timeout:
                             if _attempt == 0:
@@ -357,10 +359,16 @@ def write_snapshot(dashboard_state: dict):
                                             f"https://api.github.com/repos/{_owner}/{_repo}/contents/pause_flag.json?ref=gh-pages",
                                             headers={"Authorization": f"token {_tok}", "Accept": "application/vnd.github.v3+json"},
                                         )
-                                        with _ur.urlopen(_preq, timeout=5) as _pr:
-                                            _pdata = _js.loads(_pr.read())
-                                            _pflag = _js.loads(_b64.b64decode(_pdata["content"]))
-                                            _is_paused = bool(_pflag.get("paused", False))
+                                        import socket as _sock2
+                                        _old2 = _sock2.getdefaulttimeout()
+                                        _sock2.setdefaulttimeout(5)
+                                        try:
+                                            with _ur.urlopen(_preq, timeout=5) as _pr:
+                                                _pdata = _js.loads(_pr.read())
+                                                _pflag = _js.loads(_b64.b64decode(_pdata["content"]))
+                                                _is_paused = bool(_pflag.get("paused", False))
+                                        finally:
+                                            _sock2.setdefaulttimeout(_old2)
                                 except Exception:
                                     pass  # network error → assume not paused, safe to proceed
 
@@ -382,7 +390,7 @@ def write_snapshot(dashboard_state: dict):
                                 new_enc = getattr(auth_mgr, "enctoken", None)
                                 if new_enc:
                                     _snap_session.headers.update({"Authorization": f"enctoken {new_enc}"})
-                                    mresp = _snap_session.get(margins_url, timeout=15)
+                                    mresp = _snap_session.get(margins_url, timeout=(4, 15))
                                     print("[snapshot] margins token refreshed — retrying ✅", file=_sys.stderr)
                         except Exception as _re:
                             import sys as _sys
@@ -496,7 +504,7 @@ def write_snapshot(dashboard_state: dict):
                     # api.kite.trade requires official API key; OMS works with enctoken
                     mf_resp = _mf_sess.get(
                         f"{Config.ZERODHA_API_BASE}/oms/mf/holdings",
-                        timeout=15,
+                        timeout=(4, 15),
                         allow_redirects=True,   # follow any redirects
                     )
                     if mf_resp.status_code != 200:
