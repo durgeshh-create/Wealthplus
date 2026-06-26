@@ -80,6 +80,75 @@ def _fetch_pause_flag() -> bool:
         return False  # if anything fails, do not block the bot
 
 
+def _clear_pause_flag():
+    """
+    Write paused=false to gh-pages/pause_flag.json.
+    Called on every fresh bot startup so a leftover PAUSE state from a previous
+    run (e.g. after a RESTART without a prior RESUME) never blocks the new session.
+    Retries up to 3× on 409 stale-SHA conflict (same pattern as push_snapshot.py).
+    """
+    if not _GH_TOKEN or not _GH_OWNER or not _GH_REPO:
+        return
+    try:
+        import base64 as _b64, socket as _sock
+        api_url = (
+            f"https://api.github.com/repos/{_GH_OWNER}/{_GH_REPO}"
+            f"/contents/pause_flag.json"
+        )
+        headers = {
+            "Authorization": f"token {_GH_TOKEN}",
+            "Accept":        "application/vnd.github.v3+json",
+            "Content-Type":  "application/json",
+        }
+        content = _b64.b64encode(
+            json.dumps({"paused": False, "updated": __import__("datetime").datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")}).encode()
+        ).decode()
+
+        for _attempt in range(3):
+            # Fetch current SHA
+            sha = None
+            _sock.setdefaulttimeout(8)
+            try:
+                req = urllib.request.Request(
+                    api_url + "?ref=gh-pages", headers={
+                        "Authorization": f"token {_GH_TOKEN}",
+                        "Accept": "application/vnd.github.v3+json",
+                    }
+                )
+                with urllib.request.urlopen(req, timeout=8) as r:
+                    sha = json.loads(r.read()).get("sha")
+            except Exception:
+                pass
+            finally:
+                _sock.setdefaulttimeout(None)
+
+            body = {"message": "resume: auto-cleared on bot startup", "content": content, "branch": "gh-pages"}
+            if sha:
+                body["sha"] = sha
+
+            put_req = urllib.request.Request(
+                api_url,
+                data=json.dumps(body).encode(),
+                headers=headers,
+                method="PUT",
+            )
+            try:
+                _sock.setdefaulttimeout(10)
+                with urllib.request.urlopen(put_req, timeout=10) as r:
+                    r.read()
+                print("  → pause_flag.json cleared on gh-pages (paused=false)")
+                return
+            except urllib.error.HTTPError as e:
+                if e.code == 409 and _attempt < 2:
+                    time.sleep(0.5 * (_attempt + 1))
+                    continue
+                raise
+            finally:
+                _sock.setdefaulttimeout(None)
+    except Exception as _e:
+        print(f"  ⚠️  Could not clear pause_flag.json: {_e} (non-fatal)")
+
+
 def wait_for_resume(context: str = ""):
     """
     Block until pause_flag.json reports paused=false (or is absent).
@@ -431,6 +500,14 @@ def main():
                     sys.exit(1)
 
     save_enctoken(USER_ID, enctoken)
+
+    # ── Always clear any stale pause flag on fresh startup ───────────────────
+    # If the bot was PAUSED and then RESTARTED without clicking RESUME first,
+    # pause_flag.json on gh-pages still has paused=true. The snapshot thread
+    # sees this and suppresses the 403 re-login, leaving cash/margin as blank.
+    # Writing paused=false here ensures every fresh run starts unpaused.
+    print("  → Clearing pause_flag.json on startup...")
+    _clear_pause_flag()
 
     # ── Write credentials.json so dashboard.py's AuthManager can do a fresh
     # TOTP login if the saved enctoken is stale after a subprocess restart.
