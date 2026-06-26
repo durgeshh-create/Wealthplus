@@ -324,19 +324,22 @@ class HistoricalDataManager:
 
             response = self.auth_manager.session.get(url, params=params, timeout=30)
             if response.status_code != 200:
-                # Fallback: some accounts route through KITE_API_BASE instead
-                alt_url = f"{Config.KITE_API_BASE}/oms/instruments/historical/{token}/day"
-                logger.warning(
-                    f"Bootstrap fetch failed for {symbol} via primary URL "
-                    f"(HTTP {response.status_code}), trying alt URL..."
+                # ✅ FIX: there used to be a fallback here that retried against
+                # api.kite.trade/oms/instruments/historical/... — that can
+                # never work: api.kite.trade is Zerodha's PAID Kite Connect
+                # API, which requires "Authorization: token api_key:access_token"
+                # (a completely different credential from the enctoken this
+                # codebase uses), and its real historical-data path has no
+                # /oms/ prefix at all (that prefix is specific to
+                # kite.zerodha.com's web/session backend). The fallback was
+                # silently guaranteed to fail every time it was ever reached —
+                # not a working alternative, just a wasted second request.
+                logger.error(
+                    f"Bootstrap fetch failed for {symbol}: HTTP {response.status_code}. "
+                    f"If this is a 403, the current session/account may not have "
+                    f"historical-data access — check directly with Zerodha."
                 )
-                response = self.auth_manager.session.get(alt_url, params=params, timeout=30)
-                if response.status_code != 200:
-                    logger.error(
-                        f"Bootstrap fetch failed for {symbol} on both URLs: "
-                        f"HTTP {response.status_code}"
-                    )
-                    return None
+                return None
 
             candles = response.json().get('data', {}).get('candles', [])
             if not candles:
