@@ -46,26 +46,26 @@ class AuthManager:
     # ══════════════════════════════════════════════════════════════════════════
 
     def authenticate(self) -> bool:
-        """
-        Authenticate with Zerodha.
-
-        Priority — browser session is NEVER disturbed:
-
-          1. Saved enctoken  — instant, used on every bot restart.
-          2. CDP extraction  — reads the live enctoken from the open browser tab
-                               without any new login. Browser session unchanged.
-          3. Credentials login (TOTP) — ONLY when CDP confirms no debug-port
-                               browser is reachable at all (headless mode).
-                               A TOTP login creates a new enctoken and invalidates
-                               every existing browser session, so it must NEVER
-                               fire while a browser window is open.
-        """
+        import os as _os
         logger.info("Starting authentication...")
 
         # Step 1 — saved token
         if self._load_saved_enctoken():
             logger.info("✓ Authenticated using saved enctoken")
             return True
+
+        # On GitHub Actions there is no browser, so CDP will always fail.
+        # Skip straight to credentials login to avoid the 5×2.5s CDP retry delay.
+        if _os.environ.get("GITHUB_ACTIONS", "").lower() == "true":
+            logger.info("GH Actions: no browser available — skipping CDP, using credentials login")
+            if Config.CREDENTIALS_FILE.exists():
+                if self._login_with_credentials():
+                    logger.info("✓ Authenticated using credentials login (GH Actions)")
+                    return True
+                logger.warning("Credentials login failed on GH Actions")
+            else:
+                logger.warning("GH Actions: credentials.json not found — cannot authenticate")
+            return False
 
         # Step 2 — extract from open browser (safe, no new login)
         logger.info("Saved token expired — trying CDP browser extraction (preserves browser session)...")
@@ -76,9 +76,6 @@ class AuthManager:
 
         # Step 3 — credentials login ONLY when no browser was found
         if self._cdp_found_tab:
-            # A browser IS open but we could not read a Kite token.
-            # Doing a credentials login now would log that browser out.
-            # Wait for the user to finish loading Kite and restart the bot.
             logger.warning(
                 "CDP: browser reachable but no valid Kite session found. "
                 "Credentials login BLOCKED — this would log out the open browser. "
@@ -463,8 +460,19 @@ class AuthManager:
             self.session.headers.update({'Authorization': f'enctoken {self.enctoken}'})
 
     def _verify_session(self) -> bool:
+        import os as _os
+        # On GitHub Actions, outbound TCP to kite.zerodha.com hangs silently
+        # (SYN packets dropped, no RST). Trust the saved token without a network
+        # round-trip — if it's expired the first trading API call will 403 and
+        # trigger handle_session_expiry() → fresh TOTP login automatically.
+        if _os.environ.get("GITHUB_ACTIONS", "").lower() == "true":
+            logger.info("GH Actions: skipping session verification HTTP call — trusting saved token")
+            return bool(self.enctoken)
         try:
-            resp = self.session.get(f"{Config.ZERODHA_API_BASE}/oms/user/profile", timeout=10)
+            resp = self.session.get(
+                f"{Config.ZERODHA_API_BASE}/oms/user/profile",
+                timeout=(4, 10),
+            )
             return resp.status_code == 200 and bool(resp.json().get('data', {}).get('user_name'))
         except Exception as e:
             logger.error(f"Session verification failed: {e}")
