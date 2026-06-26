@@ -156,8 +156,8 @@ class IntradayEngine:
         return bool(self._s('bnh_weekday_buy_enabled', False))
 
     def _weekday_buy_day(self) -> str:
-        """Target weekday name, e.g. 'Monday'. Case-insensitive match against %A."""
-        return str(self._s('bnh_weekday_buy_day', 'Monday')).strip().capitalize()
+        """Target weekday name, e.g. 'Thursday'. Case-insensitive match against %A."""
+        return str(self._s('bnh_weekday_buy_day', 'Thursday')).strip().capitalize()
 
     def _weekday_buy_frac(self) -> float:
         """Fraction of bnh_max_cash_per_etf deployed by the weekday tranche per fire."""
@@ -669,9 +669,44 @@ class IntradayEngine:
                         if not st.buy_in_progress:
                             at_weekday_trigger = (dtime(BUY_HOUR, BUY_MIN) <= t <= dtime(BUY_HOUR, BUY_MIN + 1))
                             st.reset_weekday_buy_if_new_week()
+
+                            # ── Thursday → Friday holiday fallback ───────────────────────
+                            # NSE holidays where markets are closed (updated annually).
+                            # If the configured day is Thursday and today is Thursday but
+                            # it's an NSE holiday, fire on Friday instead.
+                            _NSE_HOLIDAYS_2025_2026 = {
+                                # 2025
+                                "2025-01-26", "2025-02-26", "2025-03-14", "2025-03-31",
+                                "2025-04-10", "2025-04-14", "2025-04-18", "2025-05-01",
+                                "2025-08-15", "2025-08-27", "2025-10-02", "2025-10-02",
+                                "2025-10-21", "2025-10-22", "2025-10-24", "2025-11-05",
+                                "2025-11-24", "2025-12-25",
+                                # 2026
+                                "2026-01-26", "2026-03-02", "2026-03-25", "2026-04-02",
+                                "2026-04-10", "2026-04-14", "2026-04-30", "2026-05-01",
+                                "2026-06-01", "2026-08-15", "2026-08-27", "2026-10-02",
+                                "2026-10-21", "2026-10-22", "2026-11-05", "2026-11-24",
+                                "2026-12-25",
+                            }
+                            _target_day = self._weekday_buy_day()   # e.g. "Thursday"
+                            _today_str  = now.strftime('%Y-%m-%d')
+                            _today_name = now.strftime('%A')         # e.g. "Thursday"
+                            _effective_day = _target_day
+
+                            if (_target_day == 'Thursday'
+                                    and _today_name == 'Thursday'
+                                    and _today_str in _NSE_HOLIDAYS_2025_2026):
+                                # Thursday is a market holiday — shift to Friday
+                                _effective_day = 'Friday'
+                                logger.info(
+                                    f"Weekday buy: Thursday {_today_str} is NSE holiday "
+                                    f"— shifting systematic buy to Friday"
+                                )
+                            # ─────────────────────────────────────────────────────────────
+
                             if (self._weekday_buy_enabled()
                                     and not st.weekday_buy_attempted
-                                    and now.strftime('%A') == self._weekday_buy_day()
+                                    and _today_name == _effective_day
                                     and at_weekday_trigger):
                                 st.buy_in_progress = True
                                 try:
