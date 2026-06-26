@@ -2462,7 +2462,6 @@ async function _writePauseFlag(paused) {
     throw new Error(`pause flag write failed: ${r.status} ${await r.text()}`);
   }
 }
-}
 
 async function _readPauseFlag() {
   const cfg = getCfg();
