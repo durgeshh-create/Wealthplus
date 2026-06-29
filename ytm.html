@@ -259,7 +259,7 @@
 
         <div class="footer">
             <p>Data sourced from <a href="https://www.tickertape.in" target="_blank">TickerTape</a></p>
-            <p>YTM = Fund Yield to Maturity (NOT Category Average) | Cached data shown while fetching</p>
+            <p>YTM = Fund Yield to Maturity (Direct Plan) | Cached data shown while fetching</p>
             <p style="margin-top:6px; color:#666;">Hosted on GitHub Pages | Uses free proxy services with automatic fallback</p>
         </div>
     </div>
@@ -280,7 +280,6 @@
             { name: "Axis Short Term", type: "Short Duration", slug: "axis-short-duration-fund-M_AXOU", ytm: null, exp: null, nav: null, ret1y: null, url: "https://www.tickertape.in/mutualfunds/axis-short-duration-fund-M_AXOU" }
         ];
 
-        // CORS proxies
         const corsProxies = [
             { url: "https://corsproxy.io/?", name: "corsproxy" },
             { url: "https://api.allorigins.win/raw?url=", name: "allorigins" },
@@ -444,7 +443,7 @@
             const result = { ytm: 'na', exp: null, nav: null, ret1y: null };
 
             try {
-                // === METHOD 1: Parse __NEXT_DATA__ (Next.js SSR data) - MOST RELIABLE ===
+                // === METHOD 1: Parse __NEXT_DATA__ JSON ===
                 const nextDataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i);
                 if (nextDataMatch) {
                     try {
@@ -454,7 +453,6 @@
                         if (pageProps) {
                             const summary = pageProps.securitySummary || pageProps.fundSummary || pageProps;
 
-                            // Look for fund-specific YTM (not category)
                             const ytmPaths = ['ytm', 'averageYtm', 'fundYtm', 'portfolioYtm', 'yieldToMaturity'];
                             for (const path of ytmPaths) {
                                 if (summary[path] !== undefined && summary[path] !== null) {
@@ -476,91 +474,131 @@
                     } catch (e) {}
                 }
 
-                // === METHOD 2: Extract from the Performance & Key Metrics table ===
-                // The table structure from the screenshot:
-                // | Expense Ratio | Yield to Maturity | Sharpe Ratio | Cat Exp Ratio | Cat Yield to Mat... | Cat Sharpe Ratio |
-                // | 0.35%         | 7.67%             | 3.52         | 0.49%         | 7.73%               | 3.05             |
-                // We want the 2nd column (index 1) of the first data row
+                // === METHOD 2: Parse the FIRST table with "Expense Ratio" header ===
+                // The raw HTML structure:
+                // Table 1 (Direct Plan):
+                //   Header: | Expense Ratio | No Label | No Label |
+                //   Data:   | 0.35 | 7.67 | 3.52 |  <- FUND YTM (what we want)
+                // Table 2 (Regular Plan - IGNORE):
+                //   Header: | No Label | No Label | No Label |
+                //   Data:   | 0.49 | 7.73 | 3.05 |  <- REGULAR plan YTM (ignore)
 
                 if (result.ytm === 'na' || isNaN(result.ytm)) {
-                    // Find the "Performance & Key Metrics" section
-                    const metricsSection = html.split(/Performance\s*&\s*Key\s*Metrics/i)[1];
-                    if (metricsSection) {
-                        // Find the first table in this section
-                        const tableMatch = metricsSection.match(/<table[^>]*>([\s\S]*?)<\/table>/i);
-                        if (tableMatch) {
-                            const tableHtml = tableMatch[1];
-                            // Extract all rows
-                            const rows = tableHtml.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi);
-                            if (rows && rows.length >= 2) {
-                                // First data row (skip header if present, or take first row)
-                                const dataRow = rows[0];
-                                // Extract all td values
-                                const cells = dataRow.match(/<td[^>]*>([\s\S]*?)<\/td>/gi);
-                                if (cells && cells.length >= 2) {
-                                    // Get the second cell (Yield to Maturity)
-                                    const ytmCell = cells[1].replace(/<[^>]+>/g, '').trim();
-                                    const ytmVal = parseFloat(ytmCell);
-                                    if (!isNaN(ytmVal) && ytmVal >= 5 && ytmVal <= 12) {
+                    // Find ALL tables
+                    const tableRegex = /<table[^>]*>([\s\S]*?)<\/table>/gi;
+                    const tables = [];
+                    let m;
+                    while ((m = tableRegex.exec(html)) !== null) {
+                        tables.push(m[1]);
+                    }
+
+                    // Find the first table that has "Expense Ratio" in its content
+                    let targetTable = null;
+                    for (const tableHtml of tables) {
+                        if (tableHtml.includes('Expense Ratio')) {
+                            targetTable = tableHtml;
+                            break; // Only take the FIRST matching table
+                        }
+                    }
+
+                    if (targetTable) {
+                        // Extract all rows from this table
+                        const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+                        const rows = [];
+                        let rm;
+                        while ((rm = rowRegex.exec(targetTable)) !== null) {
+                            rows.push(rm[1]);
+                        }
+
+                        // Find the first row that has a header with "Expense Ratio"
+                        let foundHeader = false;
+                        for (let i = 0; i < rows.length; i++) {
+                            const row = rows[i];
+
+                            // Check if this row contains "Expense Ratio" (header row)
+                            if (row.includes('Expense Ratio')) {
+                                foundHeader = true;
+                                continue;
+                            }
+
+                            // The NEXT row after the header should be the data row
+                            if (foundHeader) {
+                                // Extract all cells from this data row
+                                const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+                                const cells = [];
+                                let cm;
+                                while ((cm = cellRegex.exec(row)) !== null) {
+                                    cells.push(cm[1].replace(/<[^>]+>/g, '').trim());
+                                }
+
+                                if (cells.length >= 3) {
+                                    // First cell = Expense Ratio (should be < 2)
+                                    const expVal = parseFloat(cells[0]);
+                                    // Second cell = YTM (should be 5-12)
+                                    const ytmVal = parseFloat(cells[1]);
+                                    // Third cell = Sharpe (should be 0-15)
+                                    const sharpeVal = parseFloat(cells[2]);
+
+                                    // Validate: this is a proper metrics row
+                                    if (!isNaN(expVal) && expVal >= 0 && expVal < 2 && 
+                                        !isNaN(ytmVal) && ytmVal >= 5 && ytmVal <= 12 &&
+                                        !isNaN(sharpeVal) && sharpeVal >= 0 && sharpeVal <= 20) {
                                         result.ytm = ytmVal;
-                                    }
-
-                                    // Also get expense ratio from first cell
-                                    const expCell = cells[0].replace(/<[^>]+>/g, '').trim();
-                                    const expVal = parseFloat(expCell);
-                                    if (!isNaN(expVal) && expVal < 5) {
                                         result.exp = expVal;
+                                        break; // Found it, stop looking
                                     }
                                 }
+
+                                // Reset for next potential header
+                                foundHeader = false;
                             }
                         }
                     }
                 }
 
-                // === METHOD 3: Look for specific YTM text patterns ===
+                // === METHOD 3: Try 6-column table structure ===
+                // Some pages have: | Exp Ratio | YTM | Sharpe | Cat Exp | Cat YTM | Cat Sharpe |
+                //                   | 0.35      | 7.67| 3.52   | 0.49    | 7.73    | 3.05     |
                 if (result.ytm === 'na' || isNaN(result.ytm)) {
-                    // Look for "Yield to Maturity" followed by a value
-                    // But avoid "Cat Yield to Maturity" or "Category Yield to Maturity"
-                    const ytmRegex = /Yield to Maturity<\/[^>]+>\s*<[^>]+>([\d\.]+)/i;
-                    const match = html.match(ytmRegex);
-                    if (match) {
-                        const val = parseFloat(match[1]);
-                        if (val >= 5 && val <= 12) result.ytm = val;
-                    }
-                }
+                    const tableRegex = /<table[^>]*>([\s\S]*?)<\/table>/gi;
+                    let tm;
+                    while ((tm = tableRegex.exec(html)) !== null) {
+                        const tableHtml = tm[1];
 
-                // === METHOD 4: Parse all tables more carefully ===
-                // Find tables that have "Expense Ratio" and "Yield to Maturity" headers
-                if (result.ytm === 'na' || isNaN(result.ytm)) {
-                    const allTables = html.matchAll(/<table[^>]*>([\s\S]*?)<\/table>/gi);
-                    for (const tableMatch of allTables) {
-                        const tableHtml = tableMatch[1];
-                        // Check if this table contains Yield to Maturity
-                        if (tableHtml.includes('Yield to Maturity') || tableHtml.includes('YTM')) {
-                            const rows = tableHtml.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi);
-                            if (rows) {
-                                for (const row of rows) {
-                                    const cells = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi);
-                                    if (cells && cells.length >= 3) {
-                                        // Check if first cell is expense ratio-like (small number)
-                                        const firstCell = cells[0].replace(/<[^>]+>/g, '').trim();
-                                        const firstVal = parseFloat(firstCell);
-                                        if (!isNaN(firstVal) && firstVal < 2) {
-                                            // This looks like a metrics row
-                                            // Second cell should be YTM
-                                            const secondCell = cells[1].replace(/<[^>]+>/g, '').trim();
-                                            const secondVal = parseFloat(secondCell);
-                                            if (!isNaN(secondVal) && secondVal >= 5 && secondVal <= 12) {
-                                                result.ytm = secondVal;
-                                                result.exp = firstVal;
-                                                break;
-                                            }
-                                        }
-                                    }
+                        // Look for tables with 6+ cells in a row
+                        const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+                        let trm;
+                        while ((trm = rowRegex.exec(tableHtml)) !== null) {
+                            const row = trm[1];
+                            const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+                            const cells = [];
+                            let cm;
+                            while ((cm = cellRegex.exec(row)) !== null) {
+                                cells.push(cm[1].replace(/<[^>]+>/g, '').trim());
+                            }
+
+                            // If we have 6 cells, check if first is expense ratio-like
+                            if (cells.length >= 6) {
+                                const expVal = parseFloat(cells[0]);
+                                const ytmVal = parseFloat(cells[1]);
+                                const sharpeVal = parseFloat(cells[2]);
+                                const catExpVal = parseFloat(cells[3]);
+                                const catYtmVal = parseFloat(cells[4]);
+                                const catSharpeVal = parseFloat(cells[5]);
+
+                                if (!isNaN(expVal) && expVal >= 0 && expVal < 2 && 
+                                    !isNaN(ytmVal) && ytmVal >= 5 && ytmVal <= 12 &&
+                                    !isNaN(sharpeVal) && sharpeVal >= 0 && sharpeVal <= 20 &&
+                                    !isNaN(catExpVal) && catExpVal >= 0 && catExpVal < 2 &&
+                                    !isNaN(catYtmVal) && catYtmVal >= 5 && catYtmVal <= 12) {
+                                    // This is the 6-column table! Use FUND YTM (column 1), not category
+                                    result.ytm = ytmVal;
+                                    result.exp = expVal;
+                                    break;
                                 }
                             }
-                            if (result.ytm !== 'na' && !isNaN(result.ytm)) break;
                         }
+                        if (result.ytm !== 'na' && !isNaN(result.ytm)) break;
                     }
                 }
 
