@@ -1,21 +1,21 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-06-26 15:26:04 IST",
-  "bot_running": false,
-  "total_value": 1107178.11,
-  "today_pnl": 0.0,
-  "today_pnl_pct": 0.0,
+  "timestamp": "2026-06-29 09:01:28 IST",
+  "bot_running": true,
+  "total_value": 0.0,
+  "today_pnl": 0,
+  "today_pnl_pct": 0,
   "liquidcase": {
-    "quantity": 66472,
+    "quantity": 0,
     "free_quantity": 0,
     "price": 0,
     "value": 0,
-    "pct": 0.0
+    "pct": 0
   },
   "slots": {
     "total": 7,
-    "used": 3,
-    "available": 4,
+    "used": 0,
+    "available": 7,
     "active_etfs": [
       "GOLDBEES",
       "SILVERBEES",
@@ -27,80 +27,9 @@
       "MID150BEES",
       "MINDSPACE-RR"
     ],
-    "bnh_held": 2
+    "bnh_held": 0
   },
-  "holdings": [
-    {
-      "symbol": "EMBASSY-RR",
-      "quantity": 70,
-      "avg": 426.36,
-      "ltp": 428.26,
-      "value": 29978.2,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
-      "unrealised_pnl": 133.0,
-      "unrealised_pnl_pct": 0.45,
-      "strategy": "active",
-      "buys_today": 1,
-      "max_slots": 7
-    },
-    {
-      "symbol": "GOLDBEES",
-      "quantity": 3699,
-      "avg": 121.48,
-      "ltp": 114.96,
-      "value": 425237.04,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
-      "unrealised_pnl": -24132.12,
-      "unrealised_pnl_pct": -5.37,
-      "strategy": "active",
-      "buys_today": 1,
-      "max_slots": 7
-    },
-    {
-      "symbol": "MID150BEES",
-      "quantity": 1358,
-      "avg": 227.8,
-      "ltp": 234.95,
-      "value": 319062.1,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
-      "unrealised_pnl": 9710.21,
-      "unrealised_pnl_pct": 3.14,
-      "strategy": "bnh",
-      "buys_today": 1,
-      "max_slots": 7
-    },
-    {
-      "symbol": "MINDSPACE-RR",
-      "quantity": 151,
-      "avg": 460.65,
-      "ltp": 463.16,
-      "value": 69937.16,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
-      "unrealised_pnl": 379.56,
-      "unrealised_pnl_pct": 0.55,
-      "strategy": "bnh",
-      "buys_today": 1,
-      "max_slots": 7
-    },
-    {
-      "symbol": "SILVERBEES",
-      "quantity": 1273,
-      "avg": 227.69,
-      "ltp": 206.57,
-      "value": 262963.61,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
-      "unrealised_pnl": -26885.08,
-      "unrealised_pnl_pct": -9.28,
-      "strategy": "active",
-      "buys_today": 1,
-      "max_slots": 7
-    }
-  ],
+  "holdings": [],
   "positions": [
     {
       "symbol": "NIFTY26JUN22200PE",
@@ -145,8 +74,8 @@
       "ltp": null,
       "change_pct": null,
       "williams_r": null,
-      "is_held": true,
-      "avg_price": 121.48,
+      "is_held": false,
+      "avg_price": null,
       "strategy": "active"
     },
     {
@@ -154,8 +83,8 @@
       "ltp": null,
       "change_pct": null,
       "williams_r": null,
-      "is_held": true,
-      "avg_price": 227.69,
+      "is_held": false,
+      "avg_price": null,
       "strategy": "active"
     },
     {
@@ -172,8 +101,8 @@
       "ltp": null,
       "change_pct": null,
       "williams_r": null,
-      "is_held": true,
-      "avg_price": 426.36,
+      "is_held": false,
+      "avg_price": null,
       "strategy": "active"
     },
     {
@@ -190,8 +119,8 @@
       "ltp": null,
       "change_pct": null,
       "williams_r": null,
-      "is_held": true,
-      "avg_price": 227.8,
+      "is_held": false,
+      "avg_price": null,
       "strategy": "bnh"
     },
     {
@@ -199,8 +128,8 @@
       "ltp": null,
       "change_pct": null,
       "williams_r": null,
-      "is_held": true,
-      "avg_price": 460.65,
+      "is_held": false,
+      "avg_price": null,
       "strategy": "bnh"
     }
   ],
@@ -228,6 +157,23 @@
   },
   "mf_holdings": [
     {
+      "name": "NIPPON INDIA ULTRA SHORT DURATION FUND - DIRECT PLAN",
+      "folio": "488229267701",
+      "units": 694.109,
+      "free_units": 0.109,
+      "pledged_units": 694.0,
+      "avg_nav": 4391.016,
+      "ltp": 4741.641,
+      "nav_date": "",
+      "invested": 3047843.58,
+      "cur_val": 3291215.9,
+      "pnl": 243372.32,
+      "pnl_pct": 7.99,
+      "day_chg_abs": 0.0,
+      "day_chg_pct": 0.0,
+      "day_pnl": 0.0
+    },
+    {
       "name": "ADITYA BIRLA SUN LIFE SAVINGS FUND - DIRECT PLAN",
       "folio": "1039203482",
       "units": 10090.012,
@@ -240,6 +186,23 @@
       "cur_val": 5993865.68,
       "pnl": 1694080.87,
       "pnl_pct": 39.4,
+      "day_chg_abs": 0.0,
+      "day_chg_pct": 0.0,
+      "day_pnl": 0.0
+    },
+    {
+      "name": "TATA MONEY MARKET FUND - DIRECT PLAN",
+      "folio": "6085957/51",
+      "units": 1828.257,
+      "free_units": 0.257,
+      "pledged_units": 1828.0,
+      "avg_nav": 3747.838,
+      "ltp": 5122.127,
+      "nav_date": "",
+      "invested": 6852011.71,
+      "cur_val": 9364565.09,
+      "pnl": 2512553.38,
+      "pnl_pct": 36.67,
       "day_chg_abs": 0.0,
       "day_chg_pct": 0.0,
       "day_pnl": 0.0
@@ -262,18 +225,18 @@
       "day_pnl": 0.0
     },
     {
-      "name": "NIPPON INDIA ULTRA SHORT DURATION FUND - DIRECT PLAN",
-      "folio": "488229267701",
-      "units": 694.109,
-      "free_units": 0.109,
-      "pledged_units": 694.0,
-      "avg_nav": 4391.016,
-      "ltp": 4741.641,
+      "name": "ADITYA BIRLA SUN LIFE MONEY MANAGER FUND - DIRECT PLAN",
+      "folio": "1039203482",
+      "units": 18380.77,
+      "free_units": 0.77,
+      "pledged_units": 18380.0,
+      "avg_nav": 289.473,
+      "ltp": 398.575,
       "nav_date": "",
-      "invested": 3047843.58,
-      "cur_val": 3291215.9,
-      "pnl": 243372.32,
-      "pnl_pct": 7.99,
+      "invested": 5320734.32,
+      "cur_val": 7326122.76,
+      "pnl": 2005388.44,
+      "pnl_pct": 37.69,
       "day_chg_abs": 0.0,
       "day_chg_pct": 0.0,
       "day_pnl": 0.0
@@ -294,40 +257,6 @@
       "day_chg_abs": 0.0,
       "day_chg_pct": 0.0,
       "day_pnl": 0.0
-    },
-    {
-      "name": "ADITYA BIRLA SUN LIFE MONEY MANAGER FUND - DIRECT PLAN",
-      "folio": "1039203482",
-      "units": 18380.77,
-      "free_units": 0.77,
-      "pledged_units": 18380.0,
-      "avg_nav": 289.473,
-      "ltp": 398.575,
-      "nav_date": "",
-      "invested": 5320734.32,
-      "cur_val": 7326122.76,
-      "pnl": 2005388.44,
-      "pnl_pct": 37.69,
-      "day_chg_abs": 0.0,
-      "day_chg_pct": 0.0,
-      "day_pnl": 0.0
-    },
-    {
-      "name": "TATA MONEY MARKET FUND - DIRECT PLAN",
-      "folio": "6085957/51",
-      "units": 1828.257,
-      "free_units": 0.257,
-      "pledged_units": 1828.0,
-      "avg_nav": 3747.838,
-      "ltp": 5122.127,
-      "nav_date": "",
-      "invested": 6852011.71,
-      "cur_val": 9364565.09,
-      "pnl": 2512553.38,
-      "pnl_pct": 36.67,
-      "day_chg_abs": 0.0,
-      "day_chg_pct": 0.0,
-      "day_pnl": 0.0
     }
   ],
   "mf_summary": {
@@ -338,17 +267,17 @@
     "day_pnl": 0.0,
     "day_pnl_pct": 0.0,
     "debug_raw_first": {
-      "tradingsymbol": "INF209K01UR9",
-      "fund": "ADITYA BIRLA SUN LIFE SAVINGS FUND - DIRECT PLAN",
-      "folio": "1039203482",
-      "last_price": 594.0395,
+      "tradingsymbol": "INF204K01YH3",
+      "fund": "NIPPON INDIA ULTRA SHORT DURATION FUND - DIRECT PLAN",
+      "folio": "488229267701",
+      "last_price": 4741.6413,
       "last_price_date": "",
-      "quantity": 10090.012,
+      "quantity": 694.109,
       "pnl": 0.0,
       "xirr": 0.0,
-      "average_price": 426.142685,
+      "average_price": 4391.015795,
       "discrepancy": false,
-      "pledged_quantity": 10090.0,
+      "pledged_quantity": 694.0,
       "las_quantity": 0.0
     }
   },
