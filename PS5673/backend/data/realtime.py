@@ -76,6 +76,7 @@ class RealtimeDataManager:
         self._lock = threading.Lock()
         self._reconnect_attempts = 0
         self._reconnect_thread: Optional[threading.Thread] = None
+        self._last_close_reason: str = ''
     
     def initialize(self) -> bool:
         """Initialize WebSocket connection"""
@@ -336,12 +337,27 @@ class RealtimeDataManager:
         """WebSocket close callback — triggers background reconnect"""
         logger.warning(f"🔴 WebSocket closed: {code} - {reason}")
         self.is_connected = False
+        self._last_close_reason = str(reason or '')
         self._schedule_reconnect()
     
     def _on_error(self, ws, code, reason):
         """WebSocket error callback"""
         logger.error(f"❌ WebSocket error: {code} - {reason}")
+        self._last_close_reason = str(reason or '')
     
+    @staticmethod
+    def _looks_like_auth_rejection(reason: str) -> bool:
+        """
+        Zerodha's WS handshake returns HTTP 403 when the enctoken is stale or
+        expired. The underlying websocket-client lib surfaces this as a 1006
+        abnormal-close with '403' / 'Forbidden' in the reason text — never a
+        clean 401, since the rejection happens at the HTTP upgrade step before
+        any WS-level close code exists. Reconnecting with the same dead token
+        will repeat this forever, so we detect it here and refresh first.
+        """
+        r = (reason or '').lower()
+        return '403' in r or 'forbidden' in r
+
     def _schedule_reconnect(self):
         """Spawn a background thread to attempt WebSocket reconnection."""
         if self._reconnect_thread and self._reconnect_thread.is_alive():
@@ -359,6 +375,85 @@ class RealtimeDataManager:
             target=self._reconnect_loop, daemon=True
         )
         self._reconnect_thread.start()
+
+    def _refresh_token_and_rebuild_ticker(self) -> bool:
+        """
+        Pull a fresh enctoken and rebuild the KiteTicker with it. Returns
+        True only if the token actually changed and the ticker was rebuilt.
+
+        Priority mirrors AuthManager.authenticate()'s own GH-Actions-aware
+        shortcut:
+          - On GitHub Actions there is never a browser, so CDP extraction
+            inside handle_session_expiry() would burn up to ~37s (3 ports ×
+            5 retries × 2.5s) before falling through anyway — skip straight
+            to a TOTP credentials login, same as authenticate() does.
+          - Everywhere else, try CDP first (handle_session_expiry) since it
+            preserves the live browser session, then fall back to
+            credentials login only if no browser is reachable at all.
+        """
+        if not self.auth:
+            return False
+        if getattr(self.auth, '_bot_paused', False):
+            logger.debug("WS 403 re-auth: bot is PAUSED — re-auth suppressed to protect browser session")
+            return False
+
+        old_enctoken = getattr(self.auth, 'enctoken', None)
+        refreshed = False
+
+        import os as _os
+        on_gh_actions = _os.environ.get('GITHUB_ACTIONS', '').lower() == 'true'
+
+        if on_gh_actions:
+            logger.info("WS 403 — GH Actions: no browser available, skipping CDP, using credentials login")
+            if hasattr(self.auth, '_login_with_credentials') and Config.CREDENTIALS_FILE.exists():
+                try:
+                    refreshed = bool(self.auth._login_with_credentials())
+                except Exception as e:
+                    logger.error(f"TOTP re-login failed: {e}")
+                    return False
+            else:
+                logger.warning("WS 403: GH Actions but no credentials.json — cannot refresh token")
+                return False
+        else:
+            try:
+                refreshed = bool(self.auth.handle_session_expiry())
+            except Exception as e:
+                logger.warning(f"CDP token refresh raised: {e}")
+
+            new_enctoken = getattr(self.auth, 'enctoken', None)
+            if not refreshed or new_enctoken == old_enctoken:
+                # CDP didn't yield a fresh token (no reachable browser session) —
+                # fall back to a TOTP credentials login, same as snapshot.py does
+                # for OMS 403s.
+                if hasattr(self.auth, '_login_with_credentials') and Config.CREDENTIALS_FILE.exists():
+                    try:
+                        logger.warning("WS 403: CDP unavailable — attempting fresh TOTP re-login...")
+                        refreshed = bool(self.auth._login_with_credentials())
+                    except Exception as e:
+                        logger.error(f"TOTP re-login failed: {e}")
+                        return False
+
+        new_enctoken = getattr(self.auth, 'enctoken', None)
+        if not refreshed or not new_enctoken or new_enctoken == old_enctoken:
+            logger.warning("WS 403: token refresh did not produce a new enctoken")
+            return False
+
+        try:
+            access_token = f'&user_id={self.auth.user_id}&enctoken={urllib.parse.quote(new_enctoken)}'
+            self.kws = KiteTicker(
+                api_key='kitefront',
+                access_token=access_token,
+                root=Config.ZERODHA_WS_URL
+            )
+            self.kws.on_ticks   = self._on_ticks
+            self.kws.on_connect = self._on_connect
+            self.kws.on_close   = self._on_close
+            self.kws.on_error   = self._on_error
+            logger.info("✅ WebSocket ticker rebuilt with refreshed enctoken")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to rebuild KiteTicker with refreshed token: {e}")
+            return False
     
     def _reconnect_loop(self):
         """
@@ -380,6 +475,27 @@ class RealtimeDataManager:
 
             if self.is_connected:
                 break
+
+            # If the connection was rejected at the WS handshake with a 403,
+            # the enctoken itself is stale/expired — retrying with the same
+            # token will just 403 again forever (this is exactly the failure
+            # mode that was happening before this check existed). Refresh the
+            # token and rebuild the ticker BEFORE the next connect attempt.
+            if self._looks_like_auth_rejection(self._last_close_reason):
+                logger.warning(
+                    "🔑 WS reconnect: last close looked like a 403/Forbidden "
+                    "(stale enctoken) — refreshing token before retrying..."
+                )
+                if self._refresh_token_and_rebuild_ticker():
+                    self._last_close_reason = ''  # consumed; don't re-refresh every loop
+                else:
+                    logger.warning(
+                        "🔑 Token refresh did not succeed — will still retry with the "
+                        "existing token in case this resolves itself (e.g. browser "
+                        "login completes), but live data will stay down until either "
+                        "the browser Kite session is refreshed or credentials login "
+                        "succeeds."
+                    )
 
             try:
                 self.kws.connect(threaded=True)
