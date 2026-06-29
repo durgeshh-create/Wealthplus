@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mutual Fund YTM Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1538 100%);
+            min-height: 100vh;
+            padding: 30px 15px;
+            color: #e0e0e0;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        .subtitle {
+            text-align: center;
+            color: #8892b0;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+        .last-updated {
+            text-align: center;
+            color: #64ffda;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: #00d4ff;
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: rgba(0, 212, 255, 0.25);
+            transform: translateY(-1px);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .status {
+            text-align: center;
+            color: #ffd700;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            min-height: 20px;
+        }
+        .progress-bar {
+            width: 100%;
+            max-width: 400px;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin: 0 auto 20px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar.active { display: block; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #64ffda);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .table-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            background: rgba(0, 212, 255, 0.1);
+        }
+        th {
+            padding: 16px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #00d4ff;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover { background: rgba(0, 212, 255, 0.15); }
+        th:nth-child(1) { width: 32%; }
+        th:nth-child(2) { width: 14%; }
+        th:nth-child(3) { width: 14%; }
+        th:nth-child(4) { width: 14%; }
+        th:nth-child(5) { width: 12%; }
+        th:nth-child(6) { width: 14%; }
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .fund-name {
+            font-weight: 600;
+            color: #fff;
+        }
+        .fund-type {
+            font-size: 0.75rem;
+            color: #8892b0;
+            margin-top: 3px;
+        }
+        .ytm-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #64ffda;
+        }
+        .ytm-loading {
+            color: #ffd700;
+            font-size: 0.85rem;
+            animation: pulse 1.5s infinite;
+        }
+        .ytm-error {
+            color: #ff6b6b;
+            font-size: 0.85rem;
+        }
+        .ytm-na {
+            color: #8892b0;
+            font-size: 0.85rem;
+        }
+        .expense-ratio {
+            color: #ffd700;
+            font-weight: 600;
+        }
+        .nav-value {
+            color: #a8b2d1;
+        }
+        .ticker-link {
+            color: #00d4ff;
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .ticker-link:hover {
+            background: rgba(0, 212, 255, 0.15);
+        }
+        .retry-btn {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.4);
+            color: #ff6b6b;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-left: 8px;
+        }
+        .retry-btn:hover { background: rgba(255, 107, 107, 0.3); }
+        .cached-badge {
+            font-size: 0.7rem;
+            color: #8892b0;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #8892b0;
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+        .footer a { color: #00d4ff; text-decoration: none; }
+        .note-box {
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            color: #ffd700;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            h1 { font-size: 1.5rem; }
+            th, td { padding: 10px 8px; font-size: 0.8rem; }
+            .ytm-value { font-size: 1.1rem; }
+            .ticker-link { padding: 3px 6px; font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mutual Fund YTM Dashboard</h1>
+        <p class="subtitle">Live Yield-to-Maturity data from TickerTape</p>
+        <p class="last-updated" id="lastUpdated">Last updated: Never</p>
+
+        <div class="note-box" id="noteBox">
+            Data is cached in your browser. Click "Refresh All YTM" to fetch latest data from TickerTape.
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="refreshBtn" onclick="refreshAll()">Refresh All YTM</button>
+            <button class="btn" onclick="sortByYTM()">Sort by YTM</button>
+            <button class="btn" onclick="sortByName()">Sort by Name</button>
+            <button class="btn" onclick="clearCache()" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.3);color:#ff6b6b;">Clear Cache</button>
+        </div>
+
+        <div class="status" id="status"></div>
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortByName()">Fund Name ↕</th>
+                        <th onclick="sortByYTM()">YTM (%) ↕</th>
+                        <th>Expense Ratio</th>
+                        <th>NAV</th>
+                        <th>1Y Return</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="fundTable">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>Data sourced from <a href="https://www.tickertape.in" target="_blank">TickerTape</a></p>
+            <p>YTM = Yield to Maturity | Cached data shown while fetching fresh data</p>
+            <p style="margin-top:6px; color:#666;">Hosted on GitHub Pages | Uses free proxy services with automatic fallback</p>
+        </div>
+    </div>
+
+    <script>
+        // Fund configuration
+        const funds = [
+            { name: "HDFC Money Market", type: "Money Market", slug: "hdfc-money-market-fund-M_HDYK", ytm: null, exp: null, nav: null, ret1y: null, url: "https://www.tickertape.in/mutualfunds/hdfc-money-market-fund-M_HDYK" },
+            { name: "Kotak Low Duration", type: "Low Duration", slug: "kotak-low-duration-fund-M_KOOW", ytm: null, exp: null, nav: null, ret1y: null, url: "https://www.tickertape.in/mutualfunds/kotak-low-duration-fund-M_KOOW" },
+            { name: "ABSL Money Manager", type: "Money Manager", slug: "aditya-birla-sl-money-manager-fund-M_ADTMG", ytm: null, exp: null, nav: null, ret1y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-money-manager-fund-M_ADTMG" },
+            { name: "ABSL Savings", type: "Savings", slug: "aditya-birla-sl-savings-fund-M_ADTVA", ytm: null, exp: null, nav: null, ret1y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-savings-fund-M_ADTVA" },
+            { name: "ABSL Low Duration", type: "Low Duration", slug: "aditya-birla-sl-low-duration-fund-M_ADIWA", ytm: null, exp: null, nav: null, ret1y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-low-duration-fund-M_ADIWA" },
+            { name: "Tata Money Market", type: "Money Market", slug: "tata-money-market-fund-M_TAON", ytm: null, exp: null, nav: null, ret1y: null, url: "https://www.tickertape.in/mutualfunds/tata-money-market-fund-M_TAON" },
+            { name: "ABSL Short Term", type: "Short Term", slug: "aditya-birla-sl-short-term-fund-M_ADTHO", ytm: null, exp: null, nav: null, ret1y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-short-term-fund-M_ADTHO" },
+            { name: "ABSL Floating Rate", type: "Floating Rate", slug: "aditya-birla-sl-floating-rate-fund-M_ADTOS", ytm: null, exp: null, nav: null, ret1y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-floating-rate-fund-M_ADTOS" },
+            { name: "Axis Treasury Adv", type: "Treasury Advantage", slug: "axis-treasury-advantage-fund-M_AXAD", ytm: null, exp: null, nav: null, ret1y: null, url: "https://www.tickertape.in/mutualfunds/axis-treasury-advantage-fund-M_AXAD" },
+            { name: "NIPPON INDIA ULTRA SHORT", type: "Ultra Short Duration", slug: "nippon-india-ultra-short-duration-fund-M_NILS", ytm: null, exp: null, nav: null, ret1y: null, url: "https://www.tickertape.in/mutualfunds/nippon-india-ultra-short-duration-fund-M_NILS" },
+            { name: "Axis Short Term", type: "Short Duration", slug: "axis-short-duration-fund-M_AXOU", ytm: null, exp: null, nav: null, ret1y: null, url: "https://www.tickertape.in/mutualfunds/axis-short-duration-fund-M_AXOU" }
+        ];
+
+        // CORS proxies - ordered by reliability
+        const corsProxies = [
+            { url: "https://corsproxy.io/?", name: "corsproxy" },
+            { url: "https://api.allorigins.win/raw?url=", name: "allorigins" },
+            { url: "https://api.codetabs.com/v1/proxy?quest=", name: "codetabs" },
+            { url: "https://thingproxy.freeboard.io/fetch/", name: "thingproxy" }
+        ];
+
+        let currentSort = 'name';
+        let isRefreshing = false;
+        const CACHE_KEY = 'mf_ytm_cache';
+        const CACHE_TIME_KEY = 'mf_ytm_cache_time';
+        const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+        // Load cached data on startup
+        function loadCache() {
+            try {
+                const cached = localStorage.getItem(CACHE_KEY);
+                const cacheTime = localStorage.getItem(CACHE_TIME_KEY);
+
+                if (cached && cacheTime) {
+                    const age = Date.now() - parseInt(cacheTime);
+                    const cachedData = JSON.parse(cached);
+
+                    // Merge cached data into funds
+                    funds.forEach(fund => {
+                        const cachedFund = cachedData.find(c => c.slug === fund.slug);
+                        if (cachedFund && cachedFund.ytm && cachedFund.ytm !== 'error') {
+                            fund.ytm = cachedFund.ytm;
+                            fund.exp = cachedFund.exp;
+                            fund.nav = cachedFund.nav;
+                            fund.ret1y = cachedFund.ret1y;
+                        }
+                    });
+
+                    const cacheAgeText = age < 60000 ? 'just now' : 
+                                        age < 3600000 ? Math.floor(age/60000) + ' min ago' :
+                                        Math.floor(age/3600000) + ' hours ago';
+
+                    document.getElementById('lastUpdated').textContent = 
+                        `Last updated: ${cacheAgeText} (cached)`;
+                    document.getElementById('noteBox').textContent = 
+                        `Showing cached data from ${cacheAgeText}. Click "Refresh All YTM" to update.`;
+
+                    renderTable();
+                    return true;
+                }
+            } catch (e) {
+                console.error('Cache load error:', e);
+            }
+            return false;
+        }
+
+        function saveCache() {
+            try {
+                const dataToCache = funds.map(f => ({
+                    slug: f.slug,
+                    ytm: f.ytm,
+                    exp: f.exp,
+                    nav: f.nav,
+                    ret1y: f.ret1y
+                }));
+                localStorage.setItem(CACHE_KEY, JSON.stringify(dataToCache));
+                localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+            } catch (e) {
+                console.error('Cache save error:', e);
+            }
+        }
+
+        function clearCache() {
+            localStorage.removeItem(CACHE_KEY);
+            localStorage.removeItem(CACHE_TIME_KEY);
+            funds.forEach(f => { f.ytm = null; f.exp = null; f.nav = null; f.ret1y = null; });
+            renderTable();
+            document.getElementById('lastUpdated').textContent = 'Cache cleared';
+            document.getElementById('noteBox').textContent = 'Cache cleared. Click "Refresh All YTM" to fetch fresh data.';
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('fundTable');
+            tbody.innerHTML = '';
+
+            funds.forEach((fund, index) => {
+                const row = document.createElement('tr');
+
+                const ytmDisplay = getValueDisplay(fund.ytm, 'ytm');
+                const expDisplay = fund.exp ? `<span class="expense-ratio">${fund.exp}%</span>` : '<span class="ytm-na">-</span>';
+                const navDisplay = fund.nav ? `<span class="nav-value">₹${fund.nav}</span>` : '<span class="ytm-na">-</span>';
+                const retDisplay = fund.ret1y ? `<span style="color:#64ffda">${fund.ret1y}%</span>` : '<span class="ytm-na">-</span>';
+
+                const isCached = fund.ytm && fund.ytm !== 'error' && fund.ytm !== 'na' && fund.ytm !== null;
+
+                row.innerHTML = `
+                    <td>
+                        <div class="fund-name">${fund.name}</div>
+                        <div class="fund-type">${fund.type}</div>
+                    </td>
+                    <td>${ytmDisplay}${isCached ? '<span class="cached-badge">●</span>' : ''}</td>
+                    <td>${expDisplay}</td>
+                    <td>${navDisplay}</td>
+                    <td>${retDisplay}</td>
+                    <td>
+                        <a href="${fund.url}" target="_blank" class="ticker-link">View</a>
+                        ${fund.ytm === 'error' ? `<button class="retry-btn" onclick="refreshSingle(${index})">Retry</button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function getValueDisplay(value, type) {
+            if (value === null || value === undefined) {
+                return '<span class="ytm-loading">Loading...</span>';
+            }
+            if (value === 'error') {
+                return '<span class="ytm-error">Failed</span>';
+            }
+            if (value === 'na') {
+                return '<span class="ytm-na">N/A</span>';
+            }
+            if (type === 'ytm') {
+                return `<span class="ytm-value">${value}%</span>`;
+            }
+            return value;
+        }
+
+        async function fetchWithProxy(url, proxyIndex = 0) {
+            if (proxyIndex >= corsProxies.length) {
+                throw new Error('All CORS proxies exhausted');
+            }
+
+            const proxy = corsProxies[proxyIndex];
+            const proxyUrl = proxy.url + encodeURIComponent(url);
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 25000);
+
+                const response = await fetch(proxyUrl, { 
+                    signal: controller.signal,
+                    headers: { 
+                        'Accept': 'text/html,application/xhtml+xml',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    }
+                });
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const text = await response.text();
+                if (!text || text.length < 100) {
+                    throw new Error('Empty response');
+                }
+
+                return text;
+            } catch (err) {
+                console.warn(`Proxy ${proxy.name} failed:`, err.message);
+                return fetchWithProxy(url, proxyIndex + 1);
+            }
+        }
+
+        function extractMetrics(html, fundName) {
+            const result = { ytm: 'na', exp: null, nav: null, ret1y: null };
+
+            try {
+                // Method 1: Parse __NEXT_DATA__ (Next.js SSR data)
+                const nextDataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i);
+                if (nextDataMatch) {
+                    try {
+                        const data = JSON.parse(nextDataMatch[1]);
+                        const pageProps = data?.props?.pageProps;
+
+                        if (pageProps) {
+                            const summary = pageProps.securitySummary || pageProps.fundSummary || pageProps;
+
+                            const ytmPaths = ['ytm', 'averageYtm', 'fundYtm', 'portfolioYtm', 'yieldToMaturity'];
+                            for (const path of ytmPaths) {
+                                if (summary[path] !== undefined && summary[path] !== null) {
+                                    result.ytm = parseFloat(summary[path]);
+                                    break;
+                                }
+                            }
+
+                            if (summary.expenseRatio !== undefined) result.exp = parseFloat(summary.expenseRatio);
+                            if (summary.directExpenseRatio !== undefined) result.exp = parseFloat(summary.directExpenseRatio);
+                            if (summary.nav !== undefined) result.nav = parseFloat(summary.nav);
+                            if (summary.latestNav !== undefined) result.nav = parseFloat(summary.latestNav);
+                            if (summary.returns?.oneYear !== undefined) result.ret1y = parseFloat(summary.returns.oneYear);
+                            if (summary.return1Y !== undefined) result.ret1y = parseFloat(summary.return1Y);
+                        }
+                    } catch (e) {}
+                }
+
+                // Method 2: HTML table parsing for YTM
+                if (result.ytm === 'na' || isNaN(result.ytm)) {
+                    const allCells = html.matchAll(/<td[^>]*>([\d\.]+)<\/td>/g);
+                    const numbers = [];
+                    for (const match of allCells) {
+                        const val = parseFloat(match[1]);
+                        if (!isNaN(val)) numbers.push(val);
+                    }
+
+                    const ytmCandidates = numbers.filter(n => n >= 5.0 && n <= 12.0);
+                    if (ytmCandidates.length > 0) {
+                        result.ytm = Math.max(...ytmCandidates);
+                    }
+                }
+
+                // Method 3: Text patterns
+                if (result.ytm === 'na' || isNaN(result.ytm)) {
+                    const ytmPatterns = [
+                        /Yield to Maturity[\s\w]*[:]?[\s]*([\d\.]+)/i,
+                        /YTM[\s\w]*[:]?[\s]*([\d\.]+)/i,
+                        /Average YTM[\s\w]*[:]?[\s]*([\d\.]+)/i
+                    ];
+                    for (const pattern of ytmPatterns) {
+                        const match = html.match(pattern);
+                        if (match) {
+                            result.ytm = parseFloat(match[1]);
+                            break;
+                        }
+                    }
+                }
+
+                // Extract other metrics
+                if (!result.exp) {
+                    const expMatch = html.match(/Expense Ratio[\s\w]*<\/td>\s*<td[^>]*>([\d\.]+)<\/td>/i);
+                    if (expMatch) result.exp = parseFloat(expMatch[1]);
+                }
+
+                if (!result.nav) {
+                    const navMatch = html.match(/₹([\d,]+\.\d{2})/);
+                    if (navMatch) result.nav = parseFloat(navMatch[1].replace(',', ''));
+                }
+
+                if (!result.ret1y) {
+                    const retMatch = html.match(/1 Year Returns:[\s]*([\d\.]+)%/i);
+                    if (retMatch) result.ret1y = parseFloat(retMatch[1]);
+                }
+
+            } catch (err) {
+                console.error('Parse error for', fundName, err);
+            }
+
+            return result;
+        }
+
+        async function refreshSingle(index) {
+            const fund = funds[index];
+            const oldYtm = fund.ytm;
+            fund.ytm = null;
+            renderTable();
+
+            try {
+                const html = await fetchWithProxy(fund.url);
+                const result = extractMetrics(html, fund.name);
+
+                fund.ytm = !isNaN(result.ytm) && result.ytm !== 'na' ? result.ytm.toFixed(2) : 'na';
+                fund.exp = result.exp ? result.exp.toFixed(2) : null;
+                fund.nav = result.nav ? result.nav.toFixed(2) : null;
+                fund.ret1y = result.ret1y ? result.ret1y.toFixed(2) : null;
+
+                saveCache();
+                document.getElementById('status').textContent = `${fund.name} updated successfully!`;
+            } catch (err) {
+                console.error(`Error fetching ${fund.name}:`, err);
+                fund.ytm = oldYtm || 'error';
+                document.getElementById('status').textContent = `${fund.name} failed. Using cached data if available.`;
+            }
+
+            renderTable();
+        }
+
+        async function fetchFundData(fund, index, total) {
+            const statusEl = document.getElementById('status');
+            const progressFill = document.getElementById('progressFill');
+
+            statusEl.textContent = `Fetching ${fund.name}... (${index + 1}/${total})`;
+            progressFill.style.width = `${((index + 1) / total) * 100}%`;
+
+            try {
+                const html = await fetchWithProxy(fund.url);
+                const result = extractMetrics(html, fund.name);
+
+                fund.ytm = !isNaN(result.ytm) && result.ytm !== 'na' ? result.ytm.toFixed(2) : 'na';
+                fund.exp = result.exp ? result.exp.toFixed(2) : null;
+                fund.nav = result.nav ? result.nav.toFixed(2) : null;
+                fund.ret1y = result.ret1y ? result.ret1y.toFixed(2) : null;
+
+            } catch (err) {
+                console.error(`Error fetching ${fund.name}:`, err);
+                // Keep existing cached value if available, else mark as error
+                if (!fund.ytm || fund.ytm === null) {
+                    fund.ytm = 'error';
+                }
+            }
+
+            renderTable();
+        }
+
+        async function refreshAll() {
+            if (isRefreshing) return;
+            isRefreshing = true;
+
+            const refreshBtn = document.getElementById('refreshBtn');
+            const progressBar = document.getElementById('progressBar');
+            const noteBox = document.getElementById('noteBox');
+
+            refreshBtn.disabled = true;
+            progressBar.classList.add('active');
+            noteBox.style.display = 'none';
+
+            // Only reset funds that don't have cached data
+            funds.forEach(f => {
+                if (!f.ytm || f.ytm === 'error') {
+                    f.ytm = null; f.exp = null; f.nav = null; f.ret1y = null;
+                }
+            });
+            renderTable();
+
+            // Fetch with staggered delays
+            for (let i = 0; i < funds.length; i++) {
+                await fetchFundData(funds[i], i, funds.length);
+                if (i < funds.length - 1) {
+                    await new Promise(r => setTimeout(r, 2000)); // 2s delay between requests
+                }
+            }
+
+            saveCache();
+
+            const failedCount = funds.filter(f => f.ytm === 'error').length;
+            const successCount = funds.filter(f => f.ytm && f.ytm !== 'error' && f.ytm !== 'na').length;
+
+            if (failedCount === 0) {
+                document.getElementById('status').textContent = 'All funds updated successfully!';
+            } else {
+                document.getElementById('status').textContent = `${successCount} updated, ${failedCount} failed. Click Retry on failed items.`;
+            }
+
+            document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleString();
+            progressBar.classList.remove('active');
+            refreshBtn.disabled = false;
+            isRefreshing = false;
+
+            if (currentSort === 'ytm') sortByYTM();
+        }
+
+        function sortByYTM() {
+            currentSort = 'ytm';
+            funds.sort((a, b) => {
+                const aVal = parseFloat(a.ytm) || 0;
+                const bVal = parseFloat(b.ytm) || 0;
+                return bVal - aVal;
+            });
+            renderTable();
+        }
+
+        function sortByName() {
+            currentSort = 'name';
+            funds.sort((a, b) => a.name.localeCompare(b.name));
+            renderTable();
+        }
+
+        // Initialize - load cache first, then auto-refresh in background
+        loadCache();
+
+        // Auto-refresh after 3 seconds if we have cached data, or immediately if no cache
+        window.addEventListener('DOMContentLoaded', () => {
+            const hasCache = funds.some(f => f.ytm && f.ytm !== 'error');
+            setTimeout(() => {
+                refreshAll();
+            }, hasCache ? 3000 : 500);
+        });
+    </script>
+</body>
+</html>
