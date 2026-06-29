@@ -91,10 +91,23 @@ class RealtimeDataManager:
             # Initialize KiteTicker
             access_token = f'&user_id={self.auth.user_id}&enctoken={urllib.parse.quote(self.auth.enctoken)}'
             
+            # reconnect_max_tries=0 is critical here: KiteTicker's own
+            # built-in auto-reconnect (the `reconnect` kwarg is a documented
+            # no-op in kiteconnect 5.0.1 — it's accepted but never read; the
+            # real lever is reconnect_max_tries, which sets the underlying
+            # autobahn factory's maxRetries) otherwise races our custom
+            # 403-aware reconnect loop, hammering the same stale enctoken on
+            # its own internal exponential-backoff timer before
+            # _refresh_token_and_rebuild_ticker() ever gets a chance to run.
+            # Setting tries to 0 makes _on_close → _schedule_reconnect the
+            # ONLY reconnect path, so a stale-token refresh actually lands
+            # before the next connect attempt fires.
             self.kws = KiteTicker(
                 api_key='kitefront',
                 access_token=access_token,
-                root=Config.ZERODHA_WS_URL
+                root=Config.ZERODHA_WS_URL,
+                reconnect=False,
+                reconnect_max_tries=0
             )
             
             # Set up callbacks
@@ -381,6 +394,19 @@ class RealtimeDataManager:
         Pull a fresh enctoken and rebuild the KiteTicker with it. Returns
         True only if the token actually changed and the ticker was rebuilt.
 
+        IMPORTANT: this method alone is not sufficient. KiteTicker has its
+        own built-in auto-reconnect (the `reconnect` constructor kwarg is a
+        documented no-op in kiteconnect 5.0.1 — accepted but never read; the
+        real lever is `reconnect_max_tries`, which sets the underlying
+        autobahn factory's maxRetries). If that isn't set to 0 at
+        construction time, the library races this method: it reconnects
+        with the same stale enctoken on its own internal backoff timer
+        before this refresh logic ever runs, so the 403 just repeats no
+        matter how correct the refresh-on-403 logic is. Both KiteTicker(...)
+        call sites in this file MUST pass reconnect_max_tries=0 so that
+        _on_close -> _schedule_reconnect -> this method is the ONLY
+        reconnect path.
+
         Priority mirrors AuthManager.authenticate()'s own GH-Actions-aware
         shortcut:
           - On GitHub Actions there is never a browser, so CDP extraction
@@ -443,7 +469,9 @@ class RealtimeDataManager:
             self.kws = KiteTicker(
                 api_key='kitefront',
                 access_token=access_token,
-                root=Config.ZERODHA_WS_URL
+                root=Config.ZERODHA_WS_URL,
+                reconnect=False,
+                reconnect_max_tries=0
             )
             self.kws.on_ticks   = self._on_ticks
             self.kws.on_connect = self._on_connect
