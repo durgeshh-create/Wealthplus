@@ -1,21 +1,21 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-06-26 15:26:08 IST",
-  "bot_running": false,
-  "total_value": 1334182.81,
-  "today_pnl": -19505.1,
-  "today_pnl_pct": -1.44,
+  "timestamp": "2026-06-29 09:01:26 IST",
+  "bot_running": true,
+  "total_value": 0.0,
+  "today_pnl": 0,
+  "today_pnl_pct": 0,
   "liquidcase": {
-    "quantity": 71901,
-    "free_quantity": 5130,
+    "quantity": 0,
+    "free_quantity": 0,
     "price": 0,
     "value": 0,
-    "pct": 0.0
+    "pct": 0
   },
   "slots": {
     "total": 7,
-    "used": 3,
-    "available": 4,
+    "used": 0,
+    "available": 7,
     "active_etfs": [
       "GOLDBEES",
       "SILVERBEES",
@@ -27,80 +27,9 @@
       "MID150BEES",
       "MINDSPACE-RR"
     ],
-    "bnh_held": 2
+    "bnh_held": 0
   },
-  "holdings": [
-    {
-      "symbol": "EMBASSY-RR",
-      "quantity": 46,
-      "avg": 426.82,
-      "ltp": 428.26,
-      "value": 19699.96,
-      "pnl": -11.04,
-      "pnl_pct": -0.06,
-      "unrealised_pnl": 66.24,
-      "unrealised_pnl_pct": 0.34,
-      "strategy": "active",
-      "buys_today": 1,
-      "max_slots": 7
-    },
-    {
-      "symbol": "GOLDBEES",
-      "quantity": 3370,
-      "avg": 121.62,
-      "ltp": 114.96,
-      "value": 387415.2,
-      "pnl": -8762.0,
-      "pnl_pct": -2.21,
-      "unrealised_pnl": -22429.32,
-      "unrealised_pnl_pct": -5.47,
-      "strategy": "active",
-      "buys_today": 1,
-      "max_slots": 7
-    },
-    {
-      "symbol": "MID150BEES",
-      "quantity": 1867,
-      "avg": 227.82,
-      "ltp": 234.95,
-      "value": 438651.65,
-      "pnl": -2707.15,
-      "pnl_pct": -0.61,
-      "unrealised_pnl": 13313.33,
-      "unrealised_pnl_pct": 3.13,
-      "strategy": "bnh",
-      "buys_today": 1,
-      "max_slots": 7
-    },
-    {
-      "symbol": "MINDSPACE-RR",
-      "quantity": 489,
-      "avg": 459.5,
-      "ltp": 463.16,
-      "value": 226485.24,
-      "pnl": 572.13,
-      "pnl_pct": 0.25,
-      "unrealised_pnl": 1787.99,
-      "unrealised_pnl_pct": 0.8,
-      "strategy": "bnh",
-      "buys_today": 1,
-      "max_slots": 7
-    },
-    {
-      "symbol": "SILVERBEES",
-      "quantity": 1268,
-      "avg": 228.29,
-      "ltp": 206.57,
-      "value": 261930.76,
-      "pnl": -8597.04,
-      "pnl_pct": -3.18,
-      "unrealised_pnl": -27543.02,
-      "unrealised_pnl_pct": -9.51,
-      "strategy": "active",
-      "buys_today": 1,
-      "max_slots": 7
-    }
-  ],
+  "holdings": [],
   "positions": [
     {
       "symbol": "NIFTY26JUN22200PE",
@@ -133,8 +62,8 @@
       "ltp": null,
       "change_pct": null,
       "williams_r": -71.28,
-      "is_held": true,
-      "avg_price": 121.62,
+      "is_held": false,
+      "avg_price": null,
       "strategy": "active"
     },
     {
@@ -142,8 +71,8 @@
       "ltp": null,
       "change_pct": null,
       "williams_r": -91.79,
-      "is_held": true,
-      "avg_price": 228.29,
+      "is_held": false,
+      "avg_price": null,
       "strategy": "active"
     },
     {
@@ -160,8 +89,8 @@
       "ltp": null,
       "change_pct": null,
       "williams_r": -50.05,
-      "is_held": true,
-      "avg_price": 426.82,
+      "is_held": false,
+      "avg_price": null,
       "strategy": "active"
     },
     {
@@ -178,8 +107,8 @@
       "ltp": null,
       "change_pct": null,
       "williams_r": -18.17,
-      "is_held": true,
-      "avg_price": 227.82,
+      "is_held": false,
+      "avg_price": null,
       "strategy": "bnh"
     },
     {
@@ -187,12 +116,20 @@
       "ltp": null,
       "change_pct": null,
       "williams_r": -55.29,
-      "is_held": true,
-      "avg_price": 459.5,
+      "is_held": false,
+      "avg_price": null,
       "strategy": "bnh"
     }
   ],
-  "signals": [],
+  "signals": [
+    {
+      "type": "BUY",
+      "symbol": "SILVERBEES",
+      "reason": "W%R -91.8 \u2264 -75.0",
+      "ltp": null,
+      "williams_r": -91.79
+    }
+  ],
   "orders": [],
   "indices": {
     "NIFTY 50": {
@@ -216,40 +153,6 @@
   },
   "mf_holdings": [
     {
-      "name": "KOTAK LOW DURATION FUND - DIRECT PLAN",
-      "folio": "7233022/28",
-      "units": 734.853,
-      "free_units": 0.853,
-      "pledged_units": 734.0,
-      "avg_nav": 2789.535,
-      "ltp": 3876.632,
-      "nav_date": "",
-      "invested": 2049898.41,
-      "cur_val": 2848754.95,
-      "pnl": 798856.54,
-      "pnl_pct": 38.97,
-      "day_chg_abs": 0.0,
-      "day_chg_pct": 0.0,
-      "day_pnl": 0.0
-    },
-    {
-      "name": "ADITYA BIRLA SUN LIFE SHORT TERM FUND - DIRECT PLAN",
-      "folio": "1039199892",
-      "units": 57865.991,
-      "free_units": 0.991,
-      "pledged_units": 57865.0,
-      "avg_nav": 42.061,
-      "ltp": 54.597,
-      "nav_date": "",
-      "invested": 2433878.3,
-      "cur_val": 3159303.72,
-      "pnl": 725425.42,
-      "pnl_pct": 29.81,
-      "day_chg_abs": 0.0,
-      "day_chg_pct": 0.0,
-      "day_pnl": 0.0
-    },
-    {
       "name": "HDFC MONEY MARKET FUND - DIRECT PLAN",
       "folio": "16805426/54",
       "units": 1545.818,
@@ -262,40 +165,6 @@
       "cur_val": 9585387.25,
       "pnl": 2691736.24,
       "pnl_pct": 39.05,
-      "day_chg_abs": 0.0,
-      "day_chg_pct": 0.0,
-      "day_pnl": 0.0
-    },
-    {
-      "name": "MOTILAL OSWAL BSE ENHANCED VALUE INDEX FUND - DIRECT PLAN",
-      "folio": "91012924151",
-      "units": 7660.751,
-      "free_units": 7660.751,
-      "pledged_units": 0.0,
-      "avg_nav": 28.064,
-      "ltp": 28.079,
-      "nav_date": "",
-      "invested": 214989.25,
-      "cur_val": 215110.06,
-      "pnl": 120.81,
-      "pnl_pct": 0.06,
-      "day_chg_abs": 0.0,
-      "day_chg_pct": 0.0,
-      "day_pnl": 0.0
-    },
-    {
-      "name": "ADITYA BIRLA SUN LIFE MONEY MANAGER FUND - DIRECT PLAN",
-      "folio": "1039199892",
-      "units": 14034.572,
-      "free_units": 0.572,
-      "pledged_units": 14034.0,
-      "avg_nav": 298.177,
-      "ltp": 398.575,
-      "nav_date": "",
-      "invested": 4184790.94,
-      "cur_val": 5593835.15,
-      "pnl": 1409044.21,
-      "pnl_pct": 33.67,
       "day_chg_abs": 0.0,
       "day_chg_pct": 0.0,
       "day_pnl": 0.0
@@ -318,18 +187,18 @@
       "day_pnl": 0.0
     },
     {
-      "name": "AXIS TREASURY ADVANTAGE FUND - DIRECT PLAN",
-      "folio": "91066835502",
-      "units": 118.764,
-      "free_units": 118.764,
+      "name": "MOTILAL OSWAL BSE ENHANCED VALUE INDEX FUND - DIRECT PLAN",
+      "folio": "91012924151",
+      "units": 7660.751,
+      "free_units": 7660.751,
       "pledged_units": 0.0,
-      "avg_nav": 2476.568,
-      "ltp": 3450.499,
+      "avg_nav": 28.064,
+      "ltp": 28.079,
       "nav_date": "",
-      "invested": 294127.06,
-      "cur_val": 409795.11,
-      "pnl": 115668.05,
-      "pnl_pct": 39.33,
+      "invested": 214989.25,
+      "cur_val": 215110.06,
+      "pnl": 120.81,
+      "pnl_pct": 0.06,
       "day_chg_abs": 0.0,
       "day_chg_pct": 0.0,
       "day_pnl": 0.0
@@ -350,6 +219,74 @@
       "day_chg_abs": 0.0,
       "day_chg_pct": 0.0,
       "day_pnl": 0.0
+    },
+    {
+      "name": "ADITYA BIRLA SUN LIFE SHORT TERM FUND - DIRECT PLAN",
+      "folio": "1039199892",
+      "units": 57865.991,
+      "free_units": 0.991,
+      "pledged_units": 57865.0,
+      "avg_nav": 42.061,
+      "ltp": 54.597,
+      "nav_date": "",
+      "invested": 2433878.3,
+      "cur_val": 3159303.72,
+      "pnl": 725425.42,
+      "pnl_pct": 29.81,
+      "day_chg_abs": 0.0,
+      "day_chg_pct": 0.0,
+      "day_pnl": 0.0
+    },
+    {
+      "name": "AXIS TREASURY ADVANTAGE FUND - DIRECT PLAN",
+      "folio": "91066835502",
+      "units": 118.764,
+      "free_units": 118.764,
+      "pledged_units": 0.0,
+      "avg_nav": 2476.568,
+      "ltp": 3450.499,
+      "nav_date": "",
+      "invested": 294127.06,
+      "cur_val": 409795.11,
+      "pnl": 115668.05,
+      "pnl_pct": 39.33,
+      "day_chg_abs": 0.0,
+      "day_chg_pct": 0.0,
+      "day_pnl": 0.0
+    },
+    {
+      "name": "KOTAK LOW DURATION FUND - DIRECT PLAN",
+      "folio": "7233022/28",
+      "units": 734.853,
+      "free_units": 0.853,
+      "pledged_units": 734.0,
+      "avg_nav": 2789.535,
+      "ltp": 3876.632,
+      "nav_date": "",
+      "invested": 2049898.41,
+      "cur_val": 2848754.95,
+      "pnl": 798856.54,
+      "pnl_pct": 38.97,
+      "day_chg_abs": 0.0,
+      "day_chg_pct": 0.0,
+      "day_pnl": 0.0
+    },
+    {
+      "name": "ADITYA BIRLA SUN LIFE MONEY MANAGER FUND - DIRECT PLAN",
+      "folio": "1039199892",
+      "units": 14034.572,
+      "free_units": 0.572,
+      "pledged_units": 14034.0,
+      "avg_nav": 298.177,
+      "ltp": 398.575,
+      "nav_date": "",
+      "invested": 4184790.94,
+      "cur_val": 5593835.15,
+      "pnl": 1409044.21,
+      "pnl_pct": 33.67,
+      "day_chg_abs": 0.0,
+      "day_chg_pct": 0.0,
+      "day_pnl": 0.0
     }
   ],
   "mf_summary": {
@@ -360,17 +297,17 @@
     "day_pnl": 0.0,
     "day_pnl_pct": 0.0,
     "debug_raw_first": {
-      "tradingsymbol": "INF178L01AX4",
-      "fund": "KOTAK LOW DURATION FUND - DIRECT PLAN",
-      "folio": "7233022/28",
-      "last_price": 3876.6324,
+      "tradingsymbol": "INF179KB1HU9",
+      "fund": "HDFC MONEY MARKET FUND - DIRECT PLAN",
+      "folio": "16805426/54",
+      "last_price": 6200.8511,
       "last_price_date": "",
-      "quantity": 734.853,
+      "quantity": 1545.818,
       "pnl": 0.0,
       "xirr": 0.0,
-      "average_price": 2789.535337,
+      "average_price": 4459.54893,
       "discrepancy": false,
-      "pledged_quantity": 734.0,
+      "pledged_quantity": 1545.0,
       "las_quantity": 0.0
     }
   },
