@@ -209,6 +209,20 @@
             font-size: 0.85rem;
             text-align: center;
         }
+        .debug-panel {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: #a8b2d1;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        .debug-panel.active { display: block; }
         @media (max-width: 768px) {
             h1 { font-size: 1.5rem; }
             th, td { padding: 10px 8px; font-size: 0.8rem; }
@@ -233,12 +247,15 @@
             <button class="btn" onclick="sortByYTM()">Sort by YTM</button>
             <button class="btn" onclick="sortByName()">Sort by Name</button>
             <button class="btn" onclick="clearCache()" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.3);color:#ff6b6b;">Clear Cache</button>
+            <button class="btn" onclick="toggleDebug()" style="background:rgba(100,255,218,0.15);border-color:rgba(100,255,218,0.3);color:#64ffda;">Debug</button>
         </div>
 
         <div class="status" id="status"></div>
         <div class="progress-bar" id="progressBar">
             <div class="progress-fill" id="progressFill"></div>
         </div>
+
+        <div class="debug-panel" id="debugPanel"></div>
 
         <div class="table-container">
             <table>
@@ -289,8 +306,24 @@
 
         let currentSort = 'name';
         let isRefreshing = false;
+        let debugMode = false;
         const CACHE_KEY = 'mf_ytm_cache';
         const CACHE_TIME_KEY = 'mf_ytm_cache_time';
+
+        function log(msg) {
+            console.log(msg);
+            if (debugMode) {
+                const panel = document.getElementById('debugPanel');
+                panel.innerHTML += msg + '<br>';
+                panel.scrollTop = panel.scrollHeight;
+            }
+        }
+
+        function toggleDebug() {
+            debugMode = !debugMode;
+            document.getElementById('debugPanel').classList.toggle('active');
+            log('Debug mode: ' + (debugMode ? 'ON' : 'OFF'));
+        }
 
         function loadCache() {
             try {
@@ -434,7 +467,7 @@
 
                 return text;
             } catch (err) {
-                console.warn(`Proxy ${proxy.name} failed:`, err.message);
+                log(`Proxy ${proxy.name} failed: ${err.message}`);
                 return fetchWithProxy(url, proxyIndex + 1);
             }
         }
@@ -442,21 +475,27 @@
         function extractMetrics(html, fundName) {
             const result = { ytm: 'na', exp: null, nav: null, ret1y: null };
 
+            log(`=== Extracting ${fundName} ===`);
+            log(`HTML length: ${html.length}`);
+
             try {
                 // === METHOD 1: Parse __NEXT_DATA__ JSON ===
                 const nextDataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i);
                 if (nextDataMatch) {
+                    log('Found __NEXT_DATA__ script');
                     try {
                         const data = JSON.parse(nextDataMatch[1]);
                         const pageProps = data?.props?.pageProps;
 
                         if (pageProps) {
                             const summary = pageProps.securitySummary || pageProps.fundSummary || pageProps;
+                            log(`JSON summary keys: ${Object.keys(summary).slice(0, 20).join(', ')}`);
 
                             const ytmPaths = ['ytm', 'averageYtm', 'fundYtm', 'portfolioYtm', 'yieldToMaturity'];
                             for (const path of ytmPaths) {
                                 if (summary[path] !== undefined && summary[path] !== null) {
                                     const val = parseFloat(summary[path]);
+                                    log(`Found ${path} = ${val}`);
                                     if (val >= 5 && val <= 12) {
                                         result.ytm = val;
                                         break;
@@ -471,134 +510,158 @@
                             if (summary.returns?.oneYear !== undefined) result.ret1y = parseFloat(summary.returns.oneYear);
                             if (summary.return1Y !== undefined) result.ret1y = parseFloat(summary.return1Y);
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        log(`JSON parse error: ${e.message}`);
+                    }
+                } else {
+                    log('No __NEXT_DATA__ found');
                 }
 
-                // === METHOD 2: Parse the FIRST table with "Expense Ratio" header ===
-                // The raw HTML structure:
-                // Table 1 (Direct Plan):
-                //   Header: | Expense Ratio | No Label | No Label |
-                //   Data:   | 0.35 | 7.67 | 3.52 |  <- FUND YTM (what we want)
-                // Table 2 (Regular Plan - IGNORE):
-                //   Header: | No Label | No Label | No Label |
-                //   Data:   | 0.49 | 7.73 | 3.05 |  <- REGULAR plan YTM (ignore)
+                if (result.ytm !== 'na' && !isNaN(result.ytm)) {
+                    log(`YTM found from JSON: ${result.ytm}`);
+                    return result;
+                }
 
-                if (result.ytm === 'na' || isNaN(result.ytm)) {
-                    // Find ALL tables
-                    const tableRegex = /<table[^>]*>([\s\S]*?)<\/table>/gi;
-                    const tables = [];
-                    let m;
-                    while ((m = tableRegex.exec(html)) !== null) {
-                        tables.push(m[1]);
-                    }
+                // === METHOD 2: Parse HTML tables ===
+                log('Trying HTML table parsing...');
+                const tableRegex = /<table[^>]*>([\s\S]*?)<\/table>/gi;
+                const tables = [];
+                let m;
+                while ((m = tableRegex.exec(html)) !== null) {
+                    tables.push(m[1]);
+                }
+                log(`Found ${tables.length} HTML tables`);
 
-                    // Find the first table that has "Expense Ratio" in its content
-                    let targetTable = null;
-                    for (const tableHtml of tables) {
-                        if (tableHtml.includes('Expense Ratio')) {
-                            targetTable = tableHtml;
-                            break; // Only take the FIRST matching table
-                        }
-                    }
+                for (let ti = 0; ti < tables.length; ti++) {
+                    const tableHtml = tables[ti];
+                    if (tableHtml.includes('Expense Ratio') || tableHtml.includes('expense')) {
+                        log(`Table ${ti} contains 'Expense Ratio'`);
 
-                    if (targetTable) {
-                        // Extract all rows from this table
                         const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
                         const rows = [];
                         let rm;
-                        while ((rm = rowRegex.exec(targetTable)) !== null) {
+                        while ((rm = rowRegex.exec(tableHtml)) !== null) {
                             rows.push(rm[1]);
                         }
+                        log(`Table ${ti} has ${rows.length} rows`);
 
-                        // Find the first row that has a header with "Expense Ratio"
                         let foundHeader = false;
-                        for (let i = 0; i < rows.length; i++) {
-                            const row = rows[i];
+                        for (let ri = 0; ri < rows.length; ri++) {
+                            const row = rows[ri];
 
-                            // Check if this row contains "Expense Ratio" (header row)
                             if (row.includes('Expense Ratio')) {
                                 foundHeader = true;
+                                log(`Row ${ri} is header`);
                                 continue;
                             }
 
-                            // The NEXT row after the header should be the data row
                             if (foundHeader) {
-                                // Extract all cells from this data row
                                 const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
                                 const cells = [];
                                 let cm;
                                 while ((cm = cellRegex.exec(row)) !== null) {
                                     cells.push(cm[1].replace(/<[^>]+>/g, '').trim());
                                 }
+                                log(`Data row ${ri} cells: ${JSON.stringify(cells)}`);
 
                                 if (cells.length >= 3) {
-                                    // First cell = Expense Ratio (should be < 2)
-                                    const expVal = parseFloat(cells[0]);
-                                    // Second cell = YTM (should be 5-12)
-                                    const ytmVal = parseFloat(cells[1]);
-                                    // Third cell = Sharpe (should be 0-15)
-                                    const sharpeVal = parseFloat(cells[2]);
+                                    try {
+                                        const expVal = parseFloat(cells[0]);
+                                        const ytmVal = parseFloat(cells[1]);
+                                        const sharpeVal = parseFloat(cells[2]);
 
-                                    // Validate: this is a proper metrics row
-                                    if (!isNaN(expVal) && expVal >= 0 && expVal < 2 && 
-                                        !isNaN(ytmVal) && ytmVal >= 5 && ytmVal <= 12 &&
-                                        !isNaN(sharpeVal) && sharpeVal >= 0 && sharpeVal <= 20) {
-                                        result.ytm = ytmVal;
-                                        result.exp = expVal;
-                                        break; // Found it, stop looking
+                                        log(`Parsed: exp=${expVal}, ytm=${ytmVal}, sharpe=${sharpeVal}`);
+
+                                        if (expVal >= 0 && expVal < 2 && 
+                                            ytmVal >= 5 && ytmVal <= 12 &&
+                                            sharpeVal >= 0 && sharpeVal <= 20) {
+                                            result.ytm = ytmVal;
+                                            result.exp = expVal;
+                                            log(`VALID YTM from HTML table: ${ytmVal}`);
+                                            return result;
+                                        }
+                                    } catch (e) {
+                                        log(`Parse error: ${e.message}`);
                                     }
                                 }
 
-                                // Reset for next potential header
                                 foundHeader = false;
                             }
                         }
                     }
                 }
 
-                // === METHOD 3: Try 6-column table structure ===
-                // Some pages have: | Exp Ratio | YTM | Sharpe | Cat Exp | Cat YTM | Cat Sharpe |
-                //                   | 0.35      | 7.67| 3.52   | 0.49    | 7.73    | 3.05     |
-                if (result.ytm === 'na' || isNaN(result.ytm)) {
-                    const tableRegex = /<table[^>]*>([\s\S]*?)<\/table>/gi;
-                    let tm;
-                    while ((tm = tableRegex.exec(html)) !== null) {
-                        const tableHtml = tm[1];
+                // === METHOD 3: Markdown-style tables ===
+                log('Trying markdown table parsing...');
+                const lines = html.split('\n');
+                log(`Total lines: ${lines.length}`);
 
-                        // Look for tables with 6+ cells in a row
-                        const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-                        let trm;
-                        while ((trm = rowRegex.exec(tableHtml)) !== null) {
-                            const row = trm[1];
-                            const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
-                            const cells = [];
-                            let cm;
-                            while ((cm = cellRegex.exec(row)) !== null) {
-                                cells.push(cm[1].replace(/<[^>]+>/g, '').trim());
-                            }
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line.includes('Expense Ratio') && !line.includes('---')) {
+                        log(`Found 'Expense Ratio' at line ${i}: ${line.substring(0, 100)}`);
 
-                            // If we have 6 cells, check if first is expense ratio-like
-                            if (cells.length >= 6) {
-                                const expVal = parseFloat(cells[0]);
-                                const ytmVal = parseFloat(cells[1]);
-                                const sharpeVal = parseFloat(cells[2]);
-                                const catExpVal = parseFloat(cells[3]);
-                                const catYtmVal = parseFloat(cells[4]);
-                                const catSharpeVal = parseFloat(cells[5]);
+                        // Look for next non-separator, non-empty line
+                        for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+                            const dataLine = lines[j].trim();
+                            if (dataLine.startsWith('|') && !dataLine.includes('---') && dataLine.length > 5) {
+                                log(`Candidate data line ${j}: ${dataLine.substring(0, 100)}`);
 
-                                if (!isNaN(expVal) && expVal >= 0 && expVal < 2 && 
-                                    !isNaN(ytmVal) && ytmVal >= 5 && ytmVal <= 12 &&
-                                    !isNaN(sharpeVal) && sharpeVal >= 0 && sharpeVal <= 20 &&
-                                    !isNaN(catExpVal) && catExpVal >= 0 && catExpVal < 2 &&
-                                    !isNaN(catYtmVal) && catYtmVal >= 5 && catYtmVal <= 12) {
-                                    // This is the 6-column table! Use FUND YTM (column 1), not category
-                                    result.ytm = ytmVal;
-                                    result.exp = expVal;
-                                    break;
+                                const parts = dataLine.split('|').map(p => p.trim()).filter(p => p.length > 0);
+                                log(`Split parts: ${JSON.stringify(parts)}`);
+
+                                if (parts.length >= 3) {
+                                    try {
+                                        const expVal = parseFloat(parts[0]);
+                                        const ytmVal = parseFloat(parts[1]);
+                                        const sharpeVal = parseFloat(parts[2]);
+
+                                        log(`Parsed: exp=${expVal}, ytm=${ytmVal}, sharpe=${sharpeVal}`);
+
+                                        if (expVal >= 0 && expVal < 2 && 
+                                            ytmVal >= 5 && ytmVal <= 12 && 
+                                            sharpeVal >= 0 && sharpeVal <= 20) {
+                                            result.ytm = ytmVal;
+                                            result.exp = expVal;
+                                            log(`VALID YTM from markdown: ${ytmVal}`);
+                                            return result;
+                                        }
+                                    } catch (e) {
+                                        log(`Parse error: ${e.message}`);
+                                    }
                                 }
+                                break;
                             }
                         }
-                        if (result.ytm !== 'na' && !isNaN(result.ytm)) break;
+                    }
+                }
+
+                // === METHOD 4: Look for "Performance & Key Metrics" section ===
+                log('Trying section-based parsing...');
+                const perfMatch = html.match(/Performance\s*&\s*Key\s*Metrics([\s\S]{0,2000})/i);
+                if (perfMatch) {
+                    log('Found Performance & Key Metrics section');
+                    const section = perfMatch[1];
+
+                    // Look for first number pattern after header
+                    const numMatches = section.match(/\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|/);
+                    if (numMatches) {
+                        try {
+                            const expVal = parseFloat(numMatches[1]);
+                            const ytmVal = parseFloat(numMatches[2]);
+                            const sharpeVal = parseFloat(numMatches[3]);
+
+                            log(`Section parse: exp=${expVal}, ytm=${ytmVal}, sharpe=${sharpeVal}`);
+
+                            if (expVal >= 0 && expVal < 2 && 
+                                ytmVal >= 5 && ytmVal <= 12 && 
+                                sharpeVal >= 0 && sharpeVal <= 20) {
+                                result.ytm = ytmVal;
+                                result.exp = expVal;
+                                log(`VALID YTM from section: ${ytmVal}`);
+                                return result;
+                            }
+                        } catch (e) {}
                     }
                 }
 
@@ -610,14 +673,15 @@
 
                 // === Extract 1Y Return ===
                 if (!result.ret1y) {
-                    const retMatch = html.match(/1 Year Returns:[\s]*([\d\.]+)%/i);
+                    const retMatch = html.match(/1 Year Returns:[\s]*([\d.]+)%/i);
                     if (retMatch) result.ret1y = parseFloat(retMatch[1]);
                 }
 
             } catch (err) {
-                console.error('Parse error for', fundName, err);
+                log(`Parse error for ${fundName}: ${err.message}`);
             }
 
+            log(`Final result: ytm=${result.ytm}, exp=${result.exp}`);
             return result;
         }
 
@@ -637,11 +701,11 @@
                 fund.ret1y = result.ret1y ? result.ret1y.toFixed(2) : null;
 
                 saveCache();
-                document.getElementById('status').textContent = `${fund.name} updated successfully!`;
+                document.getElementById('status').textContent = `${fund.name} updated: YTM=${fund.ytm}`;
             } catch (err) {
                 console.error(`Error fetching ${fund.name}:`, err);
                 fund.ytm = oldYtm || 'error';
-                document.getElementById('status').textContent = `${fund.name} failed. Using cached data if available.`;
+                document.getElementById('status').textContent = `${fund.name} failed: ${err.message}`;
             }
 
             renderTable();
@@ -680,7 +744,9 @@
             const refreshBtn = document.getElementById('refreshBtn');
             const progressBar = document.getElementById('progressBar');
             const noteBox = document.getElementById('noteBox');
+            const debugPanel = document.getElementById('debugPanel');
 
+            debugPanel.innerHTML = '';
             refreshBtn.disabled = true;
             progressBar.classList.add('active');
             noteBox.style.display = 'none';
@@ -702,12 +768,14 @@
             saveCache();
 
             const failedCount = funds.filter(f => f.ytm === 'error').length;
+            const naCount = funds.filter(f => f.ytm === 'na').length;
             const successCount = funds.filter(f => f.ytm && f.ytm !== 'error' && f.ytm !== 'na').length;
 
-            if (failedCount === 0) {
+            if (failedCount === 0 && naCount === 0) {
                 document.getElementById('status').textContent = 'All funds updated successfully!';
             } else {
-                document.getElementById('status').textContent = `${successCount} updated, ${failedCount} failed. Click Retry on failed items.`;
+                document.getElementById('status').textContent = 
+                    `${successCount} OK, ${naCount} N/A, ${failedCount} failed. Click Debug for details.`;
             }
 
             document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleString();
