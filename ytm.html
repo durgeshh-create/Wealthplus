@@ -289,8 +289,8 @@
 
         let currentSort = 'name';
         let isRefreshing = false;
-        const CACHE_KEY = 'mf_ytm_cache';
-        const CACHE_TIME_KEY = 'mf_ytm_cache_time';
+        const CACHE_KEY = 'mf_ytm_cache_v2';
+        const CACHE_TIME_KEY = 'mf_ytm_cache_time_v2';
 
         function loadCache() {
             try {
@@ -348,6 +348,9 @@
         function clearCache() {
             localStorage.removeItem(CACHE_KEY);
             localStorage.removeItem(CACHE_TIME_KEY);
+            // Also clear old cache keys
+            localStorage.removeItem('mf_ytm_cache');
+            localStorage.removeItem('mf_ytm_cache_time');
             funds.forEach(f => { f.ytm = null; f.exp = null; f.nav = null; f.ret3y = null; });
             renderTable();
             document.getElementById('lastUpdated').textContent = 'Cache cleared';
@@ -479,7 +482,7 @@
                     } catch (e) {}
                 }
 
-                // === METHOD 2: Parse HTML tables ===
+                // === METHOD 2: Parse Performance & Key Metrics table ===
                 if (result.ytm === 'na' || isNaN(result.ytm)) {
                     const tableRegex = /<table[^>]*>([\s\S]*?)<\/table>/gi;
                     const tables = [];
@@ -571,15 +574,81 @@
                     }
                 }
 
-                // === Extract 3Y CAGR from HTML text ===
-                // Look for patterns like "3 Year Returns: 7.59%" or "3Y CAGR: 7.59%"
+                // === METHOD 4: Extract 3Y CAGR from Peers & Comparison table ===
+                // The XPath is: /html/body/div[1]/div[3]/div/div/div[2]/section[2]/div[2]/div[2]/div/table/tbody/tr[1]/td[3]
+                // This is in the "Peers & Comparison" section, first data row, 3rd column
+                if (!result.ret3y) {
+                    // Look for "Peers & Comparison" or "Comparison" section
+                    const comparisonMatch = html.match(/Peers\s*&\s*Comparison([\s\S]{0,3000})/i);
+                    if (comparisonMatch) {
+                        const section = comparisonMatch[1];
+
+                        // Find the first table in this section
+                        const tableMatch = section.match(/<table[^>]*>([\s\S]*?)<\/table>/i);
+                        if (tableMatch) {
+                            const tableHtml = tableMatch[1];
+
+                            // Find the first data row (skip header rows)
+                            const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+                            const rows = [];
+                            let rm;
+                            while ((rm = rowRegex.exec(tableHtml)) !== null) {
+                                rows.push(rm[1]);
+                            }
+
+                            // Skip header rows (rows containing th or "Mutual Fund" or "1Y Returns")
+                            let dataRow = null;
+                            for (const row of rows) {
+                                if (!row.includes('<th') && !row.includes('Mutual Fund') && !row.includes('1Y Returns') && !row.includes('3Y CAGR')) {
+                                    // Check if this row has the fund name
+                                    if (row.includes(fundName.split(' ')[0]) || row.includes('Fund')) {
+                                        dataRow = row;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            // If no specific match, take the first non-header row
+                            if (!dataRow) {
+                                for (const row of rows) {
+                                    if (!row.includes('<th') && !row.includes('Mutual Fund') && !row.includes('1Y Returns') && !row.includes('3Y CAGR')) {
+                                        dataRow = row;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (dataRow) {
+                                const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+                                const cells = [];
+                                let cm;
+                                while ((cm = cellRegex.exec(dataRow)) !== null) {
+                                    cells.push(cm[1].replace(/<[^>]+>/g, '').trim());
+                                }
+
+                                // Column 3 should be 3Y CAGR (index 2)
+                                if (cells.length >= 3) {
+                                    try {
+                                        const val3y = parseFloat(cells[2]);
+                                        if (!isNaN(val3y) && val3y >= 0 && val3y <= 20) {
+                                            result.ret3y = val3y;
+                                        }
+                                    } catch (e) {}
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // === METHOD 5: Extract 3Y CAGR from HTML text patterns ===
                 if (!result.ret3y) {
                     const patterns3y = [
                         /3\s*Year\s*Returns:\s*([\d.]+)%/i,
                         /3Y\s*Returns:\s*([\d.]+)%/i,
                         /3Y\s*CAGR:\s*([\d.]+)%/i,
                         /CAGR\s*3Y:\s*([\d.]+)%/i,
-                        /3\s*Year\s*CAGR:\s*([\d.]+)%/i
+                        /3\s*Year\s*CAGR:\s*([\d.]+)%/i,
+                        /3Y\s*CAGR\s*([\d.]+)%/i
                     ];
                     for (const pattern of patterns3y) {
                         const match = html.match(pattern);
@@ -619,11 +688,11 @@
                 fund.ret3y = result.ret3y ? result.ret3y.toFixed(2) : null;
 
                 saveCache();
-                document.getElementById('status').textContent = `${fund.name} updated successfully!`;
+                document.getElementById('status').textContent = `${fund.name} updated: YTM=${fund.ytm}, 3Y=${fund.ret3y}`;
             } catch (err) {
                 console.error(`Error fetching ${fund.name}:`, err);
                 fund.ytm = oldYtm || 'error';
-                document.getElementById('status').textContent = `${fund.name} failed. Using cached data if available.`;
+                document.getElementById('status').textContent = `${fund.name} failed: ${err.message}`;
             }
 
             renderTable();
