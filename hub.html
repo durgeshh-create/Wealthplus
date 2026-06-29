@@ -43,7 +43,7 @@
 
     <main class="relative z-10 w-full max-w-4xl mx-auto flex flex-col justify-center h-full max-h-[700px]">
         
-        <header class="text-center mb-8 shrink-0">
+        <header class="text-center mb-6 shrink-0">
             <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white shadow-xl shadow-slate-900/20 mb-3 relative overflow-hidden">
                 <i class="fa-solid fa-layer-group text-2xl relative z-10"></i>
             </div>
@@ -53,52 +53,60 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
             
-            <a href="https://docs.google.com/spreadsheets/d/1ArUcmJ-FT-Z3ssdN9J14M1YBl3TKbbEsVbcRpIrHEyI/edit#gid=1984306723" target="_blank" class="group glass-card relative overflow-hidden rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-emerald-500/20 hover:-translate-y-1 border border-white hover:border-emerald-200 bg-gradient-to-br from-white to-emerald-50/50 flex flex-col h-full">
-                <i class="fa-solid fa-chart-line absolute -bottom-4 -right-4 text-7xl text-emerald-600 opacity-[0.03] transition-all duration-500 watermark-graphic"></i>
-                <div class="relative z-10 flex flex-col h-full">
-                    <div class="flex items-center gap-4 mb-3">
-                        <div class="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/30 group-hover:scale-105 transition-transform duration-300">
-                            <i class="fa-solid fa-file-invoice-dollar text-lg"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 leading-tight group-hover:text-emerald-700 transition-colors">Wealth++ Model</h2>
-                            <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-0.5">Wealth Enhancement</p>
-                        </div>
-                    </div>
-                    <p class="text-slate-500 text-xs font-medium leading-relaxed flex-1">A powerful Google Sheets model dedicated to strategic planning and enhancing wealth.</p>
-                    <div class="mt-3 flex items-center text-xs font-bold text-slate-400 group-hover:text-emerald-600 transition-colors">
-                        Launch Application <i class="fa-solid fa-arrow-right ml-1.5 transition-transform group-hover:translate-x-1"></i>
-                    </div>
-                </div>
-            </a>
-
-            <div class="group glass-card relative overflow-hidden rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-blue-500/20 hover:-translate-y-1 border border-white hover:border-blue-200 bg-gradient-to-br from-white to-blue-50/50 flex flex-col h-full">
-                <i class="fa-solid fa-network-wired absolute -bottom-4 -right-4 text-7xl text-blue-600 opacity-[0.03] transition-all duration-500 watermark-graphic"></i>
-                <div class="relative z-10 flex flex-col h-full">
-                    <div class="flex items-center gap-4 mb-3">
-                        <div class="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/30 group-hover:scale-105 transition-transform duration-300">
-                            <i class="fa-solid fa-robot text-lg"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800 leading-tight group-hover:text-blue-700 transition-colors">Wealth++ Algo</h2>
-                            <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-0.5">Algorithmic Trading</p>
-                        </div>
-                    </div>
-                    <p class="text-slate-500 text-xs font-medium leading-relaxed flex-1">Automated trading engine and execution dashboard integrated with Zerodha Kite.</p>
+            <div class="group glass-card relative overflow-hidden rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-blue-500/20 md:col-span-2 border border-white hover:border-blue-200 bg-gradient-to-br from-white to-blue-50/30 flex flex-col h-full">
+                <i class="fa-solid fa-network-wired absolute -bottom-4 -right-4 text-8xl text-blue-600 opacity-[0.02] transition-all duration-500 watermark-graphic"></i>
+                <div class="relative z-10 flex flex-col h-full justify-between">
                     
-                    <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-2.5">
-                        <a href="https://durgeshh-create.github.io/Wealthplus/" target="_blank" class="flex items-center justify-between text-xs font-bold text-slate-400 hover:text-blue-600 transition-colors py-0.5">
-                            <span>Live Dashboard</span>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                        </a>
-                        <a href="https://github.com/durgeshh-create/Wealthplus" target="_blank" class="flex items-center justify-between text-xs font-bold text-slate-400 hover:text-blue-600 transition-colors py-0.5">
-                            <span>Github repository</span>
-                            <i class="fa-brands fa-github text-sm"></i>
-                        </a>
-                        <a href="https://console.cron-job.org/jobs" target="_blank" class="flex items-center justify-between text-xs font-bold text-slate-400 hover:text-blue-600 transition-colors py-0.5">
-                            <span>Workflow scheduling</span>
-                            <i class="fa-solid fa-clock text-[10px]"></i>
-                        </a>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/30 group-hover:scale-105 transition-transform duration-300">
+                                <i class="fa-solid fa-robot text-lg"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-800 leading-tight group-hover:text-blue-700 transition-colors">Wealth++ Algo</h2>
+                                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-0.5">Algorithmic Trading & Analytics</p>
+                            </div>
+                        </div>
+                        <p class="text-slate-500 text-xs font-medium leading-relaxed max-w-md sm:text-right">
+                            Automated trading engine and execution dashboard integrated with Zerodha Kite, alongside strategic enhancement models.
+                        </p>
+                    </div>
+                    
+                    <div class="pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                        
+                        <div class="flex flex-col gap-2">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Models & Strategy</span>
+                            
+                            <a href="https://docs.google.com/spreadsheets/d/1ArUcmJ-FT-Z3ssdN9J14M1YBl3TKbbEsVbcRpIrHEyI/edit#gid=1984306723" target="_blank" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-emerald-600 transition-colors py-1 px-2 rounded-lg hover:bg-emerald-50/50">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-emerald-500"></i> Wealth++ Google sheet</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
+                            </a>
+                            
+                            <a href="https://durgeshh-create.github.io/Wealthplus/ytm.html" target="_blank" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors py-1 px-2 rounded-lg hover:bg-blue-50/50">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-chart-line text-blue-500"></i> Debt Mutual Fund YTM</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="flex flex-col gap-2">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Execution & System</span>
+                            
+                            <div class="grid grid-cols-1 gap-1">
+                                <a href="https://durgeshh-create.github.io/Wealthplus/" target="_blank" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors py-1 px-2 rounded-lg hover:bg-blue-50/50">
+                                    <span class="flex items-center gap-2"><i class="fa-solid fa-gauge-high text-slate-400"></i> Live Dashboard</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
+                                </a>
+                                <a href="https://github.com/durgeshh-create/Wealthplus" target="_blank" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors py-1 px-2 rounded-lg hover:bg-blue-50/50">
+                                    <span class="flex items-center gap-2"><i class="fa-brands fa-github text-slate-400 text-sm"></i> Github repository</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
+                                </a>
+                                <a href="https://console.cron-job.org/jobs" target="_blank" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors py-1 px-2 rounded-lg hover:bg-blue-50/50">
+                                    <span class="flex items-center gap-2"><i class="fa-solid fa-clock text-slate-400"></i> Workflow scheduling</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
+                                </a>
+                            </div>
+                        </div>
+                        
                     </div>
                 </div>
             </div>
