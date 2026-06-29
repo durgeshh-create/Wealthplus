@@ -216,6 +216,7 @@
             .ticker-link { padding: 3px 6px; font-size: 0.7rem; }
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div class="container">
@@ -258,7 +259,7 @@
 
         <div class="footer">
             <p>Data sourced from <a href="https://www.tickertape.in" target="_blank">TickerTape</a></p>
-            <p>YTM = Yield to Maturity | Cached data shown while fetching fresh data</p>
+            <p>YTM = Fund Yield to Maturity (NOT Category Average) | Cached data shown while fetching</p>
             <p style="margin-top:6px; color:#666;">Hosted on GitHub Pages | Uses free proxy services with automatic fallback</p>
         </div>
     </div>
@@ -279,7 +280,7 @@
             { name: "Axis Short Term", type: "Short Duration", slug: "axis-short-duration-fund-M_AXOU", ytm: null, exp: null, nav: null, ret1y: null, url: "https://www.tickertape.in/mutualfunds/axis-short-duration-fund-M_AXOU" }
         ];
 
-        // CORS proxies - ordered by reliability
+        // CORS proxies
         const corsProxies = [
             { url: "https://corsproxy.io/?", name: "corsproxy" },
             { url: "https://api.allorigins.win/raw?url=", name: "allorigins" },
@@ -291,9 +292,7 @@
         let isRefreshing = false;
         const CACHE_KEY = 'mf_ytm_cache';
         const CACHE_TIME_KEY = 'mf_ytm_cache_time';
-        const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
-        // Load cached data on startup
         function loadCache() {
             try {
                 const cached = localStorage.getItem(CACHE_KEY);
@@ -303,7 +302,6 @@
                     const age = Date.now() - parseInt(cacheTime);
                     const cachedData = JSON.parse(cached);
 
-                    // Merge cached data into funds
                     funds.forEach(fund => {
                         const cachedFund = cachedData.find(c => c.slug === fund.slug);
                         if (cachedFund && cachedFund.ytm && cachedFund.ytm !== 'error') {
@@ -446,7 +444,7 @@
             const result = { ytm: 'na', exp: null, nav: null, ret1y: null };
 
             try {
-                // Method 1: Parse __NEXT_DATA__ (Next.js SSR data)
+                // === METHOD 1: Parse __NEXT_DATA__ (Next.js SSR data) - MOST RELIABLE ===
                 const nextDataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i);
                 if (nextDataMatch) {
                     try {
@@ -456,11 +454,15 @@
                         if (pageProps) {
                             const summary = pageProps.securitySummary || pageProps.fundSummary || pageProps;
 
+                            // Look for fund-specific YTM (not category)
                             const ytmPaths = ['ytm', 'averageYtm', 'fundYtm', 'portfolioYtm', 'yieldToMaturity'];
                             for (const path of ytmPaths) {
                                 if (summary[path] !== undefined && summary[path] !== null) {
-                                    result.ytm = parseFloat(summary[path]);
-                                    break;
+                                    const val = parseFloat(summary[path]);
+                                    if (val >= 5 && val <= 12) {
+                                        result.ytm = val;
+                                        break;
+                                    }
                                 }
                             }
 
@@ -474,48 +476,101 @@
                     } catch (e) {}
                 }
 
-                // Method 2: HTML table parsing for YTM
-                if (result.ytm === 'na' || isNaN(result.ytm)) {
-                    const allCells = html.matchAll(/<td[^>]*>([\d\.]+)<\/td>/g);
-                    const numbers = [];
-                    for (const match of allCells) {
-                        const val = parseFloat(match[1]);
-                        if (!isNaN(val)) numbers.push(val);
-                    }
+                // === METHOD 2: Extract from the Performance & Key Metrics table ===
+                // The table structure from the screenshot:
+                // | Expense Ratio | Yield to Maturity | Sharpe Ratio | Cat Exp Ratio | Cat Yield to Mat... | Cat Sharpe Ratio |
+                // | 0.35%         | 7.67%             | 3.52         | 0.49%         | 7.73%               | 3.05             |
+                // We want the 2nd column (index 1) of the first data row
 
-                    const ytmCandidates = numbers.filter(n => n >= 5.0 && n <= 12.0);
-                    if (ytmCandidates.length > 0) {
-                        result.ytm = Math.max(...ytmCandidates);
-                    }
-                }
-
-                // Method 3: Text patterns
                 if (result.ytm === 'na' || isNaN(result.ytm)) {
-                    const ytmPatterns = [
-                        /Yield to Maturity[\s\w]*[:]?[\s]*([\d\.]+)/i,
-                        /YTM[\s\w]*[:]?[\s]*([\d\.]+)/i,
-                        /Average YTM[\s\w]*[:]?[\s]*([\d\.]+)/i
-                    ];
-                    for (const pattern of ytmPatterns) {
-                        const match = html.match(pattern);
-                        if (match) {
-                            result.ytm = parseFloat(match[1]);
-                            break;
+                    // Find the "Performance & Key Metrics" section
+                    const metricsSection = html.split(/Performance\s*&\s*Key\s*Metrics/i)[1];
+                    if (metricsSection) {
+                        // Find the first table in this section
+                        const tableMatch = metricsSection.match(/<table[^>]*>([\s\S]*?)<\/table>/i);
+                        if (tableMatch) {
+                            const tableHtml = tableMatch[1];
+                            // Extract all rows
+                            const rows = tableHtml.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi);
+                            if (rows && rows.length >= 2) {
+                                // First data row (skip header if present, or take first row)
+                                const dataRow = rows[0];
+                                // Extract all td values
+                                const cells = dataRow.match(/<td[^>]*>([\s\S]*?)<\/td>/gi);
+                                if (cells && cells.length >= 2) {
+                                    // Get the second cell (Yield to Maturity)
+                                    const ytmCell = cells[1].replace(/<[^>]+>/g, '').trim();
+                                    const ytmVal = parseFloat(ytmCell);
+                                    if (!isNaN(ytmVal) && ytmVal >= 5 && ytmVal <= 12) {
+                                        result.ytm = ytmVal;
+                                    }
+
+                                    // Also get expense ratio from first cell
+                                    const expCell = cells[0].replace(/<[^>]+>/g, '').trim();
+                                    const expVal = parseFloat(expCell);
+                                    if (!isNaN(expVal) && expVal < 5) {
+                                        result.exp = expVal;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
 
-                // Extract other metrics
-                if (!result.exp) {
-                    const expMatch = html.match(/Expense Ratio[\s\w]*<\/td>\s*<td[^>]*>([\d\.]+)<\/td>/i);
-                    if (expMatch) result.exp = parseFloat(expMatch[1]);
+                // === METHOD 3: Look for specific YTM text patterns ===
+                if (result.ytm === 'na' || isNaN(result.ytm)) {
+                    // Look for "Yield to Maturity" followed by a value
+                    // But avoid "Cat Yield to Maturity" or "Category Yield to Maturity"
+                    const ytmRegex = /Yield to Maturity<\/[^>]+>\s*<[^>]+>([\d\.]+)/i;
+                    const match = html.match(ytmRegex);
+                    if (match) {
+                        const val = parseFloat(match[1]);
+                        if (val >= 5 && val <= 12) result.ytm = val;
+                    }
                 }
 
+                // === METHOD 4: Parse all tables more carefully ===
+                // Find tables that have "Expense Ratio" and "Yield to Maturity" headers
+                if (result.ytm === 'na' || isNaN(result.ytm)) {
+                    const allTables = html.matchAll(/<table[^>]*>([\s\S]*?)<\/table>/gi);
+                    for (const tableMatch of allTables) {
+                        const tableHtml = tableMatch[1];
+                        // Check if this table contains Yield to Maturity
+                        if (tableHtml.includes('Yield to Maturity') || tableHtml.includes('YTM')) {
+                            const rows = tableHtml.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi);
+                            if (rows) {
+                                for (const row of rows) {
+                                    const cells = row.match(/<td[^>]*>([\s\S]*?)<\/td>/gi);
+                                    if (cells && cells.length >= 3) {
+                                        // Check if first cell is expense ratio-like (small number)
+                                        const firstCell = cells[0].replace(/<[^>]+>/g, '').trim();
+                                        const firstVal = parseFloat(firstCell);
+                                        if (!isNaN(firstVal) && firstVal < 2) {
+                                            // This looks like a metrics row
+                                            // Second cell should be YTM
+                                            const secondCell = cells[1].replace(/<[^>]+>/g, '').trim();
+                                            const secondVal = parseFloat(secondCell);
+                                            if (!isNaN(secondVal) && secondVal >= 5 && secondVal <= 12) {
+                                                result.ytm = secondVal;
+                                                result.exp = firstVal;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if (result.ytm !== 'na' && !isNaN(result.ytm)) break;
+                        }
+                    }
+                }
+
+                // === Extract NAV ===
                 if (!result.nav) {
                     const navMatch = html.match(/₹([\d,]+\.\d{2})/);
                     if (navMatch) result.nav = parseFloat(navMatch[1].replace(',', ''));
                 }
 
+                // === Extract 1Y Return ===
                 if (!result.ret1y) {
                     const retMatch = html.match(/1 Year Returns:[\s]*([\d\.]+)%/i);
                     if (retMatch) result.ret1y = parseFloat(retMatch[1]);
@@ -572,7 +627,6 @@
 
             } catch (err) {
                 console.error(`Error fetching ${fund.name}:`, err);
-                // Keep existing cached value if available, else mark as error
                 if (!fund.ytm || fund.ytm === null) {
                     fund.ytm = 'error';
                 }
@@ -593,7 +647,6 @@
             progressBar.classList.add('active');
             noteBox.style.display = 'none';
 
-            // Only reset funds that don't have cached data
             funds.forEach(f => {
                 if (!f.ytm || f.ytm === 'error') {
                     f.ytm = null; f.exp = null; f.nav = null; f.ret1y = null;
@@ -601,11 +654,10 @@
             });
             renderTable();
 
-            // Fetch with staggered delays
             for (let i = 0; i < funds.length; i++) {
                 await fetchFundData(funds[i], i, funds.length);
                 if (i < funds.length - 1) {
-                    await new Promise(r => setTimeout(r, 2000)); // 2s delay between requests
+                    await new Promise(r => setTimeout(r, 2000));
                 }
             }
 
@@ -644,10 +696,9 @@
             renderTable();
         }
 
-        // Initialize - load cache first, then auto-refresh in background
+        // Initialize
         loadCache();
 
-        // Auto-refresh after 3 seconds if we have cached data, or immediately if no cache
         window.addEventListener('DOMContentLoaded', () => {
             const hasCache = funds.some(f => f.ytm && f.ytm !== 'error');
             setTimeout(() => {
