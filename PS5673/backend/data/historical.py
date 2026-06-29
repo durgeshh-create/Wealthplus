@@ -225,20 +225,42 @@ class HistoricalDataManager:
             }
             
             response = self.auth_manager.session.get(url, params=params, timeout=30)
+
+            # ── Re-auth-and-retry on 403 ─────────────────────────────────────
+            # On GH Actions, cloud_launcher.py trusts the previous run's saved
+            # enctoken without a network round-trip (verifying it would hang —
+            # see cloud_launcher.py). If that token actually expired between
+            # runs (e.g. a same-day "Afternoon Pickup" session reusing a
+            # morning token), EVERY first-attempt call here 403s before any
+            # reactive recovery has run. snapshot.py already proved the fix
+            # works (its margins call: "OMS 403 → handle_session_expiry() →
+            # fresh TOTP login → retry → succeeds"); apply the same pattern
+            # here so daily-data refresh recovers instead of permanently
+            # falling back to stale CSV data for the rest of the run.
+            if response.status_code == 403:
+                logger.warning(f"{symbol}: HTTP 403 fetching historical data — re-authenticating and retrying once...")
+                refreshed = False
+                try:
+                    refreshed = bool(self.auth_manager.handle_session_expiry())
+                except Exception as e:
+                    logger.debug(f"{symbol}: CDP re-auth raised: {e}")
+                if not refreshed and hasattr(self.auth_manager, '_login_with_credentials') \
+                        and Config.CREDENTIALS_FILE.exists():
+                    try:
+                        refreshed = bool(self.auth_manager._login_with_credentials())
+                    except Exception as e:
+                        logger.error(f"{symbol}: credentials re-login failed: {e}")
+                if refreshed:
+                    response = self.auth_manager.session.get(url, params=params, timeout=30)
+                    if response.status_code == 200:
+                        logger.info(f"✅ {symbol}: historical data fetched after re-auth")
+
             if response.status_code != 200:
-                # Fallback: some accounts route through KITE_API_BASE instead
-                alt_url = f"{Config.KITE_API_BASE}/oms/instruments/historical/{token}/day"
-                logger.warning(
-                    f"Failed to fetch historical data for {symbol} via primary URL "
-                    f"(HTTP {response.status_code}), trying alt URL..."
+                logger.error(
+                    f"Failed to fetch historical data for {symbol}: "
+                    f"HTTP {response.status_code}"
                 )
-                response = self.auth_manager.session.get(alt_url, params=params, timeout=30)
-                if response.status_code != 200:
-                    logger.error(
-                        f"Failed to fetch historical data for {symbol}: "
-                        f"HTTP {response.status_code}"
-                    )
-                    return df
+                return df
             
             candles = response.json().get('data', {}).get('candles', [])
             if not candles:
@@ -331,20 +353,48 @@ class HistoricalDataManager:
             }
 
             response = self.auth_manager.session.get(url, params=params, timeout=30)
+
+            # ── Re-auth-and-retry on 403 ─────────────────────────────────────
+            # Same staleness gap as _refresh_if_stale above: a saved token
+            # trusted without verification (GH Actions) can be genuinely
+            # expired before the first call of the run. Recover the same way
+            # snapshot.py's margins call does — CDP first, credentials login
+            # as fallback — then retry once before giving up.
+            if response.status_code == 403:
+                logger.warning(f"{symbol}: HTTP 403 during bootstrap — re-authenticating and retrying once...")
+                refreshed = False
+                try:
+                    refreshed = bool(self.auth_manager.handle_session_expiry())
+                except Exception as e:
+                    logger.debug(f"{symbol}: CDP re-auth raised: {e}")
+                if not refreshed and hasattr(self.auth_manager, '_login_with_credentials') \
+                        and Config.CREDENTIALS_FILE.exists():
+                    try:
+                        refreshed = bool(self.auth_manager._login_with_credentials())
+                    except Exception as e:
+                        logger.error(f"{symbol}: credentials re-login failed: {e}")
+                if refreshed:
+                    response = self.auth_manager.session.get(url, params=params, timeout=30)
+                    if response.status_code == 200:
+                        logger.info(f"✅ {symbol}: bootstrap fetch succeeded after re-auth")
+
             if response.status_code != 200:
-                # Fallback: some accounts route through KITE_API_BASE instead
-                alt_url = f"{Config.KITE_API_BASE}/oms/instruments/historical/{token}/day"
-                logger.warning(
-                    f"Bootstrap fetch failed for {symbol} via primary URL "
-                    f"(HTTP {response.status_code}), trying alt URL..."
+                # ✅ FIX: there used to be a fallback here that retried against
+                # api.kite.trade/oms/instruments/historical/... — that can
+                # never work: api.kite.trade is Zerodha's PAID Kite Connect
+                # API, which requires "Authorization: token api_key:access_token"
+                # (a completely different credential from the enctoken this
+                # codebase uses), and its real historical-data path has no
+                # /oms/ prefix at all (that prefix is specific to
+                # kite.zerodha.com's web/session backend). The fallback was
+                # silently guaranteed to fail every time it was ever reached —
+                # not a working alternative, just a wasted second request.
+                logger.error(
+                    f"Bootstrap fetch failed for {symbol}: HTTP {response.status_code}. "
+                    f"If this is a 403, the current session/account may not have "
+                    f"historical-data access — check directly with Zerodha."
                 )
-                response = self.auth_manager.session.get(alt_url, params=params, timeout=30)
-                if response.status_code != 200:
-                    logger.error(
-                        f"Bootstrap fetch failed for {symbol} on both URLs: "
-                        f"HTTP {response.status_code}"
-                    )
-                    return None
+                return None
 
             candles = response.json().get('data', {}).get('candles', [])
             if not candles:
