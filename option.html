@@ -187,19 +187,19 @@
         <div class="info-bar">
             <div class="info-item">
                 <div class="dot" style="background: #60a5fa;"></div>
-                <span>Today: <span id="currentDate" class="weekday-highlight"></span></span>
+                <span>Today: <span id="currentDate" class="weekday-highlight">Tue (30/06/2026)</span></span>
             </div>
             <div class="info-item">
                 <div class="dot" style="background: #34d399;"></div>
-                <span>NIFTY Div: <span id="niftyDivisorValue" class="weekday-highlight"></span></span>
+                <span>NIFTY Div: <span id="niftyDivisorValue" class="weekday-highlight">3,800</span></span>
             </div>
             <div class="info-item">
                 <div class="dot" style="background: #f472b6;"></div>
-                <span>Range: <span id="rangeValue" class="weekday-highlight">--</span></span>
+                <span>Range: <span id="rangeValue" class="weekday-highlight">1,755.08</span></span>
             </div>
             <div class="info-item">
                 <div class="dot" style="background: #fbbf24;"></div>
-                <span>Exp: <span id="expiryDate" class="weekday-highlight">--</span></span>
+                <span>Exp: <span id="expiryDate" class="weekday-highlight">07/07/2026 W</span></span>
             </div>
         </div>
 
@@ -225,20 +225,20 @@
         <div class="inputs-row">
             <div class="input-card">
                 <label>NIFTY 50 Spot</label>
-                <div class="value-display" id="niftyDisplay">--</div>
+                <div class="value-display" id="niftyDisplay">23,945</div>
             </div>
             <div class="input-card">
                 <label>India VIX</label>
-                <div class="value-display" id="vixDisplay">--</div>
+                <div class="value-display" id="vixDisplay">13.61</div>
             </div>
             <div class="input-card">
                 <label>MIDCPNIFTY Spot</label>
-                <div class="value-display" id="midcpDisplay">--</div>
+                <div class="value-display" id="midcpDisplay">14,367</div>
             </div>
             <div class="input-card">
                 <label>Range</label>
-                <div class="value-display" id="rangeDisplay">--</div>
-                <div class="formula-box" id="rangeFormula">--</div>
+                <div class="value-display" id="rangeDisplay">1,755.08</div>
+                <div class="formula-box" id="rangeFormula">23945.00 x sqrt(13.61 x 150% / 3800) = 1755.08</div>
             </div>
         </div>
 
@@ -247,11 +247,11 @@
             <div class="result-card">
                 <div class="result-header put">
                     <h2>NIFTY PUT <span id="putTypeBadge" class="option-type-badge weekly-badge">W</span></h2>
-                    <div class="strike-badge" id="putStrike">--</div>
+                    <div class="strike-badge" id="putStrike">22,100</div>
                 </div>
                 <div class="symbol-display">
                     <div class="symbol-code put" id="putSymbol">
-                        <span id="putSymbolText">--</span>
+                        <span id="putSymbolText">NIFTY2670722100PE</span>
                         <button class="copy-btn" onclick="copyToClipboard('putSymbolText', this)">Copy</button>
                     </div>
                 </div>
@@ -260,11 +260,11 @@
             <div class="result-card">
                 <div class="result-header call">
                     <h2>NIFTY CALL <span id="callTypeBadge" class="option-type-badge weekly-badge">W</span></h2>
-                    <div class="strike-badge" id="callStrike">--</div>
+                    <div class="strike-badge" id="callStrike">25,800</div>
                 </div>
                 <div class="symbol-display">
                     <div class="symbol-code call" id="callSymbol">
-                        <span id="callSymbolText">--</span>
+                        <span id="callSymbolText">NIFTY267025800CE</span>
                         <button class="copy-btn" onclick="copyToClipboard('callSymbolText', this)">Copy</button>
                     </div>
                 </div>
@@ -277,18 +277,18 @@
         </div>
 
         <div class="expiry-day-banner" id="niftyExpiryBanner">
-            NIFTY intraday strikes for today's expiry using divisor 23,000.
+            Today is NIFTY Expiry Day! Intraday strikes with divisor 23,000.
         </div>
 
         <div class="results-row">
             <div class="result-card">
                 <div class="result-header expiry-section">
                     <h2>NIFTY EXPIRY PUT</h2>
-                    <div class="strike-badge expiry" id="expiryPutStrike">--</div>
+                    <div class="strike-badge expiry" id="expiryPutStrike">23,200</div>
                 </div>
                 <div class="symbol-display">
                     <div class="symbol-code expiry" id="expiryPutSymbol">
-                        <span id="expiryPutSymbolText">--</span>
+                        <span id="expiryPutSymbolText">NIFTY2663023200PE</span>
                         <button class="copy-btn" onclick="copyToClipboard('expiryPutSymbolText', this)">Copy</button>
                     </div>
                 </div>
@@ -297,11 +297,11 @@
             <div class="result-card">
                 <div class="result-header expiry-section">
                     <h2>NIFTY EXPIRY CALL</h2>
-                    <div class="strike-badge expiry" id="expiryCallStrike">--</div>
+                    <div class="strike-badge expiry" id="expiryCallStrike">24,700</div>
                 </div>
                 <div class="symbol-display">
                     <div class="symbol-code expiry" id="expiryCallSymbol">
-                        <span id="expiryCallSymbolText">--</span>
+                        <span id="expiryCallSymbolText">NIFTY2663024700CE</span>
                         <button class="copy-btn" onclick="copyToClipboard('expiryCallSymbolText', this)">Copy</button>
                     </div>
                 </div>
@@ -321,11 +321,11 @@
             <div class="result-card">
                 <div class="result-header midcp">
                     <h2>MIDCP PUT</h2>
-                    <div class="strike-badge midcp" id="midcpPutStrike">--</div>
+                    <div class="strike-badge midcp" id="midcpPutStrike">13,850</div>
                 </div>
                 <div class="symbol-display">
                     <div class="symbol-code midcp" id="midcpPutSymbol">
-                        <span id="midcpPutSymbolText">--</span>
+                        <span id="midcpPutSymbolText">MIDCPNIFTY26JUN13850PE</span>
                         <button class="copy-btn" onclick="copyToClipboard('midcpPutSymbolText', this)">Copy</button>
                     </div>
                 </div>
@@ -334,11 +334,11 @@
             <div class="result-card">
                 <div class="result-header midcp">
                     <h2>MIDCP CALL</h2>
-                    <div class="strike-badge midcp" id="midcpCallStrike">--</div>
+                    <div class="strike-badge midcp" id="midcpCallStrike">14,875</div>
                 </div>
                 <div class="symbol-display">
                     <div class="symbol-code midcp" id="midcpCallSymbol">
-                        <span id="midcpCallSymbolText">--</span>
+                        <span id="midcpCallSymbolText">MIDCPNIFTY26JUN14875CE</span>
                         <button class="copy-btn" onclick="copyToClipboard('midcpCallSymbolText', this)">Copy</button>
                     </div>
                 </div>
@@ -358,40 +358,37 @@
         const MIDCP_EXPIRY_DAY_DIVISOR = 17000;
 
         let currentNifty = 23945, currentVix = 13.61, currentMidcp = 14367;
-        let currentDivisor = 3300;
-        let currentRange = 0, putStrike = 0, callStrike = 0, expiryDate = null;
-        let isMonthlyExpiry = false;
 
         function copyToClipboard(elementId, btn) {
             const text = document.getElementById(elementId).textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
-                btn.classList.add('copied');
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.classList.remove('copied');
-                }, 1500);
-            }).catch(err => {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                textarea.style.position = 'fixed';
-                textarea.style.opacity = '0';
-                document.body.appendChild(textarea);
-                textarea.select();
-                try {
-                    document.execCommand('copy');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
                     btn.textContent = 'Copied!';
                     btn.classList.add('copied');
-                    setTimeout(() => {
-                        btn.textContent = 'Copy';
-                        btn.classList.remove('copied');
-                    }, 1500);
-                } catch (e) {
-                    btn.textContent = 'Failed';
-                }
-                document.body.removeChild(textarea);
-            });
+                    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+                }).catch(() => fallbackCopy(text, btn));
+            } else {
+                fallbackCopy(text, btn);
+            }
+        }
+
+        function fallbackCopy(text, btn) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+            } catch (e) {
+                btn.textContent = 'Failed';
+                setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+            }
+            document.body.removeChild(textarea);
         }
 
         function formatDDMMYYYY(date) {
@@ -427,7 +424,6 @@
         function getExpiryForWeekday(date) {
             const dayOfWeek = date.getDay();
             let expiry;
-            // Monday (1) or Tuesday (2) -> next week expiry
             if (dayOfWeek === 1 || dayOfWeek === 2) {
                 const nextTue = getNextTuesday(date);
                 expiry = new Date(nextTue);
@@ -462,19 +458,17 @@
             const dayOfWeek = today.getDay();
             const divisor = DIVISORS[dayOfWeek];
 
-            currentDivisor = divisor;
             currentNifty = nifty;
             currentVix = vix;
             currentMidcp = midcp;
 
-            expiryDate = getExpiryForWeekday(today);
-            isMonthlyExpiry = isLastTuesdayOfMonth(expiryDate);
+            const expiryDate = getExpiryForWeekday(today);
+            const isMonthlyExpiry = isLastTuesdayOfMonth(expiryDate);
 
             // Main NIFTY range and strikes
-            currentRange = nifty * Math.sqrt((vix * 1.5) / divisor);
-            putStrike = Math.floor((nifty - currentRange) / 100) * 100;
-            const callRaw = nifty + currentRange;
-            callStrike = Math.ceil(callRaw / 100) * 100;
+            const currentRange = nifty * Math.sqrt((vix * 1.5) / divisor);
+            const putStrike = Math.floor((nifty - currentRange) / 100) * 100;
+            const callStrike = Math.ceil((nifty + currentRange) / 100) * 100;
 
             document.getElementById('niftyDisplay').textContent = nifty.toLocaleString('en-IN', {maximumFractionDigits: 2});
             document.getElementById('vixDisplay').textContent = vix.toFixed(2);
@@ -511,11 +505,10 @@
             document.getElementById('putStrike').textContent = putStrike.toLocaleString();
             document.getElementById('callStrike').textContent = callStrike.toLocaleString();
 
-            // NIFTY Expiry Day Intraday (today's expiry)
+            // NIFTY Expiry Day Intraday
             const niftyExpiryDayRange = nifty * Math.sqrt((vix * 1.5) / EXPIRY_DAY_DIVISOR);
             const niftyExpiryPutStrike = Math.floor((nifty - niftyExpiryDayRange) / 100) * 100;
-            const niftyExpiryCallRaw = nifty + niftyExpiryDayRange;
-            const niftyExpiryCallStrike = Math.ceil(niftyExpiryCallRaw / 100) * 100;
+            const niftyExpiryCallStrike = Math.ceil((nifty + niftyExpiryDayRange) / 100) * 100;
 
             const niftyImmediateExpiry = getNextTuesday(today);
             const niftyImmediateIsMonthly = isLastTuesdayOfMonth(niftyImmediateExpiry);
@@ -542,10 +535,8 @@
             // MIDCPNIFTY Expiry Day Intraday
             const midcpExpiryDayRange = midcp * Math.sqrt((vix * 1.5) / MIDCP_EXPIRY_DAY_DIVISOR);
             const midcpExpiryPutStrike = Math.floor((midcp - midcpExpiryDayRange) / 25) * 25;
-            const midcpExpiryCallRaw = midcp + midcpExpiryDayRange;
-            const midcpExpiryCallStrike = Math.ceil(midcpExpiryCallRaw / 25) * 25;
+            const midcpExpiryCallStrike = Math.ceil((midcp + midcpExpiryDayRange) / 25) * 25;
 
-            // MIDCPNIFTY uses monthly format for expiry day (as per user example)
             const midcpMonthName = MONTH_NAMES[today.getMonth()];
             const midcpYY = today.getFullYear().toString().slice(-2);
             const midcpPutSym = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryPutStrike}PE`;
@@ -631,16 +622,15 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            checkMarketStatus();
-            calculateRange();
+        // Run immediately on load
+        checkMarketStatus();
+        calculateRange();
 
-            setInterval(() => {
-                checkMarketStatus();
-                const status = document.getElementById('marketStatus').textContent;
-                if (status === 'Market Open') fetchLiveData();
-            }, 30000);
-        });
+        setInterval(() => {
+            checkMarketStatus();
+            const status = document.getElementById('marketStatus').textContent;
+            if (status === 'Market Open') fetchLiveData();
+        }, 30000);
     </script>
 </body>
 </html>
