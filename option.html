@@ -543,8 +543,8 @@
 
             // NIFTY Expiry Day Intraday
             const niftyExpiryDayRange = nifty * Math.sqrt((vix * 1.5) / EXPIRY_DAY_DIVISOR);
-            const niftyExpiryPutStrike = Math.floor((nifty - niftyExpiryDayRange) / 100) * 100;
-            const niftyExpiryCallStrike = Math.ceil((nifty + niftyExpiryDayRange) / 100) * 100;
+            const niftyExpiryPutStrike = Math.floor((nifty - niftyExpiryDayRange) / 50) * 50;
+            const niftyExpiryCallStrike = Math.ceil((nifty + niftyExpiryDayRange) / 50) * 50;
 
             const niftyImmediateExpiry = getNextTuesday(today);
             const niftyImmediateIsMonthly = isLastTuesdayOfMonth(niftyImmediateExpiry);
