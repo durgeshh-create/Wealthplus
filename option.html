@@ -3,86 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NIFTY Weekly Option Strike Calculator</title>
+    <title>NIFTY Weekly DOTM Strategy</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh; color: #e2e8f0; padding: 10px;
+            min-height: 100vh; color: #e2e8f0; padding: 8px;
         }
         .container { max-width: 1200px; margin: 0 auto; }
-        
+
         .header {
-            text-align: center; margin-bottom: 8px; padding: 8px 14px;
-            background: rgba(30, 41, 59, 0.8); border-radius: 10px;
-            border: 1px solid rgba(148, 163, 184, 0.1); backdrop-filter: blur(10px);
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 6px; padding: 6px 12px;
+            background: rgba(30, 41, 59, 0.8); border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
         }
+        .header-left { display: flex; flex-direction: column; }
         .header h1 {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             background: linear-gradient(90deg, #60a5fa, #34d399);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        .header .subtitle { color: #94a3b8; font-size: 0.7rem; }
+        .header .subtitle { color: #94a3b8; font-size: 0.6rem; }
         .market-status {
-            display: inline-block; padding: 2px 8px; border-radius: 10px;
-            font-size: 0.6rem; font-weight: 600; margin-top: 3px;
+            display: inline-block; padding: 1px 6px; border-radius: 8px;
+            font-size: 0.55rem; font-weight: 600; margin-top: 2px; width: fit-content;
         }
         .market-open { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
         .market-closed { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-        
-        .info-bar {
-            background: rgba(30, 41, 59, 0.8); padding: 6px 10px; border-radius: 8px;
-            margin-bottom: 8px; border: 1px solid rgba(148, 163, 184, 0.1);
-            display: flex; justify-content: space-between; flex-wrap: wrap; gap: 5px;
+        .fetch-btn {
+            padding: 5px 12px; background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            color: white; border: none; border-radius: 6px; font-size: 0.65rem;
+            font-weight: 600; cursor: pointer; white-space: nowrap;
         }
-        .info-item { display: flex; align-items: center; gap: 4px; font-size: 0.7rem; }
-        .info-item .dot { width: 6px; height: 6px; border-radius: 50%; background: #60a5fa; }
-        .weekday-highlight { color: #fbbf24; font-weight: 700; }
-        
-        .inputs-row {
-            display: grid; grid-template-columns: repeat(3, 1fr);
-            gap: 8px; margin-bottom: 8px;
-        }
-        .input-card {
-            background: rgba(30, 41, 59, 0.8); padding: 8px 10px; border-radius: 8px;
-            border: 1px solid rgba(148, 163, 184, 0.1);
-        }
-        .input-card label { display: block; color: #94a3b8; font-size: 0.6rem; margin-bottom: 2px; }
-        .input-card .value-display { font-size: 1rem; font-weight: 700; color: #60a5fa; }
-        .formula-box {
-            background: rgba(15, 23, 42, 0.6); padding: 4px 6px; border-radius: 5px; margin-top: 3px;
-            font-family: 'Courier New', monospace; font-size: 0.55rem; color: #94a3b8;
-            border-left: 2px solid #60a5fa;
-        }
-        
-        .toggle-row { text-align: center; margin-bottom: 6px; }
-        .toggle-btn {
-            background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.2);
-            color: #94a3b8; padding: 3px 10px; border-radius: 5px; cursor: pointer;
-            font-size: 0.6rem;
-        }
-        .toggle-btn:hover { background: rgba(148, 163, 184, 0.2); color: #e2e8f0; }
-        .manual-inputs {
-            display: none; grid-template-columns: repeat(3, 1fr);
-            gap: 8px; margin-bottom: 8px; padding: 8px;
-            background: rgba(15, 23, 42, 0.4); border-radius: 8px;
-        }
-        .manual-inputs.active { display: grid; }
-        .manual-inputs .input-card { padding: 6px; }
-        .manual-inputs input {
-            width: 100%; padding: 4px 6px; background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 5px;
-            color: #f1f5f9; font-size: 0.8rem; font-weight: 600;
-        }
-        
-        .refresh-btn {
-            display: block; width: 100%; max-width: 180px; margin: 0 auto 8px;
-            padding: 6px 12px; background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-            color: white; border: none; border-radius: 8px; font-size: 0.7rem;
-            font-weight: 600; cursor: pointer;
-        }
-        .refresh-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .fetch-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .loading {
             display: inline-block; width: 10px; height: 10px;
             border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
@@ -90,104 +45,153 @@
             margin-left: 4px; vertical-align: middle;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
+
+        .info-bar {
+            background: rgba(30, 41, 59, 0.8); padding: 4px 8px; border-radius: 6px;
+            margin-bottom: 6px; border: 1px solid rgba(148, 163, 184, 0.1);
+            display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px;
+        }
+        .info-item { display: flex; align-items: center; gap: 3px; font-size: 0.65rem; }
+        .info-item .dot { width: 5px; height: 5px; border-radius: 50%; }
+        .weekday-highlight { color: #fbbf24; font-weight: 700; }
+
+        .toggle-row { text-align: center; margin-bottom: 4px; }
+        .toggle-btn {
+            background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #94a3b8; padding: 2px 8px; border-radius: 4px; cursor: pointer;
+            font-size: 0.55rem;
+        }
+        .toggle-btn:hover { background: rgba(148, 163, 184, 0.2); color: #e2e8f0; }
+        .manual-inputs {
+            display: none; grid-template-columns: repeat(3, 1fr);
+            gap: 6px; margin-bottom: 6px; padding: 6px;
+            background: rgba(15, 23, 42, 0.4); border-radius: 6px;
+        }
+        .manual-inputs.active { display: grid; }
+        .manual-inputs .input-card { padding: 4px; }
+        .manual-inputs input {
+            width: 100%; padding: 3px 5px; background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 4px;
+            color: #f1f5f9; font-size: 0.7rem; font-weight: 600;
+        }
+
+        .inputs-row {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 6px; margin-bottom: 6px;
+        }
+        .input-card {
+            background: rgba(30, 41, 59, 0.8); padding: 6px 8px; border-radius: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        .input-card label { display: block; color: #94a3b8; font-size: 0.55rem; margin-bottom: 1px; }
+        .input-card .value-display { font-size: 0.9rem; font-weight: 700; color: #60a5fa; }
+        .formula-box {
+            background: rgba(15, 23, 42, 0.6); padding: 3px 5px; border-radius: 4px; margin-top: 2px;
+            font-family: 'Courier New', monospace; font-size: 0.5rem; color: #94a3b8;
+            border-left: 2px solid #60a5fa;
+        }
+
         .results-row {
             display: grid; grid-template-columns: 1fr 1fr;
-            gap: 10px; margin-bottom: 10px;
+            gap: 8px; margin-bottom: 6px;
         }
         @media (max-width: 500px) { .results-row { grid-template-columns: 1fr; } }
-        
+
         .result-card {
-            background: rgba(30, 41, 59, 0.8); border-radius: 10px;
+            background: rgba(30, 41, 59, 0.8); border-radius: 8px;
             border: 1px solid rgba(148, 163, 184, 0.1); overflow: hidden;
         }
         .result-header {
-            padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;
+            padding: 6px 10px; display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px solid rgba(148, 163, 184, 0.1);
         }
         .result-header.put { background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), rgba(30, 41, 59, 0.8)); }
         .result-header.call { background: linear-gradient(90deg, rgba(34, 197, 94, 0.2), rgba(30, 41, 59, 0.8)); }
         .result-header.expiry-section { background: linear-gradient(90deg, rgba(251, 191, 36, 0.2), rgba(30, 41, 59, 0.8)); }
-        .result-header h2 { font-size: 0.85rem; display: flex; align-items: center; gap: 5px; }
-        .result-header .strike-badge { padding: 3px 8px; border-radius: 10px; font-size: 0.8rem; font-weight: 700; }
+        .result-header.midcp { background: linear-gradient(90deg, rgba(168, 85, 247, 0.2), rgba(30, 41, 59, 0.8)); }
+        .result-header h2 { font-size: 0.75rem; display: flex; align-items: center; gap: 4px; }
+        .result-header .strike-badge { padding: 2px 6px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; }
         .put .strike-badge { background: rgba(239, 68, 68, 0.3); color: #f87171; }
         .call .strike-badge { background: rgba(34, 197, 94, 0.3); color: #4ade80; }
         .expiry .strike-badge { background: rgba(251, 191, 36, 0.3); color: #fbbf24; }
-        .symbol-display { padding: 10px; text-align: center; }
+        .midcp .strike-badge { background: rgba(168, 85, 247, 0.3); color: #c084fc; }
+        .symbol-display { padding: 8px; text-align: center; }
         .symbol-code {
-            font-family: 'Courier New', monospace; font-size: 1.5rem; font-weight: 700;
-            padding: 12px; background: rgba(15, 23, 42, 0.6); border-radius: 8px;
+            font-family: 'Courier New', monospace; font-size: 1.4rem; font-weight: 700;
+            padding: 10px; background: rgba(15, 23, 42, 0.6); border-radius: 6px;
             border: 1px solid rgba(148, 163, 184, 0.2); letter-spacing: 1px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .put .symbol-code { color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
         .call .symbol-code { color: #4ade80; border-color: rgba(34, 197, 94, 0.3); }
         .expiry .symbol-code { color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); }
+        .midcp .symbol-code { color: #c084fc; border-color: rgba(168, 85, 247, 0.3); }
         .option-type-badge {
-            display: inline-block; padding: 1px 5px; border-radius: 3px;
-            font-size: 0.5rem; font-weight: 700; margin-left: 4px;
+            display: inline-block; padding: 1px 4px; border-radius: 2px;
+            font-size: 0.45rem; font-weight: 700; margin-left: 3px;
         }
         .weekly-badge { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-        .monthly-badge { background: rgba(168, 85, 247, 0.2); color: #a78bfa; }
-        
+        .monthly-badge { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+
         .copy-btn {
             background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.3);
-            color: #cbd5e1; padding: 4px 10px; border-radius: 6px; cursor: pointer;
-            font-size: 0.65rem; font-weight: 600; transition: all 0.2s;
-            display: inline-flex; align-items: center; gap: 4px;
+            color: #cbd5e1; padding: 3px 8px; border-radius: 5px; cursor: pointer;
+            font-size: 0.6rem; font-weight: 600; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 3px; white-space: nowrap;
         }
         .copy-btn:hover { background: rgba(148, 163, 184, 0.3); color: #fff; }
         .copy-btn.copied { background: rgba(34, 197, 94, 0.3); color: #4ade80; border-color: rgba(34, 197, 94, 0.4); }
-        
-        .section-divider { text-align: center; margin: 6px 0; position: relative; }
+
+        .section-divider { text-align: center; margin: 4px 0; position: relative; }
         .section-divider::before {
             content: ''; position: absolute; top: 50%; left: 0; right: 0;
             height: 1px; background: rgba(148, 163, 184, 0.15);
         }
         .section-divider span {
-            background: #0f172a; padding: 0 10px; color: #fbbf24;
-            font-weight: 600; font-size: 0.65rem; position: relative;
+            background: #0f172a; padding: 0 8px; color: #fbbf24;
+            font-weight: 600; font-size: 0.6rem; position: relative;
         }
         .expiry-day-banner {
             background: linear-gradient(90deg, rgba(251, 191, 36, 0.1), rgba(30, 41, 59, 0.8));
-            border: 1px solid rgba(251, 191, 36, 0.15); border-radius: 6px;
-            padding: 4px 8px; margin-bottom: 6px; text-align: center;
-            color: #fbbf24; font-size: 0.6rem; font-weight: 600;
+            border: 1px solid rgba(251, 191, 36, 0.15); border-radius: 5px;
+            padding: 3px 6px; margin-bottom: 4px; text-align: center;
+            color: #fbbf24; font-size: 0.55rem; font-weight: 600;
         }
-        
-        .expiry-range-inline {
-            background: rgba(30, 41, 59, 0.8); padding: 5px 10px; border-radius: 6px;
-            border: 1px solid rgba(148, 163, 184, 0.1); margin-bottom: 6px;
-            display: flex; align-items: center; justify-content: space-between;
-            flex-wrap: wrap; gap: 4px;
+        .midcp-banner {
+            background: linear-gradient(90deg, rgba(168, 85, 247, 0.1), rgba(30, 41, 59, 0.8));
+            border: 1px solid rgba(168, 85, 247, 0.15); border-radius: 5px;
+            padding: 3px 6px; margin-bottom: 4px; text-align: center;
+            color: #c084fc; font-size: 0.55rem; font-weight: 600;
         }
-        .expiry-range-inline .label { color: #94a3b8; font-size: 0.6rem; }
-        .expiry-range-inline .value { color: #fbbf24; font-size: 0.85rem; font-weight: 700; }
-        .expiry-range-inline .formula { color: #94a3b8; font-size: 0.5rem; font-family: 'Courier New', monospace; }
-        
+
         .note {
             background: rgba(251, 191, 36, 0.06); border: 1px solid rgba(251, 191, 36, 0.1);
-            color: #fbbf24; padding: 5px 8px; border-radius: 6px; margin-top: 6px;
-            font-size: 0.6rem; line-height: 1.4;
+            color: #fbbf24; padding: 4px 6px; border-radius: 5px; margin-top: 4px;
+            font-size: 0.55rem; line-height: 1.4;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>NIFTY Weekly Option Strike Calculator</h1>
-            <div class="subtitle">Range-based strikes for next expiry</div>
-            <div id="marketStatus" class="market-status market-closed">Market Closed</div>
+            <div class="header-left">
+                <h1>NIFTY Weekly DOTM Strategy</h1>
+                <div class="subtitle">Range-based strikes for next expiry</div>
+                <div id="marketStatus" class="market-status market-closed">Market Closed</div>
+            </div>
+            <button class="fetch-btn" id="refreshBtn" onclick="fetchLiveData()">
+                Fetch Live Data
+            </button>
         </div>
 
         <div class="info-bar">
             <div class="info-item">
-                <div class="dot"></div>
+                <div class="dot" style="background: #60a5fa;"></div>
                 <span>Today: <span id="currentDate" class="weekday-highlight"></span></span>
             </div>
             <div class="info-item">
                 <div class="dot" style="background: #34d399;"></div>
-                <span>Div: <span id="divisorValue" class="weekday-highlight"></span></span>
+                <span>NIFTY Div: <span id="niftyDivisorValue" class="weekday-highlight"></span></span>
             </div>
             <div class="info-item">
                 <div class="dot" style="background: #f472b6;"></div>
@@ -200,32 +204,36 @@
         </div>
 
         <div class="toggle-row">
-            <button class="toggle-btn" onclick="toggleManualInputs()">Edit NIFTY/VIX</button>
+            <button class="toggle-btn" onclick="toggleManualInputs()">Edit NIFTY/VIX/MIDCP</button>
         </div>
 
         <div class="manual-inputs" id="manualInputs">
             <div class="input-card">
-                <label>NIFTY</label>
+                <label>NIFTY 50</label>
                 <input type="number" id="manualNifty" value="23945" step="0.05">
             </div>
             <div class="input-card">
-                <label>VIX</label>
+                <label>India VIX</label>
                 <input type="number" id="manualVix" value="13.61" step="0.01">
             </div>
             <div class="input-card">
-                <label>Div</label>
-                <input type="number" id="manualDivisor" placeholder="Auto">
+                <label>MIDCPNIFTY</label>
+                <input type="number" id="manualMidcp" value="14367" step="0.05">
             </div>
         </div>
 
         <div class="inputs-row">
             <div class="input-card">
-                <label>NIFTY 50</label>
+                <label>NIFTY 50 Spot</label>
                 <div class="value-display" id="niftyDisplay">--</div>
             </div>
             <div class="input-card">
                 <label>India VIX</label>
                 <div class="value-display" id="vixDisplay">--</div>
+            </div>
+            <div class="input-card">
+                <label>MIDCPNIFTY Spot</label>
+                <div class="value-display" id="midcpDisplay">--</div>
             </div>
             <div class="input-card">
                 <label>Range</label>
@@ -234,19 +242,15 @@
             </div>
         </div>
 
-        <button class="refresh-btn" id="refreshBtn" onclick="fetchLiveData()">
-            Fetch Live Data
-        </button>
-
-        <!-- Main Option Strikes -->
+        <!-- Main NIFTY Option Strikes -->
         <div class="results-row" id="regularResults">
             <div class="result-card">
                 <div class="result-header put">
-                    <h2>PUT <span id="putTypeBadge" class="option-type-badge weekly-badge">W</span></h2>
+                    <h2>NIFTY PUT <span id="putTypeBadge" class="option-type-badge weekly-badge">W</span></h2>
                     <div class="strike-badge" id="putStrike">--</div>
                 </div>
                 <div class="symbol-display">
-                    <div class="symbol-code" id="putSymbol">
+                    <div class="symbol-code put" id="putSymbol">
                         <span id="putSymbolText">--</span>
                         <button class="copy-btn" onclick="copyToClipboard('putSymbolText', this)">Copy</button>
                     </div>
@@ -255,11 +259,11 @@
 
             <div class="result-card">
                 <div class="result-header call">
-                    <h2>CALL <span id="callTypeBadge" class="option-type-badge weekly-badge">W</span></h2>
+                    <h2>NIFTY CALL <span id="callTypeBadge" class="option-type-badge weekly-badge">W</span></h2>
                     <div class="strike-badge" id="callStrike">--</div>
                 </div>
                 <div class="symbol-display">
-                    <div class="symbol-code" id="callSymbol">
+                    <div class="symbol-code call" id="callSymbol">
                         <span id="callSymbolText">--</span>
                         <button class="copy-btn" onclick="copyToClipboard('callSymbolText', this)">Copy</button>
                     </div>
@@ -267,25 +271,19 @@
             </div>
         </div>
 
-        <!-- Expiry Day Intraday Strikes -->
+        <!-- NIFTY Expiry Day Intraday Strikes -->
         <div class="section-divider">
-            <span>EXPIRY DAY INTRADAY (Div: 23,000)</span>
-        </div>
-        
-        <div class="expiry-day-banner" id="expiryBanner">
-            Reference: If today were expiry day, these would be the intraday strikes.
+            <span>NIFTY EXPIRY DAY INTRADAY (Div: 23,000)</span>
         </div>
 
-        <div class="expiry-range-inline">
-            <span class="label">Expiry Day Range:</span>
-            <span class="value" id="expiryRangeDisplay">--</span>
-            <span class="formula" id="expiryRangeFormula">--</span>
+        <div class="expiry-day-banner" id="niftyExpiryBanner">
+            NIFTY intraday strikes for today's expiry using divisor 23,000.
         </div>
 
         <div class="results-row">
             <div class="result-card">
                 <div class="result-header expiry-section">
-                    <h2>EXPIRY PUT</h2>
+                    <h2>NIFTY EXPIRY PUT</h2>
                     <div class="strike-badge expiry" id="expiryPutStrike">--</div>
                 </div>
                 <div class="symbol-display">
@@ -298,7 +296,7 @@
 
             <div class="result-card">
                 <div class="result-header expiry-section">
-                    <h2>EXPIRY CALL</h2>
+                    <h2>NIFTY EXPIRY CALL</h2>
                     <div class="strike-badge expiry" id="expiryCallStrike">--</div>
                 </div>
                 <div class="symbol-display">
@@ -310,8 +308,45 @@
             </div>
         </div>
 
+        <!-- MIDCPNIFTY Expiry Day Intraday Strikes -->
+        <div class="section-divider">
+            <span>MIDCPNIFTY EXPIRY DAY INTRADAY (Div: 17,000)</span>
+        </div>
+
+        <div class="midcp-banner" id="midcpExpiryBanner">
+            MIDCPNIFTY intraday strikes using divisor 17,000. Strike interval: 25.
+        </div>
+
+        <div class="results-row">
+            <div class="result-card">
+                <div class="result-header midcp">
+                    <h2>MIDCP PUT</h2>
+                    <div class="strike-badge midcp" id="midcpPutStrike">--</div>
+                </div>
+                <div class="symbol-display">
+                    <div class="symbol-code midcp" id="midcpPutSymbol">
+                        <span id="midcpPutSymbolText">--</span>
+                        <button class="copy-btn" onclick="copyToClipboard('midcpPutSymbolText', this)">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <div class="result-header midcp">
+                    <h2>MIDCP CALL</h2>
+                    <div class="strike-badge midcp" id="midcpCallStrike">--</div>
+                </div>
+                <div class="symbol-display">
+                    <div class="symbol-code midcp" id="midcpCallSymbol">
+                        <span id="midcpCallSymbolText">--</span>
+                        <button class="copy-btn" onclick="copyToClipboard('midcpCallSymbolText', this)">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="note">
-            Mon/Tue = next week expiry. Wed-Fri = current week. Weekly: NIFTY[YY][M][DD][Strike][PE/CE]. Monthly: NIFTY[YY][Month][Strike][PE/CE].
+            Mon/Tue = next week expiry. Wed-Fri = current week. NIFTY: FLOOR/CEILING(100). MIDCPNIFTY: FLOOR/CEILING(25). Weekly: [YY][M][DD]. Monthly: [YY][Month].
         </div>
     </div>
 
@@ -320,8 +355,10 @@
         const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
         const EXPIRY_DAY_DIVISOR = 23000;
+        const MIDCP_EXPIRY_DAY_DIVISOR = 17000;
 
-        let currentNifty = 23945, currentVix = 13.61, currentDivisor = 3300;
+        let currentNifty = 23945, currentVix = 13.61, currentMidcp = 14367;
+        let currentDivisor = 3300;
         let currentRange = 0, putStrike = 0, callStrike = 0, expiryDate = null;
         let isMonthlyExpiry = false;
 
@@ -336,8 +373,6 @@
                     btn.classList.remove('copied');
                 }, 1500);
             }).catch(err => {
-                console.error('Failed to copy:', err);
-                // Fallback for older browsers
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
                 textarea.style.position = 'fixed';
@@ -392,7 +427,8 @@
         function getExpiryForWeekday(date) {
             const dayOfWeek = date.getDay();
             let expiry;
-            if (dayOfWeek <= 1) {
+            // Monday (1) or Tuesday (2) -> next week expiry
+            if (dayOfWeek === 1 || dayOfWeek === 2) {
                 const nextTue = getNextTuesday(date);
                 expiry = new Date(nextTue);
                 expiry.setDate(expiry.getDate() + 7);
@@ -420,35 +456,39 @@
         function calculateRange() {
             const nifty = parseFloat(document.getElementById('manualNifty').value) || currentNifty;
             const vix = parseFloat(document.getElementById('manualVix').value) || currentVix;
-            const customDivisor = parseFloat(document.getElementById('manualDivisor').value);
-            
+            const midcp = parseFloat(document.getElementById('manualMidcp').value) || currentMidcp;
+
             const today = new Date();
             const dayOfWeek = today.getDay();
-            const divisor = customDivisor || DIVISORS[dayOfWeek];
-            
+            const divisor = DIVISORS[dayOfWeek];
+
             currentDivisor = divisor;
             currentNifty = nifty;
             currentVix = vix;
-            
+            currentMidcp = midcp;
+
             expiryDate = getExpiryForWeekday(today);
             isMonthlyExpiry = isLastTuesdayOfMonth(expiryDate);
-            
+
+            // Main NIFTY range and strikes
             currentRange = nifty * Math.sqrt((vix * 1.5) / divisor);
             putStrike = Math.floor((nifty - currentRange) / 100) * 100;
             const callRaw = nifty + currentRange;
             callStrike = Math.ceil(callRaw / 100) * 100;
-            
+
             document.getElementById('niftyDisplay').textContent = nifty.toLocaleString('en-IN', {maximumFractionDigits: 2});
             document.getElementById('vixDisplay').textContent = vix.toFixed(2);
+            document.getElementById('midcpDisplay').textContent = midcp.toLocaleString('en-IN', {maximumFractionDigits: 2});
             document.getElementById('rangeDisplay').textContent = currentRange.toFixed(2);
-            document.getElementById('divisorValue').textContent = divisor.toLocaleString();
+            document.getElementById('niftyDivisorValue').textContent = divisor.toLocaleString();
             document.getElementById('rangeValue').textContent = currentRange.toFixed(2);
-            
+
             const dayName = WEEKDAY_NAMES[dayOfWeek];
             document.getElementById('currentDate').textContent = `${dayName} (${formatDDMMYYYY(today)})`;
             document.getElementById('expiryDate').textContent = formatDDMMYYYY(expiryDate) + (isMonthlyExpiry ? ' M' : ' W');
             document.getElementById('rangeFormula').textContent = `${nifty.toFixed(2)} x sqrt(${vix.toFixed(2)} x 150% / ${divisor}) = ${currentRange.toFixed(2)}`;
-            
+
+            // Main NIFTY symbols
             let putSym, callSym;
             if (isMonthlyExpiry) {
                 putSym = formatMonthlySymbol('NIFTY', expiryDate, putStrike, 'PE');
@@ -465,59 +505,76 @@
                 document.getElementById('callTypeBadge').textContent = 'W';
                 document.getElementById('callTypeBadge').className = 'option-type-badge weekly-badge';
             }
-            
+
             document.getElementById('putSymbolText').textContent = putSym;
             document.getElementById('callSymbolText').textContent = callSym;
             document.getElementById('putStrike').textContent = putStrike.toLocaleString();
             document.getElementById('callStrike').textContent = callStrike.toLocaleString();
-            
-            // Expiry day intraday (always shown)
-            const expiryDayRange = nifty * Math.sqrt((vix * 1.5) / EXPIRY_DAY_DIVISOR);
-            const expiryPutStrike = Math.floor((nifty - expiryDayRange) / 100) * 100;
-            const expiryCallRaw = nifty + expiryDayRange;
-            const expiryCallStrike = Math.ceil(expiryCallRaw / 100) * 100;
-            
-            const immediateExpiry = getNextTuesday(today);
-            const immediateIsMonthly = isLastTuesdayOfMonth(immediateExpiry);
-            
-            document.getElementById('expiryRangeDisplay').textContent = expiryDayRange.toFixed(2);
-            document.getElementById('expiryRangeFormula').textContent = `${nifty.toFixed(2)} x sqrt(${vix.toFixed(2)} x 150% / ${EXPIRY_DAY_DIVISOR}) = ${expiryDayRange.toFixed(2)}`;
-            
-            document.getElementById('expiryPutStrike').textContent = expiryPutStrike.toLocaleString();
-            document.getElementById('expiryCallStrike').textContent = expiryCallStrike.toLocaleString();
-            
-            let expiryPutSym, expiryCallSym;
-            if (immediateIsMonthly) {
-                expiryPutSym = formatMonthlySymbol('NIFTY', immediateExpiry, expiryPutStrike, 'PE');
-                expiryCallSym = formatMonthlySymbol('NIFTY', immediateExpiry, expiryCallStrike, 'CE');
+
+            // NIFTY Expiry Day Intraday (today's expiry)
+            const niftyExpiryDayRange = nifty * Math.sqrt((vix * 1.5) / EXPIRY_DAY_DIVISOR);
+            const niftyExpiryPutStrike = Math.floor((nifty - niftyExpiryDayRange) / 100) * 100;
+            const niftyExpiryCallRaw = nifty + niftyExpiryDayRange;
+            const niftyExpiryCallStrike = Math.ceil(niftyExpiryCallRaw / 100) * 100;
+
+            const niftyImmediateExpiry = getNextTuesday(today);
+            const niftyImmediateIsMonthly = isLastTuesdayOfMonth(niftyImmediateExpiry);
+
+            let niftyExpiryPutSym, niftyExpiryCallSym;
+            if (niftyImmediateIsMonthly) {
+                niftyExpiryPutSym = formatMonthlySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryPutStrike, 'PE');
+                niftyExpiryCallSym = formatMonthlySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryCallStrike, 'CE');
             } else {
-                expiryPutSym = formatWeeklySymbol('NIFTY', immediateExpiry, expiryPutStrike, 'PE');
-                expiryCallSym = formatWeeklySymbol('NIFTY', immediateExpiry, expiryCallStrike, 'CE');
+                niftyExpiryPutSym = formatWeeklySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryPutStrike, 'PE');
+                niftyExpiryCallSym = formatWeeklySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryCallStrike, 'CE');
             }
-            
-            document.getElementById('expiryPutSymbolText').textContent = expiryPutSym;
-            document.getElementById('expiryCallSymbolText').textContent = expiryCallSym;
-            
-            const isTodayExpiry = (dayOfWeek === 2);
-            document.getElementById('expiryBanner').textContent = isTodayExpiry 
-                ? 'Today is Expiry Day! Using divisor 23,000 for intraday strikes.'
-                : 'Reference: If today were expiry day, these would be the intraday strikes.';
+
+            document.getElementById('expiryPutSymbolText').textContent = niftyExpiryPutSym;
+            document.getElementById('expiryCallSymbolText').textContent = niftyExpiryCallSym;
+            document.getElementById('expiryPutStrike').textContent = niftyExpiryPutStrike.toLocaleString();
+            document.getElementById('expiryCallStrike').textContent = niftyExpiryCallStrike.toLocaleString();
+
+            const isTodayNiftyExpiry = (dayOfWeek === 2);
+            document.getElementById('niftyExpiryBanner').textContent = isTodayNiftyExpiry 
+                ? 'Today is NIFTY Expiry Day! Intraday strikes with divisor 23,000.'
+                : 'NIFTY intraday strikes for today's expiry using divisor 23,000.';
+
+            // MIDCPNIFTY Expiry Day Intraday
+            const midcpExpiryDayRange = midcp * Math.sqrt((vix * 1.5) / MIDCP_EXPIRY_DAY_DIVISOR);
+            const midcpExpiryPutStrike = Math.floor((midcp - midcpExpiryDayRange) / 25) * 25;
+            const midcpExpiryCallRaw = midcp + midcpExpiryDayRange;
+            const midcpExpiryCallStrike = Math.ceil(midcpExpiryCallRaw / 25) * 25;
+
+            // MIDCPNIFTY uses monthly format for expiry day (as per user example)
+            const midcpMonthName = MONTH_NAMES[today.getMonth()];
+            const midcpYY = today.getFullYear().toString().slice(-2);
+            const midcpPutSym = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryPutStrike}PE`;
+            const midcpCallSym = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryCallStrike}CE`;
+
+            document.getElementById('midcpPutSymbolText').textContent = midcpPutSym;
+            document.getElementById('midcpCallSymbolText').textContent = midcpCallSym;
+            document.getElementById('midcpPutStrike').textContent = midcpExpiryPutStrike.toLocaleString();
+            document.getElementById('midcpCallStrike').textContent = midcpExpiryCallStrike.toLocaleString();
         }
 
         async function fetchLiveData() {
             const btn = document.getElementById('refreshBtn');
             btn.disabled = true;
             btn.innerHTML = 'Fetching... <span class="loading"></span>';
-            
+
             try {
                 const niftyResponse = await fetch('https://www.nseindia.com/api/quoteIndices?index=NIFTY%2050', {
                     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
                 }).catch(() => null);
-                
+
                 const vixResponse = await fetch('https://www.nseindia.com/api/quoteIndices?index=INDIA%20VIX', {
                     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
                 }).catch(() => null);
-                
+
+                const midcpResponse = await fetch('https://www.nseindia.com/api/quoteIndices?index=NIFTY%20MID%20SELECT', {
+                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+                }).catch(() => null);
+
                 if (niftyResponse && niftyResponse.ok) {
                     const niftyData = await niftyResponse.json();
                     if (niftyData && niftyData.price) {
@@ -525,7 +582,7 @@
                         document.getElementById('manualNifty').value = currentNifty;
                     }
                 }
-                
+
                 if (vixResponse && vixResponse.ok) {
                     const vixData = await vixResponse.json();
                     if (vixData && vixData.price) {
@@ -533,9 +590,17 @@
                         document.getElementById('manualVix').value = currentVix;
                     }
                 }
-                
+
+                if (midcpResponse && midcpResponse.ok) {
+                    const midcpData = await midcpResponse.json();
+                    if (midcpData && midcpData.price) {
+                        currentMidcp = parseFloat(midcpData.price);
+                        document.getElementById('manualMidcp').value = currentMidcp;
+                    }
+                }
+
                 calculateRange();
-                
+
             } catch (error) {
                 console.error('Error:', error);
                 calculateRange();
@@ -555,7 +620,7 @@
             const hour = now.getHours(), minute = now.getMinutes(), day = now.getDay();
             const isWeekday = day >= 1 && day <= 5;
             const isMarketHours = (hour > 9 || (hour === 9 && minute >= 15)) && (hour < 15 || (hour === 15 && minute <= 30));
-            
+
             const statusEl = document.getElementById('marketStatus');
             if (isWeekday && isMarketHours) {
                 statusEl.textContent = 'Market Open';
@@ -569,7 +634,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             checkMarketStatus();
             calculateRange();
-            
+
             setInterval(() => {
                 checkMarketStatus();
                 const status = document.getElementById('marketStatus').textContent;
