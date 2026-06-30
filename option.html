@@ -639,7 +639,7 @@
         }
 
         async function fetchGooglePrice(symbolPath) {
-            const googleUrl = `https://www.google.com/finance/quote/${symbolPath}`;
+            const googleUrl = `https://www.google.com/finance/quote/${symbolPath}?_=${Date.now()}`;
             let lastError = null;
 
             for (const buildProxyUrl of CORS_PROXIES) {
@@ -659,7 +659,7 @@
         }
 
         async function fetchYahooPrice(symbol) {
-            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`;
+            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d&_=${Date.now()}`;
             let lastError = null;
 
             for (const buildProxyUrl of CORS_PROXIES) {
