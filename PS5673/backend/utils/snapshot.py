@@ -489,18 +489,26 @@ def write_snapshot(dashboard_state: dict):
         # ── Build snapshot ────────────────────────────────────────────────────
 
         # ── Mutual Fund Holdings ──────────────────────────────────────────────
-        # Switched from /oms/mf/holdings to coin.zerodha.com/api/mf/holdings.
-        # Confirmed via a live DevTools capture (2026-06-30) that Coin's
-        # last_price matches Kite's own Holdings page / CSV export exactly,
-        # while OMS's last_price lagged by ~0.25% (multiple days of NAV
-        # growth) with last_price_date always empty — a long-pending defect
-        # where the dashboard's "Current Value" was visibly below the real
-        # current value. Coin uses the same enctoken session as every other
-        # call in this file (confirmed working — Coin/Console share Kite's
-        # web auth, unlike api.kite.trade which needs an official api_key).
-        # Coin also correctly populates pnl/current/pnl_percent/days_pnl
-        # directly (OMS returns pnl=0.0, forcing a manual recompute), so
-        # those are used as-is rather than recalculated.
+        # ATTEMPTED coin.zerodha.com/api/mf/holdings (2026-06-30) to fix a
+        # long-pending defect: OMS's last_price lags the real NAV by ~0.25%
+        # (multiple days of growth) and never populates last_price_date.
+        # A live DevTools capture confirmed Coin's values exactly match
+        # Kite's own Holdings CSV export — but a SECOND capture of the
+        # actual cookies that request sends revealed Coin does NOT use the
+        # enctoken/Authorization scheme at all. It authenticates via its own
+        # `coin_session` cookie, and sits behind Cloudflare bot-protection
+        # (`cf_clearance`, `__cf_bm`, `_cfuvid` — only issued after passing
+        # a real browser JS challenge). Neither of those can be obtained or
+        # refreshed by this bot's CDP/TOTP auth chain, which only knows how
+        # to mint/refresh the kite.zerodha.com enctoken. Result: every call
+        # got "Invalid session" (HTTP 403) regardless of headers sent.
+        # REVERTED to OMS-only. The OMS-shape branch below (pnl/current not
+        # populated → computed from qty*ltp) is the only path now; it's
+        # correct, just stale by Zerodha's own design on this endpoint.
+        # If a future browser-automation step is added that can capture
+        # coin_session (the same way enctoken.json is captured today), the
+        # Coin response shape is already documented and field-mapped in git
+        # history — search for "Coin shape:" in a prior version of this file.
         mf_holdings = []
         mf_summary  = {}
         try:
@@ -510,85 +518,52 @@ def write_snapshot(dashboard_state: dict):
                 enctoken = getattr(auth_mgr, "enctoken", None)
                 if enctoken:
                     import requests as _req2
+                    from backend.core.config import Config
                     _mf_sess = _req2.Session()
-                    # Match the bot's own proven-working OMS session header
-                    # pattern exactly (see AuthManager.__init__) — Coin's
-                    # session validation turned out to be stricter than
-                    # OMS's: sending X-Kite-Version: 3 (which AuthManager's
-                    # own comment already documents as breaking enctoken-
-                    # based web sessions on OMS) made Coin reject the
-                    # otherwise-valid, freshly-refreshed enctoken with
-                    # "Invalid session." Coin also wants Referer/Origin to
-                    # genuinely look like it's coming from kite.zerodha.com
-                    # (it's a different subdomain, unlike OMS which is
-                    # same-origin) — confirmed against the working session
-                    # headers AuthManager already uses successfully
-                    # everywhere else in this codebase.
                     _mf_sess.headers.update({
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
                         'Referer':    'https://kite.zerodha.com/',
                         'Origin':     'https://kite.zerodha.com',
                         'Accept':     'application/json, text/plain, */*',
                         "Authorization": f"enctoken {enctoken}",
-                        # Do NOT add X-Kite-Version: 3 here — see comment above.
+                        # Do NOT add X-Kite-Version: 3 — breaks enctoken-based
+                        # web sessions on OMS (see AuthManager.__init__ comment).
                     })
                     mf_resp = _mf_sess.get(
-                        "https://coin.zerodha.com/api/mf/holdings",
+                        f"{Config.ZERODHA_API_BASE}/oms/mf/holdings",
                         timeout=(4, 15),
                         allow_redirects=True,
                     )
-                    used_fallback = False
                     if mf_resp.status_code != 200:
                         import sys as _mfsys2
-                        print(f"[snapshot] MF holdings (Coin) HTTP {mf_resp.status_code} — "
-                              f"falling back to OMS (will be stale, see field-mapping note above): "
-                              f"{mf_resp.text[:200]}", file=_mfsys2.stderr)
-                        from backend.core.config import Config
-                        mf_resp = _mf_sess.get(
-                            f"{Config.ZERODHA_API_BASE}/oms/mf/holdings",
-                            timeout=(4, 15),
-                            allow_redirects=True,
-                        )
-                        used_fallback = True
-                        if mf_resp.status_code != 200:
-                            print(f"[snapshot] MF holdings (OMS fallback) also failed: "
-                                  f"HTTP {mf_resp.status_code}: {mf_resp.text[:200]}", file=_mfsys2.stderr)
+                        print(f"[snapshot] MF holdings HTTP {mf_resp.status_code}: {mf_resp.text[:200]}", file=_mfsys2.stderr)
                     if mf_resp.status_code == 200 and mf_resp.text.strip().startswith("{"):
                         mf_data  = mf_resp.json()
                         raw_list = mf_data.get("data", []) or []
                         for h in raw_list:
-                            # quantity field = TOTAL units (free + pledged).
+                            # quantity field from Zerodha OMS = TOTAL units (free + pledged).
                             # pledged_quantity is a SUBSET — do NOT add it to quantity.
                             qty         = float(h.get("quantity", 0) or 0)
                             pledged_qty = float(h.get("pledged_quantity", 0) or 0)
                             free_qty    = max(0.0, qty - pledged_qty)
                             avg_nav  = float(h.get("average_price", 0) or 0)
+                            # last_price = most recent NAV Zerodha has published
+                            # on OMS specifically (can lag by several days —
+                            # confirmed against Kite's own Holdings CSV export;
+                            # Coin has the fresher value but isn't reachable from
+                            # an unattended bot, see note above). last_price_date
+                            # is always empty on this endpoint.
                             ltp      = float(h.get("last_price", 0) or 0)
                             nav_date = h.get("last_price_date", "") or ""
                             invested = round(qty * avg_nav, 2)
-
-                            if used_fallback:
-                                # OMS shape: pnl/current are NOT reliably populated
-                                # (Zerodha returns pnl=0.0 on this endpoint) — always
-                                # compute from qty*ltp rather than trusting the field.
-                                cur_val  = round(qty * ltp, 2)
-                                pnl      = round(cur_val - invested, 2)
-                                pnl_pct  = round(pnl / invested * 100, 2) if invested else 0
-                                day_chg_abs = float(h.get("day_change", 0) or 0)
-                                day_chg_pct = float(h.get("day_change_percentage", 0) or 0)
-                                day_pnl_h   = round(day_chg_abs * qty, 2)
-                            else:
-                                # Coin shape: current/pnl/pnl_percent/days_pnl are all
-                                # correctly populated (verified against qty*ltp) — use
-                                # them directly instead of recomputing.
-                                cur_val  = round(float(h.get("current", 0) or 0), 2) or round(qty * ltp, 2)
-                                pnl      = round(float(h.get("pnl", 0) or 0), 2)
-                                pnl_pct  = round(float(h.get("pnl_percent", 0) or 0), 2) if invested else 0
-                                prev_nav    = float(h.get("previous_nav", ltp) or ltp)
-                                day_chg_abs = round(ltp - prev_nav, 4)
-                                day_chg_pct = float(h.get("nav_change_percent", 0) or 0)
-                                day_pnl_h   = round(float(h.get("days_pnl", 0) or 0), 2)
-
+                            cur_val  = round(qty * ltp, 2)
+                            # Zerodha OMS returns pnl=0.0 — not populated. Compute manually.
+                            pnl      = round(cur_val - invested, 2)
+                            pnl_pct  = round(pnl / invested * 100, 2) if invested else 0
+                            # day_change = per-unit NAV Δ from previous close × total qty.
+                            day_chg_abs = float(h.get("day_change", 0) or 0)
+                            day_chg_pct = float(h.get("day_change_percentage", 0) or 0)
+                            day_pnl_h   = round(day_chg_abs * qty, 2)
                             mf_holdings.append({
                                 "name":          h.get("fund", h.get("tradingsymbol", "")),
                                 "folio":         h.get("folio", ""),
