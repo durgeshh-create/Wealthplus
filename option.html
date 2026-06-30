@@ -446,14 +446,15 @@
         function isLastTuesdayOfMonth(date) {
             const year = date.getFullYear();
             const month = date.getMonth();
+            const day = date.getDate();
             const nextMonth = month === 11 ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
             const tuesdays = [];
             const d = new Date(year, month, 1);
             while (d < nextMonth) {
-                if (d.getDay() === 2) tuesdays.push(new Date(d));
+                if (d.getDay() === 2) tuesdays.push(d.getDate());
                 d.setDate(d.getDate() + 1);
             }
-            return tuesdays.length > 0 && date.getTime() === tuesdays[tuesdays.length - 1].getTime();
+            return tuesdays.length > 0 && day === tuesdays[tuesdays.length - 1];
         }
 
         function getExpiryForWeekday(date) {
@@ -584,10 +585,12 @@
         }
 
         // NSE's own API rejects cross-origin browser requests (no CORS headers),
-        // so it can't be called directly from a static GitHub Pages site. Yahoo
-        // Finance's quote endpoint is used instead, routed through a public CORS
-        // proxy. All three prices are fetched in ONE batched request (not three)
-        // to stay well under free-tier rate limits at a 10-second refresh rate.
+        // so it can't be called directly from a static GitHub Pages site.
+        // Yahoo Finance's CHART endpoint (v8) is used instead — the QUOTE
+        // endpoint (v7) now requires a session cookie + "crumb" token and
+        // returns 401 Unauthorized for any plain request (proxy or not), so
+        // it can't be used here. The chart endpoint has no such requirement.
+        // Requests are routed through a public CORS proxy.
         //
         // Proxy order matters: corsproxy.io's free tier only allows a fixed
         // allowlist of origins (localhost, *.github.io, CodePen, Replit, etc.)
@@ -595,7 +598,11 @@
         // Pages). So it's listed LAST as a fallback; the primary proxies have
         // no such origin restriction.
 
-        const YAHOO_SYMBOLS = '%5ENSEI,%5EINDIAVIX,NIFTY_MID_SELECT.NS'; // NIFTY 50, INDIA VIX, NIFTY MID SELECT
+        const YAHOO_SYMBOLS = {
+            nifty: '%5ENSEI',            // ^NSEI = NIFTY 50
+            vix: '%5EINDIAVIX',          // ^INDIAVIX = INDIA VIX
+            midcp: 'NIFTY_MID_SELECT.NS' // NIFTY MID SELECT
+        };
 
         const CORS_PROXIES = [
             (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
@@ -613,8 +620,8 @@
             }
         }
 
-        async function fetchYahooQuotes() {
-            const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${YAHOO_SYMBOLS}&fields=regularMarketPrice,symbol`;
+        async function fetchYahooPrice(symbol) {
+            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`;
             let lastError = null;
 
             for (const buildProxyUrl of CORS_PROXIES) {
@@ -623,21 +630,12 @@
                     const res = await fetchWithTimeout(proxyUrl, 8000);
                     if (!res.ok) { lastError = new Error('HTTP ' + res.status); continue; }
                     const data = await res.json();
-                    const list = data && data.quoteResponse && data.quoteResponse.result;
-                    if (!Array.isArray(list) || list.length === 0) {
-                        lastError = new Error('No quotes in response');
-                        continue;
+                    const result = data && data.chart && data.chart.result && data.chart.result[0];
+                    const price = result && result.meta && (result.meta.regularMarketPrice ?? result.meta.previousClose);
+                    if (typeof price === 'number' && !isNaN(price)) {
+                        return price;
                     }
-                    const prices = {};
-                    for (const q of list) {
-                        if (q && q.symbol && typeof q.regularMarketPrice === 'number') {
-                            prices[q.symbol] = q.regularMarketPrice;
-                        }
-                    }
-                    if (Object.keys(prices).length > 0) {
-                        return prices;
-                    }
-                    lastError = new Error('No prices parsed');
+                    lastError = new Error('No price in response');
                 } catch (err) {
                     lastError = err;
                 }
@@ -659,48 +657,48 @@
             const now = new Date();
             const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-            try {
-                const prices = await fetchYahooQuotes();
-                let successCount = 0;
+            const results = await Promise.allSettled([
+                fetchYahooPrice(YAHOO_SYMBOLS.nifty),
+                fetchYahooPrice(YAHOO_SYMBOLS.vix),
+                fetchYahooPrice(YAHOO_SYMBOLS.midcp)
+            ]);
 
-                if (typeof prices['^NSEI'] === 'number') {
-                    currentNifty = prices['^NSEI'];
-                    document.getElementById('manualNifty').value = currentNifty;
-                    successCount++;
-                }
-                if (typeof prices['^INDIAVIX'] === 'number') {
-                    currentVix = prices['^INDIAVIX'];
-                    document.getElementById('manualVix').value = currentVix;
-                    successCount++;
-                }
-                if (typeof prices['NIFTY_MID_SELECT.NS'] === 'number') {
-                    currentMidcp = prices['NIFTY_MID_SELECT.NS'];
-                    document.getElementById('manualMidcp').value = currentMidcp;
-                    successCount++;
-                }
+            const [niftyResult, vixResult, midcpResult] = results;
+            let successCount = 0;
 
-                calculateRange();
-
-                if (successCount === 3) {
-                    statusEl.textContent = `Updated ${timeStr}`;
-                    statusEl.style.color = '#4ade80';
-                } else if (successCount > 0) {
-                    statusEl.textContent = `Partial update ${timeStr} (${successCount}/3)`;
-                    statusEl.style.color = '#fbbf24';
-                } else {
-                    statusEl.textContent = `Fetch failed — using manual values`;
-                    statusEl.style.color = '#f87171';
-                }
-            } catch (err) {
-                calculateRange();
-                statusEl.textContent = `Fetch failed (${timeStr}) — using manual values`;
-                statusEl.style.color = '#f87171';
-                console.error('Live data fetch error:', err);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'Fetch Live Data';
-                fetchInProgress = false;
+            if (niftyResult.status === 'fulfilled') {
+                currentNifty = niftyResult.value;
+                document.getElementById('manualNifty').value = currentNifty;
+                successCount++;
             }
+            if (vixResult.status === 'fulfilled') {
+                currentVix = vixResult.value;
+                document.getElementById('manualVix').value = currentVix;
+                successCount++;
+            }
+            if (midcpResult.status === 'fulfilled') {
+                currentMidcp = midcpResult.value;
+                document.getElementById('manualMidcp').value = currentMidcp;
+                successCount++;
+            }
+
+            calculateRange();
+
+            if (successCount === 3) {
+                statusEl.textContent = `Updated ${timeStr}`;
+                statusEl.style.color = '#4ade80';
+            } else if (successCount > 0) {
+                statusEl.textContent = `Partial update ${timeStr} (${successCount}/3)`;
+                statusEl.style.color = '#fbbf24';
+            } else {
+                statusEl.textContent = `Fetch failed — using manual values`;
+                statusEl.style.color = '#f87171';
+                console.error('NIFTY:', niftyResult.reason, 'VIX:', vixResult.reason, 'MIDCP:', midcpResult.reason);
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = 'Fetch Live Data';
+            fetchInProgress = false;
         }
 
         function toggleManualInputs() {
