@@ -511,9 +511,26 @@ def write_snapshot(dashboard_state: dict):
                 if enctoken:
                     import requests as _req2
                     _mf_sess = _req2.Session()
+                    # Match the bot's own proven-working OMS session header
+                    # pattern exactly (see AuthManager.__init__) — Coin's
+                    # session validation turned out to be stricter than
+                    # OMS's: sending X-Kite-Version: 3 (which AuthManager's
+                    # own comment already documents as breaking enctoken-
+                    # based web sessions on OMS) made Coin reject the
+                    # otherwise-valid, freshly-refreshed enctoken with
+                    # "Invalid session." Coin also wants Referer/Origin to
+                    # genuinely look like it's coming from kite.zerodha.com
+                    # (it's a different subdomain, unlike OMS which is
+                    # same-origin) — confirmed against the working session
+                    # headers AuthManager already uses successfully
+                    # everywhere else in this codebase.
                     _mf_sess.headers.update({
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                        'Referer':    'https://kite.zerodha.com/',
+                        'Origin':     'https://kite.zerodha.com',
+                        'Accept':     'application/json, text/plain, */*',
                         "Authorization": f"enctoken {enctoken}",
-                        "X-Kite-Version": "3",
+                        # Do NOT add X-Kite-Version: 3 here — see comment above.
                     })
                     mf_resp = _mf_sess.get(
                         "https://coin.zerodha.com/api/mf/holdings",
