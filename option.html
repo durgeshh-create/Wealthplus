@@ -586,17 +586,24 @@
 
         // NSE's own API rejects cross-origin browser requests (no CORS headers),
         // so it can't be called directly from a static GitHub Pages site.
-        // Yahoo Finance's CHART endpoint (v8) is used instead — the QUOTE
-        // endpoint (v7) now requires a session cookie + "crumb" token and
-        // returns 401 Unauthorized for any plain request (proxy or not), so
-        // it can't be used here. The chart endpoint has no such requirement.
-        // Requests are routed through a public CORS proxy.
         //
-        // Proxy order matters: corsproxy.io's free tier only allows a fixed
-        // allowlist of origins (localhost, *.github.io, CodePen, Replit, etc.)
-        // and silently fails for anything else (e.g. a custom domain on GitHub
-        // Pages). So it's listed LAST as a fallback; the primary proxies have
-        // no such origin restriction.
+        // NIFTY 50 and INDIA VIX are scraped from Google Finance (the price is
+        // rendered directly into the page HTML, no login/auth/crumb required —
+        // unlike Yahoo's quote API). Google Finance does not list "NIFTY MID
+        // SELECT" though, so that one still comes from Yahoo's chart endpoint
+        // (v8), which works anonymously. Yahoo's chart endpoint is also kept as
+        // an automatic fallback for NIFTY/VIX in case Google's markup changes.
+        //
+        // Everything is routed through a public CORS proxy. Proxy order matters:
+        // corsproxy.io's free tier only allows a fixed allowlist of origins
+        // (localhost, *.github.io, CodePen, Replit, etc.) and silently fails for
+        // anything else (e.g. a custom domain on GitHub Pages), so it's listed
+        // LAST as a fallback; the primary proxies have no such restriction.
+
+        const GOOGLE_SYMBOLS = {
+            nifty: 'NIFTY_50:INDEXNSE',
+            vix: 'INDIA_VIX:INDEXNSE'
+        };
 
         const YAHOO_SYMBOLS = {
             nifty: '%5ENSEI',            // ^NSEI = NIFTY 50
@@ -618,6 +625,37 @@
             } finally {
                 clearTimeout(timer);
             }
+        }
+
+        function parseGoogleFinancePrice(html) {
+            // Google Finance renders the headline price inside a span with
+            // class "YMlKec fxKbKc", e.g. <div class="YMlKec fxKbKc">23,913.70</div>
+            const m = html.match(/class="YMlKec fxKbKc"[^>]*>([\d,]+(?:\.\d+)?)/);
+            if (m) {
+                const price = parseFloat(m[1].replace(/,/g, ''));
+                if (!isNaN(price)) return price;
+            }
+            return null;
+        }
+
+        async function fetchGooglePrice(symbolPath) {
+            const googleUrl = `https://www.google.com/finance/quote/${symbolPath}`;
+            let lastError = null;
+
+            for (const buildProxyUrl of CORS_PROXIES) {
+                try {
+                    const proxyUrl = buildProxyUrl(googleUrl);
+                    const res = await fetchWithTimeout(proxyUrl, 8000);
+                    if (!res.ok) { lastError = new Error('HTTP ' + res.status); continue; }
+                    const html = await res.text();
+                    const price = parseGoogleFinancePrice(html);
+                    if (price !== null) return price;
+                    lastError = new Error('Price not found in Google Finance page');
+                } catch (err) {
+                    lastError = err;
+                }
+            }
+            throw lastError || new Error('All proxies failed');
         }
 
         async function fetchYahooPrice(symbol) {
@@ -643,6 +681,23 @@
             throw lastError || new Error('All proxies failed');
         }
 
+        // Try Google Finance first, fall back to Yahoo chart if it fails
+        async function fetchNiftyPrice() {
+            try {
+                return await fetchGooglePrice(GOOGLE_SYMBOLS.nifty);
+            } catch (err) {
+                return await fetchYahooPrice(YAHOO_SYMBOLS.nifty);
+            }
+        }
+
+        async function fetchVixPrice() {
+            try {
+                return await fetchGooglePrice(GOOGLE_SYMBOLS.vix);
+            } catch (err) {
+                return await fetchYahooPrice(YAHOO_SYMBOLS.vix);
+            }
+        }
+
         let fetchInProgress = false;
 
         async function fetchLiveData() {
@@ -658,8 +713,8 @@
             const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
             const results = await Promise.allSettled([
-                fetchYahooPrice(YAHOO_SYMBOLS.nifty),
-                fetchYahooPrice(YAHOO_SYMBOLS.vix),
+                fetchNiftyPrice(),
+                fetchVixPrice(),
                 fetchYahooPrice(YAHOO_SYMBOLS.midcp)
             ]);
 
