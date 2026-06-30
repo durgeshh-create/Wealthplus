@@ -4041,7 +4041,16 @@ const SCN_N200   = ["360ONE", "ABB", "ABCAPITAL", "ADANIENSOL", "ADANIENT", "ADA
 const SCN_MID150 = ["360ONE", "3MINDIA", "ACC", "AIAENG", "APLAPOLLO", "AUBANK", "AWL", "ABBOTINDIA", "ATGL", "ABCAPITAL", "AJANTPHARM", "ALKEM", "ANTHEM", "APARINDS", "APOLLOTYRE", "ASHOKLEY", "ASTRAL", "AUROPHARMA", "AIIL", "BSE", "BAJAJHFL", "BALKRISIND", "BANKINDIA", "MAHABANK", "BERGEPAINT", "BDL", "BHARATFORG", "BHEL", "BHARTIHEXA", "GROWW", "BIOCON", "BLUESTARCO", "CRISIL", "COCHINSHIP", "COFORGE", "COLPAL", "CONCOR", "COROMANDEL", "DABUR", "DALBHARAT", "DIXON", "ENDURANCE", "ESCORTS", "EXIDEIND", "NYKAA", "FEDERALBNK", "FORTIS", "GVT&D", "GMRAIRPORT", "GICRE", "GLAXO", "GLENMARK", "MEDANTA", "GODFRYPHLP", "GODREJIND", "GODREJPROP", "FLUOROCHEM", "HDBFS", "HAVELLS", "HEROMOTOCO", "HEXT", "HINDPETRO", "POWERINDIA", "HONAUT", "HUDCO", "ICICIGI", "ICICIAMC", "ICICIPRULI", "IDFCFIRSTB", "ITCHOTELS", "INDIANB", "IRCTC", "IREDA", "INDUSTOWER", "INDUSINDBK", "NAUKRI", "IPCALAB", "JKCEMENT", "JSWENERGY", "JSWINFRA", "JSL", "JUBLFOOD", "KPRMILL", "KEI", "KPITTECH", "KALYANKJIL", "LTF", "LTTS", "LGEINDIA", "LICHSGFIN", "LAURUSLABS", "LENSKART", "LICI", "LINDEINDIA", "LLOYDSME", "LUPIN", "MRF", "M&MFIN", "MANKIND", "MARICO", "MFSL", "MOTILALOFS", "MPHASIS", "MCX", "NHPC", "NLCINDIA", "NMDC", "NTPCGREEN", "NATIONALUM", "NAM-INDIA", "OBEROIRLTY", "OIL", "PAYTM", "OFSS", "POLICYBZR", "PIIND", "PAGEIND", "PATANJALI", "PERSISTENT", "PETRONET", "PHOENIXLTD", "POLYCAB", "PREMIERENE", "PRESTIGE", "RADICO", "RVNL", "SBICARD", "SJVN", "SRF", "SCHAEFFLER", "SAIL", "SUNDARMFIN", "SUPREMEIND", "SUZLON", "SWIGGY", "TATACOMM", "TATAELXSI", "TATAINVEST", "NIACL", "THERMAX", "TORNTPOWER", "TIINDIA", "UNOMINDA", "UPL", "UBL", "VMM", "IDEA", "VOLTAS", "WAAREEENER", "YESBANK"];
 // FIX: was hardcoded to RD1858 — use current account so PS5673 fetches its own CSVs
 function getRepoRaw() {
-  return `https://raw.githubusercontent.com/durgeshh-create/Wealthplus/main/${account}/data`;
+  // The Scanner's CSV universe (~575 ETF/NIFTY200/Midcap150 symbols) is
+  // deliberately a SINGLE shared store under RD1858/data/daily — see the
+  // "Always use RD1858/data/daily as the shared CSV store" comment in
+  // seed_csvs.py. PS5673 never gets its own copy of this universe; the
+  // seed-scanner.yml workflow only seeds RD1858. Using the selected
+  // account tab here (PS5673 by default) silently 404s on every single
+  // symbol, since that folder simply doesn't have a data/daily directory
+  // at all. Always read from RD1858 regardless of which account tab is
+  // currently active.
+  return `https://raw.githubusercontent.com/durgeshh-create/Wealthplus/main/RD1858/data`;
 }
 
 let _scnRows    = [];
