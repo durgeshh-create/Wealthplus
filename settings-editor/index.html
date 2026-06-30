@@ -2892,7 +2892,7 @@ function render(data) {
           <div class="sym" style="font-size:12px;white-space:normal;max-width:none">${h.name}</div>
           ${h.folio ? `<div style="font-size:10px;color:var(--muted)">Folio ${h.folio} &nbsp;·&nbsp; ${h.units} units @ ₹${h.avg_nav}${h.pledged_units > 0 ? ` &nbsp;<span title="Pledged as collateral">(P: ${h.pledged_units})</span>` : ''}</div>` : ""}
         </td>
-        <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.cur_val)}">${fmtL(h.cur_val)}${navAsOf}</td>
+        <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.cur_val)}">${fmtL(h.cur_val)}</td>
         <td style="text-align:right;padding-right:14px;font-size:12px" class="${pc}" title="${fmtRupee(h.pnl)}">${h.pnl>=0?'+':''}${fmtL(h.pnl)}<div style="font-size:10px">${(h.pnl_pct??0)>=0?'+':''}${(h.pnl_pct??0).toFixed(2)}%</div></td>
       </tr>`;
     }).join("") : `<tr><td colspan="3" class="empty" style="padding:18px">Mutual fund data not yet available — will populate on next bot snapshot</td></tr>`;
@@ -3014,8 +3014,10 @@ function render(data) {
   if (pnlLabelEl) pnlLabelEl.textContent = (data.bot_running !== false) ? "Today's P&L" : "Last Session P&L";
   const pnlDisplay = (pnl >= 0 ? "+" : "") + fmtL(Math.abs(pnl) < 0.01 ? 0 : pnl)
     + (Math.abs(pnlPct) >= 0.001 ? "  " + fmtPct(pnlPct) : "");
-  pnlInline.textContent = pnlDisplay;
-  pnlInline.className   = pnl > 0 ? "pos" : pnl < 0 ? "neg" : "";
+  if (pnlInline) {
+    pnlInline.textContent = pnlDisplay;
+    pnlInline.className   = pnl > 0 ? "pos" : pnl < 0 ? "neg" : "";
+  }
   const trb = document.getElementById("tr-body");
   if(trb) trb.innerHTML = trades.length ? trades.map(t => {
     const ok  = t.status === "COMPLETE";
