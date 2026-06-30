@@ -179,9 +179,12 @@
                 <div class="subtitle">Range-based strikes for next expiry</div>
                 <div id="marketStatus" class="market-status market-closed">Market Closed</div>
             </div>
-            <button class="fetch-btn" id="refreshBtn" onclick="fetchLiveData()">
-                Fetch Live Data
-            </button>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+                <button class="fetch-btn" id="refreshBtn" onclick="fetchLiveData()">
+                    Fetch Live Data
+                </button>
+                <span id="fetchStatus" style="font-size:0.55rem; color:#94a3b8;"></span>
+            </div>
         </div>
 
         <div class="info-bar">
@@ -210,15 +213,15 @@
         <div class="manual-inputs" id="manualInputs">
             <div class="input-card">
                 <label>NIFTY 50</label>
-                <input type="number" id="manualNifty" value="23945" step="0.05">
+                <input type="number" id="manualNifty" value="23945" step="0.05" onchange="calculateRange()">
             </div>
             <div class="input-card">
                 <label>India VIX</label>
-                <input type="number" id="manualVix" value="13.61" step="0.01">
+                <input type="number" id="manualVix" value="13.61" step="0.01" onchange="calculateRange()">
             </div>
             <div class="input-card">
                 <label>MIDCPNIFTY</label>
-                <input type="number" id="manualMidcp" value="14367" step="0.05">
+                <input type="number" id="manualMidcp" value="14367" step="0.05" onchange="calculateRange()">
             </div>
         </div>
 
@@ -264,7 +267,7 @@
                 </div>
                 <div class="symbol-display">
                     <div class="symbol-code call" id="callSymbol">
-                        <span id="callSymbolText">NIFTY267025800CE</span>
+                        <span id="callSymbolText">NIFTY2670725800CE</span>
                         <button class="copy-btn" onclick="copyToClipboard('callSymbolText', this)">Copy</button>
                     </div>
                 </div>
@@ -288,7 +291,7 @@
                 </div>
                 <div class="symbol-display">
                     <div class="symbol-code expiry" id="expiryPutSymbol">
-                        <span id="expiryPutSymbolText">NIFTY2663023200PE</span>
+                        <span id="expiryPutSymbolText">NIFTY26JUN23200PE</span>
                         <button class="copy-btn" onclick="copyToClipboard('expiryPutSymbolText', this)">Copy</button>
                     </div>
                 </div>
@@ -301,7 +304,7 @@
                 </div>
                 <div class="symbol-display">
                     <div class="symbol-code expiry" id="expiryCallSymbol">
-                        <span id="expiryCallSymbolText">NIFTY2663024700CE</span>
+                        <span id="expiryCallSymbolText">NIFTY26JUN24700CE</span>
                         <button class="copy-btn" onclick="copyToClipboard('expiryCallSymbolText', this)">Copy</button>
                     </div>
                 </div>
@@ -346,7 +349,7 @@
         </div>
 
         <div class="note">
-            Mon/Tue = next week expiry. Wed-Fri = current week. NIFTY: FLOOR/CEILING(100). MIDCPNIFTY: FLOOR/CEILING(25). Weekly: [YY][M][DD]. Monthly: [YY][Month].
+            <strong>How to use:</strong> Live NIFTY/VIX/MIDCP prices auto-refresh every 10 seconds via Yahoo Finance. Click <strong>Fetch Live Data</strong> to refresh immediately, or expand <strong>Edit NIFTY/VIX/MIDCP</strong> to override manually. Mon/Tue = next week expiry. Wed-Fri = current week. NIFTY: FLOOR/CEILING(100). MIDCPNIFTY: FLOOR/CEILING(25). Weekly: [YY][M][DD]. Monthly: [YY][Month].
         </div>
     </div>
 
@@ -360,35 +363,67 @@
         let currentNifty = 23945, currentVix = 13.61, currentMidcp = 14367;
 
         function copyToClipboard(elementId, btn) {
-            const text = document.getElementById(elementId).textContent;
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(() => {
-                    btn.textContent = 'Copied!';
-                    btn.classList.add('copied');
-                    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
-                }).catch(() => fallbackCopy(text, btn));
+            const text = document.getElementById(elementId).textContent.trim();
+
+            // Method 1: Try modern Clipboard API
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showCopied(btn);
+                }).catch(function() {
+                    fallbackCopy(text, btn);
+                });
             } else {
                 fallbackCopy(text, btn);
             }
         }
 
         function fallbackCopy(text, btn) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
+            // Method 2: Use selection + execCommand
+            const range = document.createRange();
+            const selection = window.getSelection();
+
+            // Create a temporary element
+            const tempEl = document.createElement('span');
+            tempEl.textContent = text;
+            tempEl.style.position = 'absolute';
+            tempEl.style.left = '-9999px';
+            document.body.appendChild(tempEl);
+
+            range.selectNodeContents(tempEl);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
             try {
-                document.execCommand('copy');
-                btn.textContent = 'Copied!';
-                btn.classList.add('copied');
-                setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+                const success = document.execCommand('copy');
+                if (success) {
+                    showCopied(btn);
+                } else {
+                    showFailed(btn);
+                }
             } catch (e) {
-                btn.textContent = 'Failed';
-                setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+                showFailed(btn);
             }
-            document.body.removeChild(textarea);
+
+            selection.removeAllRanges();
+            document.body.removeChild(tempEl);
+        }
+
+        function showCopied(btn) {
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(function() {
+                btn.textContent = originalText;
+                btn.classList.remove('copied');
+            }, 1500);
+        }
+
+        function showFailed(btn) {
+            const originalText = btn.textContent;
+            btn.textContent = 'Failed';
+            setTimeout(function() {
+                btn.textContent = originalText;
+            }, 1500);
         }
 
         function formatDDMMYYYY(date) {
@@ -530,7 +565,7 @@
             const isTodayNiftyExpiry = (dayOfWeek === 2);
             document.getElementById('niftyExpiryBanner').textContent = isTodayNiftyExpiry 
                 ? 'Today is NIFTY Expiry Day! Intraday strikes with divisor 23,000.'
-                : 'NIFTY intraday strikes for today's expiry using divisor 23,000.';
+                : "NIFTY intraday strikes for today's expiry using divisor 23,000.";
 
             // MIDCPNIFTY Expiry Day Intraday
             const midcpExpiryDayRange = midcp * Math.sqrt((vix * 1.5) / MIDCP_EXPIRY_DAY_DIVISOR);
@@ -548,56 +583,123 @@
             document.getElementById('midcpCallStrike').textContent = midcpExpiryCallStrike.toLocaleString();
         }
 
+        // NSE's own API rejects cross-origin browser requests (no CORS headers),
+        // so it can't be called directly from a static GitHub Pages site. Yahoo
+        // Finance's quote endpoint is used instead, routed through a public CORS
+        // proxy. All three prices are fetched in ONE batched request (not three)
+        // to stay well under free-tier rate limits at a 10-second refresh rate.
+        //
+        // Proxy order matters: corsproxy.io's free tier only allows a fixed
+        // allowlist of origins (localhost, *.github.io, CodePen, Replit, etc.)
+        // and silently fails for anything else (e.g. a custom domain on GitHub
+        // Pages). So it's listed LAST as a fallback; the primary proxies have
+        // no such origin restriction.
+
+        const YAHOO_SYMBOLS = '%5ENSEI,%5EINDIAVIX,NIFTY_MID_SELECT.NS'; // NIFTY 50, INDIA VIX, NIFTY MID SELECT
+
+        const CORS_PROXIES = [
+            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+            (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`
+        ];
+
+        async function fetchWithTimeout(url, ms) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), ms);
+            try {
+                return await fetch(url, { cache: 'no-store', signal: controller.signal });
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        async function fetchYahooQuotes() {
+            const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${YAHOO_SYMBOLS}&fields=regularMarketPrice,symbol`;
+            let lastError = null;
+
+            for (const buildProxyUrl of CORS_PROXIES) {
+                try {
+                    const proxyUrl = buildProxyUrl(yahooUrl);
+                    const res = await fetchWithTimeout(proxyUrl, 8000);
+                    if (!res.ok) { lastError = new Error('HTTP ' + res.status); continue; }
+                    const data = await res.json();
+                    const list = data && data.quoteResponse && data.quoteResponse.result;
+                    if (!Array.isArray(list) || list.length === 0) {
+                        lastError = new Error('No quotes in response');
+                        continue;
+                    }
+                    const prices = {};
+                    for (const q of list) {
+                        if (q && q.symbol && typeof q.regularMarketPrice === 'number') {
+                            prices[q.symbol] = q.regularMarketPrice;
+                        }
+                    }
+                    if (Object.keys(prices).length > 0) {
+                        return prices;
+                    }
+                    lastError = new Error('No prices parsed');
+                } catch (err) {
+                    lastError = err;
+                }
+            }
+            throw lastError || new Error('All proxies failed');
+        }
+
+        let fetchInProgress = false;
+
         async function fetchLiveData() {
+            if (fetchInProgress) return;
+            fetchInProgress = true;
+
             const btn = document.getElementById('refreshBtn');
+            const statusEl = document.getElementById('fetchStatus');
             btn.disabled = true;
             btn.innerHTML = 'Fetching... <span class="loading"></span>';
 
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
             try {
-                const niftyResponse = await fetch('https://www.nseindia.com/api/quoteIndices?index=NIFTY%2050', {
-                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-                }).catch(() => null);
+                const prices = await fetchYahooQuotes();
+                let successCount = 0;
 
-                const vixResponse = await fetch('https://www.nseindia.com/api/quoteIndices?index=INDIA%20VIX', {
-                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-                }).catch(() => null);
-
-                const midcpResponse = await fetch('https://www.nseindia.com/api/quoteIndices?index=NIFTY%20MID%20SELECT', {
-                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-                }).catch(() => null);
-
-                if (niftyResponse && niftyResponse.ok) {
-                    const niftyData = await niftyResponse.json();
-                    if (niftyData && niftyData.price) {
-                        currentNifty = parseFloat(niftyData.price);
-                        document.getElementById('manualNifty').value = currentNifty;
-                    }
+                if (typeof prices['^NSEI'] === 'number') {
+                    currentNifty = prices['^NSEI'];
+                    document.getElementById('manualNifty').value = currentNifty;
+                    successCount++;
                 }
-
-                if (vixResponse && vixResponse.ok) {
-                    const vixData = await vixResponse.json();
-                    if (vixData && vixData.price) {
-                        currentVix = parseFloat(vixData.price);
-                        document.getElementById('manualVix').value = currentVix;
-                    }
+                if (typeof prices['^INDIAVIX'] === 'number') {
+                    currentVix = prices['^INDIAVIX'];
+                    document.getElementById('manualVix').value = currentVix;
+                    successCount++;
                 }
-
-                if (midcpResponse && midcpResponse.ok) {
-                    const midcpData = await midcpResponse.json();
-                    if (midcpData && midcpData.price) {
-                        currentMidcp = parseFloat(midcpData.price);
-                        document.getElementById('manualMidcp').value = currentMidcp;
-                    }
+                if (typeof prices['NIFTY_MID_SELECT.NS'] === 'number') {
+                    currentMidcp = prices['NIFTY_MID_SELECT.NS'];
+                    document.getElementById('manualMidcp').value = currentMidcp;
+                    successCount++;
                 }
 
                 calculateRange();
 
-            } catch (error) {
-                console.error('Error:', error);
+                if (successCount === 3) {
+                    statusEl.textContent = `Updated ${timeStr}`;
+                    statusEl.style.color = '#4ade80';
+                } else if (successCount > 0) {
+                    statusEl.textContent = `Partial update ${timeStr} (${successCount}/3)`;
+                    statusEl.style.color = '#fbbf24';
+                } else {
+                    statusEl.textContent = `Fetch failed — using manual values`;
+                    statusEl.style.color = '#f87171';
+                }
+            } catch (err) {
                 calculateRange();
+                statusEl.textContent = `Fetch failed (${timeStr}) — using manual values`;
+                statusEl.style.color = '#f87171';
+                console.error('Live data fetch error:', err);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Fetch Live Data';
+                fetchInProgress = false;
             }
         }
 
@@ -625,12 +727,12 @@
         // Run immediately on load
         checkMarketStatus();
         calculateRange();
+        fetchLiveData();
 
         setInterval(() => {
             checkMarketStatus();
-            const status = document.getElementById('marketStatus').textContent;
-            if (status === 'Market Open') fetchLiveData();
-        }, 30000);
+            fetchLiveData();
+        }, 10000);
     </script>
 </body>
 </html>
