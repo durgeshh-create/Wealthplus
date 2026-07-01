@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Mutual Fund/ETF Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1538 100%);
+            min-height: 100vh;
+            padding: 30px 15px;
+            color: #e0e0e0;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        .subtitle {
+            text-align: center;
+            color: #8892b0;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+        .last-updated {
+            text-align: center;
+            color: #64ffda;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            color: #00d4ff;
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: rgba(0, 212, 255, 0.25);
+            transform: translateY(-1px);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .status {
+            text-align: center;
+            color: #ffd700;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            min-height: 20px;
+        }
+        .progress-bar {
+            width: 100%;
+            max-width: 400px;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin: 0 auto 20px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar.active { display: block; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #64ffda);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .table-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            background: rgba(0, 212, 255, 0.1);
+        }
+        th {
+            padding: 16px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #00d4ff;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover { background: rgba(0, 212, 255, 0.15); }
+        th:nth-child(1) { width: 32%; }
+        th:nth-child(2) { width: 14%; }
+        th:nth-child(3) { width: 14%; }
+        th:nth-child(4) { width: 14%; }
+        th:nth-child(5) { width: 12%; }
+        th:nth-child(6) { width: 14%; }
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .fund-name {
+            font-weight: 600;
+            color: #fff;
+        }
+        .fund-type {
+            font-size: 0.75rem;
+            color: #8892b0;
+            margin-top: 3px;
+        }
+        .ytm-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #64ffda;
+        }
+        .ytm-loading {
+            color: #ffd700;
+            font-size: 0.85rem;
+            animation: pulse 1.5s infinite;
+        }
+        .ytm-error {
+            color: #ff6b6b;
+            font-size: 0.85rem;
+        }
+        .ytm-na {
+            color: #8892b0;
+            font-size: 0.85rem;
+        }
+        .expense-ratio {
+            color: #ffd700;
+            font-weight: 600;
+        }
+        .nav-value {
+            color: #a8b2d1;
+        }
+        .ticker-link {
+            color: #00d4ff;
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .ticker-link:hover {
+            background: rgba(0, 212, 255, 0.15);
+        }
+        .retry-btn {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid rgba(255, 107, 107, 0.4);
+            color: #ff6b6b;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-left: 8px;
+        }
+        .retry-btn:hover { background: rgba(255, 107, 107, 0.3); }
+        .cached-badge {
+            font-size: 0.7rem;
+            color: #8892b0;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #8892b0;
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+        .footer a { color: #00d4ff; text-decoration: none; }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 36px 0 14px;
+        }
+        .section-title:first-of-type { margin-top: 0; }
+        .section-title h2 {
+            font-size: 1.3rem;
+            color: #00d4ff;
+            white-space: nowrap;
+        }
+        .section-title .line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(0,212,255,0.4), rgba(0,212,255,0));
+        }
+        .section-title .badge {
+            font-size: 0.7rem;
+            color: #8892b0;
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 3px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .equity-th-name { width: 42%; }
+        .equity-th-spark { width: 26%; }
+        .equity-th-dma { width: 20%; }
+        .equity-th-action { width: 12%; }
+        .sparkline-wrap { display: flex; align-items: center; }
+        .sparkline-wrap svg { display: block; }
+        .dma-pos { color: #64ffda; font-weight: 700; font-size: 1.05rem; }
+        .dma-neg { color: #ff6b6b; font-weight: 700; font-size: 1.05rem; }
+        .dma-sub { color: #8892b0; font-size: 0.72rem; margin-top: 2px; }
+        .note-box {
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            color: #ffd700;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            h1 { font-size: 1.5rem; }
+            th, td { padding: 10px 8px; font-size: 0.8rem; }
+            .ytm-value { font-size: 1.1rem; }
+            .ticker-link { padding: 3px 6px; font-size: 0.7rem; }
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <div class="container">
+        <h1>Portfolio Mutual Fund/ETF Dashboard</h1>
+        <p class="subtitle">Live Yield-to-Maturity data from TickerTape</p>
+        <p class="last-updated" id="lastUpdated">Last updated: Never</p>
+
+        <div class="note-box" id="noteBox">
+            Data is cached in your browser. Click "Refresh All YTM" to fetch latest data from TickerTape.
+        </div>
+
+        <div class="section-title">
+            <h2>Debt Funds</h2>
+            <div class="line"></div>
+            <span class="badge">YTM · Expense Ratio · NAV · 3Y CAGR</span>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="refreshBtn" onclick="refreshAll()">Refresh All YTM</button>
+            <button class="btn" onclick="sortByYTM()">Sort by YTM</button>
+            <button class="btn" onclick="sortByName()">Sort by Name</button>
+            <button class="btn" onclick="clearCache()" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.3);color:#ff6b6b;">Clear Cache</button>
+        </div>
+
+        <div class="status" id="status"></div>
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortByName()">Fund Name ↕</th>
+                        <th onclick="sortByYTM()">YTM (%) ↕</th>
+                        <th>Expense Ratio</th>
+                        <th>NAV</th>
+                        <th>3Y CAGR</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="fundTable">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-title">
+            <h2>Equity</h2>
+            <div class="line"></div>
+            <span class="badge">10D Sparkline · % vs 20DMA</span>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="equityRefreshBtn" onclick="refreshAllEquity()">Refresh Equity</button>
+        </div>
+
+        <div class="status" id="equityStatus"></div>
+        <div class="progress-bar" id="equityProgressBar">
+            <div class="progress-fill" id="equityProgressFill"></div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="equity-th-name">Fund / ETF Name</th>
+                        <th class="equity-th-spark">10D Sparkline</th>
+                        <th class="equity-th-dma">% vs 20DMA</th>
+                        <th class="equity-th-action">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="equityTable">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>Debt fund data sourced from <a href="https://www.tickertape.in" target="_blank">TickerTape</a> | Equity data sourced from <a href="https://www.mfapi.in" target="_blank">MFapi.in</a> &amp; Yahoo Finance</p>
+            <p>YTM = Fund Yield to Maturity (Direct Plan) | 3Y CAGR = 3-Year Compounded Annual Growth Rate | 20DMA = 20-Day Moving Average</p>
+            <p style="margin-top:6px; color:#666;">Hosted on GitHub Pages | Uses free proxy services with automatic fallback</p>
+        </div>
+    </div>
+
+    <script>
+        // Fund configuration
+        const funds = [
+            { name: "HDFC Money Market", type: "Money Market", slug: "hdfc-money-market-fund-M_HDYK", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/hdfc-money-market-fund-M_HDYK" },
+            { name: "Kotak Low Duration", type: "Low Duration", slug: "kotak-low-duration-fund-M_KOOW", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/kotak-low-duration-fund-M_KOOW" },
+            { name: "ABSL Money Manager", type: "Money Manager", slug: "aditya-birla-sl-money-manager-fund-M_ADTMG", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-money-manager-fund-M_ADTMG" },
+            { name: "ABSL Savings", type: "Savings", slug: "aditya-birla-sl-savings-fund-M_ADTVA", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-savings-fund-M_ADTVA" },
+            { name: "ABSL Low Duration", type: "Low Duration", slug: "aditya-birla-sl-low-duration-fund-M_ADIWA", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-low-duration-fund-M_ADIWA" },
+            { name: "Tata Money Market", type: "Money Market", slug: "tata-money-market-fund-M_TAON", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/tata-money-market-fund-M_TAON" },
+            { name: "ABSL Short Term", type: "Short Term", slug: "aditya-birla-sl-short-term-fund-M_ADTHO", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-short-term-fund-M_ADTHO" },
+            { name: "ABSL Floating Rate", type: "Floating Rate", slug: "aditya-birla-sl-floating-rate-fund-M_ADTOS", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-floating-rate-fund-M_ADTOS" },
+            { name: "Axis Treasury Adv", type: "Treasury Advantage", slug: "axis-treasury-advantage-fund-M_AXAD", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/axis-treasury-advantage-fund-M_AXAD" },
+            { name: "NIPPON INDIA ULTRA SHORT", type: "Ultra Short Duration", slug: "nippon-india-ultra-short-duration-fund-M_NILS", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/nippon-india-ultra-short-duration-fund-M_NILS" },
+            { name: "Axis Short Term", type: "Short Duration", slug: "axis-short-duration-fund-M_AXOU", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/axis-short-duration-fund-M_AXOU" }
+        ];
+
+        const corsProxies = [
+            { url: "https://corsproxy.io/?", name: "corsproxy" },
+            { url: "https://api.allorigins.win/raw?url=", name: "allorigins" },
+            { url: "https://api.codetabs.com/v1/proxy?quest=", name: "codetabs" },
+            { url: "https://thingproxy.freeboard.io/fetch/", name: "thingproxy" }
+        ];
+
+        let currentSort = 'name';
+        let isRefreshing = false;
+        const CACHE_KEY = 'mf_ytm_cache_v2';
+        const CACHE_TIME_KEY = 'mf_ytm_cache_time_v2';
+
+        function loadCache() {
+            try {
+                const cached = localStorage.getItem(CACHE_KEY);
+                const cacheTime = localStorage.getItem(CACHE_TIME_KEY);
+
+                if (cached && cacheTime) {
+                    const age = Date.now() - parseInt(cacheTime);
+                    const cachedData = JSON.parse(cached);
+
+                    funds.forEach(fund => {
+                        const cachedFund = cachedData.find(c => c.slug === fund.slug);
+                        if (cachedFund && cachedFund.ytm && cachedFund.ytm !== 'error') {
+                            fund.ytm = cachedFund.ytm;
+                            fund.exp = cachedFund.exp;
+                            fund.nav = cachedFund.nav;
+                            fund.ret3y = cachedFund.ret3y;
+                        }
+                    });
+
+                    const cacheAgeText = age < 60000 ? 'just now' : 
+                                        age < 3600000 ? Math.floor(age/60000) + ' min ago' :
+                                        Math.floor(age/3600000) + ' hours ago';
+
+                    document.getElementById('lastUpdated').textContent = 
+                        `Last updated: ${cacheAgeText} (cached)`;
+                    document.getElementById('noteBox').textContent = 
+                        `Showing cached data from ${cacheAgeText}. Click "Refresh All YTM" to update.`;
+
+                    renderTable();
+                    return true;
+                }
+            } catch (e) {
+                console.error('Cache load error:', e);
+            }
+            return false;
+        }
+
+        function saveCache() {
+            try {
+                const dataToCache = funds.map(f => ({
+                    slug: f.slug,
+                    ytm: f.ytm,
+                    exp: f.exp,
+                    nav: f.nav,
+                    ret3y: f.ret3y
+                }));
+                localStorage.setItem(CACHE_KEY, JSON.stringify(dataToCache));
+                localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+            } catch (e) {
+                console.error('Cache save error:', e);
+            }
+        }
+
+        function clearCache() {
+            localStorage.removeItem(CACHE_KEY);
+            localStorage.removeItem(CACHE_TIME_KEY);
+            // Also clear old cache keys
+            localStorage.removeItem('mf_ytm_cache');
+            localStorage.removeItem('mf_ytm_cache_time');
+            funds.forEach(f => { f.ytm = null; f.exp = null; f.nav = null; f.ret3y = null; });
+            renderTable();
+            document.getElementById('lastUpdated').textContent = 'Cache cleared';
+            document.getElementById('noteBox').textContent = 'Cache cleared. Click "Refresh All YTM" to fetch fresh data.';
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('fundTable');
+            tbody.innerHTML = '';
+
+            funds.forEach((fund, index) => {
+                const row = document.createElement('tr');
+
+                const ytmDisplay = getValueDisplay(fund.ytm, 'ytm');
+                const expDisplay = fund.exp ? `<span class="expense-ratio">${fund.exp}%</span>` : '<span class="ytm-na">-</span>';
+                const navDisplay = fund.nav ? `<span class="nav-value">₹${fund.nav}</span>` : '<span class="ytm-na">-</span>';
+                const retDisplay = fund.ret3y ? `<span style="color:#64ffda">${fund.ret3y}%</span>` : '<span class="ytm-na">-</span>';
+
+                const isCached = fund.ytm && fund.ytm !== 'error' && fund.ytm !== 'na' && fund.ytm !== null;
+
+                row.innerHTML = `
+                    <td>
+                        <div class="fund-name">${fund.name}</div>
+                        <div class="fund-type">${fund.type}</div>
+                    </td>
+                    <td>${ytmDisplay}${isCached ? '<span class="cached-badge">●</span>' : ''}</td>
+                    <td>${expDisplay}</td>
+                    <td>${navDisplay}</td>
+                    <td>${retDisplay}</td>
+                    <td>
+                        <a href="${fund.url}" target="_blank" class="ticker-link">View</a>
+                        ${fund.ytm === 'error' ? `<button class="retry-btn" onclick="refreshSingle(${index})">Retry</button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function getValueDisplay(value, type) {
+            if (value === null || value === undefined) {
+                return '<span class="ytm-loading">Loading...</span>';
+            }
+            if (value === 'error') {
+                return '<span class="ytm-error">Failed</span>';
+            }
+            if (value === 'na') {
+                return '<span class="ytm-na">N/A</span>';
+            }
+            if (type === 'ytm') {
+                return `<span class="ytm-value">${value}%</span>`;
+            }
+            return value;
+        }
+
+        async function fetchWithProxy(url, proxyIndex = 0) {
+            if (proxyIndex >= corsProxies.length) {
+                throw new Error('All CORS proxies exhausted');
+            }
+
+            const proxy = corsProxies[proxyIndex];
+            const proxyUrl = proxy.url + encodeURIComponent(url);
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 25000);
+
+                const response = await fetch(proxyUrl, { 
+                    signal: controller.signal,
+                    headers: { 
+                        'Accept': 'text/html,application/xhtml+xml',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    }
+                });
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const text = await response.text();
+                if (!text || text.length < 100) {
+                    throw new Error('Empty response');
+                }
+
+                return text;
+            } catch (err) {
+                console.warn(`Proxy ${proxy.name} failed:`, err.message);
+                return fetchWithProxy(url, proxyIndex + 1);
+            }
+        }
+
+        function extractMetrics(html, fundName) {
+            const result = { ytm: 'na', exp: null, nav: null, ret3y: null };
+
+            try {
+                // === METHOD 1: Parse __NEXT_DATA__ JSON ===
+                const nextDataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i);
+                if (nextDataMatch) {
+                    try {
+                        const data = JSON.parse(nextDataMatch[1]);
+                        const pageProps = data?.props?.pageProps;
+
+                        if (pageProps) {
+                            const summary = pageProps.securitySummary || pageProps.fundSummary || pageProps;
+
+                            const ytmPaths = ['ytm', 'averageYtm', 'fundYtm', 'portfolioYtm', 'yieldToMaturity'];
+                            for (const path of ytmPaths) {
+                                if (summary[path] !== undefined && summary[path] !== null) {
+                                    const val = parseFloat(summary[path]);
+                                    if (val >= 5 && val <= 12) {
+                                        result.ytm = val;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (summary.expenseRatio !== undefined) result.exp = parseFloat(summary.expenseRatio);
+                            if (summary.directExpenseRatio !== undefined) result.exp = parseFloat(summary.directExpenseRatio);
+                            if (summary.nav !== undefined) result.nav = parseFloat(summary.nav);
+                            if (summary.latestNav !== undefined) result.nav = parseFloat(summary.latestNav);
+
+                            // Extract 3Y returns from JSON
+                            if (summary.returns?.threeYear !== undefined) result.ret3y = parseFloat(summary.returns.threeYear);
+                            if (summary.returns?.threeY !== undefined) result.ret3y = parseFloat(summary.returns.threeY);
+                            if (summary.return3Y !== undefined) result.ret3y = parseFloat(summary.return3Y);
+                            if (summary.cagr3Y !== undefined) result.ret3y = parseFloat(summary.cagr3Y);
+                            if (summary.cagr3y !== undefined) result.ret3y = parseFloat(summary.cagr3y);
+                        }
+                    } catch (e) {}
+                }
+
+                // === METHOD 2: Parse Performance & Key Metrics table ===
+                if (result.ytm === 'na' || isNaN(result.ytm)) {
+                    const tableRegex = /<table[^>]*>([\s\S]*?)<\/table>/gi;
+                    const tables = [];
+                    let m;
+                    while ((m = tableRegex.exec(html)) !== null) {
+                        tables.push(m[1]);
+                    }
+
+                    for (const tableHtml of tables) {
+                        if (tableHtml.includes('Expense Ratio') || tableHtml.includes('expense')) {
+                            const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+                            const rows = [];
+                            let rm;
+                            while ((rm = rowRegex.exec(tableHtml)) !== null) {
+                                rows.push(rm[1]);
+                            }
+
+                            let foundHeader = false;
+                            for (const row of rows) {
+                                if (row.includes('Expense Ratio') || row.includes('expense')) {
+                                    foundHeader = true;
+                                    continue;
+                                }
+
+                                if (foundHeader) {
+                                    const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+                                    const cells = [];
+                                    let cm;
+                                    while ((cm = cellRegex.exec(row)) !== null) {
+                                        cells.push(cm[1].replace(/<[^>]+>/g, '').trim());
+                                    }
+
+                                    if (cells.length >= 3) {
+                                        try {
+                                            const expVal = parseFloat(cells[0]);
+                                            const ytmVal = parseFloat(cells[1]);
+                                            const sharpeVal = parseFloat(cells[2]);
+
+                                            if (expVal >= 0 && expVal < 2 && 
+                                                ytmVal >= 5 && ytmVal <= 12 &&
+                                                sharpeVal >= 0 && sharpeVal <= 20) {
+                                                result.ytm = ytmVal;
+                                                result.exp = expVal;
+                                                break;
+                                            }
+                                        } catch (e) {}
+                                    }
+
+                                    foundHeader = false;
+                                }
+                            }
+
+                            if (result.ytm !== 'na' && !isNaN(result.ytm)) break;
+                        }
+                    }
+                }
+
+                // === METHOD 3: Markdown-style tables ===
+                if (result.ytm === 'na' || isNaN(result.ytm)) {
+                    const lines = html.split('\n');
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (line.includes('Expense Ratio') && !line.includes('---')) {
+                            for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+                                const dataLine = lines[j].trim();
+                                if (dataLine.startsWith('|') && !dataLine.includes('---') && dataLine.length > 5) {
+                                    const parts = dataLine.split('|').map(p => p.trim()).filter(p => p.length > 0);
+                                    if (parts.length >= 3) {
+                                        try {
+                                            const expVal = parseFloat(parts[0]);
+                                            const ytmVal = parseFloat(parts[1]);
+                                            const sharpeVal = parseFloat(parts[2]);
+
+                                            if (expVal >= 0 && expVal < 2 && 
+                                                ytmVal >= 5 && ytmVal <= 12 && 
+                                                sharpeVal >= 0 && sharpeVal <= 20) {
+                                                result.ytm = ytmVal;
+                                                result.exp = expVal;
+                                                break;
+                                            }
+                                        } catch (e) {}
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        if (result.ytm !== 'na' && !isNaN(result.ytm)) break;
+                    }
+                }
+
+                // === METHOD 4: Extract 3Y CAGR from Peers & Comparison table ===
+                // The XPath is: /html/body/div[1]/div[3]/div/div/div[2]/section[2]/div[2]/div[2]/div/table/tbody/tr[1]/td[3]
+                // This is in the "Peers & Comparison" section, first data row, 3rd column
+                if (!result.ret3y) {
+                    // Look for "Peers & Comparison" or "Comparison" section
+                    const comparisonMatch = html.match(/Peers\s*&\s*Comparison([\s\S]{0,3000})/i);
+                    if (comparisonMatch) {
+                        const section = comparisonMatch[1];
+
+                        // Find the first table in this section
+                        const tableMatch = section.match(/<table[^>]*>([\s\S]*?)<\/table>/i);
+                        if (tableMatch) {
+                            const tableHtml = tableMatch[1];
+
+                            // Find the first data row (skip header rows)
+                            const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+                            const rows = [];
+                            let rm;
+                            while ((rm = rowRegex.exec(tableHtml)) !== null) {
+                                rows.push(rm[1]);
+                            }
+
+                            // Skip header rows (rows containing th or "Mutual Fund" or "1Y Returns")
+                            let dataRow = null;
+                            for (const row of rows) {
+                                if (!row.includes('<th') && !row.includes('Mutual Fund') && !row.includes('1Y Returns') && !row.includes('3Y CAGR')) {
+                                    // Check if this row has the fund name
+                                    if (row.includes(fundName.split(' ')[0]) || row.includes('Fund')) {
+                                        dataRow = row;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            // If no specific match, take the first non-header row
+                            if (!dataRow) {
+                                for (const row of rows) {
+                                    if (!row.includes('<th') && !row.includes('Mutual Fund') && !row.includes('1Y Returns') && !row.includes('3Y CAGR')) {
+                                        dataRow = row;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (dataRow) {
+                                const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+                                const cells = [];
+                                let cm;
+                                while ((cm = cellRegex.exec(dataRow)) !== null) {
+                                    cells.push(cm[1].replace(/<[^>]+>/g, '').trim());
+                                }
+
+                                // Column 3 should be 3Y CAGR (index 2)
+                                if (cells.length >= 3) {
+                                    try {
+                                        const val3y = parseFloat(cells[2]);
+                                        if (!isNaN(val3y) && val3y >= 0 && val3y <= 20) {
+                                            result.ret3y = val3y;
+                                        }
+                                    } catch (e) {}
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // === METHOD 5: Extract 3Y CAGR from HTML text patterns ===
+                if (!result.ret3y) {
+                    const patterns3y = [
+                        /3\s*Year\s*Returns:\s*([\d.]+)%/i,
+                        /3Y\s*Returns:\s*([\d.]+)%/i,
+                        /3Y\s*CAGR:\s*([\d.]+)%/i,
+                        /CAGR\s*3Y:\s*([\d.]+)%/i,
+                        /3\s*Year\s*CAGR:\s*([\d.]+)%/i,
+                        /3Y\s*CAGR\s*([\d.]+)%/i
+                    ];
+                    for (const pattern of patterns3y) {
+                        const match = html.match(pattern);
+                        if (match) {
+                            result.ret3y = parseFloat(match[1]);
+                            break;
+                        }
+                    }
+                }
+
+                // === Extract NAV ===
+                if (!result.nav) {
+                    const navMatch = html.match(/₹([\d,]+\.\d{2})/);
+                    if (navMatch) result.nav = parseFloat(navMatch[1].replace(',', ''));
+                }
+
+            } catch (err) {
+                console.error('Parse error for', fundName, err);
+            }
+
+            return result;
+        }
+
+        async function refreshSingle(index) {
+            const fund = funds[index];
+            const oldYtm = fund.ytm;
+            fund.ytm = null;
+            renderTable();
+
+            try {
+                const html = await fetchWithProxy(fund.url);
+                const result = extractMetrics(html, fund.name);
+
+                fund.ytm = !isNaN(result.ytm) && result.ytm !== 'na' ? result.ytm.toFixed(2) : 'na';
+                fund.exp = result.exp ? result.exp.toFixed(2) : null;
+                fund.nav = result.nav ? result.nav.toFixed(2) : null;
+                fund.ret3y = result.ret3y ? result.ret3y.toFixed(2) : null;
+
+                saveCache();
+                document.getElementById('status').textContent = `${fund.name} updated: YTM=${fund.ytm}, 3Y=${fund.ret3y}`;
+            } catch (err) {
+                console.error(`Error fetching ${fund.name}:`, err);
+                fund.ytm = oldYtm || 'error';
+                document.getElementById('status').textContent = `${fund.name} failed: ${err.message}`;
+            }
+
+            renderTable();
+        }
+
+        async function fetchFundData(fund, index, total) {
+            const statusEl = document.getElementById('status');
+            const progressFill = document.getElementById('progressFill');
+
+            statusEl.textContent = `Fetching ${fund.name}... (${index + 1}/${total})`;
+            progressFill.style.width = `${((index + 1) / total) * 100}%`;
+
+            try {
+                const html = await fetchWithProxy(fund.url);
+                const result = extractMetrics(html, fund.name);
+
+                fund.ytm = !isNaN(result.ytm) && result.ytm !== 'na' ? result.ytm.toFixed(2) : 'na';
+                fund.exp = result.exp ? result.exp.toFixed(2) : null;
+                fund.nav = result.nav ? result.nav.toFixed(2) : null;
+                fund.ret3y = result.ret3y ? result.ret3y.toFixed(2) : null;
+
+            } catch (err) {
+                console.error(`Error fetching ${fund.name}:`, err);
+                if (!fund.ytm || fund.ytm === null) {
+                    fund.ytm = 'error';
+                }
+            }
+
+            renderTable();
+        }
+
+        async function refreshAll() {
+            if (isRefreshing) return;
+            isRefreshing = true;
+
+            const refreshBtn = document.getElementById('refreshBtn');
+            const progressBar = document.getElementById('progressBar');
+            const noteBox = document.getElementById('noteBox');
+
+            refreshBtn.disabled = true;
+            progressBar.classList.add('active');
+            noteBox.style.display = 'none';
+
+            funds.forEach(f => {
+                if (!f.ytm || f.ytm === 'error') {
+                    f.ytm = null; f.exp = null; f.nav = null; f.ret3y = null;
+                }
+            });
+            renderTable();
+
+            for (let i = 0; i < funds.length; i++) {
+                await fetchFundData(funds[i], i, funds.length);
+                if (i < funds.length - 1) {
+                    await new Promise(r => setTimeout(r, 2000));
+                }
+            }
+
+            saveCache();
+
+            const failedCount = funds.filter(f => f.ytm === 'error').length;
+            const naCount = funds.filter(f => f.ytm === 'na').length;
+            const successCount = funds.filter(f => f.ytm && f.ytm !== 'error' && f.ytm !== 'na').length;
+
+            if (failedCount === 0 && naCount === 0) {
+                document.getElementById('status').textContent = 'All funds updated successfully!';
+            } else {
+                document.getElementById('status').textContent = 
+                    `${successCount} OK, ${naCount} N/A, ${failedCount} failed.`;
+            }
+
+            document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleString();
+            progressBar.classList.remove('active');
+            refreshBtn.disabled = false;
+            isRefreshing = false;
+
+            if (currentSort === 'ytm') sortByYTM();
+        }
+
+        function sortByYTM() {
+            currentSort = 'ytm';
+            funds.sort((a, b) => {
+                const aVal = parseFloat(a.ytm) || 0;
+                const bVal = parseFloat(b.ytm) || 0;
+                return bVal - aVal;
+            });
+            renderTable();
+        }
+
+        function sortByName() {
+            currentSort = 'name';
+            funds.sort((a, b) => a.name.localeCompare(b.name));
+            renderTable();
+        }
+
+        // =====================================================
+        // EQUITY SECTION — sparkline (10D) & % vs 20DMA
+        // Mutual funds: NAV history via MFapi.in
+        // ETFs: daily close history via Yahoo Finance chart API
+        // =====================================================
+
+        const equityFunds = [
+            {
+                name: "Quant Multi Asset Allocation Fund",
+                assetType: "mf",
+                mfQuery: "Quant Multi Asset Allocation Fund",
+                gfTicker: "MUTF_IN:QUAN_MULT_ASSE_1UEK35E",
+                url: "https://www.google.com/finance/quote/QUAN_MULT_ASSE_1UEK35E:MUTF_IN",
+                history: null, sparkSvg: null, pct20dma: null, status: null
+            },
+            {
+                name: "Motilal Oswal BSE Enhanced Value Index Fund",
+                assetType: "mf",
+                mfQuery: "Motilal Oswal BSE Enhanced Value Index Fund",
+                gfTicker: "MUTF_IN:MOTI_OSWA_BSE_8UCYXX",
+                url: "https://www.google.com/finance/quote/MOTI_OSWA_BSE_8UCYXX:MUTF_IN",
+                history: null, sparkSvg: null, pct20dma: null, status: null
+            },
+            {
+                name: "MID150BEES",
+                assetType: "etf",
+                symbol: "MID150BEES.NS",
+                gfTicker: "NSE:MID150BEES",
+                url: "https://www.google.com/finance/quote/MID150BEES:NSE",
+                history: null, sparkSvg: null, pct20dma: null, status: null
+            }
+        ];
+
+        const EQUITY_CACHE_KEY = 'equity_hist_cache_v1';
+        const EQUITY_CACHE_TIME_KEY = 'equity_hist_cache_time_v1';
+        let isEquityRefreshing = false;
+
+        function loadEquityCache() {
+            try {
+                const cached = localStorage.getItem(EQUITY_CACHE_KEY);
+                const cacheTime = localStorage.getItem(EQUITY_CACHE_TIME_KEY);
+                if (cached && cacheTime) {
+                    const cachedData = JSON.parse(cached);
+                    equityFunds.forEach(f => {
+                        const c = cachedData.find(x => x.name === f.name);
+                        if (c && c.pct20dma !== null && c.pct20dma !== undefined) {
+                            f.pct20dma = c.pct20dma;
+                            f.sparkSvg = c.sparkSvg;
+                            f.status = 'ok';
+                        }
+                    });
+                    renderEquityTable();
+                    return true;
+                }
+            } catch (e) { console.error('Equity cache load error:', e); }
+            return false;
+        }
+
+        function saveEquityCache() {
+            try {
+                const dataToCache = equityFunds.map(f => ({
+                    name: f.name, pct20dma: f.pct20dma, sparkSvg: f.sparkSvg
+                }));
+                localStorage.setItem(EQUITY_CACHE_KEY, JSON.stringify(dataToCache));
+                localStorage.setItem(EQUITY_CACHE_TIME_KEY, Date.now().toString());
+            } catch (e) { console.error('Equity cache save error:', e); }
+        }
+
+        // Fetch NAV history for a mutual fund via MFapi.in (search then history)
+        async function fetchMFHistory(query) {
+            const searchUrl = `https://api.mfapi.in/mf/search?q=${encodeURIComponent(query)}`;
+            const searchText = await fetchWithProxy(searchUrl);
+            const results = JSON.parse(searchText);
+            if (!results || !results.length) throw new Error('Scheme not found');
+
+            // Prefer an exact-ish Direct + Growth plan match
+            let best = results.find(r => /direct/i.test(r.schemeName) && /growth/i.test(r.schemeName));
+            if (!best) best = results.find(r => /direct/i.test(r.schemeName));
+            if (!best) best = results[0];
+
+            const histUrl = `https://api.mfapi.in/mf/${best.schemeCode}`;
+            const histText = await fetchWithProxy(histUrl);
+            const histJson = JSON.parse(histText);
+            if (!histJson.data || !histJson.data.length) throw new Error('No NAV history');
+
+            const data = histJson.data.map(d => {
+                const [dd, mm, yyyy] = d.date.split('-');
+                return { date: new Date(`${yyyy}-${mm}-${dd}T00:00:00`), price: parseFloat(d.nav) };
+            }).filter(d => !isNaN(d.price) && !isNaN(d.date.getTime()));
+
+            data.sort((a, b) => a.date - b.date);
+            return data;
+        }
+
+        // Fetch daily close history for an NSE-listed ETF via Yahoo Finance chart API
+        async function fetchETFHistory(symbol) {
+            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=3mo&interval=1d`;
+            const text = await fetchWithProxy(url);
+            const json = JSON.parse(text);
+            const result = json?.chart?.result?.[0];
+            if (!result) throw new Error('No chart data');
+
+            const timestamps = result.timestamp || [];
+            const closes = result.indicators?.quote?.[0]?.close || [];
+
+            const data = timestamps.map((t, i) => ({
+                date: new Date(t * 1000),
+                price: closes[i]
+            })).filter(d => d.price !== null && d.price !== undefined && !isNaN(d.price));
+
+            data.sort((a, b) => a.date - b.date);
+            return data;
+        }
+
+        function filterByDaysBack(data, daysBack) {
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - daysBack);
+            cutoff.setHours(0, 0, 0, 0);
+            return data.filter(d => d.date >= cutoff);
+        }
+
+        // Mirrors: (latest - AVERAGE(QUERY(...,"select Col2 limit 20 offset 1"))) / AVERAGE(...)
+        function computePct20DMA(data) {
+            const window30 = filterByDaysBack(data, 30);
+            if (window30.length < 3) return null;
+
+            const latest = window30[window30.length - 1].price;
+            const rest = window30.slice(1);           // offset 1 (skip oldest row)
+            const window20 = rest.slice(0, 20);        // limit 20
+            if (!window20.length) return null;
+
+            const avg20 = window20.reduce((s, d) => s + d.price, 0) / window20.length;
+            if (!avg20) return null;
+
+            return ((latest - avg20) / avg20) * 100;
+        }
+
+        // Mirrors: sparkline(query(googlefinance(...,today()-10,today()),"select Col2",1))
+        function buildSparklineSVG(data) {
+            let points = filterByDaysBack(data, 10);
+            if (points.length < 2) points = data.slice(-8);
+            if (points.length < 2) return null;
+
+            const prices = points.map(p => p.price);
+            const min = Math.min(...prices), max = Math.max(...prices);
+            const range = (max - min) || 1;
+            const w = 120, h = 34, pad = 3;
+            const stepX = (w - pad * 2) / (prices.length - 1);
+
+            const coords = prices.map((p, i) => {
+                const x = pad + i * stepX;
+                const y = h - pad - ((p - min) / range) * (h - pad * 2);
+                return [x.toFixed(1), y.toFixed(1)];
+            });
+
+            const trendUp = prices[prices.length - 1] >= prices[0];
+            const color = trendUp ? '#64ffda' : '#ff6b6b';
+            const pointsStr = coords.map(c => c.join(',')).join(' ');
+            const [lastX, lastY] = coords[coords.length - 1];
+
+            return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">` +
+                   `<polyline points="${pointsStr}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` +
+                   `<circle cx="${lastX}" cy="${lastY}" r="2.5" fill="${color}"/></svg>`;
+        }
+
+        function renderEquityTable() {
+            const tbody = document.getElementById('equityTable');
+            tbody.innerHTML = '';
+
+            equityFunds.forEach((fund, index) => {
+                const row = document.createElement('tr');
+
+                let sparkCell, dmaCell;
+
+                if (fund.status === 'loading' || (fund.status === null && fund.pct20dma === null)) {
+                    sparkCell = '<span class="ytm-loading">Loading...</span>';
+                    dmaCell = '<span class="ytm-loading">Loading...</span>';
+                } else if (fund.status === 'error') {
+                    sparkCell = '<span class="ytm-error">Failed</span>';
+                    dmaCell = '<span class="ytm-error">Failed</span>';
+                } else {
+                    sparkCell = fund.sparkSvg
+                        ? `<div class="sparkline-wrap">${fund.sparkSvg}</div>`
+                        : '<span class="ytm-na">N/A</span>';
+
+                    if (fund.pct20dma !== null && fund.pct20dma !== undefined) {
+                        const val = fund.pct20dma;
+                        const cls = val >= 0 ? 'dma-pos' : 'dma-neg';
+                        const sign = val >= 0 ? '+' : '';
+                        dmaCell = `<div><span class="${cls}">${sign}${val.toFixed(2)}%</span>` +
+                                  `<div class="dma-sub">${val >= 0 ? 'above' : 'below'} 20DMA</div></div>`;
+                    } else {
+                        dmaCell = '<span class="ytm-na">N/A</span>';
+                    }
+                }
+
+                row.innerHTML = `
+                    <td>
+                        <div class="fund-name">${fund.name}</div>
+                        <div class="fund-type">${fund.assetType === 'mf' ? 'Mutual Fund' : 'ETF'}</div>
+                    </td>
+                    <td>${sparkCell}</td>
+                    <td>${dmaCell}</td>
+                    <td>
+                        <a href="${fund.url}" target="_blank" class="ticker-link">View</a>
+                        ${fund.status === 'error' ? `<button class="retry-btn" onclick="refreshSingleEquity(${index})">Retry</button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function loadEquityFundData(fund) {
+            fund.status = 'loading';
+            renderEquityTable();
+
+            try {
+                const history = fund.assetType === 'mf'
+                    ? await fetchMFHistory(fund.mfQuery)
+                    : await fetchETFHistory(fund.symbol);
+
+                fund.history = history;
+                fund.pct20dma = computePct20DMA(history);
+                fund.sparkSvg = buildSparklineSVG(history);
+                fund.status = 'ok';
+            } catch (err) {
+                console.error(`Error fetching equity data for ${fund.name}:`, err);
+                fund.status = 'error';
+            }
+
+            renderEquityTable();
+        }
+
+        async function refreshSingleEquity(index) {
+            await loadEquityFundData(equityFunds[index]);
+            saveEquityCache();
+        }
+
+        async function refreshAllEquity() {
+            if (isEquityRefreshing) return;
+            isEquityRefreshing = true;
+
+            const btn = document.getElementById('equityRefreshBtn');
+            const progressBar = document.getElementById('equityProgressBar');
+            const progressFill = document.getElementById('equityProgressFill');
+            const statusEl = document.getElementById('equityStatus');
+
+            btn.disabled = true;
+            progressBar.classList.add('active');
+
+            for (let i = 0; i < equityFunds.length; i++) {
+                statusEl.textContent = `Fetching ${equityFunds[i].name}... (${i + 1}/${equityFunds.length})`;
+                progressFill.style.width = `${((i + 1) / equityFunds.length) * 100}%`;
+                await loadEquityFundData(equityFunds[i]);
+                if (i < equityFunds.length - 1) {
+                    await new Promise(r => setTimeout(r, 1500));
+                }
+            }
+
+            saveEquityCache();
+
+            const failedCount = equityFunds.filter(f => f.status === 'error').length;
+            statusEl.textContent = failedCount === 0
+                ? 'Equity data updated successfully!'
+                : `${equityFunds.length - failedCount} OK, ${failedCount} failed.`;
+
+            progressBar.classList.remove('active');
+            btn.disabled = false;
+            isEquityRefreshing = false;
+        }
+
+        // Initialize
+        loadCache();
+        loadEquityCache();
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const hasCache = funds.some(f => f.ytm && f.ytm !== 'error');
+            setTimeout(() => {
+                refreshAll();
+            }, hasCache ? 3000 : 500);
+
+            const hasEquityCache = equityFunds.some(f => f.pct20dma !== null);
+            setTimeout(() => {
+                refreshAllEquity();
+            }, hasEquityCache ? 4000 : 1200);
+        });
+    </script>
+</body>
+</html>
