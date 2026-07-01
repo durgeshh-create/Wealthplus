@@ -357,7 +357,7 @@
             { url: "https://thingproxy.freeboard.io/fetch/", name: "thingproxy" }
         ];
 
-        let currentSort = 'name';
+        let currentSort = 'ytm';
         let isRefreshing = false;
         const CACHE_KEY = 'mf_ytm_cache_v2';
         const CACHE_TIME_KEY = 'mf_ytm_cache_time_v2';
@@ -390,7 +390,7 @@
                     document.getElementById('noteBox').textContent = 
                         `Showing cached data from ${cacheAgeText}. Click "Refresh All YTM" to update.`;
 
-                    renderTable();
+                    sortByYTM();
                     return true;
                 }
             } catch (e) {
