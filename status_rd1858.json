@@ -1,15 +1,15 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-07-01 09:57:03 IST",
+  "timestamp": "2026-07-01 09:58:05 IST",
   "bot_running": true,
-  "total_value": 9103409.97,
-  "today_pnl": -1545.72,
+  "total_value": 9102555.58,
+  "today_pnl": -1722.9,
   "today_pnl_pct": -0.02,
   "liquidcase": {
     "quantity": 67721,
     "free_quantity": 774,
-    "price": 114.79,
-    "value": 7773693.59,
+    "price": 114.78,
+    "value": 7773016.38,
     "pct": 85.39
   },
   "slots": {
@@ -34,10 +34,10 @@
       "symbol": "GOLDBEES",
       "quantity": 3370,
       "avg": 121.62,
-      "ltp": 115.03,
-      "value": 387651.1,
-      "pnl": -3167.8,
-      "pnl_pct": -0.81,
+      "ltp": 115.0,
+      "value": 387550.0,
+      "pnl": -3268.9,
+      "pnl_pct": -0.84,
       "unrealised_pnl": -22463.02,
       "unrealised_pnl_pct": -5.48,
       "strategy": "active",
@@ -76,10 +76,10 @@
       "symbol": "SILVERBEES",
       "quantity": 1268,
       "avg": 228.29,
-      "ltp": 211.33,
-      "value": 267966.44,
-      "pnl": -1889.32,
-      "pnl_pct": -0.7,
+      "ltp": 211.27,
+      "value": 267890.36,
+      "pnl": -1965.4,
+      "pnl_pct": -0.73,
       "unrealised_pnl": -21520.02,
       "unrealised_pnl_pct": -7.43,
       "strategy": "active",
@@ -116,27 +116,27 @@
   "williams_r": [
     {
       "symbol": "GOLDBEES",
-      "ltp": 115.03,
-      "change_pct": -0.81,
-      "williams_r": -84.96,
+      "ltp": 115.0,
+      "change_pct": -0.84,
+      "williams_r": -85.22,
       "is_held": true,
       "avg_price": 121.62,
       "strategy": "active"
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 211.33,
-      "change_pct": -0.7,
-      "williams_r": -78.62,
+      "ltp": 211.27,
+      "change_pct": -0.73,
+      "williams_r": -78.76,
       "is_held": true,
       "avg_price": 228.29,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 775.99,
-      "change_pct": 0.26,
-      "williams_r": -26.67,
+      "ltp": 775.63,
+      "change_pct": 0.21,
+      "williams_r": -27.36,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -152,9 +152,9 @@
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 597.59,
-      "change_pct": 0.2,
-      "williams_r": -47.44,
+      "ltp": 597.49,
+      "change_pct": 0.19,
+      "williams_r": -47.6,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -182,19 +182,19 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 23978.8,
+      "ltp": 23975.7,
       "prev_close": 23865.75,
-      "change": 113.05,
-      "change_pct": 0.47,
+      "change": 109.95,
+      "change_pct": 0.46,
       "open": 23897.65,
       "high": 23980.3,
       "low": 23895.1
     },
     "INDIA VIX": {
-      "ltp": 13.63,
+      "ltp": 13.62,
       "prev_close": 13.6,
-      "change": 0.03,
-      "change_pct": 0.22,
+      "change": 0.02,
+      "change_pct": 0.15,
       "open": 13.6,
       "high": 14.07,
       "low": 13.39
@@ -378,6 +378,6 @@
     }
   },
   "available_cash": 101874.75,
-  "available_margin": 2467740.64,
+  "available_margin": 2469908.07,
   "available_margin_note": null
 }
