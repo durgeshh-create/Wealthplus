@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mutual Fund YTM Dashboard</title>
+    <title>Portfolio Mutual Fund/ETF Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -199,6 +199,40 @@
             line-height: 1.6;
         }
         .footer a { color: #00d4ff; text-decoration: none; }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 36px 0 14px;
+        }
+        .section-title:first-of-type { margin-top: 0; }
+        .section-title h2 {
+            font-size: 1.3rem;
+            color: #00d4ff;
+            white-space: nowrap;
+        }
+        .section-title .line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(0,212,255,0.4), rgba(0,212,255,0));
+        }
+        .section-title .badge {
+            font-size: 0.7rem;
+            color: #8892b0;
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 3px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .equity-th-name { width: 42%; }
+        .equity-th-spark { width: 26%; }
+        .equity-th-dma { width: 20%; }
+        .equity-th-action { width: 12%; }
+        .sparkline-wrap { display: flex; align-items: center; }
+        .sparkline-wrap svg { display: block; }
+        .dma-pos { color: #64ffda; font-weight: 700; font-size: 1.05rem; }
+        .dma-neg { color: #ff6b6b; font-weight: 700; font-size: 1.05rem; }
+        .dma-sub { color: #8892b0; font-size: 0.72rem; margin-top: 2px; }
         .note-box {
             background: rgba(255, 215, 0, 0.05);
             border: 1px solid rgba(255, 215, 0, 0.2);
@@ -220,12 +254,18 @@
 </head>
 <body>
     <div class="container">
-        <h1>Mutual Fund YTM Dashboard</h1>
+        <h1>Portfolio Mutual Fund/ETF Dashboard</h1>
         <p class="subtitle">Live Yield-to-Maturity data from TickerTape</p>
         <p class="last-updated" id="lastUpdated">Last updated: Never</p>
 
         <div class="note-box" id="noteBox">
             Data is cached in your browser. Click "Refresh All YTM" to fetch latest data from TickerTape.
+        </div>
+
+        <div class="section-title">
+            <h2>Debt Funds</h2>
+            <div class="line"></div>
+            <span class="badge">YTM · Expense Ratio · NAV · 3Y CAGR</span>
         </div>
 
         <div class="controls">
@@ -257,9 +297,39 @@
             </table>
         </div>
 
+        <div class="section-title">
+            <h2>Equity</h2>
+            <div class="line"></div>
+            <span class="badge">10D Sparkline · % vs 20DMA</span>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="equityRefreshBtn" onclick="refreshAllEquity()">Refresh Equity</button>
+        </div>
+
+        <div class="status" id="equityStatus"></div>
+        <div class="progress-bar" id="equityProgressBar">
+            <div class="progress-fill" id="equityProgressFill"></div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="equity-th-name">Fund / ETF Name</th>
+                        <th class="equity-th-spark">10D Sparkline</th>
+                        <th class="equity-th-dma">% vs 20DMA</th>
+                        <th class="equity-th-action">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="equityTable">
+                </tbody>
+            </table>
+        </div>
+
         <div class="footer">
-            <p>Data sourced from <a href="https://www.tickertape.in" target="_blank">TickerTape</a></p>
-            <p>YTM = Fund Yield to Maturity (Direct Plan) | 3Y CAGR = 3-Year Compounded Annual Growth Rate</p>
+            <p>Debt fund data sourced from <a href="https://www.tickertape.in" target="_blank">TickerTape</a> | Equity data sourced from <a href="https://www.mfapi.in" target="_blank">MFapi.in</a> &amp; Yahoo Finance</p>
+            <p>YTM = Fund Yield to Maturity (Direct Plan) | 3Y CAGR = 3-Year Compounded Annual Growth Rate | 20DMA = 20-Day Moving Average</p>
             <p style="margin-top:6px; color:#666;">Hosted on GitHub Pages | Uses free proxy services with automatic fallback</p>
         </div>
     </div>
@@ -405,26 +475,21 @@
             return value;
         }
 
-        async function fetchWithProxy(url, proxyIndex = 0) {
-            if (proxyIndex >= corsProxies.length) {
-                throw new Error('All CORS proxies exhausted');
-            }
-
+        async function fetchViaSingleProxy(url, proxyIndex, timeoutMs) {
             const proxy = corsProxies[proxyIndex];
             const proxyUrl = proxy.url + encodeURIComponent(url);
 
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 25000);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-                const response = await fetch(proxyUrl, { 
+            try {
+                const response = await fetch(proxyUrl, {
                     signal: controller.signal,
-                    headers: { 
+                    headers: {
                         'Accept': 'text/html,application/xhtml+xml',
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                     }
                 });
-                clearTimeout(timeoutId);
 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
@@ -436,8 +501,20 @@
                 }
 
                 return text;
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        }
+
+        async function fetchWithProxy(url, proxyIndex = 0) {
+            if (proxyIndex >= corsProxies.length) {
+                throw new Error('All CORS proxies exhausted');
+            }
+
+            try {
+                return await fetchViaSingleProxy(url, proxyIndex, 25000);
             } catch (err) {
-                console.warn(`Proxy ${proxy.name} failed:`, err.message);
+                console.warn(`Proxy ${corsProxies[proxyIndex].name} failed:`, err.message);
                 return fetchWithProxy(url, proxyIndex + 1);
             }
         }
@@ -787,14 +864,336 @@
             renderTable();
         }
 
+        // =====================================================
+        // EQUITY SECTION — sparkline (10D) & % vs 20DMA
+        // Mutual funds: NAV history via MFapi.in
+        // ETFs: daily close history via Yahoo Finance chart API
+        // =====================================================
+
+        const equityFunds = [
+            {
+                name: "Quant Multi Asset Allocation Fund",
+                assetType: "mf",
+                mfQuery: "Quant Multi Asset Allocation Fund",
+                gfTicker: "MUTF_IN:QUAN_MULT_ASSE_1UEK35E",
+                url: "https://www.google.com/finance/quote/QUAN_MULT_ASSE_1UEK35E:MUTF_IN",
+                history: null, sparkSvg: null, pct20dma: null, status: null
+            },
+            {
+                name: "Motilal Oswal BSE Enhanced Value Index Fund",
+                assetType: "mf",
+                mfQuery: "Motilal Oswal BSE Enhanced Value Index Fund",
+                gfTicker: "MUTF_IN:MOTI_OSWA_BSE_8UCYXX",
+                url: "https://www.google.com/finance/quote/MOTI_OSWA_BSE_8UCYXX:MUTF_IN",
+                history: null, sparkSvg: null, pct20dma: null, status: null
+            },
+            {
+                name: "MID150BEES",
+                assetType: "etf",
+                symbol: "MID150BEES.NS",
+                gfTicker: "NSE:MID150BEES",
+                url: "https://www.google.com/finance/quote/MID150BEES:NSE",
+                history: null, sparkSvg: null, pct20dma: null, status: null
+            }
+        ];
+
+        const EQUITY_CACHE_KEY = 'equity_hist_cache_v1';
+        const EQUITY_CACHE_TIME_KEY = 'equity_hist_cache_time_v1';
+        let isEquityRefreshing = false;
+
+        function loadEquityCache() {
+            try {
+                const cached = localStorage.getItem(EQUITY_CACHE_KEY);
+                const cacheTime = localStorage.getItem(EQUITY_CACHE_TIME_KEY);
+                if (cached && cacheTime) {
+                    const cachedData = JSON.parse(cached);
+                    equityFunds.forEach(f => {
+                        const c = cachedData.find(x => x.name === f.name);
+                        if (c && c.pct20dma !== null && c.pct20dma !== undefined) {
+                            f.pct20dma = c.pct20dma;
+                            f.sparkSvg = c.sparkSvg;
+                            f.status = 'ok';
+                        }
+                    });
+                    renderEquityTable();
+                    return true;
+                }
+            } catch (e) { console.error('Equity cache load error:', e); }
+            return false;
+        }
+
+        function saveEquityCache() {
+            try {
+                const dataToCache = equityFunds.map(f => ({
+                    name: f.name, pct20dma: f.pct20dma, sparkSvg: f.sparkSvg
+                }));
+                localStorage.setItem(EQUITY_CACHE_KEY, JSON.stringify(dataToCache));
+                localStorage.setItem(EQUITY_CACHE_TIME_KEY, Date.now().toString());
+            } catch (e) { console.error('Equity cache save error:', e); }
+        }
+
+        // Fetches a URL through the proxy chain, validating that the response is
+        // actually parseable JSON (a proxy can return HTTP 200 with a blocked/HTML
+        // page, which is not a real failure from fetchWithProxy's point of view).
+        // Tries every proxy in turn until one yields valid JSON.
+        async function fetchJSONWithProxies(url, timeoutMs = 15000) {
+            let lastErr;
+            for (let i = 0; i < corsProxies.length; i++) {
+                try {
+                    const text = await fetchViaSingleProxy(url, i, timeoutMs);
+                    try {
+                        return JSON.parse(text);
+                    } catch (parseErr) {
+                        throw new Error(`Non-JSON response via ${corsProxies[i].name}`);
+                    }
+                } catch (err) {
+                    lastErr = err;
+                    console.warn(`JSON fetch failed via ${corsProxies[i].name}:`, err.message);
+                }
+            }
+            throw lastErr || new Error('All CORS proxies failed to return valid JSON');
+        }
+
+        // Fetch NAV history for a mutual fund via MFapi.in (search then history)
+        async function fetchMFHistory(query) {
+            const searchUrl = `https://api.mfapi.in/mf/search?q=${encodeURIComponent(query)}`;
+            const results = await fetchJSONWithProxies(searchUrl);
+            if (!results || !results.length) throw new Error('Scheme not found');
+
+            // Prefer an exact-ish Direct + Growth plan match
+            let best = results.find(r => /direct/i.test(r.schemeName) && /growth/i.test(r.schemeName));
+            if (!best) best = results.find(r => /direct/i.test(r.schemeName));
+            if (!best) best = results[0];
+
+            const histUrl = `https://api.mfapi.in/mf/${best.schemeCode}`;
+            const histJson = await fetchJSONWithProxies(histUrl);
+            if (!histJson.data || !histJson.data.length) throw new Error('No NAV history');
+
+            const data = histJson.data.map(d => {
+                const [dd, mm, yyyy] = d.date.split('-');
+                return { date: new Date(`${yyyy}-${mm}-${dd}T00:00:00`), price: parseFloat(d.nav) };
+            }).filter(d => !isNaN(d.price) && !isNaN(d.date.getTime()));
+
+            data.sort((a, b) => a.date - b.date);
+            return data;
+        }
+
+        // Fetch daily close history for an NSE-listed ETF via Yahoo Finance chart API.
+        // Tries query1 then query2 hosts (Yahoo load-balances across both), each
+        // cycled through the full proxy chain with JSON validation.
+        async function fetchETFHistory(symbol) {
+            const now = Math.floor(Date.now() / 1000);
+            const period1 = now - 60 * 24 * 60 * 60; // 60 days back, covers 30D + 10D windows
+            const hosts = [
+                'https://query1.finance.yahoo.com',
+                'https://query2.finance.yahoo.com'
+            ];
+
+            let lastErr;
+            for (const host of hosts) {
+                const url = `${host}/v8/finance/chart/${symbol}?period1=${period1}&period2=${now}&interval=1d&includePrePost=false&events=div%7Csplit`;
+                try {
+                    const json = await fetchJSONWithProxies(url);
+                    const result = json?.chart?.result?.[0];
+                    if (!result) {
+                        const msg = json?.chart?.error?.description || 'No chart data';
+                        throw new Error(msg);
+                    }
+
+                    const timestamps = result.timestamp || [];
+                    const closes = result.indicators?.quote?.[0]?.close || [];
+
+                    const data = timestamps.map((t, i) => ({
+                        date: new Date(t * 1000),
+                        price: closes[i]
+                    })).filter(d => d.price !== null && d.price !== undefined && !isNaN(d.price));
+
+                    if (!data.length) throw new Error('Empty price series');
+
+                    data.sort((a, b) => a.date - b.date);
+                    return data;
+                } catch (err) {
+                    lastErr = err;
+                    console.warn(`ETF history fetch failed via ${host}:`, err.message);
+                }
+            }
+            throw lastErr || new Error('ETF history fetch failed on all hosts');
+        }
+
+        function filterByDaysBack(data, daysBack) {
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - daysBack);
+            cutoff.setHours(0, 0, 0, 0);
+            return data.filter(d => d.date >= cutoff);
+        }
+
+        // Mirrors: (latest - AVERAGE(QUERY(...,"select Col2 limit 20 offset 1"))) / AVERAGE(...)
+        function computePct20DMA(data) {
+            const window30 = filterByDaysBack(data, 30);
+            if (window30.length < 3) return null;
+
+            const latest = window30[window30.length - 1].price;
+            const rest = window30.slice(1);           // offset 1 (skip oldest row)
+            const window20 = rest.slice(0, 20);        // limit 20
+            if (!window20.length) return null;
+
+            const avg20 = window20.reduce((s, d) => s + d.price, 0) / window20.length;
+            if (!avg20) return null;
+
+            return ((latest - avg20) / avg20) * 100;
+        }
+
+        // Mirrors: sparkline(query(googlefinance(...,today()-10,today()),"select Col2",1))
+        function buildSparklineSVG(data) {
+            let points = filterByDaysBack(data, 10);
+            if (points.length < 2) points = data.slice(-8);
+            if (points.length < 2) return null;
+
+            const prices = points.map(p => p.price);
+            const min = Math.min(...prices), max = Math.max(...prices);
+            const range = (max - min) || 1;
+            const w = 120, h = 34, pad = 3;
+            const stepX = (w - pad * 2) / (prices.length - 1);
+
+            const coords = prices.map((p, i) => {
+                const x = pad + i * stepX;
+                const y = h - pad - ((p - min) / range) * (h - pad * 2);
+                return [x.toFixed(1), y.toFixed(1)];
+            });
+
+            const trendUp = prices[prices.length - 1] >= prices[0];
+            const color = trendUp ? '#64ffda' : '#ff6b6b';
+            const pointsStr = coords.map(c => c.join(',')).join(' ');
+            const [lastX, lastY] = coords[coords.length - 1];
+
+            return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">` +
+                   `<polyline points="${pointsStr}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` +
+                   `<circle cx="${lastX}" cy="${lastY}" r="2.5" fill="${color}"/></svg>`;
+        }
+
+        function renderEquityTable() {
+            const tbody = document.getElementById('equityTable');
+            tbody.innerHTML = '';
+
+            equityFunds.forEach((fund, index) => {
+                const row = document.createElement('tr');
+
+                let sparkCell, dmaCell;
+
+                if (fund.status === 'loading' || (fund.status === null && fund.pct20dma === null)) {
+                    sparkCell = '<span class="ytm-loading">Loading...</span>';
+                    dmaCell = '<span class="ytm-loading">Loading...</span>';
+                } else if (fund.status === 'error') {
+                    const errText = fund.errorMsg ? `<div class="dma-sub" style="color:#ff6b6b;">${fund.errorMsg}</div>` : '';
+                    sparkCell = `<span class="ytm-error">Failed</span>`;
+                    dmaCell = `<span class="ytm-error">Failed</span>${errText}`;
+                } else {
+                    sparkCell = fund.sparkSvg
+                        ? `<div class="sparkline-wrap">${fund.sparkSvg}</div>`
+                        : '<span class="ytm-na">N/A</span>';
+
+                    if (fund.pct20dma !== null && fund.pct20dma !== undefined) {
+                        const val = fund.pct20dma;
+                        const cls = val >= 0 ? 'dma-pos' : 'dma-neg';
+                        const sign = val >= 0 ? '+' : '';
+                        dmaCell = `<div><span class="${cls}">${sign}${val.toFixed(2)}%</span>` +
+                                  `<div class="dma-sub">${val >= 0 ? 'above' : 'below'} 20DMA</div></div>`;
+                    } else {
+                        dmaCell = '<span class="ytm-na">N/A</span>';
+                    }
+                }
+
+                row.innerHTML = `
+                    <td>
+                        <div class="fund-name">${fund.name}</div>
+                        <div class="fund-type">${fund.assetType === 'mf' ? 'Mutual Fund' : 'ETF'}</div>
+                    </td>
+                    <td>${sparkCell}</td>
+                    <td>${dmaCell}</td>
+                    <td>
+                        <a href="${fund.url}" target="_blank" class="ticker-link">View</a>
+                        ${fund.status === 'error' ? `<button class="retry-btn" onclick="refreshSingleEquity(${index})">Retry</button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function loadEquityFundData(fund) {
+            fund.status = 'loading';
+            fund.errorMsg = null;
+            renderEquityTable();
+
+            try {
+                const history = fund.assetType === 'mf'
+                    ? await fetchMFHistory(fund.mfQuery)
+                    : await fetchETFHistory(fund.symbol);
+
+                fund.history = history;
+                fund.pct20dma = computePct20DMA(history);
+                fund.sparkSvg = buildSparklineSVG(history);
+                fund.status = 'ok';
+            } catch (err) {
+                console.error(`Error fetching equity data for ${fund.name}:`, err);
+                fund.status = 'error';
+                fund.errorMsg = (err && err.message ? String(err.message) : 'Unknown error').slice(0, 80);
+            }
+
+            renderEquityTable();
+        }
+
+        async function refreshSingleEquity(index) {
+            await loadEquityFundData(equityFunds[index]);
+            saveEquityCache();
+        }
+
+        async function refreshAllEquity() {
+            if (isEquityRefreshing) return;
+            isEquityRefreshing = true;
+
+            const btn = document.getElementById('equityRefreshBtn');
+            const progressBar = document.getElementById('equityProgressBar');
+            const progressFill = document.getElementById('equityProgressFill');
+            const statusEl = document.getElementById('equityStatus');
+
+            btn.disabled = true;
+            progressBar.classList.add('active');
+
+            for (let i = 0; i < equityFunds.length; i++) {
+                statusEl.textContent = `Fetching ${equityFunds[i].name}... (${i + 1}/${equityFunds.length})`;
+                progressFill.style.width = `${((i + 1) / equityFunds.length) * 100}%`;
+                await loadEquityFundData(equityFunds[i]);
+                if (i < equityFunds.length - 1) {
+                    await new Promise(r => setTimeout(r, 1500));
+                }
+            }
+
+            saveEquityCache();
+
+            const failedCount = equityFunds.filter(f => f.status === 'error').length;
+            statusEl.textContent = failedCount === 0
+                ? 'Equity data updated successfully!'
+                : `${equityFunds.length - failedCount} OK, ${failedCount} failed.`;
+
+            progressBar.classList.remove('active');
+            btn.disabled = false;
+            isEquityRefreshing = false;
+        }
+
         // Initialize
         loadCache();
+        loadEquityCache();
 
         window.addEventListener('DOMContentLoaded', () => {
             const hasCache = funds.some(f => f.ytm && f.ytm !== 'error');
             setTimeout(() => {
                 refreshAll();
             }, hasCache ? 3000 : 500);
+
+            const hasEquityCache = equityFunds.some(f => f.pct20dma !== null);
+            setTimeout(() => {
+                refreshAllEquity();
+            }, hasEquityCache ? 4000 : 1200);
         });
     </script>
 </body>
