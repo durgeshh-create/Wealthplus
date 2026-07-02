@@ -1022,6 +1022,7 @@
                 name: "EMBASSY (Embassy Office Parks REIT)",
                 assetType: "reit",
                 symbol: "EMBASSY-RR.NS",
+                fallbackSymbols: ["EMBASSY.NS", "EMBASSY.BO"],
                 gfTicker: "NSE:EMBASSY-RR",
                 url: "https://www.google.com/finance/quote/EMBASSY-RR:NSE",
                 history: null, sparkSvg: null, pct20dma: null, ltp: null, cagr3y: null, status: null
@@ -1030,6 +1031,7 @@
                 name: "MINDSPACE-RR (Mindspace REIT)",
                 assetType: "reit",
                 symbol: "MINDSPACE-RR.NS",
+                fallbackSymbols: ["MINDSPACE.NS", "MINDSPACE.BO"],
                 gfTicker: "NSE:MINDSPACE-RR",
                 url: "https://www.google.com/finance/quote/MINDSPACE-RR:NSE",
                 history: null, sparkSvg: null, pct20dma: null, ltp: null, cagr3y: null, status: null
@@ -1038,6 +1040,7 @@
                 name: "INDIGRID (IndiGrid InvIT)",
                 assetType: "invit",
                 symbol: "INDIGRID.NS",
+                fallbackSymbols: ["INDIGRID.BO"],
                 gfTicker: "NSE:INDIGRID",
                 url: "https://www.google.com/finance/quote/INDIGRID:NSE",
                 history: null, sparkSvg: null, pct20dma: null, ltp: null, cagr3y: null, status: null
@@ -1186,6 +1189,31 @@
         // Fetch daily close history for an NSE-listed ETF via Yahoo Finance chart API.
         // Tries query1 then query2 hosts (Yahoo load-balances across both), each
         // cycled through the full proxy chain with JSON validation.
+        // Minimum data points considered "good enough" to stop trying further
+        // symbol variants (roughly a month of daily candles).
+        const MIN_HISTORY_POINTS = 25;
+
+        // Some illiquid/renamed NSE tickers (esp. REITs/InvITs) return only a
+        // handful of candles - or none at all - from the Yahoo chart API under
+        // their primary symbol. Try each candidate symbol in turn (e.g. NSE
+        // dash-suffixed, plain NSE, BSE) and keep whichever yields the richest
+        // history, so 20DMA/sparkline/3Y CAGR can still be computed.
+        async function fetchHistoryWithFallback(symbols) {
+            let best = null, bestLen = -1, lastErr = null;
+            for (const sym of symbols) {
+                try {
+                    const data = await fetchETFHistory(sym);
+                    if (data.length > bestLen) { best = data; bestLen = data.length; }
+                    if (data.length >= MIN_HISTORY_POINTS) return data;
+                } catch (err) {
+                    lastErr = err;
+                    console.warn(`History fetch failed for symbol ${sym}:`, err.message);
+                }
+            }
+            if (best) return best; // best-effort: return sparsest-but-nonempty series
+            throw lastErr || new Error('All symbol variants failed');
+        }
+
         async function fetchETFHistory(symbol) {
             const now = Math.floor(Date.now() / 1000);
             const period1 = now - (3 * 365 + 40) * 24 * 60 * 60; // ~3y + buffer, covers 3Y CAGR + 30D + 10D windows
@@ -1378,7 +1406,7 @@
             try {
                 const history = fund.assetType === 'mf'
                     ? await fetchMFHistory(fund.mfQuery)
-                    : await fetchETFHistory(fund.symbol);
+                    : await fetchHistoryWithFallback([fund.symbol, ...(fund.fallbackSymbols || [])]);
 
                 fund.history = history;
                 fund.pct20dma = computePct20DMA(history);
