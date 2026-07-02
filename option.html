@@ -55,13 +55,13 @@
         .info-item .dot { width: 5px; height: 5px; border-radius: 50%; }
         .weekday-highlight { color: #fbbf24; font-weight: 700; }
 
-        .toggle-row { text-align: center; margin-bottom: 4px; }
+        .toggle-row { text-align: center; margin-bottom: 6px; }
         .toggle-btn {
-            background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.2);
-            color: #94a3b8; padding: 2px 8px; border-radius: 4px; cursor: pointer;
-            font-size: 0.55rem;
+            background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.3);
+            color: #e2e8f0; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+            font-size: 0.75rem; font-weight: 700;
         }
-        .toggle-btn:hover { background: rgba(148, 163, 184, 0.2); color: #e2e8f0; }
+        .toggle-btn:hover { background: rgba(148, 163, 184, 0.3); color: #fff; }
         .manual-inputs {
             display: none; grid-template-columns: repeat(3, 1fr);
             gap: 6px; margin-bottom: 6px; padding: 6px;
@@ -208,7 +208,7 @@
 
         <div class="toggle-row">
             <button class="toggle-btn" onclick="toggleManualInputs()">Edit NIFTY/VIX/MIDCP</button>
-            <button class="toggle-btn" id="expiryToggleBtn" onclick="toggleExpiryStrikes()" style="margin-left:6px;">Display Expiry Strikes</button>
+            <button class="toggle-btn" id="expiryToggleBtn" onclick="toggleExpiryStrikes()" style="margin-left:10px;">Display Expiry Strikes</button>
         </div>
 
         <div class="manual-inputs" id="manualInputs">
