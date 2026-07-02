@@ -470,7 +470,7 @@
         ];
 
         const corsProxies = [
-            { url: "https://corsproxy.io/?", name: "corsproxy" },
+            { url: "https://corsproxy.io/?url=", name: "corsproxy" },
             { url: "https://api.allorigins.win/raw?url=", name: "allorigins" },
             { url: "https://api.codetabs.com/v1/proxy?quest=", name: "codetabs" },
             { url: "https://thingproxy.freeboard.io/fetch/", name: "thingproxy" }
@@ -1349,8 +1349,9 @@
                 let sparkCell, dmaCell, ltpCell, cagrCell;
 
                 if (fund.status === 'loading' || (fund.status === null && fund.pct20dma === null)) {
-                    sparkCell = '<span class="ytm-loading">Loading...</span>';
-                    dmaCell = '<span class="ytm-loading">Loading...</span>';
+                    const loadingLabel = fund.errorMsg ? fund.errorMsg : 'Loading...';
+                    sparkCell = `<span class="ytm-loading">${loadingLabel}</span>`;
+                    dmaCell = `<span class="ytm-loading">${loadingLabel}</span>`;
                     ltpCell = '<span class="ytm-loading">...</span>';
                     cagrCell = '<span class="ytm-loading">...</span>';
                 } else if (fund.status === 'error') {
@@ -1406,28 +1407,46 @@
             });
         }
 
+        // On failure, auto-retry a couple of times with a short delay before
+        // giving up and showing the manual Retry button - most fetch failures
+        // here are transient (proxy hiccup, rate limit) rather than permanent.
+        const MAX_AUTO_RETRIES = 2;
+
         async function loadSectionFundData(section, fund) {
             fund.status = 'loading';
             fund.errorMsg = null;
             renderSectionTable(section);
 
-            try {
-                const history = fund.assetType === 'mf'
-                    ? await fetchMFHistory(fund.mfQuery)
-                    : await fetchHistoryWithFallback([fund.symbol, ...(fund.fallbackSymbols || [])]);
+            let lastErr;
+            for (let attempt = 0; attempt <= MAX_AUTO_RETRIES; attempt++) {
+                try {
+                    const history = fund.assetType === 'mf'
+                        ? await fetchMFHistory(fund.mfQuery)
+                        : await fetchHistoryWithFallback([fund.symbol, ...(fund.fallbackSymbols || [])]);
 
-                fund.history = history;
-                fund.pct20dma = computePct20DMA(history);
-                fund.sparkSvg = buildSparklineSVG(history);
-                fund.ltp = computeLTP(history);
-                fund.cagr3y = compute3YCAGR(history);
-                fund.status = 'ok';
-            } catch (err) {
-                console.error(`Error fetching data for ${fund.name}:`, err);
-                fund.status = 'error';
-                fund.errorMsg = (err && err.message ? String(err.message) : 'Unknown error').slice(0, 80);
+                    fund.history = history;
+                    fund.pct20dma = computePct20DMA(history);
+                    fund.sparkSvg = buildSparklineSVG(history);
+                    fund.ltp = computeLTP(history);
+                    fund.cagr3y = compute3YCAGR(history);
+                    fund.status = 'ok';
+                    fund.errorMsg = null;
+                    renderSectionTable(section);
+                    return;
+                } catch (err) {
+                    lastErr = err;
+                    console.warn(`Attempt ${attempt + 1} failed for ${fund.name}:`, err.message);
+                    if (attempt < MAX_AUTO_RETRIES) {
+                        fund.errorMsg = `Retrying... (${attempt + 1}/${MAX_AUTO_RETRIES})`;
+                        renderSectionTable(section);
+                        await new Promise(r => setTimeout(r, 1500));
+                    }
+                }
             }
 
+            console.error(`Error fetching data for ${fund.name} after ${MAX_AUTO_RETRIES + 1} attempts:`, lastErr);
+            fund.status = 'error';
+            fund.errorMsg = (lastErr && lastErr.message ? String(lastErr.message) : 'Unknown error').slice(0, 80);
             renderSectionTable(section);
         }
 
