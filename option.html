@@ -208,6 +208,7 @@
 
         <div class="toggle-row">
             <button class="toggle-btn" onclick="toggleManualInputs()">Edit NIFTY/VIX/MIDCP</button>
+            <button class="toggle-btn" id="expiryToggleBtn" onclick="toggleExpiryStrikes()" style="margin-left:6px;">Display Expiry Strikes</button>
         </div>
 
         <div class="manual-inputs" id="manualInputs">
@@ -274,6 +275,8 @@
             </div>
         </div>
 
+        <!-- NIFTY & MIDCPNIFTY Expiry Day Intraday Strikes: auto-shown on Tuesdays, toggle available otherwise -->
+        <div id="expiryStrikesSection">
         <!-- NIFTY Expiry Day Intraday Strikes -->
         <div class="section-divider">
             <span>NIFTY EXPIRY DAY INTRADAY (Div: 23,000)</span>
@@ -346,6 +349,7 @@
                     </div>
                 </div>
             </div>
+        </div>
         </div>
 
         <div class="note">
@@ -761,6 +765,38 @@
             el.classList.toggle('active');
         }
 
+        // Expiry strikes sections (NIFTY & MIDCPNIFTY EXPIRY DAY INTRADAY) are
+        // only relevant on Tuesdays (the weekly expiry day), so they're hidden
+        // by default on other days. The button lets users reveal them manually.
+        let manualExpiryOverride = false;
+
+        function updateExpiryVisibility() {
+            const isTuesday = new Date().getDay() === 2;
+            const section = document.getElementById('expiryStrikesSection');
+            const btn = document.getElementById('expiryToggleBtn');
+
+            if (isTuesday) {
+                // Always shown on Tuesday; no need for the toggle button.
+                section.style.display = '';
+                btn.style.display = 'none';
+                manualExpiryOverride = false;
+            } else {
+                btn.style.display = '';
+                if (manualExpiryOverride) {
+                    section.style.display = '';
+                    btn.textContent = 'Hide Expiry Strikes';
+                } else {
+                    section.style.display = 'none';
+                    btn.textContent = 'Display Expiry Strikes';
+                }
+            }
+        }
+
+        function toggleExpiryStrikes() {
+            manualExpiryOverride = !manualExpiryOverride;
+            updateExpiryVisibility();
+        }
+
         function checkMarketStatus() {
             const now = new Date();
             const hour = now.getHours(), minute = now.getMinutes(), day = now.getDay();
@@ -780,6 +816,7 @@
         // Run immediately on load
         checkMarketStatus();
         calculateRange();
+        updateExpiryVisibility();
         fetchLiveData();
 
         setInterval(() => {
