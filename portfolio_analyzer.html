@@ -1083,8 +1083,8 @@
                 progressBarId: 'equityProgressBar',
                 progressFillId: 'equityProgressFill',
                 btnId: 'equityRefreshBtn',
-                cacheKey: 'equity_hist_cache_v3',
-                cacheTimeKey: 'equity_hist_cache_time_v3',
+                cacheKey: 'equity_hist_cache_v4',
+                cacheTimeKey: 'equity_hist_cache_time_v4',
                 isRefreshing: false
             },
             reit: {
@@ -1095,8 +1095,8 @@
                 progressBarId: 'reitProgressBar',
                 progressFillId: 'reitProgressFill',
                 btnId: 'reitRefreshBtn',
-                cacheKey: 'reit_hist_cache_v1',
-                cacheTimeKey: 'reit_hist_cache_time_v1',
+                cacheKey: 'reit_hist_cache_v2',
+                cacheTimeKey: 'reit_hist_cache_time_v2',
                 isRefreshing: false
             },
             bullion: {
@@ -1107,8 +1107,8 @@
                 progressBarId: 'bullionProgressBar',
                 progressFillId: 'bullionProgressFill',
                 btnId: 'bullionRefreshBtn',
-                cacheKey: 'bullion_hist_cache_v1',
-                cacheTimeKey: 'bullion_hist_cache_time_v1',
+                cacheKey: 'bullion_hist_cache_v2',
+                cacheTimeKey: 'bullion_hist_cache_time_v2',
                 isRefreshing: false
             }
         };
@@ -1266,7 +1266,7 @@
             // Race every (host x proxy) combo concurrently - first valid
             // response wins, bounding wall-clock time to ~1 timeout window.
             const attempts = hosts.map(host => {
-                const url = `${host}/v8/finance/chart/${symbol}?period1=${period1}&period2=${now}&interval=1d&includePrePost=false&events=div%7Csplit`;
+                const url = `${host}/v8/finance/chart/${symbol}?period1=${period1}&period2=${now}&interval=1d&includePrePost=false`;
                 return fetchJSONWithProxies(url).then(parseChartJson);
             });
 
@@ -1309,7 +1309,7 @@
 
         // N-Year CAGR: latest price vs. price closest to (latest date - N years).
         // Returns null if the history doesn't reach back far enough (no data
-        // point within ~15 days of the target date) - i.e. "not available"
+        // point within ~20 days of the target date) - i.e. "not available"
         // for funds/tickers younger than the requested window.
         function computeCAGR(data, years) {
             if (!data || data.length < 2) return null;
@@ -1317,9 +1317,13 @@
             const targetDate = new Date(latestPoint.date);
             targetDate.setFullYear(targetDate.getFullYear() - years);
 
-            // Bail out early if the series doesn't even span back that far
-            // (avoids matching the oldest available point as if it were N years back).
-            if (data[0].date > targetDate) return null;
+            const toleranceMs = 20 * 24 * 60 * 60 * 1000;
+
+            // Bail out early if the series doesn't even span back that far,
+            // using the same tolerance as the match below (a fund whose data
+            // starts a few days after the exact target date - e.g. because
+            // that date fell on a holiday/weekend - should still count).
+            if (data[0].date - targetDate > toleranceMs) return null;
 
             let closest = null, closestDiff = Infinity;
             for (const d of data) {
@@ -1327,8 +1331,7 @@
                 if (diff < closestDiff) { closestDiff = diff; closest = d; }
             }
 
-            const fifteenDaysMs = 15 * 24 * 60 * 60 * 1000;
-            if (!closest || closestDiff > fifteenDaysMs || closest.price <= 0) return null;
+            if (!closest || closestDiff > toleranceMs || closest.price <= 0) return null;
 
             return (Math.pow(latestPoint.price / closest.price, 1 / years) - 1) * 100;
         }
