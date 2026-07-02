@@ -1207,7 +1207,8 @@
         // history, so 20DMA/sparkline/3Y CAGR can still be computed.
         async function fetchHistoryWithFallback(symbols) {
             let best = null, bestLen = -1, lastErr = null;
-            for (const sym of symbols) {
+            for (let idx = 0; idx < symbols.length; idx++) {
+                const sym = symbols[idx];
                 try {
                     const data = await fetchETFHistory(sym);
                     if (data.length > bestLen) { best = data; bestLen = data.length; }
@@ -1215,6 +1216,11 @@
                 } catch (err) {
                     lastErr = err;
                     console.warn(`History fetch failed for symbol ${sym}:`, err.message);
+                }
+                // Small gap before trying the next symbol variant so we don't
+                // immediately re-hammer a proxy that just rate-limited us.
+                if (idx < symbols.length - 1) {
+                    await new Promise(r => setTimeout(r, 600));
                 }
             }
             if (best) return best; // best-effort: return sparsest-but-nonempty series
@@ -1407,10 +1413,14 @@
             });
         }
 
-        // On failure, auto-retry a couple of times with a short delay before
-        // giving up and showing the manual Retry button - most fetch failures
-        // here are transient (proxy hiccup, rate limit) rather than permanent.
-        const MAX_AUTO_RETRIES = 2;
+        // On failure, auto-retry a few times with backoff before giving up and
+        // showing the manual Retry button - most fetch failures here are
+        // transient (proxy rate-limit hiccup) rather than permanent.
+        const MAX_AUTO_RETRIES = 3;
+        // A "successful" fetch that returns only a couple of candles can't
+        // support 20DMA/sparkline/3Y CAGR - treat it as a soft failure worth
+        // retrying rather than silently showing permanent N/A cells.
+        const MIN_USABLE_POINTS = 5;
 
         async function loadSectionFundData(section, fund) {
             fund.status = 'loading';
@@ -1418,11 +1428,18 @@
             renderSectionTable(section);
 
             let lastErr;
+            let bestSparse = null; // best-effort thin history if we never reach MIN_USABLE_POINTS
+
             for (let attempt = 0; attempt <= MAX_AUTO_RETRIES; attempt++) {
                 try {
                     const history = fund.assetType === 'mf'
                         ? await fetchMFHistory(fund.mfQuery)
                         : await fetchHistoryWithFallback([fund.symbol, ...(fund.fallbackSymbols || [])]);
+
+                    if (fund.assetType !== 'mf' && history.length < MIN_USABLE_POINTS) {
+                        if (!bestSparse || history.length > bestSparse.length) bestSparse = history;
+                        throw new Error(`Only ${history.length} data point(s) returned`);
+                    }
 
                     fund.history = history;
                     fund.pct20dma = computePct20DMA(history);
@@ -1439,9 +1456,23 @@
                     if (attempt < MAX_AUTO_RETRIES) {
                         fund.errorMsg = `Retrying... (${attempt + 1}/${MAX_AUTO_RETRIES})`;
                         renderSectionTable(section);
-                        await new Promise(r => setTimeout(r, 1500));
+                        await new Promise(r => setTimeout(r, 1200 * (attempt + 1)));
                     }
                 }
+            }
+
+            if (bestSparse && bestSparse.length > 0) {
+                // Never got a full history after retries, but at least show
+                // the latest price rather than a hard failure with nothing.
+                fund.history = bestSparse;
+                fund.pct20dma = computePct20DMA(bestSparse);
+                fund.sparkSvg = buildSparklineSVG(bestSparse);
+                fund.ltp = computeLTP(bestSparse);
+                fund.cagr3y = compute3YCAGR(bestSparse);
+                fund.status = 'ok';
+                fund.errorMsg = null;
+                renderSectionTable(section);
+                return;
             }
 
             console.error(`Error fetching data for ${fund.name} after ${MAX_AUTO_RETRIES + 1} attempts:`, lastErr);
