@@ -1144,22 +1144,29 @@
         // actually parseable JSON (a proxy can return HTTP 200 with a blocked/HTML
         // page, which is not a real failure from fetchWithProxy's point of view).
         // Tries every proxy in turn until one yields valid JSON.
-        async function fetchJSONWithProxies(url, timeoutMs = 15000) {
-            let lastErr;
-            for (let i = 0; i < corsProxies.length; i++) {
-                try {
-                    const text = await fetchViaSingleProxy(url, i, timeoutMs);
+        // Try all CORS proxies concurrently and use whichever responds first
+        // with valid JSON. This bounds worst-case wait to ~1 timeout window
+        // instead of summing every proxy's timeout sequentially (which is
+        // what made failures take minutes instead of seconds).
+        async function fetchJSONWithProxies(url, timeoutMs = 9000) {
+            const attempts = corsProxies.map((proxy, i) =>
+                fetchViaSingleProxy(url, i, timeoutMs).then(text => {
                     try {
                         return JSON.parse(text);
                     } catch (parseErr) {
-                        throw new Error(`Non-JSON response via ${corsProxies[i].name}`);
+                        throw new Error(`Non-JSON response via ${proxy.name}`);
                     }
-                } catch (err) {
-                    lastErr = err;
-                    console.warn(`JSON fetch failed via ${corsProxies[i].name}:`, err.message);
-                }
+                }).catch(err => {
+                    console.warn(`JSON fetch failed via ${proxy.name}:`, err.message);
+                    throw err;
+                })
+            );
+            try {
+                return await Promise.any(attempts);
+            } catch (aggregateErr) {
+                const firstMsg = aggregateErr.errors?.[0]?.message;
+                throw new Error(firstMsg || 'All CORS proxies failed to return valid JSON');
             }
-            throw lastErr || new Error('All CORS proxies failed to return valid JSON');
         }
 
         // Fetch NAV history for a mutual fund via MFapi.in (search then history)
@@ -1222,35 +1229,36 @@
                 'https://query2.finance.yahoo.com'
             ];
 
-            let lastErr;
-            for (const host of hosts) {
-                const url = `${host}/v8/finance/chart/${symbol}?period1=${period1}&period2=${now}&interval=1d&includePrePost=false&events=div%7Csplit`;
-                try {
-                    const json = await fetchJSONWithProxies(url);
-                    const result = json?.chart?.result?.[0];
-                    if (!result) {
-                        const msg = json?.chart?.error?.description || 'No chart data';
-                        throw new Error(msg);
-                    }
-
-                    const timestamps = result.timestamp || [];
-                    const closes = result.indicators?.quote?.[0]?.close || [];
-
-                    const data = timestamps.map((t, i) => ({
-                        date: new Date(t * 1000),
-                        price: closes[i]
-                    })).filter(d => d.price !== null && d.price !== undefined && !isNaN(d.price));
-
-                    if (!data.length) throw new Error('Empty price series');
-
-                    data.sort((a, b) => a.date - b.date);
-                    return data;
-                } catch (err) {
-                    lastErr = err;
-                    console.warn(`ETF history fetch failed via ${host}:`, err.message);
+            const parseChartJson = (json) => {
+                const result = json?.chart?.result?.[0];
+                if (!result) {
+                    const msg = json?.chart?.error?.description || 'No chart data';
+                    throw new Error(msg);
                 }
+                const timestamps = result.timestamp || [];
+                const closes = result.indicators?.quote?.[0]?.close || [];
+                const data = timestamps.map((t, i) => ({
+                    date: new Date(t * 1000),
+                    price: closes[i]
+                })).filter(d => d.price !== null && d.price !== undefined && !isNaN(d.price));
+                if (!data.length) throw new Error('Empty price series');
+                data.sort((a, b) => a.date - b.date);
+                return data;
+            };
+
+            // Race every (host x proxy) combo concurrently - first valid
+            // response wins, bounding wall-clock time to ~1 timeout window.
+            const attempts = hosts.map(host => {
+                const url = `${host}/v8/finance/chart/${symbol}?period1=${period1}&period2=${now}&interval=1d&includePrePost=false&events=div%7Csplit`;
+                return fetchJSONWithProxies(url).then(parseChartJson);
+            });
+
+            try {
+                return await Promise.any(attempts);
+            } catch (aggregateErr) {
+                const firstMsg = aggregateErr.errors?.[0]?.message;
+                throw new Error(firstMsg || 'ETF history fetch failed on all hosts');
             }
-            throw lastErr || new Error('ETF history fetch failed on all hosts');
         }
 
         function filterByDaysBack(data, daysBack) {
