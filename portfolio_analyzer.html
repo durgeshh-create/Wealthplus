@@ -631,16 +631,17 @@
             }
         }
 
-        async function fetchWithProxy(url, proxyIndex = 0) {
-            if (proxyIndex >= corsProxies.length) {
-                throw new Error('All CORS proxies exhausted');
-            }
-
+        async function fetchWithProxy(url) {
+            const attempts = corsProxies.map((proxy, i) =>
+                fetchViaSingleProxy(url, i, 7000).catch(err => {
+                    console.warn(`Proxy ${proxy.name} failed:`, err.message);
+                    throw err;
+                })
+            );
             try {
-                return await fetchViaSingleProxy(url, proxyIndex, 25000);
-            } catch (err) {
-                console.warn(`Proxy ${corsProxies[proxyIndex].name} failed:`, err.message);
-                return fetchWithProxy(url, proxyIndex + 1);
+                return await Promise.any(attempts);
+            } catch (aggregateErr) {
+                throw new Error('All CORS proxies exhausted');
             }
         }
 
@@ -1028,7 +1029,7 @@
                 name: "EMBASSY (Embassy Office Parks REIT)",
                 assetType: "reit",
                 symbol: "EMBASSY-RR.NS",
-                fallbackSymbols: ["EMBASSY.NS", "EMBASSY.BO"],
+                fallbackSymbols: ["EMBASSY.NS"],
                 gfTicker: "NSE:EMBASSY-RR",
                 url: "https://www.google.com/finance/quote/EMBASSY-RR:NSE",
                 history: null, sparkSvg: null, pct20dma: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
@@ -1037,7 +1038,7 @@
                 name: "MINDSPACE-RR (Mindspace REIT)",
                 assetType: "reit",
                 symbol: "MINDSPACE-RR.NS",
-                fallbackSymbols: ["MINDSPACE.NS", "MINDSPACE.BO"],
+                fallbackSymbols: ["MINDSPACE.NS"],
                 gfTicker: "NSE:MINDSPACE-RR",
                 url: "https://www.google.com/finance/quote/MINDSPACE-RR:NSE",
                 history: null, sparkSvg: null, pct20dma: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
@@ -1046,7 +1047,7 @@
                 name: "INDIGRID (IndiGrid InvIT)",
                 assetType: "invit",
                 symbol: "INDIGRID.NS",
-                fallbackSymbols: ["INDIGRID.BO"],
+                fallbackSymbols: [],
                 gfTicker: "NSE:INDIGRID",
                 url: "https://www.google.com/finance/quote/INDIGRID:NSE",
                 history: null, sparkSvg: null, pct20dma: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
@@ -1157,7 +1158,7 @@
         // with valid JSON. This bounds worst-case wait to ~1 timeout window
         // instead of summing every proxy's timeout sequentially (which is
         // what made failures take minutes instead of seconds).
-        async function fetchJSONWithProxies(url, timeoutMs = 9000) {
+        async function fetchJSONWithProxies(url, timeoutMs = 6000) {
             const attempts = corsProxies.map((proxy, i) =>
                 fetchViaSingleProxy(url, i, timeoutMs).then(text => {
                     try {
@@ -1231,7 +1232,7 @@
                 // Small gap before trying the next symbol variant so we don't
                 // immediately re-hammer a proxy that just rate-limited us.
                 if (idx < symbols.length - 1) {
-                    await new Promise(r => setTimeout(r, 600));
+                    await new Promise(r => setTimeout(r, 350));
                 }
             }
             if (best) return best; // best-effort: return sparsest-but-nonempty series
@@ -1442,10 +1443,11 @@
             });
         }
 
-        // On failure, auto-retry a few times with backoff before giving up and
-        // showing the manual Retry button - most fetch failures here are
-        // transient (proxy rate-limit hiccup) rather than permanent.
-        const MAX_AUTO_RETRIES = 3;
+        // On failure, auto-retry once with a short delay before giving up and
+        // showing the manual Retry button. Kept low (rather than many retries)
+        // since each attempt already races all proxies in parallel - more
+        // retries mainly add wait time without much added success chance.
+        const MAX_AUTO_RETRIES = 1;
         // A "successful" fetch that returns only a couple of candles can't
         // support 20DMA/sparkline/3Y CAGR - treat it as a soft failure worth
         // retrying rather than silently showing permanent N/A cells.
@@ -1487,7 +1489,7 @@
                     if (attempt < MAX_AUTO_RETRIES) {
                         fund.errorMsg = `Retrying... (${attempt + 1}/${MAX_AUTO_RETRIES})`;
                         renderSectionTable(section);
-                        await new Promise(r => setTimeout(r, 1200 * (attempt + 1)));
+                        await new Promise(r => setTimeout(r, 1000));
                     }
                 }
             }
@@ -1532,15 +1534,16 @@
 
             btn.disabled = true;
             progressBar.classList.add('active');
+            statusEl.textContent = `Fetching ${section.funds.length} item(s)...`;
 
-            for (let i = 0; i < section.funds.length; i++) {
-                statusEl.textContent = `Fetching ${section.funds[i].name}... (${i + 1}/${section.funds.length})`;
-                progressFill.style.width = `${((i + 1) / section.funds.length) * 100}%`;
-                await loadSectionFundData(section, section.funds[i]);
-                if (i < section.funds.length - 1) {
-                    await new Promise(r => setTimeout(r, 1500));
-                }
-            }
+            let completed = 0;
+            await Promise.all(section.funds.map(fund =>
+                loadSectionFundData(section, fund).then(() => {
+                    completed++;
+                    progressFill.style.width = `${(completed / section.funds.length) * 100}%`;
+                    statusEl.textContent = `Fetching... (${completed}/${section.funds.length})`;
+                })
+            ));
 
             saveSectionCache(section);
 
@@ -1552,6 +1555,54 @@
             progressBar.classList.remove('active');
             btn.disabled = false;
             section.isRefreshing = false;
+        }
+
+        // ===== Periodic auto-refresh: stocks/ETFs/REITs/InvITs only =====
+        // Mutual funds (Debt section, and the MF entries inside Equity) only
+        // ever refresh once, on page load - their NAV doesn't change
+        // intraday, so there's no benefit to polling them repeatedly.
+        // Listed instruments (stocks/ETFs/REITs/InvITs) trade live, so those
+        // get refreshed on a recurring timer.
+        const AUTO_REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
+        async function autoRefreshListedAssets() {
+            for (const key of ['equity', 'reit', 'bullion']) {
+                const section = sectionsMap[key];
+                if (section.isRefreshing) continue;
+
+                const listedFunds = section.funds.filter(f => f.assetType !== 'mf');
+                if (listedFunds.length === 0) continue;
+
+                section.isRefreshing = true;
+                const btn = document.getElementById(section.btnId);
+                const progressBar = document.getElementById(section.progressBarId);
+                const progressFill = document.getElementById(section.progressFillId);
+                const statusEl = document.getElementById(section.statusId);
+
+                if (btn) btn.disabled = true;
+                if (progressBar) progressBar.classList.add('active');
+                if (statusEl) statusEl.textContent = `Auto-refreshing ${listedFunds.length} item(s)...`;
+
+                let completed = 0;
+                await Promise.all(listedFunds.map(fund =>
+                    loadSectionFundData(section, fund).then(() => {
+                        completed++;
+                        if (progressFill) progressFill.style.width = `${(completed / listedFunds.length) * 100}%`;
+                    })
+                ));
+
+                saveSectionCache(section);
+
+                const failedCount = listedFunds.filter(f => f.status === 'error').length;
+                if (statusEl) {
+                    statusEl.textContent = failedCount === 0
+                        ? `Auto-updated at ${new Date().toLocaleTimeString()}`
+                        : `${listedFunds.length - failedCount} OK, ${failedCount} failed (auto).`;
+                }
+                if (progressBar) progressBar.classList.remove('active');
+                if (btn) btn.disabled = false;
+                section.isRefreshing = false;
+            }
         }
 
         // Initialize
@@ -1580,6 +1631,10 @@
             setTimeout(() => {
                 refreshAllSection('bullion');
             }, hasBullionCache ? 5000 : 1800);
+
+            // Start recurring background refresh for listed instruments only
+            // (mutual funds are intentionally excluded - see comment above).
+            setInterval(autoRefreshListedAssets, AUTO_REFRESH_INTERVAL_MS);
         });
     </script>
 </body>
