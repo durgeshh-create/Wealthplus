@@ -966,17 +966,24 @@
         // for Google Finance, isn't even present in a non-JS page fetch).
         async function fetchDebtDayChangeViaMFApi(fund) {
             if (!fund.mfQuery) return null;
-            try {
-                const history = await fetchMFHistory(fund.mfQuery);
-                const pct = computeDayChange(history);
-                if (pct === null || isNaN(pct)) return null;
-                const latest = history[history.length - 1].price;
-                const prev = history[history.length - 2].price;
-                return { pct, abs: latest - prev };
-            } catch (e) {
-                console.warn(`MFapi day-change fetch failed for ${fund.name}:`, e.message);
-                return null;
+            for (let attempt = 0; attempt < 2; attempt++) {
+                try {
+                    const history = await fetchMFHistory(fund.mfQuery);
+                    const pct = computeDayChange(history);
+                    if (pct === null || isNaN(pct)) return null;
+                    const latest = history[history.length - 1].price;
+                    const prev = history[history.length - 2].price;
+                    return { pct, abs: latest - prev };
+                } catch (e) {
+                    if (attempt === 0) {
+                        await new Promise(r => setTimeout(r, 600));
+                        continue;
+                    }
+                    console.warn(`MFapi day-change fetch failed for ${fund.name}:`, e.message);
+                    return null;
+                }
             }
+            return null;
         }
 
         async function refreshSingle(index) {
@@ -986,7 +993,10 @@
             renderTable();
 
             try {
-                const html = await fetchWithProxy(fund.url);
+                const [html, mfChange] = await Promise.all([
+                    fetchWithProxy(fund.url),
+                    fetchDebtDayChangeViaMFApi(fund)
+                ]);
                 const result = extractMetrics(html, fund.name);
 
                 fund.ytm = !isNaN(result.ytm) && result.ytm !== 'na' ? result.ytm.toFixed(2) : 'na';
@@ -996,7 +1006,6 @@
                 fund.dayChangePct = (result.dayChangePct !== null && result.dayChangePct !== undefined) ? result.dayChangePct.toFixed(2) : null;
                 fund.dayChangeAbs = (result.dayChangeAbs !== null && result.dayChangeAbs !== undefined) ? result.dayChangeAbs.toFixed(2) : null;
 
-                const mfChange = await fetchDebtDayChangeViaMFApi(fund);
                 if (mfChange) {
                     fund.dayChangePct = mfChange.pct.toFixed(2);
                     fund.dayChangeAbs = mfChange.abs.toFixed(2);
@@ -1021,7 +1030,10 @@
             progressFill.style.width = `${((index + 1) / total) * 100}%`;
 
             try {
-                const html = await fetchWithProxy(fund.url);
+                const [html, mfChange] = await Promise.all([
+                    fetchWithProxy(fund.url),
+                    fetchDebtDayChangeViaMFApi(fund)
+                ]);
                 const result = extractMetrics(html, fund.name);
 
                 fund.ytm = !isNaN(result.ytm) && result.ytm !== 'na' ? result.ytm.toFixed(2) : 'na';
@@ -1031,7 +1043,6 @@
                 fund.dayChangePct = (result.dayChangePct !== null && result.dayChangePct !== undefined) ? result.dayChangePct.toFixed(2) : null;
                 fund.dayChangeAbs = (result.dayChangeAbs !== null && result.dayChangeAbs !== undefined) ? result.dayChangeAbs.toFixed(2) : null;
 
-                const mfChange = await fetchDebtDayChangeViaMFApi(fund);
                 if (mfChange) {
                     fund.dayChangePct = mfChange.pct.toFixed(2);
                     fund.dayChangeAbs = mfChange.abs.toFixed(2);
@@ -1066,10 +1077,17 @@
             });
             renderTable();
 
-            for (let i = 0; i < funds.length; i++) {
-                await fetchFundData(funds[i], i, funds.length);
-                if (i < funds.length - 1) {
-                    await new Promise(r => setTimeout(r, 2000));
+            // Process funds in small concurrent batches rather than fully
+            // sequentially with fixed gaps - cuts wall-clock time roughly by
+            // the batch size while still bounding how many proxy requests
+            // land at once (helps avoid tripping per-IP rate limits on the
+            // free CORS proxies).
+            const BATCH_SIZE = 3;
+            for (let i = 0; i < funds.length; i += BATCH_SIZE) {
+                const batch = funds.slice(i, i + BATCH_SIZE);
+                await Promise.all(batch.map((f, j) => fetchFundData(f, i + j, funds.length)));
+                if (i + BATCH_SIZE < funds.length) {
+                    await new Promise(r => setTimeout(r, 500));
                 }
             }
 
