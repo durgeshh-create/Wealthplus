@@ -471,17 +471,17 @@
     <script>
         // Fund configuration
         const funds = [
-            { name: "HDFC Money Market", type: "Money Market", slug: "hdfc-money-market-fund-M_HDYK", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/hdfc-money-market-fund-M_HDYK" },
-            { name: "Kotak Low Duration", type: "Low Duration", slug: "kotak-low-duration-fund-M_KOOW", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/kotak-low-duration-fund-M_KOOW" },
-            { name: "ABSL Money Manager", type: "Money Manager", slug: "aditya-birla-sl-money-manager-fund-M_ADTMG", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-money-manager-fund-M_ADTMG" },
-            { name: "ABSL Savings", type: "Savings", slug: "aditya-birla-sl-savings-fund-M_ADTVA", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-savings-fund-M_ADTVA" },
-            { name: "ABSL Low Duration", type: "Low Duration", slug: "aditya-birla-sl-low-duration-fund-M_ADIWA", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-low-duration-fund-M_ADIWA" },
-            { name: "Tata Money Market", type: "Money Market", slug: "tata-money-market-fund-M_TAON", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/tata-money-market-fund-M_TAON" },
-            { name: "ABSL Short Term", type: "Short Term", slug: "aditya-birla-sl-short-term-fund-M_ADTHO", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-short-term-fund-M_ADTHO" },
-            { name: "ABSL Floating Rate", type: "Floating Rate", slug: "aditya-birla-sl-floating-rate-fund-M_ADTOS", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-floating-rate-fund-M_ADTOS" },
-            { name: "Axis Treasury Adv", type: "Treasury Advantage", slug: "axis-treasury-advantage-fund-M_AXAD", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/axis-treasury-advantage-fund-M_AXAD" },
-            { name: "NIPPON INDIA ULTRA SHORT", type: "Ultra Short Duration", slug: "nippon-india-ultra-short-duration-fund-M_NILS", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/nippon-india-ultra-short-duration-fund-M_NILS" },
-            { name: "Axis Short Term", type: "Short Duration", slug: "axis-short-duration-fund-M_AXOU", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/axis-short-duration-fund-M_AXOU" }
+            { name: "HDFC Money Market", type: "Money Market", slug: "hdfc-money-market-fund-M_HDYK", mfQuery: "HDFC Money Market Fund", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/hdfc-money-market-fund-M_HDYK" },
+            { name: "Kotak Low Duration", type: "Low Duration", slug: "kotak-low-duration-fund-M_KOOW", mfQuery: "Kotak Low Duration Fund", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/kotak-low-duration-fund-M_KOOW" },
+            { name: "ABSL Money Manager", type: "Money Manager", slug: "aditya-birla-sl-money-manager-fund-M_ADTMG", mfQuery: "Aditya Birla Sun Life Money Manager Fund", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-money-manager-fund-M_ADTMG" },
+            { name: "ABSL Savings", type: "Savings", slug: "aditya-birla-sl-savings-fund-M_ADTVA", mfQuery: "Aditya Birla Sun Life Savings Fund", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-savings-fund-M_ADTVA" },
+            { name: "ABSL Low Duration", type: "Low Duration", slug: "aditya-birla-sl-low-duration-fund-M_ADIWA", mfQuery: "Aditya Birla Sun Life Low Duration Fund", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-low-duration-fund-M_ADIWA" },
+            { name: "Tata Money Market", type: "Money Market", slug: "tata-money-market-fund-M_TAON", mfQuery: "Tata Money Market Fund", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/tata-money-market-fund-M_TAON" },
+            { name: "ABSL Short Term", type: "Short Term", slug: "aditya-birla-sl-short-term-fund-M_ADTHO", mfQuery: "Aditya Birla Sun Life Short Term Fund", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-short-term-fund-M_ADTHO" },
+            { name: "ABSL Floating Rate", type: "Floating Rate", slug: "aditya-birla-sl-floating-rate-fund-M_ADTOS", mfQuery: "Aditya Birla Sun Life Floating Rate Fund", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-floating-rate-fund-M_ADTOS" },
+            { name: "Axis Treasury Adv", type: "Treasury Advantage", slug: "axis-treasury-advantage-fund-M_AXAD", mfQuery: "Axis Treasury Advantage Fund", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/axis-treasury-advantage-fund-M_AXAD" },
+            { name: "NIPPON INDIA ULTRA SHORT", type: "Ultra Short Duration", slug: "nippon-india-ultra-short-duration-fund-M_NILS", mfQuery: "Nippon India Ultra Short Duration Fund", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/nippon-india-ultra-short-duration-fund-M_NILS" },
+            { name: "Axis Short Term", type: "Short Duration", slug: "axis-short-duration-fund-M_AXOU", mfQuery: "Axis Short Duration Fund", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/axis-short-duration-fund-M_AXOU" }
         ];
 
         const corsProxies = [
@@ -959,6 +959,26 @@
             return result;
         }
 
+        // Day change via MFapi.in (AMFI-sourced NAV history) - same reliable
+        // JSON-API approach already used for the equity/REIT/bullion mutual
+        // funds below, instead of scraping TickerTape's/Google Finance's
+        // client-rendered price header (which breaks on markup changes and,
+        // for Google Finance, isn't even present in a non-JS page fetch).
+        async function fetchDebtDayChangeViaMFApi(fund) {
+            if (!fund.mfQuery) return null;
+            try {
+                const history = await fetchMFHistory(fund.mfQuery);
+                const pct = computeDayChange(history);
+                if (pct === null || isNaN(pct)) return null;
+                const latest = history[history.length - 1].price;
+                const prev = history[history.length - 2].price;
+                return { pct, abs: latest - prev };
+            } catch (e) {
+                console.warn(`MFapi day-change fetch failed for ${fund.name}:`, e.message);
+                return null;
+            }
+        }
+
         async function refreshSingle(index) {
             const fund = funds[index];
             const oldYtm = fund.ytm;
@@ -975,6 +995,12 @@
                 fund.ret3y = result.ret3y ? result.ret3y.toFixed(2) : null;
                 fund.dayChangePct = (result.dayChangePct !== null && result.dayChangePct !== undefined) ? result.dayChangePct.toFixed(2) : null;
                 fund.dayChangeAbs = (result.dayChangeAbs !== null && result.dayChangeAbs !== undefined) ? result.dayChangeAbs.toFixed(2) : null;
+
+                const mfChange = await fetchDebtDayChangeViaMFApi(fund);
+                if (mfChange) {
+                    fund.dayChangePct = mfChange.pct.toFixed(2);
+                    fund.dayChangeAbs = mfChange.abs.toFixed(2);
+                }
 
                 saveCache();
                 document.getElementById('status').textContent = `${fund.name} updated: YTM=${fund.ytm}, 3Y=${fund.ret3y}`;
@@ -1004,6 +1030,12 @@
                 fund.ret3y = result.ret3y ? result.ret3y.toFixed(2) : null;
                 fund.dayChangePct = (result.dayChangePct !== null && result.dayChangePct !== undefined) ? result.dayChangePct.toFixed(2) : null;
                 fund.dayChangeAbs = (result.dayChangeAbs !== null && result.dayChangeAbs !== undefined) ? result.dayChangeAbs.toFixed(2) : null;
+
+                const mfChange = await fetchDebtDayChangeViaMFApi(fund);
+                if (mfChange) {
+                    fund.dayChangePct = mfChange.pct.toFixed(2);
+                    fund.dayChangeAbs = mfChange.abs.toFixed(2);
+                }
 
             } catch (err) {
                 console.error(`Error fetching ${fund.name}:`, err);
