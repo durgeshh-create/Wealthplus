@@ -924,6 +924,34 @@
                     } catch (e) {}
                 }
 
+                // === METHOD 6b: Decoupled fallback ===
+                // If the NAV-anchored match above still fails (e.g. TickerTape
+                // separates the NAV and the change figures with more markup
+                // than the filler window allows, or reorders them), fall back
+                // to locating the "X.XX% (±Y.YY)" pair on its own anywhere in
+                // the header region, without requiring ₹NAV immediately
+                // before it. This pattern (a bare percent immediately
+                // followed by a parenthesised signed number) is distinctive
+                // enough to be safe to match without the NAV anchor.
+                if (result.dayChangePct === null) {
+                    try {
+                        const headerChunk2 = html.slice(0, 20000)
+                            .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+                            .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+                            .replace(/<[^>]+>/g, '');
+
+                        const fallbackMatch = headerChunk2.match(/([+-]?[\d]+\.[\d]+)\s*%\s*\(([+-]?[\d.]+)\)/);
+                        if (fallbackMatch) {
+                            const absChange = parseFloat(fallbackMatch[2]);
+                            const pctMagnitude = Math.abs(parseFloat(fallbackMatch[1]));
+                            if (!isNaN(absChange) && !isNaN(pctMagnitude)) {
+                                result.dayChangeAbs = absChange;
+                                result.dayChangePct = absChange < 0 ? -pctMagnitude : pctMagnitude;
+                            }
+                        }
+                    } catch (e) {}
+                }
+
             } catch (err) {
                 console.error('Parse error for', fundName, err);
             }
