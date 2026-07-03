@@ -1,21 +1,21 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-07-03 12:36:54 IST",
+  "timestamp": "2026-07-03 12:37:55 IST",
   "bot_running": true,
-  "total_value": 0.0,
-  "today_pnl": 0,
-  "today_pnl_pct": 0,
+  "total_value": 8740180.77,
+  "today_pnl": 17508.81,
+  "today_pnl_pct": 0.2,
   "liquidcase": {
-    "quantity": 0,
+    "quantity": 63848,
     "free_quantity": 0,
     "price": 114.85,
-    "value": 0.0,
-    "pct": 0
+    "value": 7332942.8,
+    "pct": 83.9
   },
   "slots": {
     "total": 7,
-    "used": 0,
-    "available": 7,
+    "used": 2,
+    "available": 5,
     "active_etfs": [
       "GOLDBEES",
       "SILVERBEES",
@@ -27,9 +27,66 @@
       "MID150BEES",
       "MINDSPACE-RR"
     ],
-    "bnh_held": 0
+    "bnh_held": 2
   },
-  "holdings": [],
+  "holdings": [
+    {
+      "symbol": "GOLDBEES",
+      "quantity": 3370,
+      "avg": 121.62,
+      "ltp": 120.52,
+      "value": 406152.4,
+      "pnl": 9537.1,
+      "pnl_pct": 2.4,
+      "unrealised_pnl": -4298.72,
+      "unrealised_pnl_pct": -1.05,
+      "strategy": "active",
+      "buys_today": 1,
+      "max_slots": 7
+    },
+    {
+      "symbol": "MID150BEES",
+      "quantity": 1951,
+      "avg": 228.22,
+      "ltp": 237.19,
+      "value": 462757.69,
+      "pnl": 136.57,
+      "pnl_pct": 0.03,
+      "unrealised_pnl": 17900.92,
+      "unrealised_pnl_pct": 4.02,
+      "strategy": "bnh",
+      "buys_today": 1,
+      "max_slots": 7
+    },
+    {
+      "symbol": "MINDSPACE-RR",
+      "quantity": 530,
+      "avg": 461.34,
+      "ltp": 486.0,
+      "value": 257580.0,
+      "pnl": 1330.3,
+      "pnl_pct": 0.52,
+      "unrealised_pnl": 13063.38,
+      "unrealised_pnl_pct": 5.34,
+      "strategy": "bnh",
+      "buys_today": 1,
+      "max_slots": 7
+    },
+    {
+      "symbol": "SILVERBEES",
+      "quantity": 1268,
+      "avg": 228.29,
+      "ltp": 221.41,
+      "value": 280747.88,
+      "pnl": 6504.84,
+      "pnl_pct": 2.37,
+      "unrealised_pnl": -8865.38,
+      "unrealised_pnl_pct": -3.06,
+      "strategy": "active",
+      "buys_today": 1,
+      "max_slots": 7
+    }
+  ],
   "positions": [
     {
       "symbol": "NIFTY2670722200PE",
@@ -71,36 +128,36 @@
   "williams_r": [
     {
       "symbol": "GOLDBEES",
-      "ltp": 120.51,
+      "ltp": 120.52,
       "change_pct": 2.4,
-      "williams_r": -39.69,
-      "is_held": false,
-      "avg_price": null,
+      "williams_r": -39.6,
+      "is_held": true,
+      "avg_price": 121.62,
       "strategy": "active"
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 221.43,
-      "change_pct": 2.38,
-      "williams_r": -53.93,
-      "is_held": false,
-      "avg_price": null,
+      "ltp": 221.41,
+      "change_pct": 2.37,
+      "williams_r": -53.98,
+      "is_held": true,
+      "avg_price": 228.29,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 781.72,
-      "change_pct": -0.09,
-      "williams_r": -41.32,
+      "ltp": 781.76,
+      "change_pct": -0.08,
+      "williams_r": -41.22,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 446.49,
-      "change_pct": -0.23,
-      "williams_r": -9.73,
+      "ltp": 446.62,
+      "change_pct": -0.2,
+      "williams_r": -9.23,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -116,40 +173,52 @@
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 237.29,
-      "change_pct": 0.07,
-      "williams_r": -37.6,
-      "is_held": false,
-      "avg_price": null,
+      "ltp": 237.19,
+      "change_pct": 0.03,
+      "williams_r": -39.0,
+      "is_held": true,
+      "avg_price": 228.22,
       "strategy": "bnh"
     },
     {
       "symbol": "MINDSPACE-RR",
-      "ltp": 485.99,
+      "ltp": 486.0,
       "change_pct": 0.52,
-      "williams_r": -9.24,
-      "is_held": false,
-      "avg_price": null,
+      "williams_r": -9.21,
+      "is_held": true,
+      "avg_price": 461.34,
       "strategy": "bnh"
     }
   ],
   "signals": [],
-  "orders": [],
+  "orders": [
+    {
+      "order_id": "260703190138764",
+      "tradingsymbol": "LIQUIDCASE",
+      "transaction_type": "SELL",
+      "quantity": 3482,
+      "filled_quantity": 3482,
+      "average_price": 114.85,
+      "price": 114.85,
+      "status": "COMPLETE",
+      "order_timestamp": "2026-07-03 09:23:40"
+    }
+  ],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24347.95,
+      "ltp": 24354.1,
       "prev_close": 24175.7,
-      "change": 172.25,
-      "change_pct": 0.71,
+      "change": 178.4,
+      "change_pct": 0.74,
       "open": 24375.65,
       "high": 24378.15,
       "low": 24295.15
     },
     "INDIA VIX": {
-      "ltp": 11.87,
+      "ltp": 11.85,
       "prev_close": 12.29,
-      "change": -0.42,
-      "change_pct": -3.42,
+      "change": -0.44,
+      "change_pct": -3.58,
       "open": 12.29,
       "high": 12.29,
       "low": 11.65
@@ -333,6 +402,6 @@
     }
   },
   "available_cash": 425915.3,
-  "available_margin": 1945652.51,
+  "available_margin": 1941551.08,
   "available_margin_note": null
 }
