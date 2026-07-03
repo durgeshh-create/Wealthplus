@@ -3711,12 +3711,19 @@ let _mwAutoRefreshTimer = null;
 
 function startMWAutoRefresh() {
   if (_mwAutoRefreshTimer) clearTimeout(_mwAutoRefreshTimer);
+  let isFirstTick = true;
   const tick = async () => {
     const marketOpen = isMarketHoursNow();
     updateMWLiveBadge(marketOpen);
-    if (marketOpen && _marketwatch.length) {
+    // Always force-refresh on the very first tick (i.e. right when the
+    // Scanner page/tab loads), even outside market hours - otherwise
+    // opening the page while the market is closed just shows whatever was
+    // left in memory from before, with no fetch at all. Subsequent ticks
+    // still respect market hours to avoid needless off-hours polling.
+    if ((marketOpen || isFirstTick) && _marketwatch.length) {
       await refreshMWData(true);   // force re-fetch live values
     }
+    isFirstTick = false;
     _mwAutoRefreshTimer = setTimeout(tick, marketOpen ? MW_REFRESH_MS_MARKET : MW_REFRESH_MS_OFFHOURS);
   };
   tick();
@@ -4059,7 +4066,12 @@ let _scnSortDir = 1;
 
 async function _fetchCSV(url) {
   try {
-    const r = await fetch(url);
+    // raw.githubusercontent.com is CDN-cached per exact URL (and the browser
+    // caches it too) - without a cache-buster, this kept re-serving the CSV
+    // snapshot from before the last "Seed Scanner Data" run even though the
+    // repo file itself was already updated. Force a fresh fetch every time.
+    const bustedUrl = url + (url.includes('?') ? '&' : '?') + '_=' + Date.now();
+    const r = await fetch(bustedUrl, { cache: 'no-store' });
     if (!r.ok) return null;
     const lines = (await r.text()).trim().split('\n').slice(1); // skip header
     return lines.map(l => {
