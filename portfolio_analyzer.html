@@ -110,12 +110,13 @@
             user-select: none;
         }
         th:hover { background: rgba(0, 212, 255, 0.15); }
-        th:nth-child(1) { width: 32%; }
-        th:nth-child(2) { width: 14%; }
-        th:nth-child(3) { width: 14%; }
-        th:nth-child(4) { width: 14%; }
-        th:nth-child(5) { width: 12%; }
-        th:nth-child(6) { width: 14%; }
+        th:nth-child(1) { width: 28%; }
+        th:nth-child(2) { width: 11%; }
+        th:nth-child(3) { width: 12%; }
+        th:nth-child(4) { width: 11%; }
+        th:nth-child(5) { width: 11%; }
+        th:nth-child(6) { width: 10%; }
+        th:nth-child(7) { width: 17%; }
         td {
             padding: 14px 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -162,14 +163,18 @@
         .section-col .retry-btn { padding: 3px 6px; font-size: 0.6rem; margin-left: 4px; }
         .section-col .sparkline-wrap svg { width: 56px; height: 20px; }
         .section-col .dma-pos, .section-col .dma-neg { font-size: 0.8rem; }
+        .section-col .chg-pos, .section-col .chg-neg { font-size: 0.72rem; }
         .section-col .dma-sub { font-size: 0.6rem; }
-        /* Equity / REIT / Bullion column widths (8 cols: Name, Spark, %20DMA, LTP, 3Y, 5Y, 10Y, Action) */
-        .equity-th-name { width: 33%; }
-        .equity-th-spark { width: 12%; }
-        .equity-th-dma { width: 12%; }
-        .equity-th-ltp { width: 11%; }
-        .equity-th-cagr { width: 8%; }
-        .equity-th-action { width: 8%; }
+        /* Equity / REIT / Bullion column widths (9 cols: Name, Spark, %20DMA, %Chg, LTP, 3Y, 5Y, 10Y, Action) */
+        .equity-th-name { width: 30%; }
+        .equity-th-spark { width: 10%; }
+        .equity-th-dma { width: 11%; }
+        .equity-th-chg { width: 9%; }
+        .equity-th-ltp { width: 10%; }
+        .equity-th-cagr { width: 7%; }
+        .equity-th-action { width: 7%; }
+        .chg-pos { color: #64ffda; font-weight: 600; }
+        .chg-neg { color: #ff6b6b; font-weight: 600; }
         tr:hover {
             background: rgba(255, 255, 255, 0.02);
         }
@@ -317,7 +322,7 @@
                         <button class="btn" onclick="clearCache()" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.3);color:#ff6b6b;">Clear</button>
                     </div>
                     <div class="line"></div>
-                    <span class="badge">YTM · Exp · NAV · 3Y</span>
+                    <span class="badge">YTM · Chg · Exp · NAV · 3Y</span>
                 </div>
 
                 <div class="status" id="status"></div>
@@ -331,6 +336,7 @@
                             <tr>
                                 <th onclick="sortByName()">Fund ↕</th>
                                 <th onclick="sortByYTM()">YTM ↕</th>
+                                <th>Chg</th>
                                 <th>Exp</th>
                                 <th>NAV</th>
                                 <th>3Y</th>
@@ -352,7 +358,7 @@
                             <button class="btn" id="equityRefreshBtn" onclick="refreshAllSection('equity')">Refresh</button>
                         </div>
                         <div class="line"></div>
-                        <span class="badge">Spark · %20DMA · LTP · 3/5/10Y CAGR</span>
+                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/10Y CAGR</span>
                     </div>
 
                     <div class="status" id="equityStatus"></div>
@@ -367,6 +373,7 @@
                                     <th class="equity-th-name">Name</th>
                                     <th class="equity-th-spark">10D</th>
                                     <th class="equity-th-dma">%20DMA</th>
+                                    <th class="equity-th-chg">%Chg</th>
                                     <th class="equity-th-ltp">LTP</th>
                                     <th class="equity-th-cagr">3Y</th>
                                     <th class="equity-th-cagr">5Y</th>
@@ -387,7 +394,7 @@
                             <button class="btn" id="reitRefreshBtn" onclick="refreshAllSection('reit')">Refresh</button>
                         </div>
                         <div class="line"></div>
-                        <span class="badge">Spark · %20DMA · LTP · 3/5/10Y CAGR</span>
+                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/10Y CAGR</span>
                     </div>
 
                     <div class="status" id="reitStatus"></div>
@@ -402,6 +409,7 @@
                                     <th class="equity-th-name">Name</th>
                                     <th class="equity-th-spark">10D</th>
                                     <th class="equity-th-dma">%20DMA</th>
+                                    <th class="equity-th-chg">%Chg</th>
                                     <th class="equity-th-ltp">LTP</th>
                                     <th class="equity-th-cagr">3Y</th>
                                     <th class="equity-th-cagr">5Y</th>
@@ -422,7 +430,7 @@
                             <button class="btn" id="bullionRefreshBtn" onclick="refreshAllSection('bullion')">Refresh</button>
                         </div>
                         <div class="line"></div>
-                        <span class="badge">Spark · %20DMA · LTP · 3/5/10Y CAGR</span>
+                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/10Y CAGR</span>
                     </div>
 
                     <div class="status" id="bullionStatus"></div>
@@ -437,6 +445,7 @@
                                     <th class="equity-th-name">Name</th>
                                     <th class="equity-th-spark">10D</th>
                                     <th class="equity-th-dma">%20DMA</th>
+                                    <th class="equity-th-chg">%Chg</th>
                                     <th class="equity-th-ltp">LTP</th>
                                     <th class="equity-th-cagr">3Y</th>
                                     <th class="equity-th-cagr">5Y</th>
@@ -462,17 +471,17 @@
     <script>
         // Fund configuration
         const funds = [
-            { name: "HDFC Money Market", type: "Money Market", slug: "hdfc-money-market-fund-M_HDYK", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/hdfc-money-market-fund-M_HDYK" },
-            { name: "Kotak Low Duration", type: "Low Duration", slug: "kotak-low-duration-fund-M_KOOW", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/kotak-low-duration-fund-M_KOOW" },
-            { name: "ABSL Money Manager", type: "Money Manager", slug: "aditya-birla-sl-money-manager-fund-M_ADTMG", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-money-manager-fund-M_ADTMG" },
-            { name: "ABSL Savings", type: "Savings", slug: "aditya-birla-sl-savings-fund-M_ADTVA", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-savings-fund-M_ADTVA" },
-            { name: "ABSL Low Duration", type: "Low Duration", slug: "aditya-birla-sl-low-duration-fund-M_ADIWA", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-low-duration-fund-M_ADIWA" },
-            { name: "Tata Money Market", type: "Money Market", slug: "tata-money-market-fund-M_TAON", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/tata-money-market-fund-M_TAON" },
-            { name: "ABSL Short Term", type: "Short Term", slug: "aditya-birla-sl-short-term-fund-M_ADTHO", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-short-term-fund-M_ADTHO" },
-            { name: "ABSL Floating Rate", type: "Floating Rate", slug: "aditya-birla-sl-floating-rate-fund-M_ADTOS", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-floating-rate-fund-M_ADTOS" },
-            { name: "Axis Treasury Adv", type: "Treasury Advantage", slug: "axis-treasury-advantage-fund-M_AXAD", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/axis-treasury-advantage-fund-M_AXAD" },
-            { name: "NIPPON INDIA ULTRA SHORT", type: "Ultra Short Duration", slug: "nippon-india-ultra-short-duration-fund-M_NILS", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/nippon-india-ultra-short-duration-fund-M_NILS" },
-            { name: "Axis Short Term", type: "Short Duration", slug: "axis-short-duration-fund-M_AXOU", ytm: null, exp: null, nav: null, ret3y: null, url: "https://www.tickertape.in/mutualfunds/axis-short-duration-fund-M_AXOU" }
+            { name: "HDFC Money Market", type: "Money Market", slug: "hdfc-money-market-fund-M_HDYK", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/hdfc-money-market-fund-M_HDYK" },
+            { name: "Kotak Low Duration", type: "Low Duration", slug: "kotak-low-duration-fund-M_KOOW", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/kotak-low-duration-fund-M_KOOW" },
+            { name: "ABSL Money Manager", type: "Money Manager", slug: "aditya-birla-sl-money-manager-fund-M_ADTMG", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-money-manager-fund-M_ADTMG" },
+            { name: "ABSL Savings", type: "Savings", slug: "aditya-birla-sl-savings-fund-M_ADTVA", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-savings-fund-M_ADTVA" },
+            { name: "ABSL Low Duration", type: "Low Duration", slug: "aditya-birla-sl-low-duration-fund-M_ADIWA", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-low-duration-fund-M_ADIWA" },
+            { name: "Tata Money Market", type: "Money Market", slug: "tata-money-market-fund-M_TAON", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/tata-money-market-fund-M_TAON" },
+            { name: "ABSL Short Term", type: "Short Term", slug: "aditya-birla-sl-short-term-fund-M_ADTHO", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-short-term-fund-M_ADTHO" },
+            { name: "ABSL Floating Rate", type: "Floating Rate", slug: "aditya-birla-sl-floating-rate-fund-M_ADTOS", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/aditya-birla-sl-floating-rate-fund-M_ADTOS" },
+            { name: "Axis Treasury Adv", type: "Treasury Advantage", slug: "axis-treasury-advantage-fund-M_AXAD", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/axis-treasury-advantage-fund-M_AXAD" },
+            { name: "NIPPON INDIA ULTRA SHORT", type: "Ultra Short Duration", slug: "nippon-india-ultra-short-duration-fund-M_NILS", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/nippon-india-ultra-short-duration-fund-M_NILS" },
+            { name: "Axis Short Term", type: "Short Duration", slug: "axis-short-duration-fund-M_AXOU", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/axis-short-duration-fund-M_AXOU" }
         ];
 
         const corsProxies = [
@@ -503,6 +512,8 @@
                             fund.exp = cachedFund.exp;
                             fund.nav = cachedFund.nav;
                             fund.ret3y = cachedFund.ret3y;
+                            fund.dayChangePct = cachedFund.dayChangePct !== undefined ? cachedFund.dayChangePct : null;
+                            fund.dayChangeAbs = cachedFund.dayChangeAbs !== undefined ? cachedFund.dayChangeAbs : null;
                         }
                     });
 
@@ -531,7 +542,9 @@
                     ytm: f.ytm,
                     exp: f.exp,
                     nav: f.nav,
-                    ret3y: f.ret3y
+                    ret3y: f.ret3y,
+                    dayChangePct: f.dayChangePct,
+                    dayChangeAbs: f.dayChangeAbs
                 }));
                 localStorage.setItem(CACHE_KEY, JSON.stringify(dataToCache));
                 localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
@@ -546,7 +559,7 @@
             // Also clear old cache keys
             localStorage.removeItem('mf_ytm_cache');
             localStorage.removeItem('mf_ytm_cache_time');
-            funds.forEach(f => { f.ytm = null; f.exp = null; f.nav = null; f.ret3y = null; });
+            funds.forEach(f => { f.ytm = null; f.exp = null; f.nav = null; f.ret3y = null; f.dayChangePct = null; f.dayChangeAbs = null; });
             renderTable();
             document.getElementById('lastUpdated').textContent = 'Cache cleared';
             document.getElementById('noteBox').textContent = 'Cache cleared. Click "Refresh All YTM" to fetch fresh data.';
@@ -564,6 +577,18 @@
                 const navDisplay = fund.nav ? `<span class="nav-value">₹${fund.nav}</span>` : '<span class="ytm-na">-</span>';
                 const retDisplay = fund.ret3y ? `<span style="color:#64ffda">${fund.ret3y}%</span>` : '<span class="ytm-na">-</span>';
 
+                let chgDisplay = '<span class="ytm-na">-</span>';
+                if (fund.dayChangePct !== null && fund.dayChangePct !== undefined) {
+                    const cval = parseFloat(fund.dayChangePct);
+                    const ccls = cval >= 0 ? 'chg-pos' : 'chg-neg';
+                    const csign = cval >= 0 ? '+' : '';
+                    const absTxt = (fund.dayChangeAbs !== null && fund.dayChangeAbs !== undefined)
+                        ? ` <span class="dma-sub" style="display:inline;">(${csign}${fund.dayChangeAbs})</span>` : '';
+                    chgDisplay = `<span class="${ccls}">${csign}${cval.toFixed(2)}%</span>${absTxt}`;
+                } else if (fund.ytm === 'error') {
+                    chgDisplay = '<span class="ytm-error">Failed</span>';
+                }
+
                 const isCached = fund.ytm && fund.ytm !== 'error' && fund.ytm !== 'na' && fund.ytm !== null;
 
                 row.innerHTML = `
@@ -572,6 +597,7 @@
                         <div class="fund-type">${fund.type}</div>
                     </td>
                     <td>${ytmDisplay}${isCached ? '<span class="cached-badge">●</span>' : ''}</td>
+                    <td>${chgDisplay}</td>
                     <td>${expDisplay}</td>
                     <td>${navDisplay}</td>
                     <td>${retDisplay}</td>
@@ -646,7 +672,7 @@
         }
 
         function extractMetrics(html, fundName) {
-            const result = { ytm: 'na', exp: null, nav: null, ret3y: null };
+            const result = { ytm: 'na', exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null };
 
             try {
                 // === METHOD 1: Parse __NEXT_DATA__ JSON ===
@@ -868,6 +894,32 @@
                     if (navMatch) result.nav = parseFloat(navMatch[1].replace(',', ''));
                 }
 
+                // === METHOD 6: Extract day change (%) and absolute change ===
+                // TickerTape's price header renders as adjacent inline spans
+                // with no separating whitespace, e.g. "₹593.940.04% (+0.26)"
+                // = NAV 593.94, day change +0.04% (+0.26 absolute). The %
+                // text itself carries no sign (colour/arrow icon conveys
+                // direction), so the sign is taken from the parenthesised
+                // absolute change instead.
+                if (result.dayChangePct === null) {
+                    try {
+                        const headerChunk = html.slice(0, 20000)
+                            .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+                            .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+                            .replace(/<[^>]+>/g, '');
+
+                        const changeMatch = headerChunk.match(/₹\s*([\d,]+\.\d{2})(-?[\d.]+)%\s*\(([+-]?[\d.]+)\)/);
+                        if (changeMatch) {
+                            const absChange = parseFloat(changeMatch[3]);
+                            const pctMagnitude = Math.abs(parseFloat(changeMatch[2]));
+                            if (!isNaN(absChange) && !isNaN(pctMagnitude)) {
+                                result.dayChangeAbs = absChange;
+                                result.dayChangePct = absChange < 0 ? -pctMagnitude : pctMagnitude;
+                            }
+                        }
+                    } catch (e) {}
+                }
+
             } catch (err) {
                 console.error('Parse error for', fundName, err);
             }
@@ -889,6 +941,8 @@
                 fund.exp = result.exp ? result.exp.toFixed(2) : null;
                 fund.nav = result.nav ? result.nav.toFixed(2) : null;
                 fund.ret3y = result.ret3y ? result.ret3y.toFixed(2) : null;
+                fund.dayChangePct = (result.dayChangePct !== null && result.dayChangePct !== undefined) ? result.dayChangePct.toFixed(2) : null;
+                fund.dayChangeAbs = (result.dayChangeAbs !== null && result.dayChangeAbs !== undefined) ? result.dayChangeAbs.toFixed(2) : null;
 
                 saveCache();
                 document.getElementById('status').textContent = `${fund.name} updated: YTM=${fund.ytm}, 3Y=${fund.ret3y}`;
@@ -916,6 +970,8 @@
                 fund.exp = result.exp ? result.exp.toFixed(2) : null;
                 fund.nav = result.nav ? result.nav.toFixed(2) : null;
                 fund.ret3y = result.ret3y ? result.ret3y.toFixed(2) : null;
+                fund.dayChangePct = (result.dayChangePct !== null && result.dayChangePct !== undefined) ? result.dayChangePct.toFixed(2) : null;
+                fund.dayChangeAbs = (result.dayChangeAbs !== null && result.dayChangeAbs !== undefined) ? result.dayChangeAbs.toFixed(2) : null;
 
             } catch (err) {
                 console.error(`Error fetching ${fund.name}:`, err);
@@ -941,7 +997,7 @@
 
             funds.forEach(f => {
                 if (!f.ytm || f.ytm === 'error') {
-                    f.ytm = null; f.exp = null; f.nav = null; f.ret3y = null;
+                    f.ytm = null; f.exp = null; f.nav = null; f.ret3y = null; f.dayChangePct = null; f.dayChangeAbs = null;
                 }
             });
             renderTable();
@@ -1003,7 +1059,7 @@
                 mfQuery: "Quant Multi Asset Allocation Fund",
                 gfTicker: "MUTF_IN:QUAN_MULT_ASSE_1UEK35E",
                 url: "https://www.google.com/finance/quote/QUAN_MULT_ASSE_1UEK35E:MUTF_IN",
-                history: null, sparkSvg: null, pct20dma: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, status: null
             },
             {
                 name: "Motilal Oswal BSE Enhanced Value Index Fund",
@@ -1011,7 +1067,7 @@
                 mfQuery: "Motilal Oswal BSE Enhanced Value Index Fund",
                 gfTicker: "MUTF_IN:MOTI_OSWA_BSE_8UCYXX",
                 url: "https://www.google.com/finance/quote/MOTI_OSWA_BSE_8UCYXX:MUTF_IN",
-                history: null, sparkSvg: null, pct20dma: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, status: null
             },
             {
                 name: "MID150BEES",
@@ -1019,7 +1075,7 @@
                 symbol: "MID150BEES.NS",
                 gfTicker: "NSE:MID150BEES",
                 url: "https://www.google.com/finance/quote/MID150BEES:NSE",
-                history: null, sparkSvg: null, pct20dma: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
             }
         ];
 
@@ -1032,7 +1088,7 @@
                 fallbackSymbols: ["EMBASSY.NS"],
                 gfTicker: "NSE:EMBASSY-RR",
                 url: "https://www.google.com/finance/quote/EMBASSY-RR:NSE",
-                history: null, sparkSvg: null, pct20dma: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
             },
             {
                 name: "MINDSPACE-RR (Mindspace REIT)",
@@ -1041,7 +1097,7 @@
                 fallbackSymbols: ["MINDSPACE.NS"],
                 gfTicker: "NSE:MINDSPACE-RR",
                 url: "https://www.google.com/finance/quote/MINDSPACE-RR:NSE",
-                history: null, sparkSvg: null, pct20dma: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
             },
             {
                 name: "INDIGRID (IndiGrid InvIT)",
@@ -1050,7 +1106,7 @@
                 fallbackSymbols: [],
                 gfTicker: "NSE:INDIGRID",
                 url: "https://www.google.com/finance/quote/INDIGRID:NSE",
-                history: null, sparkSvg: null, pct20dma: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
             }
         ];
 
@@ -1062,7 +1118,7 @@
                 symbol: "GOLDBEES.NS",
                 gfTicker: "NSE:GOLDBEES",
                 url: "https://www.google.com/finance/quote/GOLDBEES:NSE",
-                history: null, sparkSvg: null, pct20dma: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
             },
             {
                 name: "SILVERBEES",
@@ -1070,7 +1126,7 @@
                 symbol: "SILVERBEES.NS",
                 gfTicker: "NSE:SILVERBEES",
                 url: "https://www.google.com/finance/quote/SILVERBEES:NSE",
-                history: null, sparkSvg: null, pct20dma: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
             }
         ];
 
@@ -1125,6 +1181,7 @@
                         if (c && c.pct20dma !== null && c.pct20dma !== undefined) {
                             f.pct20dma = c.pct20dma;
                             f.sparkSvg = c.sparkSvg;
+                            f.dayChange = c.dayChange !== undefined ? c.dayChange : null;
                             f.ltp = c.ltp !== undefined ? c.ltp : null;
                             f.cagr3y = c.cagr3y !== undefined ? c.cagr3y : null;
                             f.cagr5y = c.cagr5y !== undefined ? c.cagr5y : null;
@@ -1142,7 +1199,7 @@
         function saveSectionCache(section) {
             try {
                 const dataToCache = section.funds.map(f => ({
-                    name: f.name, pct20dma: f.pct20dma, sparkSvg: f.sparkSvg, ltp: f.ltp,
+                    name: f.name, pct20dma: f.pct20dma, sparkSvg: f.sparkSvg, dayChange: f.dayChange, ltp: f.ltp,
                     cagr3y: f.cagr3y, cagr5y: f.cagr5y, cagr10y: f.cagr10y
                 }));
                 localStorage.setItem(section.cacheKey, JSON.stringify(dataToCache));
@@ -1308,6 +1365,16 @@
             return data[data.length - 1].price;
         }
 
+        // Day-over-day % change: latest price vs. the immediately preceding
+        // data point in the series (previous trading day's close/NAV).
+        function computeDayChange(data) {
+            if (!data || data.length < 2) return null;
+            const latest = data[data.length - 1].price;
+            const prev = data[data.length - 2].price;
+            if (!prev) return null;
+            return ((latest - prev) / prev) * 100;
+        }
+
         // N-Year CAGR: latest price vs. price closest to (latest date - N years).
         // Returns null if the history doesn't reach back far enough (no data
         // point within ~20 days of the target date) - i.e. "not available"
@@ -1385,18 +1452,20 @@
             section.funds.forEach((fund, index) => {
                 const row = document.createElement('tr');
 
-                let sparkCell, dmaCell, ltpCell, cagr3Cell, cagr5Cell, cagr10Cell;
+                let sparkCell, dmaCell, chgCell, ltpCell, cagr3Cell, cagr5Cell, cagr10Cell;
 
                 if (fund.status === 'loading' || (fund.status === null && fund.pct20dma === null)) {
                     const loadingLabel = fund.errorMsg ? fund.errorMsg : 'Loading...';
                     sparkCell = `<span class="ytm-loading">${loadingLabel}</span>`;
                     dmaCell = `<span class="ytm-loading">${loadingLabel}</span>`;
+                    chgCell = '<span class="ytm-loading">...</span>';
                     ltpCell = '<span class="ytm-loading">...</span>';
                     cagr3Cell = cagr5Cell = cagr10Cell = '<span class="ytm-loading">...</span>';
                 } else if (fund.status === 'error') {
                     const errText = fund.errorMsg ? `<div class="dma-sub" style="color:#ff6b6b;">${fund.errorMsg}</div>` : '';
                     sparkCell = `<span class="ytm-error">Failed</span>`;
                     dmaCell = `<span class="ytm-error">Failed</span>${errText}`;
+                    chgCell = '<span class="ytm-na">-</span>';
                     ltpCell = '<span class="ytm-na">-</span>';
                     cagr3Cell = cagr5Cell = cagr10Cell = '<span class="ytm-na">-</span>';
                 } else {
@@ -1412,6 +1481,15 @@
                                   `<div class="dma-sub">${val >= 0 ? 'above' : 'below'} 20DMA</div></div>`;
                     } else {
                         dmaCell = '<span class="ytm-na">N/A</span>';
+                    }
+
+                    if (fund.dayChange !== null && fund.dayChange !== undefined) {
+                        const cval = fund.dayChange;
+                        const ccls = cval >= 0 ? 'chg-pos' : 'chg-neg';
+                        const csign = cval >= 0 ? '+' : '';
+                        chgCell = `<span class="${ccls}">${csign}${cval.toFixed(2)}%</span>`;
+                    } else {
+                        chgCell = '<span class="ytm-na">N/A</span>';
                     }
 
                     ltpCell = (fund.ltp !== null && fund.ltp !== undefined)
@@ -1430,6 +1508,7 @@
                     </td>
                     <td>${sparkCell}</td>
                     <td>${dmaCell}</td>
+                    <td>${chgCell}</td>
                     <td>${ltpCell}</td>
                     <td>${cagr3Cell}</td>
                     <td>${cagr5Cell}</td>
@@ -1475,6 +1554,7 @@
                     fund.history = history;
                     fund.pct20dma = computePct20DMA(history);
                     fund.sparkSvg = buildSparklineSVG(history);
+                    fund.dayChange = computeDayChange(history);
                     fund.ltp = computeLTP(history);
                     fund.cagr3y = computeCAGR(history, 3);
                     fund.cagr5y = computeCAGR(history, 5);
@@ -1500,6 +1580,7 @@
                 fund.history = bestSparse;
                 fund.pct20dma = computePct20DMA(bestSparse);
                 fund.sparkSvg = buildSparklineSVG(bestSparse);
+                fund.dayChange = computeDayChange(bestSparse);
                 fund.ltp = computeLTP(bestSparse);
                 fund.cagr3y = computeCAGR(bestSparse, 3);
                 fund.cagr5y = computeCAGR(bestSparse, 5);
