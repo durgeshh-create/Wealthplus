@@ -1,9 +1,9 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-07-03 14:14:43 IST",
+  "timestamp": "2026-07-03 14:15:44 IST",
   "bot_running": true,
-  "total_value": 8740132.24,
-  "today_pnl": 16821.8,
+  "total_value": 8740274.13,
+  "today_pnl": 16963.69,
   "today_pnl_pct": 0.19,
   "liquidcase": {
     "quantity": 63848,
@@ -34,10 +34,10 @@
       "symbol": "GOLDBEES",
       "quantity": 3370,
       "avg": 121.62,
-      "ltp": 120.56,
-      "value": 406287.2,
-      "pnl": 9671.9,
-      "pnl_pct": 2.44,
+      "ltp": 120.55,
+      "value": 406253.5,
+      "pnl": 9638.2,
+      "pnl_pct": 2.43,
       "unrealised_pnl": -3591.02,
       "unrealised_pnl_pct": -0.88,
       "strategy": "active",
@@ -48,10 +48,10 @@
       "symbol": "MID150BEES",
       "quantity": 1951,
       "avg": 228.22,
-      "ltp": 236.7,
-      "value": 461801.7,
-      "pnl": -819.42,
-      "pnl_pct": -0.18,
+      "ltp": 236.79,
+      "value": 461977.29,
+      "pnl": -643.83,
+      "pnl_pct": -0.14,
       "unrealised_pnl": 16925.42,
       "unrealised_pnl_pct": 3.8,
       "strategy": "bnh",
@@ -128,9 +128,9 @@
   "williams_r": [
     {
       "symbol": "GOLDBEES",
-      "ltp": 120.56,
-      "change_pct": 2.44,
-      "williams_r": -39.21,
+      "ltp": 120.55,
+      "change_pct": 2.43,
+      "williams_r": -39.31,
       "is_held": true,
       "avg_price": 121.62,
       "strategy": "active"
@@ -146,9 +146,9 @@
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 780.66,
-      "change_pct": -0.22,
-      "williams_r": -44.0,
+      "ltp": 780.6,
+      "change_pct": -0.23,
+      "williams_r": -44.15,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -164,18 +164,18 @@
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 599.68,
-      "change_pct": -0.06,
-      "williams_r": -61.48,
+      "ltp": 599.96,
+      "change_pct": -0.02,
+      "williams_r": -60.87,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 236.7,
-      "change_pct": -0.18,
-      "williams_r": -45.82,
+      "ltp": 236.79,
+      "change_pct": -0.14,
+      "williams_r": -44.57,
       "is_held": true,
       "avg_price": 228.22,
       "strategy": "bnh"
@@ -206,19 +206,19 @@
   ],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24287.25,
+      "ltp": 24279.45,
       "prev_close": 24175.7,
-      "change": 111.55,
-      "change_pct": 0.46,
+      "change": 103.75,
+      "change_pct": 0.43,
       "open": 24375.65,
       "high": 24378.15,
       "low": 24272.65
     },
     "INDIA VIX": {
-      "ltp": 11.89,
+      "ltp": 11.92,
       "prev_close": 12.29,
-      "change": -0.4,
-      "change_pct": -3.25,
+      "change": -0.37,
+      "change_pct": -3.01,
       "open": 12.29,
       "high": 12.29,
       "low": 11.65
@@ -402,6 +402,6 @@
     }
   },
   "available_cash": 425915.3,
-  "available_margin": 1986066.65,
+  "available_margin": 1991268.47,
   "available_margin_note": null
 }
