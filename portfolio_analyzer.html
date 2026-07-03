@@ -895,12 +895,16 @@
                 }
 
                 // === METHOD 6: Extract day change (%) and absolute change ===
-                // TickerTape's price header renders as adjacent inline spans
-                // with no separating whitespace, e.g. "₹593.940.04% (+0.26)"
-                // = NAV 593.94, day change +0.04% (+0.26 absolute). The %
-                // text itself carries no sign (colour/arrow icon conveys
-                // direction), so the sign is taken from the parenthesised
-                // absolute change instead.
+                // TickerTape's price header renders as adjacent inline spans,
+                // e.g. "₹593.940.04% (+0.26)" = NAV 593.94, day change
+                // +0.04% (+0.26 absolute). The % text itself carries no sign
+                // (colour/arrow icon conveys direction), so the sign is taken
+                // from the parenthesised absolute change instead.
+                // NOTE: TickerTape sometimes injects a stray glyph (arrow
+                // icon fallback text, aria-label leakage, middot, etc.)
+                // between the NAV and the percent figure, e.g.
+                // "₹596.62▲0.06% (+0.37)". The [^\d%(]{0,20} filler below
+                // tolerates that without requiring strict adjacency.
                 if (result.dayChangePct === null) {
                     try {
                         const headerChunk = html.slice(0, 20000)
@@ -908,7 +912,7 @@
                             .replace(/<style[\s\S]*?<\/style>/gi, ' ')
                             .replace(/<[^>]+>/g, '');
 
-                        const changeMatch = headerChunk.match(/₹\s*([\d,]+\.\d{2})(-?[\d.]+)%\s*\(([+-]?[\d.]+)\)/);
+                        const changeMatch = headerChunk.match(/₹\s*([\d,]+\.\d{2})[^\d%(]{0,20}([+-]?[\d.]+)\s*%\s*\(([+-]?[\d.]+)\)/);
                         if (changeMatch) {
                             const absChange = parseFloat(changeMatch[3]);
                             const pctMagnitude = Math.abs(parseFloat(changeMatch[2]));
