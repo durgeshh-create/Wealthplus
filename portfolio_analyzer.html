@@ -626,7 +626,7 @@
             return value;
         }
 
-        async function fetchViaSingleProxy(url, proxyIndex, timeoutMs) {
+        async function fetchViaSingleProxy(url, proxyIndex, timeoutMs, validate) {
             const proxy = corsProxies[proxyIndex];
             const proxyUrl = proxy.url + encodeURIComponent(url);
 
@@ -651,15 +651,36 @@
                     throw new Error('Empty response');
                 }
 
+                // Public CORS proxies (esp. corsproxy.io / thingproxy) frequently
+                // get rate-limited or blocked and return their OWN error/warning
+                // page instead of the target page - but still with HTTP 200 and
+                // well over 100 chars, so the checks above don't catch it. That
+                // garbage page then gets scraped as if it were real fund data,
+                // producing either a wrong day-change % (if it happens to contain
+                // some unrelated ₹/% text) or a blank cell (if it doesn't match
+                // at all). Reject it here so Promise.any falls through to a
+                // proxy that actually returned the real page.
+                if (validate && !validate(text)) {
+                    throw new Error(`Non-target response via ${proxy.name} (likely blocked/rate-limited proxy)`);
+                }
+
                 return text;
             } finally {
                 clearTimeout(timeoutId);
             }
         }
 
+        // Confirms the fetched HTML is really a TickerTape mutual-fund page
+        // (rather than a proxy's block/rate-limit/captcha page masquerading as
+        // a 200 OK response) before we trust it for scraping.
+        function isValidTickertapePage(text) {
+            const lower = text.toLowerCase();
+            return lower.includes('tickertape') && text.includes('₹');
+        }
+
         async function fetchWithProxy(url) {
             const attempts = corsProxies.map((proxy, i) =>
-                fetchViaSingleProxy(url, i, 7000).catch(err => {
+                fetchViaSingleProxy(url, i, 7000, isValidTickertapePage).catch(err => {
                     console.warn(`Proxy ${proxy.name} failed:`, err.message);
                     throw err;
                 })
