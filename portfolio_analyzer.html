@@ -110,13 +110,12 @@
             user-select: none;
         }
         th:hover { background: rgba(0, 212, 255, 0.15); }
-        th:nth-child(1) { width: 28%; }
-        th:nth-child(2) { width: 11%; }
-        th:nth-child(3) { width: 12%; }
-        th:nth-child(4) { width: 11%; }
+        th:nth-child(1) { width: 30%; }
+        th:nth-child(2) { width: 13%; }
+        th:nth-child(3) { width: 15%; }
+        th:nth-child(4) { width: 14%; }
         th:nth-child(5) { width: 11%; }
-        th:nth-child(6) { width: 10%; }
-        th:nth-child(7) { width: 17%; }
+        th:nth-child(6) { width: 17%; }
         td {
             padding: 14px 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -317,12 +316,10 @@
                     <h2>Debt Funds</h2>
                     <div class="title-controls">
                         <button class="btn" id="refreshBtn" onclick="refreshAll()">Refresh All</button>
-                        <button class="btn" onclick="sortByYTM()">Sort YTM</button>
-                        <button class="btn" onclick="sortByName()">Sort Name</button>
                         <button class="btn" onclick="clearCache()" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.3);color:#ff6b6b;">Clear</button>
                     </div>
                     <div class="line"></div>
-                    <span class="badge">YTM · Chg · Exp · NAV · 3Y</span>
+                    <span class="badge">YTM · %Change · NAV · 3Y</span>
                 </div>
 
                 <div class="status" id="status"></div>
@@ -334,10 +331,9 @@
                     <table>
                         <thead>
                             <tr>
-                                <th onclick="sortByName()">Fund ↕</th>
-                                <th onclick="sortByYTM()">YTM ↕</th>
-                                <th>Chg</th>
-                                <th>Exp</th>
+                                <th id="th-fund" onclick="sortByName()" data-label="Fund">Fund ↕</th>
+                                <th id="th-ytm" onclick="sortByYTM()" data-label="YTM">YTM ↕</th>
+                                <th id="th-chg" onclick="sortByChg()" data-label="%Change">%Change ↕</th>
                                 <th>NAV</th>
                                 <th>3Y</th>
                                 <th>Action</th>
@@ -526,7 +522,7 @@
                     document.getElementById('noteBox').textContent = 
                         `Showing cached data from ${cacheAgeText}. Click "Refresh All YTM" to update.`;
 
-                    sortByYTM();
+                    applySort();
                     return true;
                 }
             } catch (e) {
@@ -573,7 +569,6 @@
                 const row = document.createElement('tr');
 
                 const ytmDisplay = getValueDisplay(fund.ytm, 'ytm');
-                const expDisplay = fund.exp ? `<span class="expense-ratio">${fund.exp}%</span>` : '<span class="ytm-na">-</span>';
                 const navDisplay = fund.nav ? `<span class="nav-value">₹${fund.nav}</span>` : '<span class="ytm-na">-</span>';
                 const retDisplay = fund.ret3y ? `<span style="color:#64ffda">${fund.ret3y}%</span>` : '<span class="ytm-na">-</span>';
 
@@ -604,7 +599,6 @@
                     </td>
                     <td>${ytmDisplay}${isCached ? '<span class="cached-badge">●</span>' : ''}</td>
                     <td>${chgDisplay}</td>
-                    <td>${expDisplay}</td>
                     <td>${navDisplay}</td>
                     <td>${retDisplay}</td>
                     <td>
@@ -1094,23 +1088,78 @@
             refreshBtn.disabled = false;
             isRefreshing = false;
 
-            if (currentSort === 'ytm') sortByYTM();
+            if (currentSort) applySort();
+        }
+
+        // Sortable columns: 'name' (default asc), 'ytm' and 'chg' (default desc).
+        // Clicking the same header again flips direction; clicking a different
+        // header switches column and resets to that column's default direction.
+        let currentSortDir = 'desc';
+
+        function applySort() {
+            if (currentSort === 'ytm') {
+                funds.sort((a, b) => {
+                    const aVal = parseFloat(a.ytm);
+                    const bVal = parseFloat(b.ytm);
+                    const aSafe = isNaN(aVal) ? -Infinity : aVal;
+                    const bSafe = isNaN(bVal) ? -Infinity : bVal;
+                    return currentSortDir === 'desc' ? bSafe - aSafe : aSafe - bSafe;
+                });
+            } else if (currentSort === 'chg') {
+                funds.sort((a, b) => {
+                    const aVal = parseFloat(a.dayChangePct);
+                    const bVal = parseFloat(b.dayChangePct);
+                    const aSafe = isNaN(aVal) ? -Infinity : aVal;
+                    const bSafe = isNaN(bVal) ? -Infinity : bVal;
+                    return currentSortDir === 'desc' ? bSafe - aSafe : aSafe - bSafe;
+                });
+            } else if (currentSort === 'name') {
+                funds.sort((a, b) => currentSortDir === 'desc'
+                    ? b.name.localeCompare(a.name)
+                    : a.name.localeCompare(b.name));
+            }
+            updateSortIndicators();
+            renderTable();
+        }
+
+        function updateSortIndicators() {
+            ['th-fund', 'th-ytm', 'th-chg'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = el.dataset.label + ' ↕';
+            });
+            const activeId = { name: 'th-fund', ytm: 'th-ytm', chg: 'th-chg' }[currentSort];
+            const activeEl = activeId ? document.getElementById(activeId) : null;
+            if (activeEl) activeEl.textContent = activeEl.dataset.label + (currentSortDir === 'desc' ? ' ↓' : ' ↑');
         }
 
         function sortByYTM() {
-            currentSort = 'ytm';
-            funds.sort((a, b) => {
-                const aVal = parseFloat(a.ytm) || 0;
-                const bVal = parseFloat(b.ytm) || 0;
-                return bVal - aVal;
-            });
-            renderTable();
+            if (currentSort === 'ytm') {
+                currentSortDir = currentSortDir === 'desc' ? 'asc' : 'desc';
+            } else {
+                currentSort = 'ytm';
+                currentSortDir = 'desc';
+            }
+            applySort();
+        }
+
+        function sortByChg() {
+            if (currentSort === 'chg') {
+                currentSortDir = currentSortDir === 'desc' ? 'asc' : 'desc';
+            } else {
+                currentSort = 'chg';
+                currentSortDir = 'desc';
+            }
+            applySort();
         }
 
         function sortByName() {
-            currentSort = 'name';
-            funds.sort((a, b) => a.name.localeCompare(b.name));
-            renderTable();
+            if (currentSort === 'name') {
+                currentSortDir = currentSortDir === 'desc' ? 'asc' : 'desc';
+            } else {
+                currentSort = 'name';
+                currentSortDir = 'asc';
+            }
+            applySort();
         }
 
         // =====================================================
