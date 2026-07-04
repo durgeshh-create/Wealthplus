@@ -952,7 +952,7 @@
                     if (pct === null || isNaN(pct)) return null;
                     const latest = history[history.length - 1].price;
                     const prev = history[history.length - 2].price;
-                    return { pct, abs: latest - prev };
+                    return { pct, abs: latest - prev, latestNav: latest };
                 } catch (e) {
                     if (attempt === 0) {
                         await new Promise(r => setTimeout(r, 600));
@@ -963,6 +963,22 @@
                 }
             }
             return null;
+        }
+
+        // MFapi.in is matched by fuzzy text search against fund.mfQuery, which
+        // occasionally locks onto the wrong scheme entirely (a different fund,
+        // not just a different plan variant) and returns a plausible-looking
+        // but unrelated day change. Since the NAV scraped directly from the
+        // fund's own TickerTape page (result.nav) is reliable, we only trust
+        // the MFapi-derived change if its latest NAV is close to that scraped
+        // NAV — otherwise we discard it and fall back to the scrape-based
+        // change (or "-" if that's unavailable too, which is safer than a
+        // silently wrong number).
+        function isMfChangeTrustworthy(mfChange, scrapedNav) {
+            if (!mfChange || mfChange.latestNav === undefined || mfChange.latestNav === null) return false;
+            if (!scrapedNav || isNaN(scrapedNav)) return true; // nothing to cross-check against
+            const diff = Math.abs(mfChange.latestNav - scrapedNav) / scrapedNav;
+            return diff < 0.01; // within 1%
         }
 
         async function refreshSingle(index) {
@@ -985,9 +1001,11 @@
                 fund.dayChangePct = (result.dayChangePct !== null && result.dayChangePct !== undefined) ? result.dayChangePct.toFixed(2) : null;
                 fund.dayChangeAbs = (result.dayChangeAbs !== null && result.dayChangeAbs !== undefined) ? result.dayChangeAbs.toFixed(2) : null;
 
-                if (mfChange) {
+                if (isMfChangeTrustworthy(mfChange, result.nav)) {
                     fund.dayChangePct = mfChange.pct.toFixed(2);
                     fund.dayChangeAbs = mfChange.abs.toFixed(2);
+                } else if (mfChange) {
+                    console.warn(`Discarding mismatched MFapi day-change for ${fund.name}: MFapi NAV ${mfChange.latestNav} vs scraped NAV ${result.nav}`);
                 }
 
                 saveCache();
@@ -1022,9 +1040,11 @@
                 fund.dayChangePct = (result.dayChangePct !== null && result.dayChangePct !== undefined) ? result.dayChangePct.toFixed(2) : null;
                 fund.dayChangeAbs = (result.dayChangeAbs !== null && result.dayChangeAbs !== undefined) ? result.dayChangeAbs.toFixed(2) : null;
 
-                if (mfChange) {
+                if (isMfChangeTrustworthy(mfChange, result.nav)) {
                     fund.dayChangePct = mfChange.pct.toFixed(2);
                     fund.dayChangeAbs = mfChange.abs.toFixed(2);
+                } else if (mfChange) {
+                    console.warn(`Discarding mismatched MFapi day-change for ${fund.name}: MFapi NAV ${mfChange.latestNav} vs scraped NAV ${result.nav}`);
                 }
 
             } catch (err) {
@@ -1358,10 +1378,35 @@
             const results = await fetchJSONWithProxies(searchUrl);
             if (!results || !results.length) throw new Error('Scheme not found');
 
-            // Prefer an exact-ish Direct + Growth plan match
-            let best = results.find(r => /direct/i.test(r.schemeName) && /growth/i.test(r.schemeName));
-            if (!best) best = results.find(r => /direct/i.test(r.schemeName));
-            if (!best) best = results[0];
+            // MFapi's search is a loose text match and can return schemes that
+            // merely share generic words ("Fund"/"Direct"/"Growth") with the
+            // query while being a completely different fund. Score candidates
+            // by how many of the query's distinctive words they actually
+            // contain, rather than just grabbing the first Direct+Growth hit.
+            const stopWords = new Set(['fund', 'direct', 'growth', 'plan', 'regular', 'the', 'of', 'and', 'sun', 'life']);
+            const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
+
+            function scoreResult(r) {
+                const name = r.schemeName.toLowerCase();
+                let score = queryWords.filter(w => name.includes(w)).length;
+                if (/direct/i.test(r.schemeName)) score += 0.5;
+                if (/growth/i.test(r.schemeName)) score += 0.5;
+                return score;
+            }
+
+            let best = results[0];
+            let bestScore = -1;
+            for (const r of results) {
+                const s = scoreResult(r);
+                if (s > bestScore) { bestScore = s; best = r; }
+            }
+
+            // If even the best candidate barely overlaps with the query's
+            // distinctive words, this likely isn't the right scheme at all —
+            // fail loudly rather than silently returning unrelated data.
+            if (queryWords.length > 0 && bestScore < queryWords.length * 0.6) {
+                throw new Error('No confident scheme match on MFapi');
+            }
 
             const histUrl = `https://api.mfapi.in/mf/${best.schemeCode}`;
             const histJson = await fetchJSONWithProxies(histUrl);
