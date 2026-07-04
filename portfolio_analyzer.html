@@ -1002,9 +1002,32 @@
             return diff < 0.01; // within 1%
         }
 
+        // Last-resort day-change source: when both the TickerTape scrape and
+        // the MFapi cross-check come up empty for a fund (e.g. one round of
+        // proxy flakiness affected both legs), fall back to comparing the
+        // freshly-scraped NAV against the NAV we last had cached for this
+        // fund. This has no dependency on any proxy succeeding for the change
+        // figure itself, so it degrades gracefully to "no data yet" only on a
+        // fund's very first-ever successful fetch, rather than going blank
+        // indefinitely whenever the two network-based methods both have a bad
+        // round at the same time.
+        function applyLocalNavFallback(fund, oldNavStr, newNavStr) {
+            if (fund.dayChangePct !== null && fund.dayChangePct !== undefined) return;
+            const oldNav = oldNavStr ? parseFloat(oldNavStr) : null;
+            const newNav = newNavStr ? parseFloat(newNavStr) : null;
+            if (oldNav === null || newNav === null || isNaN(oldNav) || isNaN(newNav) || oldNav === 0) return;
+
+            const abs = newNav - oldNav;
+            const pct = (abs / oldNav) * 100;
+            fund.dayChangePct = pct.toFixed(2);
+            fund.dayChangeAbs = abs.toFixed(2);
+            console.warn(`Using local NAV-diff fallback for ${fund.name} day-change (scrape + MFapi both unavailable this round)`);
+        }
+
         async function refreshSingle(index) {
             const fund = funds[index];
             const oldYtm = fund.ytm;
+            const oldNav = fund.nav;
             fund.ytm = null;
             renderTable();
 
@@ -1029,6 +1052,8 @@
                     console.warn(`Discarding mismatched MFapi day-change for ${fund.name}: MFapi NAV ${mfChange.latestNav} vs scraped NAV ${result.nav}`);
                 }
 
+                applyLocalNavFallback(fund, oldNav, fund.nav);
+
                 saveCache();
                 document.getElementById('status').textContent = `${fund.name} updated: YTM=${fund.ytm}, 3Y=${fund.ret3y}`;
             } catch (err) {
@@ -1043,6 +1068,7 @@
         async function fetchFundData(fund, index, total) {
             const statusEl = document.getElementById('status');
             const progressFill = document.getElementById('progressFill');
+            const oldNav = fund.nav;
 
             statusEl.textContent = `Fetching ${fund.name}... (${index + 1}/${total})`;
             progressFill.style.width = `${((index + 1) / total) * 100}%`;
@@ -1067,6 +1093,8 @@
                 } else if (mfChange) {
                     console.warn(`Discarding mismatched MFapi day-change for ${fund.name}: MFapi NAV ${mfChange.latestNav} vs scraped NAV ${result.nav}`);
                 }
+
+                applyLocalNavFallback(fund, oldNav, fund.nav);
 
             } catch (err) {
                 console.error(`Error fetching ${fund.name}:`, err);
