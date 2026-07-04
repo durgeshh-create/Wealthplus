@@ -580,11 +580,17 @@
                 let chgDisplay = '<span class="ytm-na">-</span>';
                 if (fund.dayChangePct !== null && fund.dayChangePct !== undefined) {
                     const cval = parseFloat(fund.dayChangePct);
-                    const ccls = cval >= 0 ? 'chg-pos' : 'chg-neg';
-                    const csign = cval >= 0 ? '+' : '';
-                    const absTxt = (fund.dayChangeAbs !== null && fund.dayChangeAbs !== undefined)
-                        ? ` <span class="dma-sub" style="display:inline;">(${csign}${fund.dayChangeAbs})</span>` : '';
-                    chgDisplay = `<span class="${ccls}">${csign}${cval.toFixed(2)}%</span>${absTxt}`;
+                    const absVal = (fund.dayChangeAbs !== null && fund.dayChangeAbs !== undefined) ? parseFloat(fund.dayChangeAbs) : null;
+                    // Determine direction from the absolute change when available —
+                    // the rounded percentage can display as "-0.00" for very small
+                    // moves, and JS treats -0 as >= 0, which previously caused a
+                    // "+-0.22" double-sign glitch when the two disagreed.
+                    const isNeg = absVal !== null ? absVal < 0 : cval < 0;
+                    const ccls = isNeg ? 'chg-neg' : 'chg-pos';
+                    const sign = isNeg ? '-' : '+';
+                    const absTxt = (absVal !== null)
+                        ? ` <span class="dma-sub" style="display:inline;">(${sign}${Math.abs(absVal).toFixed(2)})</span>` : '';
+                    chgDisplay = `<span class="${ccls}">${sign}${Math.abs(cval).toFixed(2)}%</span>${absTxt}`;
                 } else if (fund.ytm === 'error') {
                     chgDisplay = '<span class="ytm-error">Failed</span>';
                 }
@@ -903,8 +909,15 @@
                 // NOTE: TickerTape sometimes injects a stray glyph (arrow
                 // icon fallback text, aria-label leakage, middot, etc.)
                 // between the NAV and the percent figure, e.g.
-                // "₹596.62▲0.06% (+0.37)". The [^\d%(]{0,20} filler below
-                // tolerates that without requiring strict adjacency.
+                // "₹596.62▲0.06% (+0.37)". The filler below tolerates that
+                // without requiring strict adjacency.
+                //
+                // IMPORTANT: this match is intentionally anchored to a ₹NAV
+                // prefix and does NOT fall back to an unanchored "X% (Y)"
+                // scan of the page. An unanchored scan can match unrelated
+                // numbers elsewhere on the page (returns tables, peer
+                // comparisons, etc.) and silently produce a wrong value,
+                // which is worse than showing "-" for this fund.
                 if (result.dayChangePct === null) {
                     try {
                         const headerChunk = html.slice(0, 20000)
@@ -912,38 +925,10 @@
                             .replace(/<style[\s\S]*?<\/style>/gi, ' ')
                             .replace(/<[^>]+>/g, '');
 
-                        const changeMatch = headerChunk.match(/₹\s*([\d,]+\.\d{2})[^\d%(]{0,20}([+-]?[\d.]+)\s*%\s*\(([+-]?[\d.]+)\)/);
+                        const changeMatch = headerChunk.match(/₹\s*([\d,]+\.\d{2})[^\d%()]{0,40}([+-]?[\d.]+)\s*%\s*\(([+-]?[\d.]+)\)/);
                         if (changeMatch) {
                             const absChange = parseFloat(changeMatch[3]);
                             const pctMagnitude = Math.abs(parseFloat(changeMatch[2]));
-                            if (!isNaN(absChange) && !isNaN(pctMagnitude)) {
-                                result.dayChangeAbs = absChange;
-                                result.dayChangePct = absChange < 0 ? -pctMagnitude : pctMagnitude;
-                            }
-                        }
-                    } catch (e) {}
-                }
-
-                // === METHOD 6b: Decoupled fallback ===
-                // If the NAV-anchored match above still fails (e.g. TickerTape
-                // separates the NAV and the change figures with more markup
-                // than the filler window allows, or reorders them), fall back
-                // to locating the "X.XX% (±Y.YY)" pair on its own anywhere in
-                // the header region, without requiring ₹NAV immediately
-                // before it. This pattern (a bare percent immediately
-                // followed by a parenthesised signed number) is distinctive
-                // enough to be safe to match without the NAV anchor.
-                if (result.dayChangePct === null) {
-                    try {
-                        const headerChunk2 = html.slice(0, 20000)
-                            .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-                            .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-                            .replace(/<[^>]+>/g, '');
-
-                        const fallbackMatch = headerChunk2.match(/([+-]?[\d]+\.[\d]+)\s*%\s*\(([+-]?[\d.]+)\)/);
-                        if (fallbackMatch) {
-                            const absChange = parseFloat(fallbackMatch[2]);
-                            const pctMagnitude = Math.abs(parseFloat(fallbackMatch[1]));
                             if (!isNaN(absChange) && !isNaN(pctMagnitude)) {
                                 result.dayChangeAbs = absChange;
                                 result.dayChangePct = absChange < 0 ? -pctMagnitude : pctMagnitude;
