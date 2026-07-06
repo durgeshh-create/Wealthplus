@@ -141,6 +141,7 @@
         }
         .copy-btn:hover { background: rgba(148, 163, 184, 0.3); color: #fff; }
         .copy-btn.copied { background: rgba(34, 197, 94, 0.3); color: #4ade80; border-color: rgba(34, 197, 94, 0.4); }
+        .copy-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
         .section-divider { text-align: center; margin: 4px 0; position: relative; }
         .section-divider::before {
@@ -164,6 +165,12 @@
             color: #c084fc; font-size: 0.55rem; font-weight: 600;
         }
 
+        .pending { opacity: 0.35; }
+        .pending-badge {
+            display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 0.55rem;
+            font-weight: 700; margin-top: 2px; background: rgba(96, 165, 250, 0.15); color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.25);
+        }
         .note {
             background: rgba(251, 191, 36, 0.06); border: 1px solid rgba(251, 191, 36, 0.1);
             color: #fbbf24; padding: 4px 6px; border-radius: 5px; margin-top: 4px;
@@ -214,15 +221,15 @@
         <div class="manual-inputs" id="manualInputs">
             <div class="input-card">
                 <label>NIFTY 50</label>
-                <input type="number" id="manualNifty" value="23945" step="0.05" onchange="calculateRange()">
+                <input type="number" id="manualNifty" value="23945" step="0.05" onchange="onManualOverride()">
             </div>
             <div class="input-card">
                 <label>India VIX</label>
-                <input type="number" id="manualVix" value="13.61" step="0.01" onchange="calculateRange()">
+                <input type="number" id="manualVix" value="13.61" step="0.01" onchange="onManualOverride()">
             </div>
             <div class="input-card">
                 <label>MIDCPNIFTY</label>
-                <input type="number" id="manualMidcp" value="14367" step="0.05" onchange="calculateRange()">
+                <input type="number" id="manualMidcp" value="14367" step="0.05" onchange="onManualOverride()">
             </div>
         </div>
 
@@ -365,6 +372,7 @@
         const MIDCP_EXPIRY_DAY_DIVISOR = 17000;
 
         let currentNifty = 23945, currentVix = 13.61, currentMidcp = 14367;
+        let liveDataLoaded = false; // becomes true once we have real fetched or manually-entered values
 
         function copyToClipboard(elementId, btn) {
             const text = document.getElementById(elementId).textContent.trim();
@@ -487,6 +495,50 @@
             const monthName = MONTH_NAMES[expiry.getMonth()];
             const strikeStr = Math.round(strike).toString();
             return `${underlying}${yy}${monthName}${strikeStr}${type}`;
+        }
+
+        // IDs of every element that shows a derived strike/symbol/range value.
+        // These must never display a strike computed from stale hardcoded
+        // defaults — only from a live fetch or an explicit manual entry.
+        const DERIVED_VALUE_IDS = [
+            'rangeDisplay', 'rangeFormula', 'niftyDivisorValue', 'rangeValue', 'expiryDate',
+            'putStrike', 'putSymbolText', 'callStrike', 'callSymbolText',
+            'expiryPutStrike', 'expiryPutSymbolText', 'expiryCallStrike', 'expiryCallSymbolText',
+            'midcpPutStrike', 'midcpPutSymbolText', 'midcpCallStrike', 'midcpCallSymbolText'
+        ];
+
+        function showLoadingPlaceholders() {
+            DERIVED_VALUE_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.textContent = '···'; el.classList.add('pending'); }
+            });
+            document.getElementById('niftyDisplay').textContent = '···';
+            document.getElementById('vixDisplay').textContent = '···';
+            document.getElementById('midcpDisplay').textContent = '···';
+            ['niftyDisplay', 'vixDisplay', 'midcpDisplay'].forEach(id =>
+                document.getElementById(id).classList.add('pending'));
+
+            document.querySelectorAll('.copy-btn').forEach(btn => btn.disabled = true);
+
+            const statusEl = document.getElementById('fetchStatus');
+            statusEl.textContent = 'Fetching live prices…';
+            statusEl.style.color = '#60a5fa';
+        }
+
+        function clearPlaceholders() {
+            DERIVED_VALUE_IDS.concat(['niftyDisplay', 'vixDisplay', 'midcpDisplay']).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('pending');
+            });
+            document.querySelectorAll('.copy-btn').forEach(btn => btn.disabled = false);
+        }
+
+        // User typed a manual override — treat it as real data immediately,
+        // independent of whether the live fetch ever succeeded.
+        function onManualOverride() {
+            liveDataLoaded = true;
+            calculateRange();
+            clearPlaceholders();
         }
 
         function calculateRange() {
@@ -741,18 +793,33 @@
                 successCount++;
             }
 
-            calculateRange();
+            if (successCount > 0) {
+                // We have at least one real, live number — safe to render strikes now.
+                liveDataLoaded = true;
+                calculateRange();
+                clearPlaceholders();
+            }
 
             if (successCount === 3) {
                 statusEl.textContent = `Updated ${timeStr}`;
                 statusEl.style.color = '#4ade80';
             } else if (successCount > 0) {
-                statusEl.textContent = `Partial update ${timeStr} (${successCount}/3)`;
+                statusEl.textContent = `Partial update ${timeStr} (${successCount}/3) — remaining value(s) held at last known price`;
                 statusEl.style.color = '#fbbf24';
             } else {
-                statusEl.textContent = `Fetch failed — using manual values`;
-                statusEl.style.color = '#f87171';
                 console.error('NIFTY:', niftyResult.reason, 'VIX:', vixResult.reason, 'MIDCP:', midcpResult.reason);
+                if (!liveDataLoaded) {
+                    // Never had real data yet — do NOT reveal strikes computed
+                    // from the hardcoded defaults. Prompt for manual entry instead.
+                    statusEl.textContent = `Live fetch failed — enter NIFTY/VIX/MIDCP manually below`;
+                    statusEl.style.color = '#f87171';
+                    document.getElementById('manualInputs').classList.add('active');
+                } else {
+                    // We already have a good value on screen from an earlier
+                    // successful fetch; leave it displayed and just flag it as stale.
+                    statusEl.textContent = `Refresh failed ${timeStr} — showing last known prices`;
+                    statusEl.style.color = '#f87171';
+                }
             }
 
             btn.disabled = false;
@@ -813,9 +880,14 @@
             }
         }
 
-        // Run immediately on load
+        // Run immediately on load. Note: we deliberately do NOT call
+        // calculateRange() here — that would render strikes off the
+        // hardcoded default NIFTY/VIX/MIDCP values before any real price
+        // has been fetched, which is exactly the stale-looking-live bug
+        // this was rewritten to avoid. Placeholders stay up until
+        // fetchLiveData() resolves with at least one real price.
         checkMarketStatus();
-        calculateRange();
+        showLoadingPlaceholders();
         updateExpiryVisibility();
         fetchLiveData();
 
