@@ -846,8 +846,22 @@
         // by default on other days. The button lets users reveal them manually.
         let manualExpiryOverride = false;
 
+        // Determines "is it Tuesday" using India Standard Time explicitly,
+        // rather than new Date().getDay() (which reflects whatever timezone
+        // the viewer's device happens to be set to). Since this page is
+        // served statically from GitHub Pages, all this logic runs in the
+        // visitor's own browser — so without this, someone opening the page
+        // from a non-IST device could see the wrong day near midnight IST.
+        function isTuesdayIST() {
+            const istWeekday = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'Asia/Kolkata',
+                weekday: 'short'
+            }).format(new Date());
+            return istWeekday === 'Tue';
+        }
+
         function updateExpiryVisibility() {
-            const isTuesday = new Date().getDay() === 2;
+            const isTuesday = isTuesdayIST();
             const section = document.getElementById('expiryStrikesSection');
             const btn = document.getElementById('expiryToggleBtn');
 
