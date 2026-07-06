@@ -176,6 +176,10 @@
             color: #fbbf24; padding: 4px 6px; border-radius: 5px; margin-top: 4px;
             font-size: 0.55rem; line-height: 1.4;
         }
+        .midcp-caveat {
+            text-align: center; font-size: 0.55rem; color: #c084fc; opacity: 0.75;
+            font-style: italic; margin-top: 4px; margin-bottom: 2px;
+        }
     </style>
 </head>
 <body>
@@ -321,7 +325,11 @@
             </div>
         </div>
 
-        <!-- MIDCPNIFTY Expiry Day Intraday Strikes -->
+        <!-- MIDCPNIFTY Expiry Day Intraday Strikes: only auto-shown on the
+             LAST Tuesday of the month (monthly expiry) — earlier weekly
+             Tuesdays' MIDCPNIFTY expiry-day strikes see too little volume
+             to be worth surfacing by default. -->
+        <div id="midcpExpirySection">
         <div class="section-divider">
             <span>MIDCPNIFTY EXPIRY DAY INTRADAY (Div: 17,000)</span>
         </div>
@@ -356,6 +364,8 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="midcp-caveat">Do MIDCPNIFTY only on last Tue of month if these strikes have good volume</div>
         </div>
         </div>
 
@@ -860,9 +870,34 @@
             return istWeekday === 'Tue';
         }
 
+        // Is today the LAST Tuesday of its month, per India Standard Time
+        // (not the viewer's device timezone). Used to gate the MIDCPNIFTY
+        // expiry-day strikes, which are only worth showing automatically on
+        // the monthly expiry Tuesday.
+        function isLastTuesdayOfMonthIST() {
+            if (!isTuesdayIST()) return false;
+            const parts = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit'
+            }).formatToParts(new Date());
+            const map = {};
+            parts.forEach(p => { map[p.type] = p.value; });
+            const year = +map.year, month = +map.month - 1, day = +map.day;
+
+            const nextMonth = month === 11 ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
+            let lastTuesday = null;
+            const d = new Date(year, month, 1);
+            while (d < nextMonth) {
+                if (d.getDay() === 2) lastTuesday = d.getDate();
+                d.setDate(d.getDate() + 1);
+            }
+            return lastTuesday !== null && day === lastTuesday;
+        }
+
         function updateExpiryVisibility() {
             const isTuesday = isTuesdayIST();
+            const isLastTue = isLastTuesdayOfMonthIST();
             const section = document.getElementById('expiryStrikesSection');
+            const midcpSection = document.getElementById('midcpExpirySection');
             const btn = document.getElementById('expiryToggleBtn');
 
             if (isTuesday) {
@@ -879,6 +914,14 @@
                     section.style.display = 'none';
                     btn.textContent = 'Display Expiry Strikes';
                 }
+            }
+
+            // MIDCPNIFTY expiry-day strikes: auto-shown only on the monthly
+            // (last Tuesday) expiry, unlike NIFTY which shows every Tuesday.
+            // Still respects the manual "Display Expiry Strikes" preview on
+            // non-Tuesday days, since that's an explicit user action.
+            if (midcpSection) {
+                midcpSection.style.display = (isLastTue || (!isTuesday && manualExpiryOverride)) ? '' : 'none';
             }
         }
 
