@@ -335,8 +335,8 @@
                                 <th id="th-ytm" onclick="sortByYTM()" data-label="YTM">YTM ↕</th>
                                 <th id="th-chg" onclick="sortByChg()" data-label="%Change">%Change ↕</th>
                                 <th>NAV</th>
-                                <th>3Y</th>
-                                <th>Action</th>
+                                <th id="th-3y" onclick="sortBy3Y()" data-label="3Y">3Y ↕</th>
+                                <th>GO</th>
                             </tr>
                         </thead>
                         <tbody id="fundTable">
@@ -1182,6 +1182,14 @@
                     const bSafe = isNaN(bVal) ? -Infinity : bVal;
                     return currentSortDir === 'desc' ? bSafe - aSafe : aSafe - bSafe;
                 });
+            } else if (currentSort === '3y') {
+                funds.sort((a, b) => {
+                    const aVal = parseFloat(a.ret3y);
+                    const bVal = parseFloat(b.ret3y);
+                    const aSafe = isNaN(aVal) ? -Infinity : aVal;
+                    const bSafe = isNaN(bVal) ? -Infinity : bVal;
+                    return currentSortDir === 'desc' ? bSafe - aSafe : aSafe - bSafe;
+                });
             } else if (currentSort === 'name') {
                 funds.sort((a, b) => currentSortDir === 'desc'
                     ? b.name.localeCompare(a.name)
@@ -1192,11 +1200,11 @@
         }
 
         function updateSortIndicators() {
-            ['th-fund', 'th-ytm', 'th-chg'].forEach(id => {
+            ['th-fund', 'th-ytm', 'th-chg', 'th-3y'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.textContent = el.dataset.label + ' ↕';
             });
-            const activeId = { name: 'th-fund', ytm: 'th-ytm', chg: 'th-chg' }[currentSort];
+            const activeId = { name: 'th-fund', ytm: 'th-ytm', chg: 'th-chg', '3y': 'th-3y' }[currentSort];
             const activeEl = activeId ? document.getElementById(activeId) : null;
             if (activeEl) activeEl.textContent = activeEl.dataset.label + (currentSortDir === 'desc' ? ' ↓' : ' ↑');
         }
@@ -1216,6 +1224,16 @@
                 currentSortDir = currentSortDir === 'desc' ? 'asc' : 'desc';
             } else {
                 currentSort = 'chg';
+                currentSortDir = 'desc';
+            }
+            applySort();
+        }
+
+        function sortBy3Y() {
+            if (currentSort === '3y') {
+                currentSortDir = currentSortDir === 'desc' ? 'asc' : 'desc';
+            } else {
+                currentSort = '3y';
                 currentSortDir = 'desc';
             }
             applySort();
