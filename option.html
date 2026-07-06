@@ -673,6 +673,17 @@
             (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`
         ];
 
+        // Remembers which proxy answered fastest last time, per source, so we
+        // can try it first on the next refresh. Doesn't change worst-case
+        // speed (everything races in parallel regardless) but tends to make
+        // the "winning" response come back sooner on repeat fetches.
+        const lastGoodProxy = { google: 0, yahoo: 0 };
+        function orderedProxies(sourceKey) {
+            const idx = lastGoodProxy[sourceKey] || 0;
+            if (idx === 0) return CORS_PROXIES;
+            return [CORS_PROXIES[idx], ...CORS_PROXIES.filter((_, i) => i !== idx)];
+        }
+
         async function fetchWithTimeout(url, ms) {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), ms);
@@ -694,64 +705,62 @@
             return null;
         }
 
-        async function fetchGooglePrice(symbolPath) {
-            const googleUrl = `https://www.google.com/finance/quote/${symbolPath}?_=${Date.now()}`;
-            let lastError = null;
-
-            for (const buildProxyUrl of CORS_PROXIES) {
-                try {
-                    const proxyUrl = buildProxyUrl(googleUrl);
-                    const res = await fetchWithTimeout(proxyUrl, 8000);
-                    if (!res.ok) { lastError = new Error('HTTP ' + res.status); continue; }
-                    const html = await res.text();
-                    const price = parseGoogleFinancePrice(html);
-                    if (price !== null) return price;
-                    lastError = new Error('Price not found in Google Finance page');
-                } catch (err) {
-                    lastError = err;
-                }
-            }
-            throw lastError || new Error('All proxies failed');
-        }
-
-        async function fetchYahooPrice(symbol) {
-            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d&_=${Date.now()}`;
-            let lastError = null;
-
-            for (const buildProxyUrl of CORS_PROXIES) {
-                try {
-                    const proxyUrl = buildProxyUrl(yahooUrl);
-                    const res = await fetchWithTimeout(proxyUrl, 8000);
-                    if (!res.ok) { lastError = new Error('HTTP ' + res.status); continue; }
-                    const data = await res.json();
-                    const result = data && data.chart && data.chart.result && data.chart.result[0];
-                    const price = result && result.meta && (result.meta.regularMarketPrice ?? result.meta.previousClose);
-                    if (typeof price === 'number' && !isNaN(price)) {
-                        return price;
+        // Fires all 3 proxies for a given target URL AT ONCE and resolves with
+        // whichever comes back first with a usable value — instead of trying
+        // them one after another, which is what made a single price take up
+        // to 24s (3 proxies x 8s timeout) before even falling back to Yahoo.
+        function raceProxies(targetUrl, sourceKey, parseFn, timeoutMs) {
+            const attempts = orderedProxies(sourceKey).map((buildProxyUrl, i) => {
+                const proxyIndex = CORS_PROXIES.indexOf(buildProxyUrl);
+                return (async () => {
+                    const res = await fetchWithTimeout(buildProxyUrl(targetUrl), timeoutMs);
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const body = await (parseFn.isJson ? res.json() : res.text());
+                    const price = parseFn(body);
+                    if (price === null || price === undefined || isNaN(price)) {
+                        throw new Error('No usable price in response');
                     }
-                    lastError = new Error('No price in response');
-                } catch (err) {
-                    lastError = err;
-                }
-            }
-            throw lastError || new Error('All proxies failed');
+                    lastGoodProxy[sourceKey] = proxyIndex;
+                    return price;
+                })();
+            });
+            return Promise.any(attempts);
         }
 
-        // Try Google Finance first, fall back to Yahoo chart if it fails
-        async function fetchNiftyPrice() {
-            try {
-                return await fetchGooglePrice(GOOGLE_SYMBOLS.nifty);
-            } catch (err) {
-                return await fetchYahooPrice(YAHOO_SYMBOLS.nifty);
-            }
+        function parseYahooPrice(data) {
+            const result = data && data.chart && data.chart.result && data.chart.result[0];
+            const price = result && result.meta && (result.meta.regularMarketPrice ?? result.meta.previousClose);
+            return typeof price === 'number' ? price : null;
+        }
+        parseYahooPrice.isJson = true;
+
+        function fetchGooglePriceRaced(symbolPath, timeoutMs) {
+            const googleUrl = `https://www.google.com/finance/quote/${symbolPath}?_=${Date.now()}`;
+            return raceProxies(googleUrl, 'google', parseGoogleFinancePrice, timeoutMs);
         }
 
-        async function fetchVixPrice() {
-            try {
-                return await fetchGooglePrice(GOOGLE_SYMBOLS.vix);
-            } catch (err) {
-                return await fetchYahooPrice(YAHOO_SYMBOLS.vix);
-            }
+        function fetchYahooPriceRaced(symbol, timeoutMs) {
+            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d&_=${Date.now()}`;
+            return raceProxies(yahooUrl, 'yahoo', parseYahooPrice, timeoutMs);
+        }
+
+        const FETCH_TIMEOUT_MS = 4500; // per proxy attempt; all attempts run in parallel, so this is close to the real worst case now
+
+        // Race Google Finance and Yahoo simultaneously too (rather than trying
+        // Google, waiting for it to fully fail, then trying Yahoo) — whichever
+        // of the two sources answers first wins.
+        function fetchNiftyPrice() {
+            return Promise.any([
+                fetchGooglePriceRaced(GOOGLE_SYMBOLS.nifty, FETCH_TIMEOUT_MS),
+                fetchYahooPriceRaced(YAHOO_SYMBOLS.nifty, FETCH_TIMEOUT_MS)
+            ]);
+        }
+
+        function fetchVixPrice() {
+            return Promise.any([
+                fetchGooglePriceRaced(GOOGLE_SYMBOLS.vix, FETCH_TIMEOUT_MS),
+                fetchYahooPriceRaced(YAHOO_SYMBOLS.vix, FETCH_TIMEOUT_MS)
+            ]);
         }
 
         let fetchInProgress = false;
@@ -771,7 +780,7 @@
             const results = await Promise.allSettled([
                 fetchNiftyPrice(),
                 fetchVixPrice(),
-                fetchYahooPrice(YAHOO_SYMBOLS.midcp)
+                fetchYahooPriceRaced(YAHOO_SYMBOLS.midcp, FETCH_TIMEOUT_MS)
             ]);
 
             const [niftyResult, vixResult, midcpResult] = results;
