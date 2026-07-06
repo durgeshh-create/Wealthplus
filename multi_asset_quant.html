@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Asset Signal Desk — Systematic Allocation Model</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg-void:#0A0E12;
+    --bg-panel:#12181F;
+    --bg-raised:#1B232C;
+    --ink:#DCE4EA;
+    --ink-dim:#7C8B9C;
+    --rule:#232D38;
+    --gold:#D4A94D;
+    --teal:#2E9C93;
+    --coral:#D96759;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+    --sans: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg-void); color:var(--ink);
+    font-family:var(--sans); line-height:1.5;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:0 24px 60px;}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding:48px 24px 28px; text-align:center;
+    border-bottom:1px solid var(--rule);
+    background:linear-gradient(180deg, #0D1319 0%, var(--bg-void) 100%);
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:14px;
+  }
+  h1{
+    font-size:clamp(28px,4vw,42px); margin:0 0 10px; letter-spacing:-0.02em; font-weight:700;
+  }
+  .sub{color:var(--ink-dim); max-width:640px; margin:0 auto; font-size:15px;}
+
+  /* ---------- Signal tape (signature element) ---------- */
+  .tape-outer{
+    overflow:hidden; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+    background:var(--bg-panel);
+  }
+  .tape{
+    display:flex; gap:0; font-family:var(--mono); font-size:13px; white-space:nowrap;
+    padding:12px 0;
+  }
+  .tape-item{
+    display:flex; align-items:center; gap:10px; padding:0 26px; border-right:1px solid var(--rule);
+    color:var(--ink-dim);
+  }
+  .tape-item .name{color:var(--ink); font-weight:600;}
+  .tape-item .val.up{color:var(--teal);}
+  .tape-item .val.down{color:var(--coral);}
+  .tape-item .arrow{font-size:11px;}
+
+  /* ---------- Sections ---------- */
+  section{padding:36px 0; border-bottom:1px solid var(--rule);}
+  section:last-child{border-bottom:none;}
+  h2{
+    font-size:13px; text-transform:uppercase; letter-spacing:.14em; color:var(--gold);
+    font-family:var(--mono); margin:0 0 18px; font-weight:600;
+  }
+  h2 .idx{color:var(--ink-dim); margin-right:8px;}
+
+  .grid5{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px;}
+  .asset-card{
+    background:var(--bg-panel); border:1px solid var(--rule); border-radius:10px; padding:16px;
+  }
+  .asset-card label{
+    display:block; font-weight:600; margin-bottom:4px; font-size:14px;
+  }
+  .asset-card .hint{font-size:11px; color:var(--ink-dim); margin-bottom:8px; display:block;}
+  textarea{
+    width:100%; min-height:90px; resize:vertical; background:var(--bg-raised); color:var(--ink);
+    border:1px solid var(--rule); border-radius:8px; padding:10px; font-family:var(--mono);
+    font-size:12px;
+  }
+  textarea:focus, input:focus, select:focus{outline:2px solid var(--gold); outline-offset:1px;}
+
+  .btnrow{display:flex; gap:12px; flex-wrap:wrap; margin-top:18px;}
+  button{
+    font-family:var(--sans); font-weight:600; font-size:14px; padding:12px 20px; border-radius:8px;
+    border:1px solid var(--rule); cursor:pointer; background:var(--bg-raised); color:var(--ink);
+  }
+  button:hover{border-color:var(--gold);}
+  button.primary{background:var(--gold); color:#1a1305; border-color:var(--gold);}
+  button.primary:hover{filter:brightness(1.08);}
+  button.ghost{background:transparent;}
+
+  .params{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:16px;}
+  .param label{display:block; font-size:12px; color:var(--ink-dim); margin-bottom:6px; font-family:var(--mono);}
+  .param input[type=number], .param select{
+    width:100%; background:var(--bg-panel); border:1px solid var(--rule); color:var(--ink);
+    padding:10px; border-radius:8px; font-family:var(--mono); font-size:13px;
+  }
+  .checkline{display:flex; align-items:center; gap:8px; margin-top:6px;}
+  .checkline input{width:auto;}
+
+  .msg{font-family:var(--mono); font-size:13px; padding:12px 14px; border-radius:8px; margin-top:16px;}
+  .msg.warn{background:#2A2110; color:var(--gold); border:1px solid #4A3A18;}
+  .msg.err{background:#2A1512; color:var(--coral); border:1px solid #4A2420;}
+
+  table{width:100%; border-collapse:collapse; font-size:14px;}
+  th,td{padding:12px 10px; text-align:left; border-bottom:1px solid var(--rule);}
+  th{color:var(--ink-dim); font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; font-weight:600;}
+  td.num, th.num{text-align:right; font-family:var(--mono);}
+  .pos{color:var(--teal);} .neg{color:var(--coral);}
+
+  .chart-card{
+    background:var(--bg-panel); border:1px solid var(--rule); border-radius:10px; padding:20px;
+    margin-bottom:20px;
+  }
+  .chart-card canvas{max-height:340px;}
+
+  .metrics-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-top:16px;}
+  .metric{background:var(--bg-panel); border:1px solid var(--rule); border-radius:10px; padding:16px;}
+  .metric .m-label{font-family:var(--mono); font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.06em;}
+  .metric .m-val{font-family:var(--mono); font-size:22px; font-weight:700; margin-top:6px;}
+
+  .footnote{
+    font-size:12.5px; color:var(--ink-dim); text-align:center; padding:30px 24px 10px; line-height:1.7;
+  }
+  .footnote b{color:var(--ink);}
+  #results{display:none;}
+</style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="eyebrow">Systematic · Risk-Parity + Momentum · Weekly Rebalance</div>
+    <h1>Multi-Asset Signal Desk</h1>
+    <p class="sub">A transparent, from-scratch quant allocator across equity, debt, gold, silver and crude —
+      built on the same architectural idea as India's newer systematic multi-asset funds (e.g. AGMAAF-style models):
+      volatility-normalized weights, a momentum tilt, and a trend filter, walk-forward tested on real numbers you supply.</p>
+  </div>
+
+  <div class="tape-outer">
+    <div class="tape" id="tape">
+      <div class="tape-item"><span class="name">EQUITY</span><span class="val">— run analysis —</span></div>
+      <div class="tape-item"><span class="name">DEBT</span><span class="val">— run analysis —</span></div>
+      <div class="tape-item"><span class="name">GOLD</span><span class="val">— run analysis —</span></div>
+      <div class="tape-item"><span class="name">SILVER</span><span class="val">— run analysis —</span></div>
+      <div class="tape-item"><span class="name">CRUDE</span><span class="val">— run analysis —</span></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <section>
+      <h2><span class="idx">01</span>Price data</h2>
+      <p class="sub" style="margin:0 0 16px; text-align:left;">
+        Paste daily closing prices for each asset, oldest → newest, comma or newline separated
+        (e.g. exported from NSE/BSE Bhavcopy, AMFI, or a brokerage CSV). This tool does not fetch live data —
+        artifact sandboxes can't reach market data APIs, and fabricated numbers would be worse than none.
+        Use <b>Load sample data</b> for a synthetic series to see the mechanics work, then swap in your own for a real read.
+      </p>
+      <div class="grid5" id="assetInputs"></div>
+      <div class="btnrow">
+        <button class="ghost" onclick="loadSample()">Load sample data (synthetic)</button>
+        <button class="ghost" onclick="clearAll()">Clear all</button>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="idx">02</span>Model parameters</h2>
+      <div class="params">
+        <div class="param">
+          <label>Momentum lookback (trading days)</label>
+          <input type="number" id="momLookback" value="126" min="21" max="252">
+        </div>
+        <div class="param">
+          <label>Volatility lookback (trading days)</label>
+          <input type="number" id="volLookback" value="60" min="20" max="252">
+        </div>
+        <div class="param">
+          <label>Rebalance frequency (trading days)</label>
+          <input type="number" id="rebalFreq" value="5" min="1" max="63">
+        </div>
+        <div class="param">
+          <label>Momentum tilt strength</label>
+          <input type="number" id="tiltStrength" value="0.35" min="0" max="1" step="0.05">
+        </div>
+        <div class="param">
+          <label>Min weight per asset (%)</label>
+          <input type="number" id="minW" value="5" min="0" max="30">
+        </div>
+        <div class="param">
+          <label>Max weight per asset (%)</label>
+          <input type="number" id="maxW" value="40" min="20" max="100">
+        </div>
+        <div class="param">
+          <label>Est. transaction cost (bps per rebalance turnover)</label>
+          <input type="number" id="costBps" value="5" min="0" max="100">
+        </div>
+        <div class="param">
+          <label>Trend filter (200-day)</label>
+          <div class="checkline"><input type="checkbox" id="trendFilter" checked><span>De-weight assets trading below their 200-day average</span></div>
+        </div>
+      </div>
+      <div class="btnrow">
+        <button class="primary" onclick="runAnalysis()">Compute allocation &amp; backtest</button>
+      </div>
+      <div id="messages"></div>
+    </section>
+
+    <section id="results">
+      <h2><span class="idx">03</span>Current recommended allocation</h2>
+      <div class="chart-card">
+        <canvas id="allocChart"></canvas>
+      </div>
+      <table id="allocTable">
+        <thead><tr>
+          <th>Asset</th><th class="num">Weight</th><th class="num">Momentum ({{mom}}d)</th>
+          <th class="num">Ann. vol</th><th>Trend</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+
+      <h2 style="margin-top:36px;"><span class="idx">04</span>Walk-forward backtest</h2>
+      <p class="sub" style="text-align:left; margin:0 0 16px;">
+        Weights are recomputed every rebalance interval using only data available up to that point (no look-ahead),
+        then held until the next rebalance. Compared against an equal-weight rebalanced portfolio and a
+        buy-and-hold position in the first asset (Equity), both under the same cost assumption.
+      </p>
+      <div class="chart-card">
+        <canvas id="backtestChart"></canvas>
+      </div>
+      <div class="metrics-grid" id="metricsGrid"></div>
+    </section>
+
+  </div>
+
+  <div class="footnote">
+    Educational, client-side model only — not investment advice or a recommendation to buy or sell any security.<br>
+    Backtested / simulated results do not represent actual trading and do not account for slippage, liquidity, taxes,
+    or data-vendor adjustments beyond the simple cost estimate above. <b>Past or simulated performance is never a
+    guarantee of future returns.</b> Verify any real allocation decision with a licensed financial adviser.
+  </div>
+
+<script>
+const ASSET_META = [
+  {key:'equity', label:'Equity Index', hint:'e.g. Nifty 50 / Sensex closing levels'},
+  {key:'bond',   label:'Debt / Bond proxy', hint:'e.g. G-Sec / bond fund NAV series'},
+  {key:'gold',   label:'Gold', hint:'e.g. MCX Gold or gold ETF NAV'},
+  {key:'silver', label:'Silver', hint:'e.g. MCX Silver or silver ETF NAV'},
+  {key:'oil',    label:'Crude Oil', hint:'e.g. MCX Crude or WTI/Brent proxy'},
+];
+
+const inputsRoot = document.getElementById('assetInputs');
+ASSET_META.forEach(a=>{
+  const div = document.createElement('div');
+  div.className='asset-card';
+  div.innerHTML = `<label>${a.label}</label><span class="hint">${a.hint}</span>
+    <textarea id="in_${a.key}" placeholder="e.g. 21500, 21620, 21480, ..."></textarea>`;
+  inputsRoot.appendChild(div);
+});
+
+// ---------- synthetic sample generator (clearly labeled, not real market data) ----------
+function loadSample(){
+  const n = 780; // ~3 trading years
+  const specs = {
+    equity: {drift:0.10, vol:0.16},
+    bond:   {drift:0.06, vol:0.045},
+    gold:   {drift:0.09, vol:0.14},
+    silver: {drift:0.08, vol:0.24},
+    oil:    {drift:0.03, vol:0.32},
+  };
+  let seed = 42;
+  function rnd(){ seed = (seed*9301+49297)%233280; return seed/233280; }
+  function gauss(){
+    let u=0,v=0; while(u===0)u=rnd(); while(v===0)v=rnd();
+    return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+  }
+  ASSET_META.forEach(a=>{
+    const s = specs[a.key];
+    const dailyDrift = s.drift/252, dailyVol = s.vol/Math.sqrt(252);
+    let price = 100 + rnd()*20;
+    const arr=[price];
+    for(let i=1;i<n;i++){
+      price = price*(1+dailyDrift+dailyVol*gauss()*0.9 + Math.sin(i/40+seed)*dailyVol*0.15);
+      price = Math.max(price, 1);
+      arr.push(price);
+    }
+    document.getElementById('in_'+a.key).value = arr.map(x=>x.toFixed(3)).join(', ');
+  });
+  setMsg('Loaded synthetic demo series (3 simulated years, geometric-random walk per asset). Replace with real exported prices for a meaningful analysis.', 'warn');
+}
+
+function clearAll(){
+  ASSET_META.forEach(a=> document.getElementById('in_'+a.key).value='');
+  document.getElementById('messages').innerHTML='';
+  document.getElementById('results').style.display='none';
+}
+
+function setMsg(text, kind){
+  document.getElementById('messages').innerHTML = `<div class="msg ${kind}">${text}</div>`;
+}
+
+function parseSeries(text){
+  return text.split(/[\s,]+/).map(s=>parseFloat(s)).filter(x=>!isNaN(x) && x>0);
+}
+
+// ---------- math helpers ----------
+function mean(a){ return a.reduce((x,y)=>x+y,0)/a.length; }
+function std(a){ const m=mean(a); return Math.sqrt(mean(a.map(x=>(x-m)*(x-m)))); }
+function dailyReturns(p){ const r=[]; for(let i=1;i<p.length;i++) r.push(p[i]/p[i-1]-1); return r; }
+function annVol(returns){ return std(returns)*Math.sqrt(252); }
+function sma(p, w){ const s=p.slice(Math.max(0,p.length-w)); return mean(s); }
+
+function clipRenorm(w, minW, maxW, iters){
+  let out = w.slice();
+  for(let k=0;k<iters;k++){
+    out = out.map(x=>Math.min(maxW, Math.max(minW, x)));
+    const s = out.reduce((a,b)=>a+b,0);
+    out = out.map(x=>x/s);
+  }
+  return out;
+}
+
+// compute weights + signals using only price history up to (and including) index t for each asset
+function computeSignals(seriesArr, params){
+  const n = ASSET_META.length;
+  const mom = new Array(n), vol = new Array(n), trendOn = new Array(n);
+  for(let a=0;a<n;a++){
+    const p = seriesArr[a];
+    const len = p.length;
+    const momW = Math.min(params.momLookback, len-1);
+    mom[a] = p[len-1]/p[len-1-momW]-1;
+    const rets = dailyReturns(p).slice(-Math.min(params.volLookback, len-1));
+    vol[a] = Math.max(annVol(rets), 0.01); // floor to avoid div-by-zero
+    const smaW = Math.min(200, len);
+    trendOn[a] = p[len-1] > sma(p, smaW);
+  }
+  // risk-parity base
+  const invVol = vol.map(v=>1/v);
+  const invVolSum = invVol.reduce((a,b)=>a+b,0);
+  let base = invVol.map(v=>v/invVolSum);
+  // momentum z-score tilt
+  const mMean = mean(mom), mStd = std(mom) || 1e-6;
+  const z = mom.map(m=>(m-mMean)/mStd);
+  let tilt = z.map(zz=>Math.min(2.5, Math.max(0.3, 1+params.tiltStrength*zz)));
+  let w = base.map((b,i)=>b*tilt[i]);
+  if(params.trendFilter){
+    w = w.map((x,i)=> trendOn[i] ? x : x*0.4);
+  }
+  const s0 = w.reduce((a,b)=>a+b,0);
+  w = w.map(x=>x/s0);
+  w = clipRenorm(w, params.minW, params.maxW, 4);
+  return {weights:w, mom, vol, trendOn};
+}
+
+function maxDrawdown(equity){
+  let peak=equity[0], mdd=0;
+  for(const v of equity){ peak=Math.max(peak,v); mdd=Math.min(mdd, v/peak-1); }
+  return mdd;
+}
+
+function metricsFromEquity(equity, tradingDaysPerYear){
+  const rets = dailyReturns(equity);
+  const totalDays = equity.length-1;
+  const cagr = Math.pow(equity[equity.length-1]/equity[0], tradingDaysPerYear/totalDays)-1;
+  const vol = annVol(rets);
+  const sharpe = vol>0 ? (mean(rets)*tradingDaysPerYear)/vol : 0;
+  const mdd = maxDrawdown(equity);
+  const calmar = mdd<0 ? cagr/Math.abs(mdd) : NaN;
+  return {cagr, vol, sharpe, mdd, calmar};
+}
+
+function runAnalysis(){
+  const seriesArr = ASSET_META.map(a=>parseSeries(document.getElementById('in_'+a.key).value));
+  if(seriesArr.some(s=>s.length<60)){
+    setMsg('Each asset needs at least ~60 data points (ideally 2–3+ years of daily data) for the momentum, volatility and trend calculations to mean anything. Load the sample data to see the tool run, or paste longer series.', 'err');
+    return;
+  }
+  const minLen = Math.min(...seriesArr.map(s=>s.length));
+  const aligned = seriesArr.map(s=> s.slice(s.length-minLen)); // align on tail, assumes same calendar across assets
+
+  const params = {
+    momLookback: +document.getElementById('momLookback').value,
+    volLookback: +document.getElementById('volLookback').value,
+    rebalFreq: Math.max(1, +document.getElementById('rebalFreq').value),
+    tiltStrength: +document.getElementById('tiltStrength').value,
+    minW: (+document.getElementById('minW').value)/100,
+    maxW: (+document.getElementById('maxW').value)/100,
+    costBps: +document.getElementById('costBps').value,
+    trendFilter: document.getElementById('trendFilter').checked,
+  };
+
+  const startIdx = Math.max(params.momLookback, params.volLookback, 200) + 1;
+  if(startIdx >= minLen - params.rebalFreq){
+    setMsg(`Not enough history: with these lookbacks you need at least ${startIdx + params.rebalFreq} data points but only have ${minLen}. Shorten the lookback windows or supply a longer price history.`, 'err');
+    return;
+  }
+  document.getElementById('messages').innerHTML='';
+
+  // ----- current (as-of-today) recommended weights, using the full series -----
+  const current = computeSignals(aligned, params);
+  renderTape(current);
+  renderAllocation(current);
+
+  // ----- walk-forward backtest -----
+  const n = ASSET_META.length;
+  let modelEquity=[1], ewEquity=[1], bhEquity=[1];
+  let modelW = null, ewW = new Array(n).fill(1/n);
+  let modelWeightHistory = [];
+
+  for(let t=startIdx; t<minLen; t++){
+    if(modelW===null || (t-startIdx)%params.rebalFreq===0){
+      const histSlice = aligned.map(s=>s.slice(0,t+1));
+      const sig = computeSignals(histSlice, params);
+      const newW = sig.weights;
+      const turnover = modelW ? newW.reduce((acc,w,i)=>acc+Math.abs(w-modelW[i]),0) : newW.reduce((acc,w)=>acc+w,0);
+      const cost = turnover*(params.costBps/10000);
+      modelEquity[modelEquity.length-1] *= (1-cost);
+      const ewTurnover = n>0 ? (1/n)*n : 0; // equal weight always rebalances back to 1/n
+      const ewCost = ewTurnover*(params.costBps/10000)*0; // negligible/symmetric baseline, kept at 0 to isolate model's own turnover cost
+      modelW = newW;
+      modelWeightHistory.push({t, w:newW});
+    }
+    // apply today's return for each portfolio
+    let modelRet=0, ewRet=0;
+    for(let a=0;a<n;a++){
+      const r = aligned[a][t]/aligned[a][t-1]-1;
+      modelRet += modelW[a]*r;
+      ewRet += ewW[a]*r;
+    }
+    modelEquity.push(modelEquity[modelEquity.length-1]*(1+modelRet));
+    ewEquity.push(ewEquity[ewEquity.length-1]*(1+ewRet));
+    bhEquity.push(bhEquity[bhEquity.length-1]*(1+ (aligned[0][t]/aligned[0][t-1]-1) ));
+  }
+
+  renderBacktest(modelEquity, ewEquity, bhEquity, params);
+  document.getElementById('results').style.display='block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function renderTape(sig){
+  const tape = document.getElementById('tape');
+  tape.innerHTML='';
+  ASSET_META.forEach((a,i)=>{
+    const up = sig.mom[i]>=0;
+    const div = document.createElement('div');
+    div.className='tape-item';
+    div.innerHTML = `<span class="name">${a.label.toUpperCase()}</span>
+      <span class="arrow">${up?'▲':'▼'}</span>
+      <span class="val ${up?'up':'down'}">${(sig.mom[i]*100).toFixed(1)}%</span>
+      <span style="color:var(--ink-dim)">vol ${(sig.vol[i]*100).toFixed(1)}%</span>`;
+    tape.appendChild(div);
+  });
+}
+
+let allocChart, backtestChart;
+function renderAllocation(sig){
+  const momLb = document.getElementById('momLookback').value;
+  document.querySelector('#allocTable thead').innerHTML = `<tr>
+    <th>Asset</th><th class="num">Weight</th><th class="num">Momentum (${momLb}d)</th>
+    <th class="num">Ann. vol</th><th>Trend</th></tr>`;
+  const tbody = document.querySelector('#allocTable tbody');
+  tbody.innerHTML='';
+  ASSET_META.forEach((a,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${a.label}</td>
+      <td class="num"><strong>${(sig.weights[i]*100).toFixed(1)}%</strong></td>
+      <td class="num ${sig.mom[i]>=0?'pos':'neg'}">${(sig.mom[i]*100).toFixed(1)}%</td>
+      <td class="num">${(sig.vol[i]*100).toFixed(1)}%</td>
+      <td class="${sig.trendOn[i]?'pos':'neg'}">${sig.trendOn[i]?'Above 200d avg':'Below 200d avg'}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  const ctx = document.getElementById('allocChart').getContext('2d');
+  if(allocChart) allocChart.destroy();
+  allocChart = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: ASSET_META.map(a=>a.label),
+      datasets:[{
+        label:'Recommended weight (%)',
+        data: sig.weights.map(w=>+(w*100).toFixed(1)),
+        backgroundColor: ['#D4A94D','#2E9C93','#8CA6C9','#B8B8B8','#D96759'],
+        borderRadius:6,
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#DCE4EA'}, grid:{color:'#232D38'}},
+        y:{ticks:{color:'#7C8B9C'}, grid:{color:'#232D38'}, title:{display:true, text:'%', color:'#7C8B9C'}}
+      }
+    }
+  });
+}
+
+function renderBacktest(model, ew, bh, params){
+  const ctx = document.getElementById('backtestChart').getContext('2d');
+  if(backtestChart) backtestChart.destroy();
+  const labels = model.map((_,i)=>i);
+  backtestChart = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {label:'Signal Desk model', data:model, borderColor:'#D4A94D', backgroundColor:'transparent', pointRadius:0, borderWidth:2},
+        {label:'Equal-weight rebalanced', data:ew, borderColor:'#2E9C93', backgroundColor:'transparent', pointRadius:0, borderWidth:1.5},
+        {label:'Buy & hold Equity', data:bh, borderColor:'#7C8B9C', backgroundColor:'transparent', pointRadius:0, borderWidth:1.5, borderDash:[4,3]},
+      ]
+    },
+    options:{
+      responsive:true,
+      interaction:{mode:'index', intersect:false},
+      plugins:{legend:{labels:{color:'#DCE4EA'}}},
+      scales:{
+        x:{ticks:{color:'#7C8B9C', maxTicksLimit:8}, grid:{color:'#232D38'}, title:{display:true,text:'Trading days into backtest', color:'#7C8B9C'}},
+        y:{ticks:{color:'#7C8B9C'}, grid:{color:'#232D38'}, title:{display:true,text:'Growth of 1', color:'#7C8B9C'}}
+      }
+    }
+  });
+
+  const rows = [
+    ['Signal Desk model', model],
+    ['Equal-weight', ew],
+    ['Buy & hold Equity', bh],
+  ];
+  const grid = document.getElementById('metricsGrid');
+  grid.innerHTML='';
+  rows.forEach(([name, eq])=>{
+    const m = metricsFromEquity(eq, 252);
+    const block = document.createElement('div');
+    block.innerHTML = `
+      <div class="asset-card" style="margin-bottom:14px;">
+        <label>${name}</label>
+        <div class="metrics-grid" style="margin-top:10px;">
+          <div class="metric"><div class="m-label">CAGR</div><div class="m-val ${m.cagr>=0?'pos':'neg'}">${(m.cagr*100).toFixed(1)}%</div></div>
+          <div class="metric"><div class="m-label">Ann. vol</div><div class="m-val">${(m.vol*100).toFixed(1)}%</div></div>
+          <div class="metric"><div class="m-label">Sharpe (rf=0)</div><div class="m-val">${m.sharpe.toFixed(2)}</div></div>
+          <div class="metric"><div class="m-label">Max drawdown</div><div class="m-val neg">${(m.mdd*100).toFixed(1)}%</div></div>
+          <div class="metric"><div class="m-label">Calmar</div><div class="m-val">${isFinite(m.calmar)?m.calmar.toFixed(2):'—'}</div></div>
+        </div>
+      </div>`;
+    grid.appendChild(block);
+  });
+}
+</script>
+</body>
+</html>
