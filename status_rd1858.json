@@ -1,15 +1,15 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-07-07 11:55:46 IST",
+  "timestamp": "2026-07-07 11:56:47 IST",
   "bot_running": true,
-  "total_value": 8732067.78,
-  "today_pnl": -6852.83,
+  "total_value": 8731474.38,
+  "today_pnl": -6807.75,
   "today_pnl_pct": -0.08,
   "liquidcase": {
     "quantity": 63848,
     "free_quantity": 0,
-    "price": 114.88,
-    "value": 7334858.24,
+    "price": 114.87,
+    "value": 7334219.76,
     "pct": 84.0
   },
   "slots": {
@@ -34,10 +34,10 @@
       "symbol": "GOLDBEES",
       "quantity": 3370,
       "avg": 121.62,
-      "ltp": 118.89,
-      "value": 400659.3,
-      "pnl": -2089.4,
-      "pnl_pct": -0.52,
+      "ltp": 118.92,
+      "value": 400760.4,
+      "pnl": -1988.3,
+      "pnl_pct": -0.49,
       "unrealised_pnl": -9623.32,
       "unrealised_pnl_pct": -2.35,
       "strategy": "active",
@@ -62,9 +62,9 @@
       "symbol": "MINDSPACE-RR",
       "quantity": 530,
       "avg": 461.34,
-      "ltp": 488.98,
-      "value": 259159.4,
-      "pnl": 800.3,
+      "ltp": 488.97,
+      "value": 259154.1,
+      "pnl": 795.0,
       "pnl_pct": 0.31,
       "unrealised_pnl": 15188.68,
       "unrealised_pnl_pct": 6.21,
@@ -76,10 +76,10 @@
       "symbol": "SILVERBEES",
       "quantity": 1268,
       "avg": 228.29,
-      "ltp": 216.88,
-      "value": 275003.84,
-      "pnl": -4412.64,
-      "pnl_pct": -1.58,
+      "ltp": 216.84,
+      "value": 274953.12,
+      "pnl": -4463.36,
+      "pnl_pct": -1.6,
       "unrealised_pnl": -15433.62,
       "unrealised_pnl_pct": -5.33,
       "strategy": "active",
@@ -116,45 +116,45 @@
   "williams_r": [
     {
       "symbol": "GOLDBEES",
-      "ltp": 118.89,
-      "change_pct": -0.52,
-      "williams_r": -53.27,
+      "ltp": 118.92,
+      "change_pct": -0.49,
+      "williams_r": -52.97,
       "is_held": true,
       "avg_price": 121.62,
       "strategy": "active"
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 216.88,
-      "change_pct": -1.58,
-      "williams_r": -57.1,
+      "ltp": 216.84,
+      "change_pct": -1.6,
+      "williams_r": -57.22,
       "is_held": true,
       "avg_price": 228.29,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 780.7,
-      "change_pct": -0.53,
-      "williams_r": -43.9,
+      "ltp": 780.49,
+      "change_pct": -0.55,
+      "williams_r": -44.43,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 446.69,
-      "change_pct": -0.37,
-      "williams_r": -12.19,
+      "ltp": 446.57,
+      "change_pct": -0.39,
+      "williams_r": -12.64,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 605.35,
-      "change_pct": 0.38,
-      "williams_r": -49.13,
+      "ltp": 605.51,
+      "change_pct": 0.41,
+      "williams_r": -48.78,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -170,9 +170,9 @@
     },
     {
       "symbol": "MINDSPACE-RR",
-      "ltp": 488.98,
+      "ltp": 488.97,
       "change_pct": 0.31,
-      "williams_r": -12.14,
+      "williams_r": -12.17,
       "is_held": true,
       "avg_price": 461.34,
       "strategy": "bnh"
@@ -182,19 +182,19 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24521.6,
+      "ltp": 24525.0,
       "prev_close": 24430.35,
-      "change": 91.25,
-      "change_pct": 0.37,
+      "change": 94.65,
+      "change_pct": 0.39,
       "open": 24464.45,
       "high": 24526.85,
       "low": 24423.5
     },
     "INDIA VIX": {
-      "ltp": 11.76,
+      "ltp": 11.75,
       "prev_close": 11.82,
-      "change": -0.06,
-      "change_pct": -0.51,
+      "change": -0.07,
+      "change_pct": -0.59,
       "open": 11.82,
       "high": 11.94,
       "low": 11.06
@@ -377,7 +377,7 @@
       "las_quantity": 0.0
     }
   },
-  "available_cash": 78283.24,
-  "available_margin": -243326.22,
+  "available_cash": 75849.38,
+  "available_margin": -248193.94,
   "available_margin_note": null
 }
