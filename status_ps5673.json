@@ -1,16 +1,16 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-07-07 13:06:22 IST",
+  "timestamp": "2026-07-07 13:07:24 IST",
   "bot_running": true,
-  "total_value": 8786947.86,
-  "today_pnl": -8140.29,
+  "total_value": 8787489.33,
+  "today_pnl": -7598.82,
   "today_pnl_pct": -0.09,
   "liquidcase": {
     "quantity": 66472,
     "free_quantity": 0,
     "price": 114.88,
     "value": 7636303.36,
-    "pct": 86.91
+    "pct": 86.9
   },
   "slots": {
     "total": 7,
@@ -34,12 +34,12 @@
       "symbol": "GOLDBEES",
       "quantity": 3699,
       "avg": 121.48,
-      "ltp": 118.81,
-      "value": 439478.19,
-      "pnl": -2589.3,
-      "pnl_pct": -0.59,
-      "unrealised_pnl": -9964.95,
-      "unrealised_pnl_pct": -2.22,
+      "ltp": 118.88,
+      "value": 439737.12,
+      "pnl": -2330.37,
+      "pnl_pct": -0.53,
+      "unrealised_pnl": -9816.99,
+      "unrealised_pnl_pct": -2.18,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 7
@@ -48,12 +48,12 @@
       "symbol": "MID150BEES",
       "quantity": 1442,
       "avg": 228.35,
-      "ltp": 236.65,
-      "value": 341249.3,
-      "pnl": -1355.48,
-      "pnl_pct": -0.4,
-      "unrealised_pnl": 12156.71,
-      "unrealised_pnl_pct": 3.69,
+      "ltp": 236.74,
+      "value": 341379.08,
+      "pnl": -1225.7,
+      "pnl_pct": -0.36,
+      "unrealised_pnl": 12185.55,
+      "unrealised_pnl_pct": 3.7,
       "strategy": "bnh",
       "buys_today": 1,
       "max_slots": 7
@@ -66,8 +66,8 @@
       "value": 93765.12,
       "pnl": 170.88,
       "pnl_pct": 0.18,
-      "unrealised_pnl": 4400.76,
-      "unrealised_pnl_pct": 4.92,
+      "unrealised_pnl": 4512.12,
+      "unrealised_pnl_pct": 5.05,
       "strategy": "bnh",
       "buys_today": 1,
       "max_slots": 7
@@ -76,12 +76,12 @@
       "symbol": "SILVERBEES",
       "quantity": 1273,
       "avg": 227.69,
-      "ltp": 216.93,
-      "value": 276151.89,
-      "pnl": -4366.39,
-      "pnl_pct": -1.56,
-      "unrealised_pnl": -13989.59,
-      "unrealised_pnl_pct": -4.83,
+      "ltp": 217.05,
+      "value": 276304.65,
+      "pnl": -4213.63,
+      "pnl_pct": -1.5,
+      "unrealised_pnl": -13696.8,
+      "unrealised_pnl_pct": -4.73,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 7
@@ -116,18 +116,18 @@
   "williams_r": [
     {
       "symbol": "GOLDBEES",
-      "ltp": 118.81,
-      "change_pct": -0.59,
-      "williams_r": -54.08,
+      "ltp": 118.88,
+      "change_pct": -0.53,
+      "williams_r": -53.37,
       "is_held": true,
       "avg_price": 121.48,
       "strategy": "active"
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 216.93,
-      "change_pct": -1.56,
-      "williams_r": -56.95,
+      "ltp": 217.05,
+      "change_pct": -1.5,
+      "williams_r": -56.59,
       "is_held": true,
       "avg_price": 227.69,
       "strategy": "active"
@@ -143,9 +143,9 @@
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 446.39,
-      "change_pct": -0.43,
-      "williams_r": -13.31,
+      "ltp": 446.5,
+      "change_pct": -0.41,
+      "williams_r": -12.9,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -161,9 +161,9 @@
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 236.65,
-      "change_pct": -0.4,
-      "williams_r": -47.78,
+      "ltp": 236.74,
+      "change_pct": -0.36,
+      "williams_r": -46.49,
       "is_held": true,
       "avg_price": 228.35,
       "strategy": "bnh"
@@ -182,10 +182,10 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24457.25,
+      "ltp": 24454.6,
       "prev_close": 24430.35,
-      "change": 26.9,
-      "change_pct": 0.11,
+      "change": 24.25,
+      "change_pct": 0.1,
       "open": 24464.45,
       "high": 24530.9,
       "low": 24423.5
@@ -327,6 +327,6 @@
     }
   },
   "available_cash": 19271.9,
-  "available_margin": 224525.73,
+  "available_margin": 225490.98,
   "available_margin_note": null
 }
