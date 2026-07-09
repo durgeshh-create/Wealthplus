@@ -253,7 +253,7 @@
             <div class="input-card">
                 <label>Range</label>
                 <div class="value-display" id="rangeDisplay">1,755.08</div>
-                <div class="formula-box" id="rangeFormula">23945.00 x sqrt(13.61 x 150% / 3800) = 1755.08</div>
+                <div class="formula-box" id="rangeFormula">23945.00 x sqrt(13.61 x 200% / 3800) = 1755.08</div>
             </div>
         </div>
 
@@ -582,7 +582,7 @@
             const dayName = WEEKDAY_NAMES[dayOfWeek];
             document.getElementById('currentDate').textContent = `${dayName} (${formatDDMMYYYY(today)})`;
             document.getElementById('expiryDate').textContent = formatDDMMYYYY(expiryDate) + (isMonthlyExpiry ? ' M' : ' W');
-            document.getElementById('rangeFormula').textContent = `${nifty.toFixed(2)} x sqrt(${vix.toFixed(2)} x 150% / ${divisor}) = ${currentRange.toFixed(2)}`;
+            document.getElementById('rangeFormula').textContent = `${nifty.toFixed(2)} x sqrt(${vix.toFixed(2)} x 200% / ${divisor}) = ${currentRange.toFixed(2)}`;
 
             // Main NIFTY symbols
             let putSym, callSym;
