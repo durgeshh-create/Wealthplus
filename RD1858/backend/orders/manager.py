@@ -418,9 +418,13 @@ class OrderManager:
 
         Flow:
           1. Get live available cash from Zerodha.
-          2. If cash >= full cost  → direct buy (no LIQUIDCASE sell).
-          3. If 0 < cash < cost   → sell only enough LIQUIDCASE to cover the gap,
-                                     then buy the ETF.
+          2. If cash >= full cost  → attempt direct buy (no LIQUIDCASE sell).
+                                     If the broker rejects/doesn't fill it anyway
+                                     (real-time margin disagreed with our cash
+                                     estimate), fall through to step 3 instead
+                                     of giving up.
+          3. If 0 < cash < cost, or step 2 failed → sell enough LIQUIDCASE to
+                                     cover the gap, then buy the ETF.
           4. If cash = 0          → sell full LIQUIDCASE amount first, then buy.
 
         Args:
@@ -450,11 +454,18 @@ class OrderManager:
             f"(spendable after ₹{cash_reserve:.0f} reserve: ₹{avail_cash:,.2f})"
         )
 
-        # ── Step 2: cash fully covers cost → direct buy ───────────────────
+        # ── Step 2: cash appears to fully cover cost → attempt direct buy ──
+        # NOTE: our `avail_cash` estimate (settled cash from get_available_cash)
+        # can disagree with Zerodha's real-time RMS margin check — e.g. when
+        # other open orders are blocking margin, or the margins API lags the
+        # live engine. If the broker rejects/doesn't fill the direct buy
+        # despite our cash looking sufficient, DON'T give up — fall through
+        # to the LIQUIDCASE-funded path below instead of raising, so the
+        # weekly/tier buy still gets funded rather than being skipped.
         if avail_cash >= total_cost:
             logger.info(
-                f"✅ Cash sufficient (₹{avail_cash:,.2f} >= ₹{total_cost:,.2f}) — "
-                f"buying {buy_quantity} × {buy_symbol} directly, no LIQUIDCASE sell needed"
+                f"✅ Cash appears sufficient (₹{avail_cash:,.2f} >= ₹{total_cost:,.2f}) — "
+                f"attempting direct buy of {buy_quantity} × {buy_symbol} first"
             )
             try:
                 order_id, msg = self.place_order(
@@ -463,19 +474,31 @@ class OrderManager:
                     price=buy_limit_price,
                     product=buy_product,
                 )
-            except RuntimeError as e:
-                raise
+            except RuntimeError:
+                raise  # pre-flight failure (e.g. HTTP 403 / auth) — not a margin issue, propagate as before
+
+            direct_buy_failed_reason = None
             if order_id:
                 if self.monitor_order(order_id):
                     logger.info(f"✓ Direct buy complete: {buy_quantity} × {buy_symbol}")
                     portfolio_tracker.sync()
                     return True
                 else:
-                    raise RuntimeError(f"Buy order {order_id} did not complete")
+                    status = self.get_order_status(order_id)
+                    direct_buy_failed_reason = (status.get('status_message', '') if status else '') or "order did not complete"
             else:
-                raise RuntimeError(f"Buy order placement failed: {msg}")
+                direct_buy_failed_reason = msg or "order placement failed"
 
-        # ── Step 3: partial cash — sell only the shortfall from LIQUIDCASE ──
+            logger.warning(
+                f"⚠️ Direct buy of {buy_symbol} failed despite cash appearing sufficient "
+                f"(₹{avail_cash:,.2f} >= ₹{total_cost:,.2f}): {direct_buy_failed_reason}. "
+                f"Falling back to LIQUIDCASE-funded buy instead of giving up."
+            )
+            # Treat the full cost as a shortfall so Step 3 below sells enough
+            # LIQUIDCASE to fund the whole purchase, then retries the buy.
+            avail_cash = 0.0
+
+        # ── Step 3: partial/no cash — sell (the remaining) shortfall from LIQUIDCASE ──
         shortfall = total_cost - avail_cash
         liq_price = realtime_manager.get_ltp(LIQUIDCASE_SYMBOL) if realtime_manager else None
         if not liq_price or liq_price <= 0:
