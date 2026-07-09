@@ -1,15 +1,15 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-07-09 09:14:09 IST",
+  "timestamp": "2026-07-09 09:15:09 IST",
   "bot_running": true,
-  "total_value": 8762670.5,
-  "today_pnl": 337.92,
+  "total_value": 8764635.98,
+  "today_pnl": 364.8,
   "today_pnl_pct": 0.0,
   "liquidcase": {
     "quantity": 64620,
     "free_quantity": 0,
-    "price": 114.89,
-    "value": 7424191.8,
+    "price": 114.92,
+    "value": 7426130.4,
     "pct": 84.73
   },
   "slots": {
@@ -76,10 +76,10 @@
       "symbol": "MINDSPACE-RR",
       "quantity": 192,
       "avg": 465.48,
-      "ltp": 486.86,
-      "value": 93477.12,
-      "pnl": 337.92,
-      "pnl_pct": 0.36,
+      "ltp": 487.0,
+      "value": 93504.0,
+      "pnl": 364.8,
+      "pnl_pct": 0.39,
       "unrealised_pnl": 4105.08,
       "unrealised_pnl_pct": 4.59,
       "strategy": "bnh",
@@ -184,9 +184,9 @@
     },
     {
       "symbol": "MINDSPACE-RR",
-      "ltp": 486.86,
-      "change_pct": 0.36,
-      "williams_r": -21.21,
+      "ltp": 487.0,
+      "change_pct": 0.39,
+      "williams_r": -20.8,
       "is_held": true,
       "avg_price": 465.48,
       "strategy": "bnh"
@@ -204,22 +204,22 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 23928.95,
+      "ltp": 23950.15,
       "prev_close": 23882.05,
-      "change": 46.9,
-      "change_pct": 0.2,
+      "change": 68.1,
+      "change_pct": 0.29,
       "open": 23928.95,
-      "high": 23928.95,
-      "low": 23928.95
+      "high": 23963.0,
+      "low": 23927.7
     },
     "INDIA VIX": {
-      "ltp": 14.68,
+      "ltp": 14.12,
       "prev_close": 14.68,
-      "change": 0.0,
-      "change_pct": 0.0,
-      "open": null,
-      "high": null,
-      "low": null
+      "change": -0.56,
+      "change_pct": -3.81,
+      "open": 14.68,
+      "high": 14.68,
+      "low": 13.4
     }
   },
   "mf_holdings": [
@@ -349,6 +349,6 @@
     }
   },
   "available_cash": 85761.4,
-  "available_margin": -804498.11,
+  "available_margin": -822820.31,
   "available_margin_note": null
 }
