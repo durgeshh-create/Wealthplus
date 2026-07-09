@@ -1,10 +1,10 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-07-09 15:14:00 IST",
+  "timestamp": "2026-07-09 15:15:01 IST",
   "bot_running": true,
-  "total_value": 8733634.48,
-  "today_pnl": 16921.9,
-  "today_pnl_pct": 0.19,
+  "total_value": 8733715.06,
+  "today_pnl": 17002.48,
+  "today_pnl_pct": 0.2,
   "liquidcase": {
     "quantity": 62758,
     "free_quantity": 0,
@@ -34,9 +34,9 @@
       "symbol": "GOLDBEES",
       "quantity": 3370,
       "avg": 121.62,
-      "ltp": 118.38,
-      "value": 398940.6,
-      "pnl": 4785.4,
+      "ltp": 118.37,
+      "value": 398906.9,
+      "pnl": 4751.7,
       "pnl_pct": 1.21,
       "unrealised_pnl": -10398.42,
       "unrealised_pnl_pct": -2.54,
@@ -48,9 +48,9 @@
       "symbol": "MID150BEES",
       "quantity": 2520,
       "avg": 229.24,
-      "ltp": 236.18,
-      "value": 595173.6,
-      "pnl": 7711.2,
+      "ltp": 236.17,
+      "value": 595148.4,
+      "pnl": 7686.0,
       "pnl_pct": 1.31,
       "unrealised_pnl": 17649.48,
       "unrealised_pnl_pct": 3.06,
@@ -76,10 +76,10 @@
       "symbol": "SILVERBEES",
       "quantity": 1268,
       "avg": 228.29,
-      "ltp": 212.85,
-      "value": 269893.8,
-      "pnl": 3423.6,
-      "pnl_pct": 1.28,
+      "ltp": 212.96,
+      "value": 270033.28,
+      "pnl": 3563.08,
+      "pnl_pct": 1.34,
       "unrealised_pnl": -19186.9,
       "unrealised_pnl_pct": -6.63,
       "strategy": "active",
@@ -128,54 +128,54 @@
   "williams_r": [
     {
       "symbol": "GOLDBEES",
-      "ltp": 118.38,
+      "ltp": 118.37,
       "change_pct": 1.21,
-      "williams_r": -52.8,
+      "williams_r": -52.91,
       "is_held": true,
       "avg_price": 121.62,
       "strategy": "active"
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 212.85,
-      "change_pct": 1.28,
-      "williams_r": -56.04,
+      "ltp": 212.96,
+      "change_pct": 1.34,
+      "williams_r": -55.57,
       "is_held": true,
       "avg_price": 228.29,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 771.46,
-      "change_pct": 0.73,
-      "williams_r": -67.25,
+      "ltp": 770.73,
+      "change_pct": 0.63,
+      "williams_r": -69.09,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 443.0,
-      "change_pct": -1.37,
-      "williams_r": -31.26,
+      "ltp": 442.58,
+      "change_pct": -1.46,
+      "williams_r": -32.72,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 592.06,
-      "change_pct": 0.75,
-      "williams_r": -78.08,
+      "ltp": 591.98,
+      "change_pct": 0.73,
+      "williams_r": -78.26,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 236.18,
+      "ltp": 236.17,
       "change_pct": 1.31,
-      "williams_r": -47.27,
+      "williams_r": -47.39,
       "is_held": true,
       "avg_price": 229.24,
       "strategy": "bnh"
@@ -194,9 +194,9 @@
     {
       "type": "BUY",
       "symbol": "BANKBEES",
-      "reason": "W%R -78.1 \u2264 -75.0",
-      "ltp": 592.06,
-      "williams_r": -78.08
+      "reason": "W%R -78.3 \u2264 -75.0",
+      "ltp": 591.98,
+      "williams_r": -78.26
     }
   ],
   "orders": [
@@ -214,19 +214,19 @@
   ],
   "indices": {
     "NIFTY 50": {
-      "ltp": 23946.2,
+      "ltp": 23940.2,
       "prev_close": 23882.05,
-      "change": 64.15,
-      "change_pct": 0.27,
+      "change": 58.15,
+      "change_pct": 0.24,
       "open": 23928.95,
       "high": 24134.7,
       "low": 23925.7
     },
     "INDIA VIX": {
-      "ltp": 13.46,
+      "ltp": 13.51,
       "prev_close": 14.68,
-      "change": -1.22,
-      "change_pct": -8.31,
+      "change": -1.17,
+      "change_pct": -7.97,
       "open": 14.68,
       "high": 14.68,
       "low": 13.07
@@ -410,6 +410,6 @@
     }
   },
   "available_cash": 36914.19,
-  "available_margin": 1691601.14,
+  "available_margin": 1695391.94,
   "available_margin_note": null
 }
