@@ -568,7 +568,7 @@
             const isMonthlyExpiry = isLastTuesdayOfMonth(expiryDate);
 
             // Main NIFTY range and strikes
-            const currentRange = nifty * Math.sqrt((vix * 1.5) / divisor);
+            const currentRange = nifty * Math.sqrt((vix * 2) / divisor);
             const putStrike = Math.floor((nifty - currentRange) / 100) * 100;
             const callStrike = Math.ceil((nifty + currentRange) / 100) * 100;
 
@@ -608,7 +608,7 @@
             document.getElementById('callStrike').textContent = callStrike.toLocaleString();
 
             // NIFTY Expiry Day Intraday
-            const niftyExpiryDayRange = nifty * Math.sqrt((vix * 1.5) / EXPIRY_DAY_DIVISOR);
+            const niftyExpiryDayRange = nifty * Math.sqrt((vix * 2) / EXPIRY_DAY_DIVISOR);
             const niftyExpiryPutStrike = Math.floor((nifty - niftyExpiryDayRange) / 50) * 50;
             const niftyExpiryCallStrike = Math.ceil((nifty + niftyExpiryDayRange) / 50) * 50;
 
@@ -635,7 +635,7 @@
                 : "NIFTY intraday strikes for today's expiry using divisor 23,000.";
 
             // MIDCPNIFTY Expiry Day Intraday
-            const midcpExpiryDayRange = midcp * Math.sqrt((vix * 1.5) / MIDCP_EXPIRY_DAY_DIVISOR);
+            const midcpExpiryDayRange = midcp * Math.sqrt((vix * 2) / MIDCP_EXPIRY_DAY_DIVISOR);
             const midcpExpiryPutStrike = Math.floor((midcp - midcpExpiryDayRange) / 25) * 25;
             const midcpExpiryCallStrike = Math.ceil((midcp + midcpExpiryDayRange) / 25) * 25;
 
