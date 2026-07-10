@@ -1,16 +1,16 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-07-10 10:38:49 IST",
+  "timestamp": "2026-07-10 10:39:50 IST",
   "bot_running": true,
-  "total_value": 8780054.39,
-  "today_pnl": 3623.91,
+  "total_value": 8780659.23,
+  "today_pnl": 3601.17,
   "today_pnl_pct": 0.04,
   "liquidcase": {
     "quantity": 62758,
     "free_quantity": 0,
-    "price": 114.95,
-    "value": 7214032.1,
-    "pct": 82.16
+    "price": 114.96,
+    "value": 7214659.68,
+    "pct": 82.17
   },
   "slots": {
     "total": 7,
@@ -34,9 +34,9 @@
       "symbol": "BANKBEES",
       "quantity": 33,
       "avg": 593.17,
-      "ltp": 598.71,
-      "value": 19757.43,
-      "pnl": 202.95,
+      "ltp": 598.75,
+      "value": 19758.75,
+      "pnl": 204.27,
       "pnl_pct": 1.04,
       "unrealised_pnl": 179.19,
       "unrealised_pnl_pct": 0.92,
@@ -48,10 +48,10 @@
       "symbol": "GOLDBEES",
       "quantity": 3370,
       "avg": 121.62,
-      "ltp": 118.52,
-      "value": 399412.4,
-      "pnl": 337.0,
-      "pnl_pct": 0.08,
+      "ltp": 118.5,
+      "value": 399345.0,
+      "pnl": 269.6,
+      "pnl_pct": 0.07,
       "unrealised_pnl": -10331.02,
       "unrealised_pnl_pct": -2.52,
       "strategy": "active",
@@ -76,9 +76,9 @@
       "symbol": "MINDSPACE-RR",
       "quantity": 530,
       "avg": 461.34,
-      "ltp": 487.99,
-      "value": 258634.7,
-      "pnl": 212.0,
+      "ltp": 488.0,
+      "value": 258640.0,
+      "pnl": 217.3,
       "pnl_pct": 0.08,
       "unrealised_pnl": 14123.38,
       "unrealised_pnl_pct": 5.78,
@@ -90,10 +90,10 @@
       "symbol": "SILVERBEES",
       "quantity": 1268,
       "avg": 228.29,
-      "ltp": 210.43,
-      "value": 266825.24,
-      "pnl": -3195.36,
-      "pnl_pct": -1.18,
+      "ltp": 210.46,
+      "value": 266863.28,
+      "pnl": -3157.32,
+      "pnl_pct": -1.17,
       "unrealised_pnl": -21355.18,
       "unrealised_pnl_pct": -7.38,
       "strategy": "active",
@@ -130,27 +130,27 @@
   "williams_r": [
     {
       "symbol": "GOLDBEES",
-      "ltp": 118.52,
-      "change_pct": 0.08,
-      "williams_r": -51.2,
+      "ltp": 118.5,
+      "change_pct": 0.07,
+      "williams_r": -51.43,
       "is_held": true,
       "avg_price": 121.62,
       "strategy": "active"
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 210.43,
-      "change_pct": -1.18,
-      "williams_r": -66.4,
+      "ltp": 210.46,
+      "change_pct": -1.17,
+      "williams_r": -66.27,
       "is_held": true,
       "avg_price": 228.29,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 779.7,
-      "change_pct": 1.02,
-      "williams_r": -46.42,
+      "ltp": 779.97,
+      "change_pct": 1.06,
+      "williams_r": -45.74,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -166,9 +166,9 @@
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 598.71,
+      "ltp": 598.75,
       "change_pct": 1.04,
-      "williams_r": -69.42,
+      "williams_r": -69.32,
       "is_held": true,
       "avg_price": 593.17,
       "strategy": "active"
@@ -184,9 +184,9 @@
     },
     {
       "symbol": "MINDSPACE-RR",
-      "ltp": 487.99,
+      "ltp": 488.0,
       "change_pct": 0.08,
-      "williams_r": -17.86,
+      "williams_r": -17.83,
       "is_held": true,
       "avg_price": 461.34,
       "strategy": "bnh"
@@ -196,19 +196,19 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24197.55,
+      "ltp": 24197.25,
       "prev_close": 23962.8,
-      "change": 234.75,
+      "change": 234.45,
       "change_pct": 0.98,
       "open": 24124.7,
       "high": 24226.05,
       "low": 24120.35
     },
     "INDIA VIX": {
-      "ltp": 12.5,
+      "ltp": 12.52,
       "prev_close": 13.36,
-      "change": -0.86,
-      "change_pct": -6.44,
+      "change": -0.84,
+      "change_pct": -6.29,
       "open": 13.36,
       "high": 13.36,
       "low": 12.13
@@ -392,6 +392,6 @@
     }
   },
   "available_cash": 2069.3,
-  "available_margin": 1952335.91,
+  "available_margin": 1951988.42,
   "available_margin_note": null
 }
