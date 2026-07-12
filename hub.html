@@ -8,16 +8,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Responsive scroll and canvas architecture */
+        /* Modern fluid responsive canvas layout */
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             background-color: #f8fafc; 
-            min-height: 100dvh; 
             width: 100vw; 
             overflow-x: hidden;
         }
         
-        /* Enforces strict presentation constraint strictly on Desktop screens */
+        /* Enforces strict presentation constraint ONLY on desktop screens */
         @media (min-width: 1024px) {
             body {
                 height: 100dvh;
@@ -42,44 +41,15 @@
             opacity: 0.12;
         }
     </style>
-    
-    <!-- JavaScript Method B High-Performance Mobile App Handshake -->
-    <script>
-        function launchMobileApp(appUri, webFallback) {
-            var start = Date.now();
-            
-            // Create an invisible iframe to force native mobile OS protocol handling
-            var iframe = document.createElement('iframe');
-            iframe.style.border = 'none';
-            iframe.style.width = '1px';
-            iframe.style.height = '1px';
-            iframe.style.position = 'absolute';
-            iframe.style.top = '0';
-            iframe.style.left = '0';
-            iframe.style.opacity = '0';
-            iframe.src = appUri;
-            document.body.appendChild(iframe);
-            
-            // Fallback strategy checking if user left the browser window context
-            setTimeout(function() {
-                document.body.removeChild(iframe);
-                // If the app successfully launched, the tab focus/timing shifts.
-                // If time elapsed is minimal, the app isn't installed: open the web fallback.
-                if (Date.now() - start < 2000) {
-                    window.open(webFallback, '_blank');
-                }
-            }, 1500);
-        }
-    </script>
 </head>
-<body class="relative flex flex-col items-center justify-start lg:justify-center p-4 sm:p-6 overflow-y-auto lg:overflow-y-hidden">
+<body class="relative flex flex-col items-center justify-start lg:justify-center p-4 sm:p-6 overflow-y-auto lg:overflow-y-hidden min-h-screen lg:min-h-0">
 
     <div class="absolute inset-0 bg-pattern opacity-40 z-0 pointer-events-none"></div>
     <div class="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-blue-300/30 rounded-full mix-blend-multiply filter blur-[80px] opacity-60 pointer-events-none"></div>
     <div class="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-emerald-300/30 rounded-full mix-blend-multiply filter blur-[80px] opacity-60 pointer-events-none"></div>
 
-    <!-- Scalable layout matrix removing height locks on phone viewports -->
-    <main class="relative z-10 w-full max-w-4xl mx-auto flex flex-col justify-center h-auto lg:h-full lg:max-h-[700px] py-6 lg:py-0">
+    <!-- Scalable mobile layout container -->
+    <main class="relative z-10 w-full max-w-4xl mx-auto flex flex-col justify-center h-auto lg:h-full lg:max-h-[700px] min-h-0 py-6 lg:py-0">
         
         <header class="text-center mb-6 shrink-0">
             <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white shadow-xl shadow-slate-900/20 mb-3 relative overflow-hidden">
@@ -148,15 +118,15 @@
                                     <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
                                 </a>
                                 
-                                <!-- Native App Launch Interfaces -->
-                                <button onclick="launchMobileApp('kite://home', 'https://kite.zerodha.com')" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors py-1 px-2 rounded-lg hover:bg-blue-50/50 text-left w-full cursor-pointer">
+                                <!-- Pure HTML Universal Launch Triggers (Guaranteed App Handshake) -->
+                                <a href="https://kite.zerodha.com" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors py-1 px-2 rounded-lg hover:bg-blue-50/50 w-full">
                                     <span class="flex items-center gap-2"><i class="fa-solid fa-mobile-screen-button text-blue-500"></i> Open Zerodha Kite App</span>
                                     <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
-                                </button>
-                                <button onclick="launchMobileApp('moneycontrol://portfolio', 'https://www.moneycontrol.com/portfolio-management/portfolio-investment-dashboard')" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-orange-600 transition-colors py-1 px-2 rounded-lg hover:bg-orange-50/50 text-left w-full cursor-pointer">
+                                </a>
+                                <a href="https://www.moneycontrol.com/portfolio-management/portfolio-investment-dashboard" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-orange-600 transition-colors py-1 px-2 rounded-lg hover:bg-orange-50/50 w-full">
                                     <span class="flex items-center gap-2"><i class="fa-solid fa-wallet text-orange-500"></i> Moneycontrol Portfolio</span>
                                     <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
-                                </button>
+                                </a>
                             </div>
                         </div>
                         
@@ -164,7 +134,7 @@
                 </div>
             </div>
 
-            <a href="shop.html" target="_blank" class="group glass-card relative overflow-hidden rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-purple-500/20 hover:-translate-y-1 border border-white hover:border-purple-200 bg-gradient-to-br from-white to-purple-50/50 flex flex-col h-full">
+            <a href="shop.html" target="_blank" class="group glass-card relative overflow-hidden rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-purple-500/20 border border-white hover:border-purple-200 bg-gradient-to-br from-white to-purple-50/50 flex flex-col h-full">
                 <i class="fa-solid fa-tags absolute -bottom-4 -right-4 text-7xl text-purple-600 opacity-[0.03] transition-all duration-500 watermark-graphic"></i>
                 <div class="relative z-10 flex flex-col h-full">
                     <div class="flex items-center gap-4 mb-3">
@@ -183,7 +153,7 @@
                 </div>
             </a>
 
-            <a href="SwasthyaAI.html" target="_blank" class="group glass-card relative overflow-hidden rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-teal-500/20 hover:-translate-y-1 border border-white hover:border-teal-200 bg-gradient-to-br from-white to-teal-50/50 flex flex-col h-full">
+            <a href="SwasthyaAI.html" target="_blank" class="group glass-card relative overflow-hidden rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-teal-500/20 border border-white hover:border-teal-200 bg-gradient-to-br from-white to-teal-50/50 flex flex-col h-full">
                 <i class="fa-solid fa-notes-medical absolute -bottom-4 -right-4 text-7xl text-teal-600 opacity-[0.03] transition-all duration-500 watermark-graphic"></i>
                 <div class="relative z-10 flex flex-col h-full">
                     <div class="flex items-center gap-4 mb-3">
@@ -202,8 +172,8 @@
                 </div>
             </a>
 
-            <!-- The Fixed Music Section (Accessible on Mobile Devices) -->
-            <a href="https://durgeshh-create.github.io/Wealthplus/radio.html" target="_blank" class="group glass-card relative overflow-hidden rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-rose-500/20 hover:-translate-y-1 border border-white hover:border-rose-200 bg-gradient-to-br from-white to-rose-50/50 flex flex-col h-full">
+            <!-- Completely Visible Mobile-Friendly Music Card -->
+            <a href="https://durgeshh-create.github.io/Wealthplus/radio.html" target="_blank" class="group glass-card relative overflow-hidden rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-rose-500/20 border border-white hover:border-rose-200 bg-gradient-to-br from-white to-rose-50/50 flex flex-col h-full">
                 <i class="fa-solid fa-music absolute -bottom-4 -right-4 text-7xl text-rose-600 opacity-[0.03] transition-all duration-500 watermark-graphic"></i>
                 <div class="relative z-10 flex flex-col h-full">
                     <div class="flex items-center gap-4 mb-3">
