@@ -218,7 +218,7 @@
             // Just launches the app itself (like tapping its icon) — works for
             // any installed app, regardless of whether it registers deep links.
             function toLaunchIntentUrl(androidPackage, fallbackUrl) {
-                return 'intent:#Intent;action=android.intent.action.MAIN;' +
+                return 'intent://#Intent;action=android.intent.action.MAIN;' +
                     'category=android.intent.category.LAUNCHER;' +
                     'package=' + androidPackage +
                     ';S.browser_fallback_url=' + encodeURIComponent(fallbackUrl) +
@@ -234,10 +234,10 @@
 
             var mcLink = document.getElementById('moneycontrol-link');
             if (mcLink) {
-                mcLink.href = toViewIntentUrl(
-                    'https://www.moneycontrol.com',
-                    'com.divum.MoneyControl'
-                );
+                // A VIEW intent with a URL causes Moneycontrol's app to bounce
+                // back out to the browser for unrecognized paths. Just launch
+                // the app itself instead, same approach as Kite.
+                mcLink.href = toLaunchIntentUrl('com.divum.MoneyControl', 'https://www.moneycontrol.com');
             }
         })();
     </script>
