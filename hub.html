@@ -119,11 +119,11 @@
                                 </a>
                                 
                                 <!-- Pure HTML Universal Launch Triggers (Guaranteed App Handshake) -->
-                                <a href="https://kite.zerodha.com" onclick="return openNativeApp(event, 'com.zerodha.kite3', 'https://kite.zerodha.com');" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors py-1 px-2 rounded-lg hover:bg-blue-50/50 w-full">
+                                <a href="https://kite.zerodha.com" id="kite-link" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors py-1 px-2 rounded-lg hover:bg-blue-50/50 w-full">
                                     <span class="flex items-center gap-2"><i class="fa-solid fa-mobile-screen-button text-blue-500"></i> Open Zerodha Kite App</span>
                                     <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
                                 </a>
-                                <a href="https://www.moneycontrol.com/portfolio-management/portfolio-investment-dashboard" onclick="return openNativeApp(event, 'com.moneycontrol.android', 'https://www.moneycontrol.com/portfolio-management/portfolio-investment-dashboard');" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-orange-600 transition-colors py-1 px-2 rounded-lg hover:bg-orange-50/50 w-full">
+                                <a href="https://www.moneycontrol.com/portfolio-management/portfolio-investment-dashboard" id="moneycontrol-link" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-orange-600 transition-colors py-1 px-2 rounded-lg hover:bg-orange-50/50 w-full">
                                     <span class="flex items-center gap-2"><i class="fa-solid fa-wallet text-orange-500"></i> Moneycontrol Portfolio</span>
                                     <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
                                 </a>
@@ -196,28 +196,36 @@
     </main>
 
     <script>
-        // Tries to open the native Android app for a link; falls back to the
-        // normal https URL (in-browser, or Play Store if the app is missing)
-        // on desktop, iOS, or any browser that doesn't support intents.
-        function openNativeApp(event, androidPackage, fallbackUrl) {
+        // On Android, rewrite specific links to real intent:// hrefs so tapping
+        // them is a direct, native anchor navigation (most reliable way to get
+        // Chrome/Brave/Samsung Internet to hand off to the installed app).
+        // On desktop/iOS the hrefs are left as plain https links.
+        (function () {
             var isAndroid = /Android/i.test(navigator.userAgent);
-            if (!isAndroid) {
-                // Not Android: let the link behave normally (opens in browser).
-                return true;
+            if (!isAndroid) return;
+
+            function toIntentUrl(fallbackUrl, androidPackage) {
+                var host = fallbackUrl.replace(/^https?:\/\//, '').split('/')[0];
+                var path = fallbackUrl.replace(/^https?:\/\/[^/]+/, '') || '/';
+                return 'intent://' + host + path +
+                    '#Intent;scheme=https;package=' + androidPackage +
+                    ';S.browser_fallback_url=' + encodeURIComponent(fallbackUrl) +
+                    ';end';
             }
 
-            event.preventDefault();
+            var kiteLink = document.getElementById('kite-link');
+            if (kiteLink) {
+                kiteLink.href = toIntentUrl('https://kite.zerodha.com', 'com.zerodha.kite3');
+            }
 
-            var host = fallbackUrl.replace(/^https?:\/\//, '').split('/')[0];
-            var path = fallbackUrl.replace(/^https?:\/\/[^/]+/, '') || '/';
-            var intentUrl = 'intent://' + host + path +
-                '#Intent;scheme=https;package=' + androidPackage +
-                ';S.browser_fallback_url=' + encodeURIComponent(fallbackUrl) +
-                ';end';
-
-            window.location.href = intentUrl;
-            return false;
-        }
+            var mcLink = document.getElementById('moneycontrol-link');
+            if (mcLink) {
+                mcLink.href = toIntentUrl(
+                    'https://www.moneycontrol.com/portfolio-management/portfolio-investment-dashboard',
+                    'com.divum.MoneyControl'
+                );
+            }
+        })();
     </script>
 
 </body>
