@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intent Test</title>
+</head>
+<body style="font-family: sans-serif; padding: 20px; font-size: 18px;">
+
+<h3>Test 1: Known-good example (YouTube app)</h3>
+<p>
+<a href="intent://www.youtube.com/watch?v=dQw4w9WgXcQ#Intent;package=com.google.android.youtube;scheme=https;end">
+Open in YouTube app
+</a>
+</p>
+
+<h3>Test 2: Zerodha Kite (launcher intent)</h3>
+<p>
+<a href="intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.zerodha.kite3;end">
+Launch Kite app
+</a>
+</p>
+
+<h3>Test 3: Zerodha Kite (view intent, plain host)</h3>
+<p>
+<a href="intent://kite.zerodha.com#Intent;scheme=https;package=com.zerodha.kite3;end">
+Open kite.zerodha.com in Kite app
+</a>
+</p>
+
+<p style="margin-top:40px; color:#666;">
+Tap each one and note: does the app open, does it silently do nothing,
+does it show a browser page, or does it show an "Open with" chooser dialog?
+</p>
+
+</body>
+</html>
