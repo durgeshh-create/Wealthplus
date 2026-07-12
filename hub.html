@@ -204,7 +204,9 @@
             var isAndroid = /Android/i.test(navigator.userAgent);
             if (!isAndroid) return;
 
-            function toIntentUrl(fallbackUrl, androidPackage) {
+            // Opens a specific URL inside the app (only works if the app has
+            // registered that URL/domain as a deep link).
+            function toViewIntentUrl(fallbackUrl, androidPackage) {
                 var host = fallbackUrl.replace(/^https?:\/\//, '').split('/')[0];
                 var path = fallbackUrl.replace(/^https?:\/\/[^/]+/, '') || '/';
                 return 'intent://' + host + path +
@@ -213,15 +215,27 @@
                     ';end';
             }
 
+            // Just launches the app itself (like tapping its icon) — works for
+            // any installed app, regardless of whether it registers deep links.
+            function toLaunchIntentUrl(androidPackage, fallbackUrl) {
+                return 'intent:#Intent;action=android.intent.action.MAIN;' +
+                    'category=android.intent.category.LAUNCHER;' +
+                    'package=' + androidPackage +
+                    ';S.browser_fallback_url=' + encodeURIComponent(fallbackUrl) +
+                    ';end';
+            }
+
             var kiteLink = document.getElementById('kite-link');
             if (kiteLink) {
-                kiteLink.href = toIntentUrl('https://kite.zerodha.com', 'com.zerodha.kite3');
+                // Kite doesn't claim kite.zerodha.com as a deep link, so a
+                // VIEW-intent falls back to the browser. Just launch the app.
+                kiteLink.href = toLaunchIntentUrl('com.zerodha.kite3', 'https://kite.zerodha.com');
             }
 
             var mcLink = document.getElementById('moneycontrol-link');
             if (mcLink) {
-                mcLink.href = toIntentUrl(
-                    'https://www.moneycontrol.com/portfolio-management/portfolio-investment-dashboard',
+                mcLink.href = toViewIntentUrl(
+                    'https://www.moneycontrol.com',
                     'com.divum.MoneyControl'
                 );
             }
