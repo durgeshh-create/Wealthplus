@@ -34,6 +34,15 @@
             opacity: 0.12;
         }
     </style>
+    <!-- JavaScript Method B Smart Fallback Engine -->
+    <script>
+        function launchMobileApp(appUri, webFallback) {
+            window.location.href = appUri;
+            setTimeout(function() {
+                window.location.href = webFallback;
+            }, 1500);
+        }
+    </script>
 </head>
 <body class="relative flex flex-col items-center justify-center p-4 sm:p-6">
 
@@ -109,6 +118,16 @@
                                     <span class="flex items-center gap-2"><i class="fa-solid fa-clock text-slate-400"></i> Workflow scheduling</span>
                                     <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
                                 </a>
+                                
+                                <!-- Native Mobile App Integrations -->
+                                <button onclick="launchMobileApp('kite://', 'https://kite.zerodha.com')" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors py-1 px-2 rounded-lg hover:bg-blue-50/50 text-left w-full cursor-pointer">
+                                    <span class="flex items-center gap-2"><i class="fa-solid fa-mobile-screen-button text-blue-500"></i> Launch Zerodha Kite</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
+                                </button>
+                                <button onclick="launchMobileApp('moneycontrol://portfolio', 'https://www.moneycontrol.com/portfolio-management/portfolio-investment-dashboard')" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-orange-600 transition-colors py-1 px-2 rounded-lg hover:bg-orange-50/50 text-left w-full cursor-pointer">
+                                    <span class="flex items-center gap-2"><i class="fa-solid fa-wallet text-orange-500"></i> Moneycontrol Portfolio</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
+                                </button>
                             </div>
                         </div>
                         
