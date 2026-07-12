@@ -117,16 +117,6 @@
                                     <span class="flex items-center gap-2"><i class="fa-solid fa-clock text-slate-400"></i> Workflow scheduling</span>
                                     <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
                                 </a>
-                                
-                                <!-- Pure HTML Universal Launch Triggers (Guaranteed App Handshake) -->
-                                <a href="https://kite.zerodha.com" id="kite-link" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors py-1 px-2 rounded-lg hover:bg-blue-50/50 w-full">
-                                    <span class="flex items-center gap-2"><i class="fa-solid fa-mobile-screen-button text-blue-500"></i> Open Zerodha Kite App</span>
-                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
-                                </a>
-                                <a href="https://www.moneycontrol.com/portfolio-management/portfolio-investment-dashboard" id="moneycontrol-link" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-orange-600 transition-colors py-1 px-2 rounded-lg hover:bg-orange-50/50 w-full">
-                                    <span class="flex items-center gap-2"><i class="fa-solid fa-wallet text-orange-500"></i> Moneycontrol Portfolio</span>
-                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
-                                </a>
                             </div>
                         </div>
                         
@@ -194,53 +184,6 @@
 
         </div>
     </main>
-
-    <script>
-        // On Android, rewrite specific links to real intent:// hrefs so tapping
-        // them is a direct, native anchor navigation (most reliable way to get
-        // Chrome/Brave/Samsung Internet to hand off to the installed app).
-        // On desktop/iOS the hrefs are left as plain https links.
-        (function () {
-            var isAndroid = /Android/i.test(navigator.userAgent);
-            if (!isAndroid) return;
-
-            // Opens a specific URL inside the app (only works if the app has
-            // registered that URL/domain as a deep link).
-            function toViewIntentUrl(fallbackUrl, androidPackage) {
-                var host = fallbackUrl.replace(/^https?:\/\//, '').split('/')[0];
-                var path = fallbackUrl.replace(/^https?:\/\/[^/]+/, '') || '/';
-                return 'intent://' + host + path +
-                    '#Intent;scheme=https;package=' + androidPackage +
-                    ';S.browser_fallback_url=' + encodeURIComponent(fallbackUrl) +
-                    ';end';
-            }
-
-            // Just launches the app itself (like tapping its icon) — works for
-            // any installed app, regardless of whether it registers deep links.
-            function toLaunchIntentUrl(androidPackage, fallbackUrl) {
-                return 'intent://#Intent;action=android.intent.action.MAIN;' +
-                    'category=android.intent.category.LAUNCHER;' +
-                    'package=' + androidPackage +
-                    ';S.browser_fallback_url=' + encodeURIComponent(fallbackUrl) +
-                    ';end';
-            }
-
-            var kiteLink = document.getElementById('kite-link');
-            if (kiteLink) {
-                // Kite doesn't claim kite.zerodha.com as a deep link, so a
-                // VIEW-intent falls back to the browser. Just launch the app.
-                kiteLink.href = toLaunchIntentUrl('com.zerodha.kite3', 'https://kite.zerodha.com');
-            }
-
-            var mcLink = document.getElementById('moneycontrol-link');
-            if (mcLink) {
-                // A VIEW intent with a URL causes Moneycontrol's app to bounce
-                // back out to the browser for unrecognized paths. Just launch
-                // the app itself instead, same approach as Kite.
-                mcLink.href = toLaunchIntentUrl('com.divum.MoneyControl', 'https://www.moneycontrol.com');
-            }
-        })();
-    </script>
 
 </body>
 </html>
