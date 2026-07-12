@@ -390,7 +390,7 @@
                             <button class="btn" id="reitRefreshBtn" onclick="refreshAllSection('reit')">Refresh</button>
                         </div>
                         <div class="line"></div>
-                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/10Y CAGR</span>
+                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/10Y Total Return</span>
                     </div>
 
                     <div class="status" id="reitStatus"></div>
@@ -407,9 +407,9 @@
                                     <th class="equity-th-dma">%20DMA</th>
                                     <th class="equity-th-chg">%Chg</th>
                                     <th class="equity-th-ltp">LTP</th>
-                                    <th class="equity-th-cagr">3Y</th>
-                                    <th class="equity-th-cagr">5Y</th>
-                                    <th class="equity-th-cagr">10Y</th>
+                                    <th class="equity-th-cagr" title="Total Return CAGR = price appreciation + distributions paid, annualized">3Y TR</th>
+                                    <th class="equity-th-cagr" title="Total Return CAGR = price appreciation + distributions paid, annualized">5Y TR</th>
+                                    <th class="equity-th-cagr" title="Total Return CAGR = price appreciation + distributions paid, annualized">10Y TR</th>
                                     <th class="equity-th-action">Go</th>
                                 </tr>
                             </thead>
@@ -459,7 +459,7 @@
 
         <div class="footer">
             <p>Debt fund data sourced from <a href="https://www.tickertape.in" target="_blank">TickerTape</a> | Equity/Bullion data sourced from <a href="https://www.mfapi.in" target="_blank">MFapi.in</a> &amp; Yahoo Finance</p>
-            <p>YTM = Fund Yield to Maturity (Direct Plan) | LTP = Last Traded Price | 3Y CAGR = 3-Year Compounded Annual Growth Rate | 20DMA = 20-Day Moving Average</p>
+            <p>YTM = Fund Yield to Maturity (Direct Plan) | LTP = Last Traded Price | 3Y CAGR = 3-Year Compounded Annual Growth Rate | 20DMA = 20-Day Moving Average | REIT/InvIT TR = Total Return CAGR (price change + distributions paid over the period, annualized) rather than price-only CAGR</p>
             <p style="margin-top:6px; color:#666;">Hosted on GitHub Pages | Uses free proxy services with automatic fallback</p>
         </div>
     </div>
@@ -1538,13 +1538,24 @@
                 })).filter(d => d.price !== null && d.price !== undefined && !isNaN(d.price));
                 if (!data.length) throw new Error('Empty price series');
                 data.sort((a, b) => a.date - b.date);
+
+                // Distribution/dividend events (Yahoo returns these when
+                // events=div is requested). Attached as a property on the
+                // array itself so existing callers that treat the return
+                // value as a plain price array keep working unmodified.
+                const divMap = result.events?.dividends || {};
+                data.dividends = Object.values(divMap)
+                    .map(d => ({ date: new Date(d.date * 1000), amount: d.amount }))
+                    .filter(d => d.amount && !isNaN(d.amount))
+                    .sort((a, b) => a.date - b.date);
+
                 return data;
             };
 
             // Race every (host x proxy) combo concurrently - first valid
             // response wins, bounding wall-clock time to ~1 timeout window.
             const attempts = hosts.map(host => {
-                const url = `${host}/v8/finance/chart/${symbol}?period1=${period1}&period2=${now}&interval=1d&includePrePost=false`;
+                const url = `${host}/v8/finance/chart/${symbol}?period1=${period1}&period2=${now}&interval=1d&includePrePost=false&events=div,splits`;
                 return fetchJSONWithProxies(url).then(parseChartJson);
             });
 
@@ -1626,6 +1637,37 @@
 
         function compute3YCAGR(data) {
             return computeCAGR(data, 3);
+        }
+
+        // N-Year Total Return CAGR: like computeCAGR, but adds every
+        // distribution/dividend paid during the window to the end value
+        // before annualizing. This is the "simple" (non-reinvested) total
+        // return convention - distributions are summed in cash rather than
+        // compounded back into units - which is the right approximation for
+        // REITs/InvITs since their payouts are typically taken as income
+        // rather than auto-reinvested. Falls back to plain price CAGR if no
+        // distribution data is available (e.g. that fetch failed).
+        function computeTotalReturnCAGR(data, dividends, years) {
+            if (!data || data.length < 2) return null;
+            const latestPoint = data[data.length - 1];
+            const targetDate = new Date(latestPoint.date);
+            targetDate.setFullYear(targetDate.getFullYear() - years);
+
+            const toleranceMs = 20 * 24 * 60 * 60 * 1000;
+            if (data[0].date - targetDate > toleranceMs) return null;
+
+            let closest = null, closestDiff = Infinity;
+            for (const d of data) {
+                const diff = Math.abs(d.date - targetDate);
+                if (diff < closestDiff) { closestDiff = diff; closest = d; }
+            }
+            if (!closest || closestDiff > toleranceMs || closest.price <= 0) return null;
+
+            const distSum = (dividends || [])
+                .filter(d => d.date >= closest.date && d.date <= latestPoint.date)
+                .reduce((s, d) => s + d.amount, 0);
+
+            return (Math.pow((latestPoint.price + distSum) / closest.price, 1 / years) - 1) * 100;
         }
 
         // Mirrors: sparkline(query(googlefinance(...,today()-10,today()),"select Col2",1))
@@ -1752,6 +1794,16 @@
         // retrying rather than silently showing permanent N/A cells.
         const MIN_USABLE_POINTS = 5;
 
+        // REIT/InvIT distributions are a large, mandated part of their return,
+        // so those two asset types get total-return CAGR (price + payouts);
+        // everything else keeps plain point-to-point price CAGR.
+        function computeReturnForFund(fund, history, years) {
+            if (fund.assetType === 'reit' || fund.assetType === 'invit') {
+                return computeTotalReturnCAGR(history, history.dividends, years);
+            }
+            return computeCAGR(history, years);
+        }
+
         async function loadSectionFundData(section, fund) {
             fund.status = 'loading';
             fund.errorMsg = null;
@@ -1776,9 +1828,9 @@
                     fund.sparkSvg = buildSparklineSVG(history);
                     fund.dayChange = computeDayChange(history);
                     fund.ltp = computeLTP(history);
-                    fund.cagr3y = computeCAGR(history, 3);
-                    fund.cagr5y = computeCAGR(history, 5);
-                    fund.cagr10y = computeCAGR(history, 10);
+                    fund.cagr3y = computeReturnForFund(fund, history, 3);
+                    fund.cagr5y = computeReturnForFund(fund, history, 5);
+                    fund.cagr10y = computeReturnForFund(fund, history, 10);
                     fund.status = 'ok';
                     fund.errorMsg = null;
                     renderSectionTable(section);
@@ -1802,9 +1854,9 @@
                 fund.sparkSvg = buildSparklineSVG(bestSparse);
                 fund.dayChange = computeDayChange(bestSparse);
                 fund.ltp = computeLTP(bestSparse);
-                fund.cagr3y = computeCAGR(bestSparse, 3);
-                fund.cagr5y = computeCAGR(bestSparse, 5);
-                fund.cagr10y = computeCAGR(bestSparse, 10);
+                fund.cagr3y = computeReturnForFund(fund, bestSparse, 3);
+                fund.cagr5y = computeReturnForFund(fund, bestSparse, 5);
+                fund.cagr10y = computeReturnForFund(fund, bestSparse, 10);
                 fund.status = 'ok';
                 fund.errorMsg = null;
                 renderSectionTable(section);
