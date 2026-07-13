@@ -2740,7 +2740,7 @@ function render(data) {
     if (h.strategy !== 'bnh' && h.buys_today != null && h.max_slots != null) {
       const pct  = h.buys_today / h.max_slots;
       const cls  = pct >= 1 ? 'neg' : pct >= 0.6 ? 'amber' : 'pos';
-      slotsCell  = `<span class="${cls}" style="font-family:var(--head);font-weight:700">${h.buys_today}/${h.max_slots}</span>`;
+      slotsCell  = `<span class="${cls}" style="font-family:var(--head);font-weight:700" title="Tranches in current open position, not a daily count">${h.buys_today}/${h.max_slots}</span>`;
     }
     return `
     <tr>
@@ -2941,7 +2941,7 @@ function render(data) {
       pnlHtml = `<span class="slot-pnl ${pnlCls}">${_p>=0?"+":""}${fmtL(_p)} <span style="opacity:.75">${fmtPct(_pp)}</span></span>`;
     }
 
-    return `<div class="slot ${u?'used':''}" title="${sym}">
+    return `<div class="slot ${u?'used':''}" title="${sym}${u && h && h.buys_today != null && h.max_slots != null ? ` — ${h.buys_today}/${h.max_slots} slots used in current position (persists until fully sold)` : ''}">
       <div class="slot-line1"><span class="slot-sym">${sym}</span>${line1Val}</div>
       <div class="slot-line2"><span class="slot-status">${slotsLabel}</span>${pnlHtml}</div>
     </div>`;
@@ -2988,6 +2988,7 @@ function render(data) {
       <span><div class="ld" style="background:var(--bg3);border:1px solid var(--border2)"></div> Empty</span>
       <span><div class="ld" style="background:var(--green-d);border:1px solid rgba(34,197,94,.3)"></div> LIQUIDCASE buffer</span>
       <span><div class="ld" style="background:rgba(37,99,235,0.16);border:1px solid rgba(37,99,235,.5)"></div> B&amp;H Accumulating</span>
+      <span style="color:var(--muted);font-style:italic">"X/Y slots" = tranches in current open position (not a daily count — persists until fully sold)</span>
     </div>`;
 
   // Today's Orders — filter to today's IST date as a client-side safety net
