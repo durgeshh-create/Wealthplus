@@ -51,12 +51,22 @@ def _load_settings() -> dict:
 
 
 
-def _safe_buys_today(signal_gen, sym, bnh_symbols):
-    """Safely read per-symbol buy count — never raises, returns None on any error."""
+def _safe_position_slots_used(signal_gen, sym, bnh_symbols):
+    """Safely read per-symbol slot usage for the CURRENT open position —
+    never raises, returns None on any error.
+
+    This intentionally reads the persistent PositionSlotTracker (via
+    get_position_slots_used), NOT SignalGenerator._get_buys_today(). The
+    latter is a daily trading-permission counter that resets at midnight —
+    correct for gating new buys, but wrong for the dashboard, where a
+    position built up over multiple days should keep showing its true slot
+    usage instead of dropping back to 0 every night.
+    """
     if signal_gen is None or sym in bnh_symbols:
         return None
     try:
-        return signal_gen._get_buys_today(sym)
+        signal_gen.ensure_position_slots_seeded(sym)
+        return signal_gen.get_position_slots_used(sym)
     except Exception:
         return None
 
@@ -160,7 +170,7 @@ def write_snapshot(dashboard_state: dict):
                     "unrealised_pnl":     unrealised_pnl,
                     "unrealised_pnl_pct": unrealised_pnl_pct,
                     "strategy":   "bnh" if sym in bnh_symbols else "active",
-                    "buys_today": _safe_buys_today(signal_gen, sym, bnh_symbols) or 0,
+                    "buys_today": _safe_position_slots_used(signal_gen, sym, bnh_symbols) or 0,
                     "max_slots":  int(settings.get("slots_count", slots_count)),
                 })
 
