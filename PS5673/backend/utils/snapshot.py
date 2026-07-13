@@ -160,7 +160,7 @@ def write_snapshot(dashboard_state: dict):
                     "unrealised_pnl":     unrealised_pnl,
                     "unrealised_pnl_pct": unrealised_pnl_pct,
                     "strategy":   "bnh" if sym in bnh_symbols else "active",
-                    "buys_today": max(_safe_buys_today(signal_gen, sym, bnh_symbols) or 0, 1),
+                    "buys_today": _safe_buys_today(signal_gen, sym, bnh_symbols) or 0,
                     "max_slots":  int(settings.get("slots_count", slots_count)),
                 })
 
