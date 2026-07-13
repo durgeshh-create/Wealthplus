@@ -537,6 +537,12 @@ class StrategyExecutor:
                 if is_automated:
                     self._reset_to_default_settings()
 
+                # This sell always disposes of the ENTIRE held quantity (see
+                # docstring above), so the position is now fully closed —
+                # zero out its Slot Matrix tranche count.
+                if self.signal_generator:
+                    self.signal_generator.reset_position_slots(symbol)
+
                 self.portfolio.sync()
                 if self.signal_generator and is_automated:
                     self.signal_generator.unlock_symbol(symbol)
