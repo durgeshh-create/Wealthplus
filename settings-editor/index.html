@@ -538,7 +538,13 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 
       <!-- Positions panel -->
       <div class="panel">
-        <div class="ph"><span class="pt">Today's Positions</span><span class="pb" id="pos-count">—</span></div>
+        <div class="ph">
+          <span class="pt">Today's Positions</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span id="pos-total-unrealised" style="font-family:var(--head);font-size:13px;font-weight:700"></span>
+            <span class="pb" id="pos-count">—</span>
+          </div>
+        </div>
         <div>
           <table class="tbl">
             <thead><tr><th>SYMBOL</th><th>QTY</th><th>AVG ₹</th><th>LTP ₹</th><th>UNREALISED</th><th>REALISED</th></tr></thead>
@@ -2710,7 +2716,7 @@ function render(data) {
   const liqFreeValue = liqFree * liqPricePerUnit;
   const liqPledgedValue = liqPledged * liqPricePerUnit;
   document.getElementById("s-liq").textContent     = fmtL(liqFreeValue);
-  document.getElementById("s-liq-sub").textContent = `Free · Pledged ${fmtL(liqPledgedValue)}`;
+  document.getElementById("s-liq-sub").textContent = `Pledged ${fmtL(liqPledgedValue)}`;
 
   // Available Cash (settled, CNC-ready) — avail['cash'] from Zerodha margins API
   const cash = data.available_cash ?? null;
@@ -2757,6 +2763,12 @@ function render(data) {
   // Today's Positions
   const positions = data.positions ?? [];
   document.getElementById("pos-count").textContent = positions.length + " positions";
+  const totalUnrealised = positions.reduce((a, p) => a + (p.unrealised ?? p.pnl ?? 0), 0);
+  const posTotalEl = document.getElementById("pos-total-unrealised");
+  posTotalEl.textContent = positions.length
+    ? `${totalUnrealised >= 0 ? "+" : ""}${fmtL(totalUnrealised)}`
+    : "";
+  posTotalEl.className = totalUnrealised >= 0 ? "pos" : "neg";
   const pb = document.getElementById("pos-body");
   // Detect option symbols: tradingsymbol ends in CE or PE
   const isOption = sym => /[CP]E$/.test(sym);
@@ -2931,7 +2943,7 @@ function render(data) {
     if (u && h && h.buys_today != null && h.max_slots != null) {
       const pct = h.buys_today / h.max_slots;
       const cls = pct >= 1 ? "neg" : pct >= 0.6 ? "amber" : "pos";
-      slotsLabel = `<span class="${cls}" style="font-weight:700">${h.buys_today}/${h.max_slots}</span> <span style="color:var(--muted)">slots</span>`;
+      slotsLabel = `<span class="${cls}" style="font-weight:700">${h.buys_today}/${h.max_slots}</span> <span style="color:var(--muted)">slots used</span>`;
     }
     let pnlHtml = "";
     if (u && h && (h.unrealised_pnl ?? h.pnl) != null) {
@@ -2988,7 +3000,6 @@ function render(data) {
       <span><div class="ld" style="background:var(--bg3);border:1px solid var(--border2)"></div> Empty</span>
       <span><div class="ld" style="background:var(--green-d);border:1px solid rgba(34,197,94,.3)"></div> LIQUIDCASE buffer</span>
       <span><div class="ld" style="background:rgba(37,99,235,0.16);border:1px solid rgba(37,99,235,.5)"></div> B&amp;H Accumulating</span>
-      <span style="color:var(--muted);font-style:italic">"X/Y slots" = tranches in current open position (not a daily count — persists until fully sold)</span>
     </div>`;
 
   // Today's Orders — filter to today's IST date as a client-side safety net
