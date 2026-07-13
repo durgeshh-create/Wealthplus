@@ -47,6 +47,7 @@ from backend.core.constants import (
     SIGNAL_BUY, SIGNAL_SELL, SIGNAL_NONE, LIQUIDCASE_SYMBOL
 )
 from backend.indicators.calculator import calculate_daily_williams_r, get_signal_status
+from backend.strategy.position_slots import PositionSlotTracker
 from backend.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -86,6 +87,12 @@ class SignalGenerator:
         # In-memory record of executed buys not yet reflected in portfolio sync.
         # {symbol: {'qty': int, 'avg_price': float, 'cost': float}}
         self._pending_exec: Dict[str, dict] = {}
+
+        # Persistent per-symbol tranche count for the CURRENT open position.
+        # Unlike _buys_today (daily trading-permission gate, resets at midnight),
+        # this does NOT reset nightly — only when the position is fully closed.
+        # Used exclusively for the dashboard's Slot Matrix display.
+        self._position_slots = PositionSlotTracker()
 
     # ── Startup: rebuild buy counts from today's Zerodha order history ────────
 
@@ -230,6 +237,7 @@ class SignalGenerator:
         so slot guards work correctly before the next portfolio.sync()."""
         with self._lock:
             self._buys_today[symbol] = self._buys_today.get(symbol, 0) + 1
+            self._position_slots.increment(symbol)
             if price > 0 and qty > 0:
                 existing = self._pending_exec.get(symbol)
                 if existing and existing['qty'] > 0:
@@ -248,6 +256,21 @@ class SignalGenerator:
             f"📌 {symbol}: buy #{self._buys_today[symbol]} recorded today"
             + (f" @ ₹{price:.2f} x{qty} (pending sync)" if price > 0 else "")
         )
+
+    def ensure_position_slots_seeded(self, symbol: str):
+        """Back-fill slot count for a held symbol with no prior record (e.g. a
+        position that existed before this tracker was introduced)."""
+        self._position_slots.ensure_seeded(symbol)
+
+    def get_position_slots_used(self, symbol: str) -> int:
+        """Tranches deployed into the CURRENT open position (persists across
+        days — does NOT reset at midnight). This is what the dashboard's Slot
+        Matrix should display, as distinct from _get_buys_today()'s daily gate."""
+        return self._position_slots.get(symbol)
+
+    def reset_position_slots(self, symbol: str):
+        """Call once a symbol's position is fully closed (full-exit sell)."""
+        self._position_slots.reset(symbol)
 
     def clear_pending_exec(self, symbol: str):
         """Called after portfolio.sync() to clear the in-memory pending record."""
