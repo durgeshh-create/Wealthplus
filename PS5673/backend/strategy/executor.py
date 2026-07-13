@@ -322,6 +322,7 @@ class StrategyExecutor:
                 logger.error(f"✗ BUY FAILED [{symbol}]: {e}")
                 # Pre-flight failure — order never reached broker; allow retry
                 if self.signal_generator and is_automated:
+                    self.signal_generator.rollback_buy_executed(symbol)
                     self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=True)
                 return False, str(e)
 
@@ -350,6 +351,7 @@ class StrategyExecutor:
             else:
                 logger.error(f"✗ BUY FAILED: {symbol}")
                 if self.signal_generator and is_automated:
+                    self.signal_generator.rollback_buy_executed(symbol)
                     self.signal_generator.unlock_symbol(symbol, success=False)
                 return False, "Order did not complete"
 
@@ -368,6 +370,7 @@ class StrategyExecutor:
                         f"🔐 AUTH FAILURE detected during BUY {symbol} — "
                         f"signalling launcher to re-authenticate (exit 2)."
                     )
+                    self.signal_generator.rollback_buy_executed(symbol)
                     self.signal_generator.executing_symbols.pop(symbol, None)
                     self.signal_generator._attempted_today.add(symbol)
                     if _TELEGRAM_OK:
@@ -384,6 +387,7 @@ class StrategyExecutor:
                     import sys as _sys
                     _sys.exit(2)   # exit code 2 = auth failure → launcher re-logins
                 else:
+                    self.signal_generator.rollback_buy_executed(symbol)
                     self.signal_generator.unlock_symbol(symbol, success=False)
             return False, err_str
 
@@ -401,8 +405,9 @@ class StrategyExecutor:
 
     def execute_sell_signal(self, signal: Dict, is_automated: bool = True) -> bool:
         """
-        Execute a sell signal: sell ALL held ETF units, buy LIQUIDCASE with proceeds.
-        max_qty_per_trade cap still applies if set.
+        Execute a sell signal: sell held ETF units (capped by max_qty_per_trade /
+        test_quantity if set — otherwise the entire position), buy LIQUIDCASE
+        with proceeds.
         """
         import time
         symbol = signal['symbol']
@@ -438,6 +443,8 @@ class StrategyExecutor:
                 if self.signal_generator and is_automated:
                     self.signal_generator.unlock_symbol(symbol)
                 return False
+
+            etf_qty_full_holding = etf_qty  # capture before any test_quantity cap below
 
             max_qty = self._get_test_quantity()
             if max_qty > 0 and etf_qty > max_qty:
@@ -537,11 +544,19 @@ class StrategyExecutor:
                 if is_automated:
                     self._reset_to_default_settings()
 
-                # This sell always disposes of the ENTIRE held quantity (see
-                # docstring above), so the position is now fully closed —
-                # zero out its Slot Matrix tranche count.
+                # Only clear the Slot Matrix tranche count if this sell disposed
+                # of the ENTIRE held quantity. A max_qty_per_trade (test_quantity)
+                # cap above can make etf_qty less than the original full holding —
+                # in that case the position is still open and the count must be
+                # preserved, not zeroed.
                 if self.signal_generator:
-                    self.signal_generator.reset_position_slots(symbol)
+                    if etf_qty >= etf_qty_full_holding:
+                        self.signal_generator.reset_position_slots(symbol)
+                    else:
+                        logger.info(
+                            f"📌 {symbol}: partial sell ({etf_qty}/{etf_qty_full_holding} qty, "
+                            f"test_quantity cap active) — position still open, slot count preserved"
+                        )
 
                 self.portfolio.sync()
                 if self.signal_generator and is_automated:

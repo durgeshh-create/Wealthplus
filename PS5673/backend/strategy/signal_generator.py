@@ -257,6 +257,25 @@ class SignalGenerator:
             + (f" @ ₹{price:.2f} x{qty} (pending sync)" if price > 0 else "")
         )
 
+    def rollback_buy_executed(self, symbol: str):
+        """Undo a pre-registered buy that ultimately failed to execute.
+
+        record_buy_executed() is called optimistically BEFORE the broker
+        order is confirmed (see executor.py comment: 'PRE-REGISTER in
+        pending_exec BEFORE smart_buy'). If the order then fails for any
+        reason, this must exactly mirror record_buy_executed's increments —
+        otherwise a failed attempt permanently burns a daily buy slot and a
+        position-matrix slot for a buy that never actually happened, which
+        can incorrectly block/mis-display legitimate future buys for the
+        rest of the day.
+        """
+        with self._lock:
+            if self._buys_today.get(symbol, 0) > 0:
+                self._buys_today[symbol] -= 1
+            self._pending_exec.pop(symbol, None)
+        self._position_slots.decrement(symbol)
+        logger.info(f"↩️ {symbol}: rolled back pre-registered buy (execution failed)")
+
     def ensure_position_slots_seeded(self, symbol: str):
         """Back-fill slot count for a held symbol with no prior record (e.g. a
         position that existed before this tracker was introduced)."""

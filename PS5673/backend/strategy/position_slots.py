@@ -91,6 +91,18 @@ class PositionSlotTracker:
             logger.info(f"📌 {symbol}: position slot {new_count} recorded (persists across days)")
             return new_count
 
+    def decrement(self, symbol: str) -> int:
+        """Undo a pre-registered increment for a buy that ultimately failed.
+        Floors at 0 — never goes negative."""
+        with self._lock:
+            current = self._counts.get(symbol, 0)
+            new_count = max(0, current - 1)
+            if new_count != current:
+                self._counts[symbol] = new_count
+                self._save()
+                logger.info(f"📌 {symbol}: position slot rolled back to {new_count} (buy failed)")
+            return new_count
+
     def reset(self, symbol: str) -> None:
         """Zero out a symbol's slot count — call after a full exit (sell)."""
         with self._lock:
