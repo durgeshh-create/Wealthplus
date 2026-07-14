@@ -66,6 +66,8 @@
             background: rgba(30, 41, 59, 0.6);
         }
         .dotm-filter-row input[type="radio"] { accent-color: #60a5fa; cursor: pointer; margin: 0; }
+        .dotm-filter-row input[type="radio"]:disabled { cursor: default; opacity: 0.6; }
+        .dotm-filter-row label:has(input:disabled) { cursor: default; opacity: 0.85; }
         .dotm-filter-row label.active-put { border-color: rgba(239, 68, 68, 0.4); color: #f87171; }
         .dotm-filter-row label.active-call { border-color: rgba(34, 197, 94, 0.4); color: #4ade80; }
         .toggle-btn {
@@ -238,14 +240,15 @@
         <div class="dotm-filter-row" id="dotmFilterRow">
             <span style="font-weight:600;">DOTM Strikes:</span>
             <label id="dotmFilterBothLabel">
-                <input type="radio" name="dotmFilter" value="both" checked onchange="filterDOTM('both')"> Both
+                <input type="radio" name="dotmFilter" value="both" checked onchange="onDotmRadioChange('both')"> Both
             </label>
             <label id="dotmFilterPutLabel">
-                <input type="radio" name="dotmFilter" value="put" onchange="filterDOTM('put')"> Put Only
+                <input type="radio" name="dotmFilter" value="put" onchange="onDotmRadioChange('put')"> Put Only
             </label>
             <label id="dotmFilterCallLabel">
-                <input type="radio" name="dotmFilter" value="call" onchange="filterDOTM('call')"> Call Only
+                <input type="radio" name="dotmFilter" value="call" onchange="onDotmRadioChange('call')"> Call Only
             </label>
+            <span id="dotmFilterStatus" style="font-size:0.55rem; color:#94a3b8;"></span>
         </div>
 
         <div class="manual-inputs" id="manualInputs">
@@ -877,11 +880,114 @@
             el.classList.toggle('active');
         }
 
+        // ── Shared DOTM filter persistence ──────────────────────────────────
+        // The Put/Call visibility choice is meant to apply to EVERY visitor of
+        // this page (it's served statically from GitHub Pages, same repo as
+        // the settings-editor dashboard), not just the browser that set it.
+        // So it's stored as settings-editor/dotm-filter.json in the repo and
+        // read by anyone who loads this page.
+        //
+        // Only the admin can CHANGE it — that requires a GitHub token, which
+        // this page never asks for directly. Instead it reuses the same
+        // 'wealthalgo_cfg' localStorage entry the settings-editor dashboard
+        // already stores {owner, repo, token} in — since both pages are
+        // served from the same origin, a browser that's already set up as
+        // admin there is automatically recognized as admin here too. Anyone
+        // else just sees the current shared choice with the radios disabled.
+        const DOTM_REPO_OWNER  = 'durgeshh-create';
+        const DOTM_REPO_NAME   = 'Wealthplus';
+        const DOTM_FILTER_PATH = 'settings-editor/dotm-filter.json';
+
+        let _dotmSha = '';
+
+        function getDotmAdminToken() {
+            try {
+                const c = JSON.parse(localStorage.getItem('wealthalgo_cfg') || '{}');
+                // Only trust the stored token if it was configured for THIS repo.
+                return (c.owner === DOTM_REPO_OWNER && c.repo === DOTM_REPO_NAME && c.token) ? c.token : null;
+            } catch (e) { return null; }
+        }
+
+        function setDotmStatus(msg, color) {
+            const el = document.getElementById('dotmFilterStatus');
+            if (el) { el.textContent = msg; el.style.color = color || '#94a3b8'; }
+        }
+
+        // Fetches the shared choice from GitHub and applies it. Works for
+        // every visitor — this is an unauthenticated read against a public
+        // repo, no token required.
+        async function loadDOTMFilter() {
+            const isAdmin = !!getDotmAdminToken();
+            document.querySelectorAll('input[name="dotmFilter"]').forEach(r => r.disabled = !isAdmin);
+            if (!isAdmin) setDotmStatus('set by admin');
+
+            try {
+                const url = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}?ref=gh-pages`;
+                const r = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
+                if (r.ok) {
+                    const data = await r.json();
+                    _dotmSha = data.sha;
+                    const json = JSON.parse(atob(data.content.replace(/\n/g, '')));
+                    const mode = ['both', 'put', 'call'].includes(json.mode) ? json.mode : 'both';
+                    applyDOTMFilter(mode);
+                } else if (r.status === 404) {
+                    // Doesn't exist yet — default to "both", and if this browser
+                    // is the admin, seed the file so future visitors see it too.
+                    applyDOTMFilter('both');
+                    if (isAdmin) await saveDOTMFilter('both');
+                } else {
+                    throw new Error(`GitHub API ${r.status}`);
+                }
+            } catch (e) {
+                console.error('loadDOTMFilter failed:', e);
+                applyDOTMFilter('both');
+                if (isAdmin) setDotmStatus('⚠ could not load shared setting', '#f87171');
+            }
+        }
+
+        // Commits the admin's choice to GitHub so every visitor sees it.
+        async function saveDOTMFilter(mode) {
+            const token = getDotmAdminToken();
+            if (!token) return;   // not admin on this browser — nothing to persist
+            setDotmStatus('saving…');
+            try {
+                const url  = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}`;
+                const body = {
+                    message: `dotm-filter: ${mode} (${new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'})} IST)`,
+                    content: btoa(unescape(encodeURIComponent(JSON.stringify({ mode }, null, 2)))),
+                    branch: 'gh-pages',
+                };
+                if (_dotmSha) body.sha = _dotmSha;
+                const r = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token ' + token,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(body),
+                });
+                if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+                const resp = await r.json();
+                _dotmSha = resp.content.sha;
+                setDotmStatus('✓ saved for all visitors', '#4ade80');
+            } catch (e) {
+                console.error('saveDOTMFilter failed:', e);
+                setDotmStatus('⚠ save failed — check GitHub token/repo', '#f87171');
+            }
+        }
+
+        // Admin changed a radio — apply it locally immediately, then persist.
+        function onDotmRadioChange(mode) {
+            applyDOTMFilter(mode);
+            saveDOTMFilter(mode);
+        }
+
         // Lets the viewer hide the DOTM Put or Call card independently — e.g.
         // if they're only trading one side this expiry and don't need the
         // other symbol cluttering the view. Purely a display filter; doesn't
         // touch any of the underlying strike calculations.
-        function filterDOTM(mode) {
+        function applyDOTMFilter(mode) {
             const putCard  = document.getElementById('dotmPutCard');
             const callCard = document.getElementById('dotmCallCard');
             const row      = document.getElementById('regularResults');
@@ -891,6 +997,9 @@
             putCard.style.display  = showPut  ? '' : 'none';
             callCard.style.display = showCall ? '' : 'none';
             row.classList.toggle('single-col', mode !== 'both');
+
+            const radio = document.querySelector(`input[name="dotmFilter"][value="${mode}"]`);
+            if (radio) radio.checked = true;
 
             document.getElementById('dotmFilterPutLabel').classList.toggle('active-put', mode === 'put');
             document.getElementById('dotmFilterCallLabel').classList.toggle('active-call', mode === 'call');
@@ -1001,6 +1110,7 @@
         showLoadingPlaceholders();
         updateExpiryVisibility();
         fetchLiveData();
+        loadDOTMFilter();
 
         setInterval(() => {
             checkMarketStatus();
