@@ -3111,7 +3111,12 @@ let _lastSnapshot = null;
  * Falls back silently if not logged in to Kite.
  */
 async function fetchLiveQuotes() {
-  const syms = KITE_QUOTE_SYMBOLS[account] || [];
+  const baseSyms = KITE_QUOTE_SYMBOLS[account] || [];
+  // Marketwatch is an ad-hoc watchlist (e.g. INDIGRID, MINDSPACE-RR) that
+  // isn't necessarily part of the account's fixed base universe above —
+  // include it here so its LTP is genuinely live too, not just the base list.
+  const mwSyms = (_marketwatch || []).map(s => "NSE:" + s);
+  const syms = Array.from(new Set([...baseSyms, ...mwSyms]));
   if (!syms.length) return;
 
   // ── ETF quotes ─────────────────────────────────────────────────────────────
@@ -3257,6 +3262,44 @@ function patchLive() {
       chgEl.className   = "ic-chg " + (chg > 0 ? "pos" : chg < 0 ? "neg" : "neu");
     }
   });
+
+  // ── Patch Marketwatch panel LTP ────────────────────────────────────────────
+  // Marketwatch's own dwr/wwr/dma20 stay on their normal CSV-driven refresh
+  // cadence (they're daily/weekly indicators — correct to update once per
+  // cycle), but LTP itself should track the same 10s live loop as everything
+  // else on the page rather than sitting stale between refreshMWData() runs.
+  patchMWLive();
+}
+
+// Overlay genuinely live LTP onto whatever Marketwatch already has cached
+// (from the last universe scan or its own _scanOne fetch), then re-render
+// via the normal renderMWPanel() path so W%R/DMA coloring stays consistent.
+// Cheap no-op if nothing changed.
+function patchMWLive() {
+  if (!_marketwatch.length) return;
+  let changed = false;
+  _marketwatch.forEach(sym => {
+    const q = _liveQuotes["NSE:" + sym];
+    if (!q || q.last_price == null) return;
+
+    const cached = _mwDataCache[sym];
+    if (cached) {
+      if (cached.ltp !== q.last_price) { cached.ltp = q.last_price; changed = true; }
+    } else {
+      // No scan/indicator data yet, but we do have a live price — show at
+      // least that instead of leaving the row on "…"/"—" until the next
+      // refreshMWData() cycle resolves W%R/DMA.
+      _mwDataCache[sym] = { sym, ltp: q.last_price, dwr: null, wwr: null, dma20: null, below20: false };
+      changed = true;
+    }
+
+    // Keep the universe-scan row cache in sync too, so switching views
+    // (Scanner results vs Marketwatch) never shows two different LTPs
+    // for the same symbol.
+    const scanRow = (_scnRows || []).find(r => r.sym === sym);
+    if (scanRow && scanRow.ltp !== q.last_price) { scanRow.ltp = q.last_price; changed = true; }
+  });
+  if (changed) renderMWPanel();
 }
 
 /**
@@ -3700,6 +3743,14 @@ async function refreshMWData(force) {
   await Promise.all(need.map(async sym => {
     try {
       const row = await _scanOne(sym, dailyT, weeklyT);
+      if (row) {
+        // dwr/wwr/dma20 come from the daily CSV (correct — they're daily/
+        // weekly indicators, meant to update once per cycle). LTP itself
+        // should stay on the live Kite feed when we have one, rather than
+        // this cycle silently reverting it back to yesterday's daily close.
+        const q = _liveQuotes["NSE:" + sym];
+        if (q && q.last_price != null) row.ltp = q.last_price;
+      }
       _mwDataCache[sym] = row || { sym, ltp:null, dwr:null, wwr:null, dma20:null, below20:false };
     } catch (e) {
       console.error('Marketwatch fetch failed for', sym, e);
