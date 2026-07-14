@@ -56,6 +56,18 @@
         .weekday-highlight { color: #fbbf24; font-weight: 700; }
 
         .toggle-row { text-align: center; margin-bottom: 6px; }
+        .dotm-filter-row {
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+            margin-bottom: 6px; font-size: 0.65rem; color: #94a3b8; flex-wrap: wrap;
+        }
+        .dotm-filter-row label {
+            display: inline-flex; align-items: center; gap: 3px; cursor: pointer;
+            padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(148, 163, 184, 0.2);
+            background: rgba(30, 41, 59, 0.6);
+        }
+        .dotm-filter-row input[type="radio"] { accent-color: #60a5fa; cursor: pointer; margin: 0; }
+        .dotm-filter-row label.active-put { border-color: rgba(239, 68, 68, 0.4); color: #f87171; }
+        .dotm-filter-row label.active-call { border-color: rgba(34, 197, 94, 0.4); color: #4ade80; }
         .toggle-btn {
             background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.3);
             color: #e2e8f0; padding: 6px 14px; border-radius: 6px; cursor: pointer;
@@ -95,6 +107,7 @@
             display: grid; grid-template-columns: 1fr 1fr;
             gap: 8px; margin-bottom: 6px;
         }
+        .results-row.single-col { grid-template-columns: 1fr; }
         @media (max-width: 500px) { .results-row { grid-template-columns: 1fr; } }
 
         .result-card {
@@ -222,6 +235,19 @@
             <button class="toggle-btn" id="expiryToggleBtn" onclick="toggleExpiryStrikes()" style="margin-left:10px;">Display Expiry Strikes</button>
         </div>
 
+        <div class="dotm-filter-row" id="dotmFilterRow">
+            <span style="font-weight:600;">DOTM Strikes:</span>
+            <label id="dotmFilterBothLabel">
+                <input type="radio" name="dotmFilter" value="both" checked onchange="filterDOTM('both')"> Both
+            </label>
+            <label id="dotmFilterPutLabel">
+                <input type="radio" name="dotmFilter" value="put" onchange="filterDOTM('put')"> Put Only
+            </label>
+            <label id="dotmFilterCallLabel">
+                <input type="radio" name="dotmFilter" value="call" onchange="filterDOTM('call')"> Call Only
+            </label>
+        </div>
+
         <div class="manual-inputs" id="manualInputs">
             <div class="input-card">
                 <label>NIFTY 50</label>
@@ -259,7 +285,7 @@
 
         <!-- Main NIFTY Option Strikes -->
         <div class="results-row" id="regularResults">
-            <div class="result-card"> 
+            <div class="result-card" id="dotmPutCard"> 
                 <div class="result-header put">
                     <h2>NIFTY DOTM PUT <span id="putTypeBadge" class="option-type-badge weekly-badge">W</span></h2>
                     <div class="strike-badge" id="putStrike">22,100</div>
@@ -272,7 +298,7 @@
                 </div>
             </div>
 
-            <div class="result-card">
+            <div class="result-card" id="dotmCallCard">
                 <div class="result-header call">
                     <h2>NIFTY DOTM CALL <span id="callTypeBadge" class="option-type-badge weekly-badge">W</span></h2>
                     <div class="strike-badge" id="callStrike">25,800</div>
@@ -849,6 +875,25 @@
         function toggleManualInputs() {
             const el = document.getElementById('manualInputs');
             el.classList.toggle('active');
+        }
+
+        // Lets the viewer hide the DOTM Put or Call card independently — e.g.
+        // if they're only trading one side this expiry and don't need the
+        // other symbol cluttering the view. Purely a display filter; doesn't
+        // touch any of the underlying strike calculations.
+        function filterDOTM(mode) {
+            const putCard  = document.getElementById('dotmPutCard');
+            const callCard = document.getElementById('dotmCallCard');
+            const row      = document.getElementById('regularResults');
+
+            const showPut  = mode === 'both' || mode === 'put';
+            const showCall = mode === 'both' || mode === 'call';
+            putCard.style.display  = showPut  ? '' : 'none';
+            callCard.style.display = showCall ? '' : 'none';
+            row.classList.toggle('single-col', mode !== 'both');
+
+            document.getElementById('dotmFilterPutLabel').classList.toggle('active-put', mode === 'put');
+            document.getElementById('dotmFilterCallLabel').classList.toggle('active-call', mode === 'call');
         }
 
         // Expiry strikes sections (NIFTY & MIDCPNIFTY EXPIRY DAY INTRADAY) are
