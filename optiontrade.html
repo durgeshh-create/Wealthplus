@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIFTY Weekly DOTM Strategy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh; color: #e2e8f0; padding: 8px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 6px; padding: 6px 12px;
+            background: rgba(30, 41, 59, 0.8); border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        .header-left { display: flex; flex-direction: column; }
+        .header h1 {
+            font-size: 1.1rem;
+            background: linear-gradient(90deg, #60a5fa, #34d399);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header .subtitle { color: #94a3b8; font-size: 0.6rem; }
+        .market-status {
+            display: inline-block; padding: 1px 6px; border-radius: 8px;
+            font-size: 0.55rem; font-weight: 600; margin-top: 2px; width: fit-content;
+        }
+        .market-open { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .market-closed { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .fetch-btn {
+            padding: 5px 12px; background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            color: white; border: none; border-radius: 6px; font-size: 0.65rem;
+            font-weight: 600; cursor: pointer; white-space: nowrap;
+        }
+        .fetch-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .loading {
+            display: inline-block; width: 10px; height: 10px;
+            border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
+            border-top-color: white; animation: spin 1s ease-in-out infinite;
+            margin-left: 4px; vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .info-bar {
+            background: rgba(30, 41, 59, 0.8); padding: 4px 8px; border-radius: 6px;
+            margin-bottom: 6px; border: 1px solid rgba(148, 163, 184, 0.1);
+            display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px;
+        }
+        .info-item { display: flex; align-items: center; gap: 3px; font-size: 0.65rem; }
+        .info-item .dot { width: 5px; height: 5px; border-radius: 50%; }
+        .weekday-highlight { color: #fbbf24; font-weight: 700; }
+
+        .toggle-row { text-align: center; margin-bottom: 6px; }
+        .dotm-filter-row {
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+            margin-bottom: 6px; font-size: 0.65rem; color: #94a3b8; flex-wrap: wrap;
+        }
+        .dotm-filter-row label {
+            display: inline-flex; align-items: center; gap: 3px; cursor: pointer;
+            padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(148, 163, 184, 0.2);
+            background: rgba(30, 41, 59, 0.6);
+        }
+        .dotm-filter-row input[type="radio"] { accent-color: #60a5fa; cursor: pointer; margin: 0; }
+        .dotm-filter-row input[type="radio"]:disabled { cursor: default; opacity: 0.6; }
+        .dotm-filter-row label:has(input:disabled) { cursor: default; opacity: 0.85; }
+        .dotm-filter-row label.active-put { border-color: rgba(239, 68, 68, 0.4); color: #f87171; }
+        .dotm-filter-row label.active-call { border-color: rgba(34, 197, 94, 0.4); color: #4ade80; }
+        .toggle-btn {
+            background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.3);
+            color: #e2e8f0; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+            font-size: 0.75rem; font-weight: 700;
+        }
+        .toggle-btn:hover { background: rgba(148, 163, 184, 0.3); color: #fff; }
+        .manual-inputs {
+            display: none; grid-template-columns: repeat(3, 1fr);
+            gap: 6px; margin-bottom: 6px; padding: 6px;
+            background: rgba(15, 23, 42, 0.4); border-radius: 6px;
+        }
+        .manual-inputs.active { display: grid; }
+        .manual-inputs .input-card { padding: 4px; }
+        .manual-inputs input {
+            width: 100%; padding: 3px 5px; background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 4px;
+            color: #f1f5f9; font-size: 0.7rem; font-weight: 600;
+        }
+
+        .inputs-row {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 6px; margin-bottom: 6px;
+        }
+        .input-card {
+            background: rgba(30, 41, 59, 0.8); padding: 6px 8px; border-radius: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        .input-card label { display: block; color: #94a3b8; font-size: 0.55rem; margin-bottom: 1px; }
+        .input-card .value-display { font-size: 0.9rem; font-weight: 700; color: #60a5fa; }
+        .formula-box {
+            background: rgba(15, 23, 42, 0.6); padding: 3px 5px; border-radius: 4px; margin-top: 2px;
+            font-family: 'Courier New', monospace; font-size: 0.5rem; color: #94a3b8;
+            border-left: 2px solid #60a5fa;
+        }
+
+        .results-row {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 8px; margin-bottom: 6px;
+        }
+        .results-row.single-col { grid-template-columns: 1fr; }
+        @media (max-width: 500px) { .results-row { grid-template-columns: 1fr; } }
+
+        .result-card {
+            background: rgba(30, 41, 59, 0.8); border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.1); overflow: hidden;
+        }
+        .result-header {
+            padding: 6px 10px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        .result-header.put { background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), rgba(30, 41, 59, 0.8)); }
+        .result-header.call { background: linear-gradient(90deg, rgba(34, 197, 94, 0.2), rgba(30, 41, 59, 0.8)); }
+        .result-header.expiry-section { background: linear-gradient(90deg, rgba(251, 191, 36, 0.2), rgba(30, 41, 59, 0.8)); }
+        .result-header.midcp { background: linear-gradient(90deg, rgba(168, 85, 247, 0.2), rgba(30, 41, 59, 0.8)); }
+        .result-header h2 { font-size: 0.75rem; display: flex; align-items: center; gap: 4px; }
+        .result-header .strike-badge { padding: 2px 6px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; }
+        .put .strike-badge { background: rgba(239, 68, 68, 0.3); color: #f87171; }
+        .call .strike-badge { background: rgba(34, 197, 94, 0.3); color: #4ade80; }
+        .expiry .strike-badge { background: rgba(251, 191, 36, 0.3); color: #fbbf24; }
+        .midcp .strike-badge { background: rgba(168, 85, 247, 0.3); color: #c084fc; }
+        .symbol-display { padding: 8px; text-align: center; }
+        .symbol-code {
+            font-family: 'Courier New', monospace; font-size: 1.4rem; font-weight: 700;
+            padding: 10px; background: rgba(15, 23, 42, 0.6); border-radius: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.2); letter-spacing: 1px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .put .symbol-code { color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
+        .call .symbol-code { color: #4ade80; border-color: rgba(34, 197, 94, 0.3); }
+        .expiry .symbol-code { color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); }
+        .midcp .symbol-code { color: #c084fc; border-color: rgba(168, 85, 247, 0.3); }
+        .option-type-badge {
+            display: inline-block; padding: 1px 4px; border-radius: 2px;
+            font-size: 0.45rem; font-weight: 700; margin-left: 3px;
+        }
+        .weekly-badge { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .monthly-badge { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+
+        .copy-btn {
+            background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.3);
+            color: #cbd5e1; padding: 3px 8px; border-radius: 5px; cursor: pointer;
+            font-size: 0.6rem; font-weight: 600; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 3px; white-space: nowrap;
+        }
+        .copy-btn:hover { background: rgba(148, 163, 184, 0.3); color: #fff; }
+        .copy-btn.copied { background: rgba(34, 197, 94, 0.3); color: #4ade80; border-color: rgba(34, 197, 94, 0.4); }
+        .copy-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .section-divider { text-align: center; margin: 4px 0; position: relative; }
+        .section-divider::before {
+            content: ''; position: absolute; top: 50%; left: 0; right: 0;
+            height: 1px; background: rgba(148, 163, 184, 0.15);
+        }
+        .section-divider span {
+            background: #0f172a; padding: 0 8px; color: #fbbf24;
+            font-weight: 600; font-size: 0.6rem; position: relative;
+        }
+        .expiry-day-banner {
+            background: linear-gradient(90deg, rgba(251, 191, 36, 0.1), rgba(30, 41, 59, 0.8));
+            border: 1px solid rgba(251, 191, 36, 0.15); border-radius: 5px;
+            padding: 3px 6px; margin-bottom: 4px; text-align: center;
+            color: #fbbf24; font-size: 0.55rem; font-weight: 600;
+        }
+        .midcp-banner {
+            background: linear-gradient(90deg, rgba(168, 85, 247, 0.1), rgba(30, 41, 59, 0.8));
+            border: 1px solid rgba(168, 85, 247, 0.15); border-radius: 5px;
+            padding: 3px 6px; margin-bottom: 4px; text-align: center;
+            color: #c084fc; font-size: 0.55rem; font-weight: 600;
+        }
+
+        .pending { opacity: 0.35; }
+        .pending-badge {
+            display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 0.55rem;
+            font-weight: 700; margin-top: 2px; background: rgba(96, 165, 250, 0.15); color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.25);
+        }
+        .note {
+            background: rgba(251, 191, 36, 0.06); border: 1px solid rgba(251, 191, 36, 0.1);
+            color: #fbbf24; padding: 4px 6px; border-radius: 5px; margin-top: 4px;
+            font-size: 0.55rem; line-height: 1.4;
+        }
+        .midcp-caveat {
+            text-align: center; font-size: 0.55rem; color: #c084fc; opacity: 0.75;
+            font-style: italic; margin-top: 4px; margin-bottom: 2px;
+        }
+
+        /* ── Order Execution (Kite Publisher) ─────────────────────────── */
+        .orders-wrap {
+            background: rgba(30, 41, 59, 0.8); border-radius: 8px;
+            border: 1px solid rgba(96, 165, 250, 0.25); margin-bottom: 8px; overflow: hidden;
+        }
+        .orders-head {
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;
+            padding: 6px 10px; background: linear-gradient(90deg, rgba(96, 165, 250, 0.18), rgba(30, 41, 59, 0.8));
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        .orders-head h1 { font-size: 0.85rem; }
+        .account-badge {
+            padding: 2px 8px; border-radius: 8px; font-size: 0.6rem; font-weight: 700;
+            background: rgba(96, 165, 250, 0.2); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.35);
+        }
+        .orders-body { padding: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        @media (max-width: 640px) { .orders-body { grid-template-columns: 1fr; } }
+        .order-section {
+            background: rgba(15, 23, 42, 0.5); border-radius: 6px; padding: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+        }
+        .order-section h3 {
+            font-size: 0.72rem; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;
+            color: #f1f5f9;
+        }
+        .order-section .hint { font-size: 0.55rem; color: #94a3b8; margin-bottom: 6px; line-height: 1.4; }
+        .mini-tbl { width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 0.62rem; }
+        .mini-tbl th { text-align: left; color: #94a3b8; font-weight: 600; padding: 2px 4px; border-bottom: 1px solid rgba(148,163,184,0.15); }
+        .mini-tbl td { padding: 2px 4px; border-bottom: 1px solid rgba(148,163,184,0.06); font-family: 'Courier New', monospace; }
+        .mini-tbl .neg-qty { color: #f87171; }
+        .lot-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+        .lot-row label { font-size: 0.6rem; color: #94a3b8; white-space: nowrap; }
+        .lot-row select {
+            flex: 1; padding: 4px 6px; background: rgba(15, 23, 42, 0.7); color: #f1f5f9;
+            border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 4px; font-size: 0.65rem;
+        }
+        .basket-preview {
+            background: rgba(0,0,0,0.35); border-radius: 4px; padding: 6px;
+            font-family: 'Courier New', monospace; font-size: 0.58rem; color: #cbd5e1;
+            max-height: 130px; overflow-y: auto; white-space: pre-wrap; margin-bottom: 6px;
+            border: 1px dashed rgba(148, 163, 184, 0.2); min-height: 20px;
+        }
+        .order-btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+        .run-btn {
+            padding: 6px 12px; background: linear-gradient(90deg, #f59e0b, #f97316);
+            color: #1e1b0f; border: none; border-radius: 6px; font-size: 0.65rem;
+            font-weight: 700; cursor: pointer;
+        }
+        .run-btn:hover { filter: brightness(1.08); }
+        .kite-btn {
+            display: none; padding: 6px 12px; background: linear-gradient(90deg, #22c55e, #16a34a);
+            color: #08240f; border: none; border-radius: 6px; font-size: 0.65rem;
+            font-weight: 700; cursor: pointer;
+        }
+        .kite-btn:hover { filter: brightness(1.08); }
+        .refresh-mini-btn {
+            padding: 2px 8px; background: rgba(148,163,184,0.15); border: 1px solid rgba(148,163,184,0.3);
+            color: #cbd5e1; border-radius: 5px; font-size: 0.55rem; cursor: pointer;
+        }
+        .order-status { font-size: 0.55rem; color: #94a3b8; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- ═══════════════ ORDER EXECUTION (Kite Publisher) ═══════════════ -->
+        <div class="orders-wrap">
+            <div class="orders-head">
+                <h1>⚡ Execute Orders</h1>
+                <span class="account-badge" id="orderAccountBadge">Instance: PS5673</span>
+            </div>
+            <div class="orders-body">
+
+                <!-- Switch: Tue (or Mon if Tue holiday) — exit sold current-expiry NIFTY options, re-enter DOTM -->
+                <div class="order-section">
+                    <h3>🔁 Switch <span style="font-size:0.55rem;color:#94a3b8;font-weight:400">Tue / Mon if holiday</span></h3>
+                    <div class="hint">Exits (BUY, market) all current-expiry NIFTY option sold positions pulled from Today's Positions, then sells fresh NIFTY DOTM PUT/CALL — put then call, repeated per lot.</div>
+
+                    <table class="mini-tbl">
+                        <thead><tr><th>Existing sold position</th><th>Qty</th></tr></thead>
+                        <tbody id="switchPosBody"><tr><td colspan="2" style="color:#64748b">Loading Today's Positions…</td></tr></tbody>
+                    </table>
+                    <button class="refresh-mini-btn" onclick="refreshSwitchPositions()">🔄 Refresh positions</button>
+
+                    <div class="lot-row" style="margin-top:8px">
+                        <label>Lot size</label>
+                        <select id="switchLotSize"></select>
+                    </div>
+
+                    <div class="basket-preview" id="switchBasketPreview">Basket preview appears here after Run.</div>
+
+                    <div class="order-btn-row">
+                        <button class="run-btn" onclick="runSwitch()">▶ Run</button>
+                        <button class="kite-btn" id="switchKiteBtn">Place Basket in Kite</button>
+                    </div>
+                    <div class="order-status" id="switchStatus"></div>
+                </div>
+
+                <!-- Fresh DOTM: Wed (or Thu if Wed holiday) — take fresh DOTM sell positions -->
+                <div class="order-section">
+                    <h3>🆕 Fresh DOTM <span style="font-size:0.55rem;color:#94a3b8;font-weight:400">Wed / Thu if holiday</span></h3>
+                    <div class="hint">Sells fresh NIFTY DOTM PUT/CALL (symbols computed below) — put then call, repeated per lot. No exits.</div>
+
+                    <div class="lot-row">
+                        <label>Lot size</label>
+                        <select id="freshLotSize"></select>
+                    </div>
+
+                    <div class="basket-preview" id="freshBasketPreview">Basket preview appears here after Run.</div>
+
+                    <div class="order-btn-row">
+                        <button class="run-btn" onclick="runFreshDotm()">▶ Run</button>
+                        <button class="kite-btn" id="freshKiteBtn">Place Basket in Kite</button>
+                    </div>
+                    <div class="order-status" id="freshStatus"></div>
+                </div>
+
+            </div>
+        </div>
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+
+        <div class="header">
+            <div class="header-left">
+                <h1>NIFTY Weekly DOTM Strategy</h1>
+                <div class="subtitle">Range-based strikes for next expiry</div>
+                <div id="marketStatus" class="market-status market-closed">Market Closed</div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+                <button class="fetch-btn" id="refreshBtn" onclick="fetchLiveData()">
+                    Fetch Live Data
+                </button>
+                <span id="fetchStatus" style="font-size:0.55rem; color:#94a3b8;"></span>
+            </div>
+        </div>
+
+        <div class="info-bar">
+            <div class="info-item">
+                <div class="dot" style="background: #60a5fa;"></div>
+                <span>Today: <span id="currentDate" class="weekday-highlight">Tue (30/06/2026)</span></span>
+            </div>
+            <div class="info-item">
+                <div class="dot" style="background: #34d399;"></div>
+                <span>NIFTY Div: <span id="niftyDivisorValue" class="weekday-highlight">3,800</span></span>
+            </div>
+            <div class="info-item">
+                <div class="dot" style="background: #f472b6;"></div>
+                <span>Range: <span id="rangeValue" class="weekday-highlight">1,755.08</span></span>
+            </div>
+            <div class="info-item">
+                <div class="dot" style="background: #fbbf24;"></div>
+                <span>Exp: <span id="expiryDate" class="weekday-highlight">07/07/2026 W</span></span>
+            </div>
+        </div>
+
+        <div class="toggle-row">
+            <button class="toggle-btn" onclick="toggleManualInputs()">Edit NIFTY/VIX/MIDCP</button>
+            <button class="toggle-btn" id="expiryToggleBtn" onclick="toggleExpiryStrikes()" style="margin-left:10px;">Display Expiry Strikes</button>
+        </div>
+
+        <div class="dotm-filter-row" id="dotmFilterRow">
+            <span style="font-weight:600;">DOTM Strikes:</span>
+            <label id="dotmFilterBothLabel">
+                <input type="radio" name="dotmFilter" value="both" checked onchange="onDotmRadioChange('both')"> Both
+            </label>
+            <label id="dotmFilterPutLabel">
+                <input type="radio" name="dotmFilter" value="put" onchange="onDotmRadioChange('put')"> Put Only
+            </label>
+            <label id="dotmFilterCallLabel">
+                <input type="radio" name="dotmFilter" value="call" onchange="onDotmRadioChange('call')"> Call Only
+            </label>
+            <span id="dotmFilterStatus" style="font-size:0.55rem; color:#94a3b8;"></span>
+        </div>
+
+        <div class="manual-inputs" id="manualInputs">
+            <div class="input-card">
+                <label>NIFTY 50</label>
+                <input type="number" id="manualNifty" value="23945" step="0.05" onchange="onManualOverride()">
+            </div>
+            <div class="input-card">
+                <label>India VIX</label>
+                <input type="number" id="manualVix" value="13.61" step="0.01" onchange="onManualOverride()">
+            </div>
+            <div class="input-card">
+                <label>MIDCPNIFTY</label>
+                <input type="number" id="manualMidcp" value="14367" step="0.05" onchange="onManualOverride()">
+            </div>
+        </div>
+
+        <div class="inputs-row">
+            <div class="input-card">
+                <label>NIFTY 50 Spot</label>
+                <div class="value-display" id="niftyDisplay">23,945</div>
+            </div>
+            <div class="input-card">
+                <label>India VIX</label>
+                <div class="value-display" id="vixDisplay">13.61</div>
+            </div>
+            <div class="input-card">
+                <label>MIDCPNIFTY Spot</label>
+                <div class="value-display" id="midcpDisplay">14,367</div>
+            </div>
+            <div class="input-card">
+                <label>Range</label>
+                <div class="value-display" id="rangeDisplay">1,755.08</div>
+                <div class="formula-box" id="rangeFormula">23945.00 x sqrt(13.61 x 200% / 3800) = 1755.08</div>
+            </div>
+        </div>
+
+        <!-- Main NIFTY Option Strikes -->
+        <div class="results-row" id="regularResults">
+            <div class="result-card" id="dotmPutCard"> 
+                <div class="result-header put">
+                    <h2>NIFTY DOTM PUT <span id="putTypeBadge" class="option-type-badge weekly-badge">W</span></h2>
+                    <div class="strike-badge" id="putStrike">22,100</div>
+                </div>
+                <div class="symbol-display">
+                    <div class="symbol-code put" id="putSymbol">
+                        <span id="putSymbolText">NIFTY2670722100PE</span>
+                        <button class="copy-btn" onclick="copyToClipboard('putSymbolText', this)">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card" id="dotmCallCard">
+                <div class="result-header call">
+                    <h2>NIFTY DOTM CALL <span id="callTypeBadge" class="option-type-badge weekly-badge">W</span></h2>
+                    <div class="strike-badge" id="callStrike">25,800</div>
+                </div>
+                <div class="symbol-display">
+                    <div class="symbol-code call" id="callSymbol">
+                        <span id="callSymbolText">NIFTY2670725800CE</span>
+                        <button class="copy-btn" onclick="copyToClipboard('callSymbolText', this)">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NIFTY & MIDCPNIFTY Expiry Day Intraday Strikes: auto-shown on Tuesdays, toggle available otherwise -->
+        <div id="expiryStrikesSection">
+        <!-- NIFTY Expiry Day Intraday Strikes -->
+        <div class="section-divider">
+            <span>NIFTY EXPIRY DAY INTRADAY (Div: 23,000)</span>
+        </div>
+
+        <div class="expiry-day-banner" id="niftyExpiryBanner">
+            Today is NIFTY Expiry Day! Intraday strikes with divisor 23,000.
+        </div>
+
+        <div class="results-row">
+            <div class="result-card">
+                <div class="result-header expiry-section">
+                    <h2>NIFTY EXPIRY PUT</h2>
+                    <div class="strike-badge expiry" id="expiryPutStrike">23,200</div>
+                </div>
+                <div class="symbol-display">
+                    <div class="symbol-code expiry" id="expiryPutSymbol">
+                        <span id="expiryPutSymbolText">NIFTY26JUN23200PE</span>
+                        <button class="copy-btn" onclick="copyToClipboard('expiryPutSymbolText', this)">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <div class="result-header expiry-section">
+                    <h2>NIFTY EXPIRY CALL</h2>
+                    <div class="strike-badge expiry" id="expiryCallStrike">24,700</div>
+                </div>
+                <div class="symbol-display">
+                    <div class="symbol-code expiry" id="expiryCallSymbol">
+                        <span id="expiryCallSymbolText">NIFTY26JUN24700CE</span>
+                        <button class="copy-btn" onclick="copyToClipboard('expiryCallSymbolText', this)">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MIDCPNIFTY Expiry Day Intraday Strikes: only auto-shown on the
+             LAST Tuesday of the month (monthly expiry) — earlier weekly
+             Tuesdays' MIDCPNIFTY expiry-day strikes see too little volume
+             to be worth surfacing by default. -->
+        <div id="midcpExpirySection">
+        <div class="section-divider">
+            <span>MIDCPNIFTY EXPIRY DAY INTRADAY (Div: 17,000)</span>
+        </div>
+
+        <div class="midcp-banner" id="midcpExpiryBanner">
+            MIDCPNIFTY intraday strikes using divisor 17,000. Strike interval: 25.
+        </div>
+
+        <div class="results-row">
+            <div class="result-card">
+                <div class="result-header midcp">
+                    <h2>MIDCP PUT</h2>
+                    <div class="strike-badge midcp" id="midcpPutStrike">13,850</div>
+                </div>
+                <div class="symbol-display">
+                    <div class="symbol-code midcp" id="midcpPutSymbol">
+                        <span id="midcpPutSymbolText">MIDCPNIFTY26JUN13850PE</span>
+                        <button class="copy-btn" onclick="copyToClipboard('midcpPutSymbolText', this)">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <div class="result-header midcp">
+                    <h2>MIDCP CALL</h2>
+                    <div class="strike-badge midcp" id="midcpCallStrike">14,875</div>
+                </div>
+                <div class="symbol-display">
+                    <div class="symbol-code midcp" id="midcpCallSymbol">
+                        <span id="midcpCallSymbolText">MIDCPNIFTY26JUN14875CE</span>
+                        <button class="copy-btn" onclick="copyToClipboard('midcpCallSymbolText', this)">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="midcp-caveat">Do MIDCPNIFTY only on last Tue of month if these strikes have good volume</div>
+        </div>
+        </div>
+
+        <div class="note">
+            <strong>How to use:</strong> Live NIFTY/VIX/MIDCP prices auto-refresh every 10 seconds via Yahoo Finance. Click <strong>Fetch Live Data</strong> to refresh immediately, or expand <strong>Edit NIFTY/VIX/MIDCP</strong> to override manually. Mon/Tue = next week expiry. Wed-Fri = current week. NIFTY: FLOOR/CEILING(100). MIDCPNIFTY: FLOOR/CEILING(25). Weekly: [YY][M][DD]. Monthly: [YY][Month].
+        </div>
+    </div>
+
+    <!-- Kite Connect publisher plugin — lets this page build a basket of NFO
+         orders and hand it off to the user's logged-in Kite session to place. -->
+    <script src="https://kite.trade/publisher.js?v=3"></script>
+
+    <script>
+        const DIVISORS = { 1: 3300, 2: 3800, 3: 4500, 4: 6000, 5: 8000, 6: 3300, 0: 3300 };
+        const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const EXPIRY_DAY_DIVISOR = 23000;
+        const MIDCP_EXPIRY_DAY_DIVISOR = 17000;
+
+        let currentNifty = 23945, currentVix = 13.61, currentMidcp = 14367;
+        let liveDataLoaded = false; // becomes true once we have real fetched or manually-entered values
+
+        function copyToClipboard(elementId, btn) {
+            const text = document.getElementById(elementId).textContent.trim();
+
+            // Method 1: Try modern Clipboard API
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showCopied(btn);
+                }).catch(function() {
+                    fallbackCopy(text, btn);
+                });
+            } else {
+                fallbackCopy(text, btn);
+            }
+        }
+
+        function fallbackCopy(text, btn) {
+            // Method 2: Use selection + execCommand
+            const range = document.createRange();
+            const selection = window.getSelection();
+
+            // Create a temporary element
+            const tempEl = document.createElement('span');
+            tempEl.textContent = text;
+            tempEl.style.position = 'absolute';
+            tempEl.style.left = '-9999px';
+            document.body.appendChild(tempEl);
+
+            range.selectNodeContents(tempEl);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            try {
+                const success = document.execCommand('copy');
+                if (success) {
+                    showCopied(btn);
+                } else {
+                    showFailed(btn);
+                }
+            } catch (e) {
+                showFailed(btn);
+            }
+
+            selection.removeAllRanges();
+            document.body.removeChild(tempEl);
+        }
+
+        function showCopied(btn) {
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(function() {
+                btn.textContent = originalText;
+                btn.classList.remove('copied');
+            }, 1500);
+        }
+
+        function showFailed(btn) {
+            const originalText = btn.textContent;
+            btn.textContent = 'Failed';
+            setTimeout(function() {
+                btn.textContent = originalText;
+            }, 1500);
+        }
+
+        function formatDDMMYYYY(date) {
+            const dd = date.getDate().toString().padStart(2, '0');
+            const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+            const yyyy = date.getFullYear();
+            return `${dd}/${mm}/${yyyy}`;
+        }
+
+        function getNextTuesday(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            let daysToTue;
+            if (day <= 2) daysToTue = 2 - day;
+            else daysToTue = 9 - day;
+            d.setDate(d.getDate() + daysToTue);
+            return d;
+        }
+
+        function isLastTuesdayOfMonth(date) {
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const day = date.getDate();
+            const nextMonth = month === 11 ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
+            const tuesdays = [];
+            const d = new Date(year, month, 1);
+            while (d < nextMonth) {
+                if (d.getDay() === 2) tuesdays.push(d.getDate());
+                d.setDate(d.getDate() + 1);
+            }
+            return tuesdays.length > 0 && day === tuesdays[tuesdays.length - 1];
+        }
+
+        function getExpiryForWeekday(date) {
+            const dayOfWeek = date.getDay();
+            let expiry;
+            if (dayOfWeek === 1 || dayOfWeek === 2) {
+                const nextTue = getNextTuesday(date);
+                expiry = new Date(nextTue);
+                expiry.setDate(expiry.getDate() + 7);
+            } else {
+                expiry = getNextTuesday(date);
+            }
+            return expiry;
+        }
+
+        function formatWeeklySymbol(underlying, expiry, strike, type) {
+            const yy = expiry.getFullYear().toString().slice(-2);
+            const m = (expiry.getMonth() + 1).toString();
+            const dd = expiry.getDate().toString().padStart(2, '0');
+            const strikeStr = Math.round(strike).toString();
+            return `${underlying}${yy}${m}${dd}${strikeStr}${type}`;
+        }
+
+        function formatMonthlySymbol(underlying, expiry, strike, type) {
+            const yy = expiry.getFullYear().toString().slice(-2);
+            const monthName = MONTH_NAMES[expiry.getMonth()];
+            const strikeStr = Math.round(strike).toString();
+            return `${underlying}${yy}${monthName}${strikeStr}${type}`;
+        }
+
+        // IDs of every element that shows a derived strike/symbol/range value.
+        // These must never display a strike computed from stale hardcoded
+        // defaults — only from a live fetch or an explicit manual entry.
+        const DERIVED_VALUE_IDS = [
+            'rangeDisplay', 'rangeFormula', 'niftyDivisorValue', 'rangeValue', 'expiryDate',
+            'putStrike', 'putSymbolText', 'callStrike', 'callSymbolText',
+            'expiryPutStrike', 'expiryPutSymbolText', 'expiryCallStrike', 'expiryCallSymbolText',
+            'midcpPutStrike', 'midcpPutSymbolText', 'midcpCallStrike', 'midcpCallSymbolText'
+        ];
+
+        function showLoadingPlaceholders() {
+            DERIVED_VALUE_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.textContent = '···'; el.classList.add('pending'); }
+            });
+            document.getElementById('niftyDisplay').textContent = '···';
+            document.getElementById('vixDisplay').textContent = '···';
+            document.getElementById('midcpDisplay').textContent = '···';
+            ['niftyDisplay', 'vixDisplay', 'midcpDisplay'].forEach(id =>
+                document.getElementById(id).classList.add('pending'));
+
+            document.querySelectorAll('.copy-btn').forEach(btn => btn.disabled = true);
+
+            const statusEl = document.getElementById('fetchStatus');
+            statusEl.textContent = 'Fetching live prices…';
+            statusEl.style.color = '#60a5fa';
+        }
+
+        function clearPlaceholders() {
+            DERIVED_VALUE_IDS.concat(['niftyDisplay', 'vixDisplay', 'midcpDisplay']).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('pending');
+            });
+            document.querySelectorAll('.copy-btn').forEach(btn => btn.disabled = false);
+        }
+
+        // User typed a manual override — treat it as real data immediately,
+        // independent of whether the live fetch ever succeeded.
+        function onManualOverride() {
+            liveDataLoaded = true;
+            calculateRange();
+            clearPlaceholders();
+        }
+
+        function calculateRange() {
+            const nifty = parseFloat(document.getElementById('manualNifty').value) || currentNifty;
+            const vix = parseFloat(document.getElementById('manualVix').value) || currentVix;
+            const midcp = parseFloat(document.getElementById('manualMidcp').value) || currentMidcp;
+
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const divisor = DIVISORS[dayOfWeek];
+
+            currentNifty = nifty;
+            currentVix = vix;
+            currentMidcp = midcp;
+
+            const expiryDate = getExpiryForWeekday(today);
+            const isMonthlyExpiry = isLastTuesdayOfMonth(expiryDate);
+
+            // Main NIFTY range and strikes
+            const currentRange = nifty * Math.sqrt((vix * 2) / divisor);
+            const putStrike = Math.floor((nifty - currentRange) / 100) * 100;
+            const callStrike = Math.ceil((nifty + currentRange) / 100) * 100;
+
+            document.getElementById('niftyDisplay').textContent = nifty.toLocaleString('en-IN', {maximumFractionDigits: 2});
+            document.getElementById('vixDisplay').textContent = vix.toFixed(2);
+            document.getElementById('midcpDisplay').textContent = midcp.toLocaleString('en-IN', {maximumFractionDigits: 2});
+            document.getElementById('rangeDisplay').textContent = currentRange.toFixed(2);
+            document.getElementById('niftyDivisorValue').textContent = divisor.toLocaleString();
+            document.getElementById('rangeValue').textContent = currentRange.toFixed(2);
+
+            const dayName = WEEKDAY_NAMES[dayOfWeek];
+            document.getElementById('currentDate').textContent = `${dayName} (${formatDDMMYYYY(today)})`;
+            document.getElementById('expiryDate').textContent = formatDDMMYYYY(expiryDate) + (isMonthlyExpiry ? ' M' : ' W');
+            document.getElementById('rangeFormula').textContent = `${nifty.toFixed(2)} x sqrt(${vix.toFixed(2)} x 200% / ${divisor}) = ${currentRange.toFixed(2)}`;
+
+            // Main NIFTY symbols
+            let putSym, callSym;
+            if (isMonthlyExpiry) {
+                putSym = formatMonthlySymbol('NIFTY', expiryDate, putStrike, 'PE');
+                callSym = formatMonthlySymbol('NIFTY', expiryDate, callStrike, 'CE');
+                document.getElementById('putTypeBadge').textContent = 'M';
+                document.getElementById('putTypeBadge').className = 'option-type-badge monthly-badge';
+                document.getElementById('callTypeBadge').textContent = 'M';
+                document.getElementById('callTypeBadge').className = 'option-type-badge monthly-badge';
+            } else {
+                putSym = formatWeeklySymbol('NIFTY', expiryDate, putStrike, 'PE');
+                callSym = formatWeeklySymbol('NIFTY', expiryDate, callStrike, 'CE');
+                document.getElementById('putTypeBadge').textContent = 'W';
+                document.getElementById('putTypeBadge').className = 'option-type-badge weekly-badge';
+                document.getElementById('callTypeBadge').textContent = 'W';
+                document.getElementById('callTypeBadge').className = 'option-type-badge weekly-badge';
+            }
+
+            document.getElementById('putSymbolText').textContent = putSym;
+            document.getElementById('callSymbolText').textContent = callSym;
+            document.getElementById('putStrike').textContent = putStrike.toLocaleString();
+            document.getElementById('callStrike').textContent = callStrike.toLocaleString();
+
+            // NIFTY Expiry Day Intraday
+            const niftyExpiryDayRange = nifty * Math.sqrt((vix * 2) / EXPIRY_DAY_DIVISOR);
+            const niftyExpiryPutStrike = Math.floor((nifty - niftyExpiryDayRange) / 50) * 50;
+            const niftyExpiryCallStrike = Math.ceil((nifty + niftyExpiryDayRange) / 50) * 50;
+
+            const niftyImmediateExpiry = getNextTuesday(today);
+            const niftyImmediateIsMonthly = isLastTuesdayOfMonth(niftyImmediateExpiry);
+
+            let niftyExpiryPutSym, niftyExpiryCallSym;
+            if (niftyImmediateIsMonthly) {
+                niftyExpiryPutSym = formatMonthlySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryPutStrike, 'PE');
+                niftyExpiryCallSym = formatMonthlySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryCallStrike, 'CE');
+            } else {
+                niftyExpiryPutSym = formatWeeklySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryPutStrike, 'PE');
+                niftyExpiryCallSym = formatWeeklySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryCallStrike, 'CE');
+            }
+
+            document.getElementById('expiryPutSymbolText').textContent = niftyExpiryPutSym;
+            document.getElementById('expiryCallSymbolText').textContent = niftyExpiryCallSym;
+            document.getElementById('expiryPutStrike').textContent = niftyExpiryPutStrike.toLocaleString();
+            document.getElementById('expiryCallStrike').textContent = niftyExpiryCallStrike.toLocaleString();
+
+            const isTodayNiftyExpiry = (dayOfWeek === 2);
+            document.getElementById('niftyExpiryBanner').textContent = isTodayNiftyExpiry 
+                ? 'Today is NIFTY Expiry Day! Intraday strikes with divisor 23,000.'
+                : "NIFTY intraday strikes for today's expiry using divisor 23,000.";
+
+            // MIDCPNIFTY Expiry Day Intraday
+            const midcpExpiryDayRange = midcp * Math.sqrt((vix * 2) / MIDCP_EXPIRY_DAY_DIVISOR);
+            const midcpExpiryPutStrike = Math.floor((midcp - midcpExpiryDayRange) / 25) * 25;
+            const midcpExpiryCallStrike = Math.ceil((midcp + midcpExpiryDayRange) / 25) * 25;
+
+            const midcpMonthName = MONTH_NAMES[today.getMonth()];
+            const midcpYY = today.getFullYear().toString().slice(-2);
+            const midcpPutSym = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryPutStrike}PE`;
+            const midcpCallSym = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryCallStrike}CE`;
+
+            document.getElementById('midcpPutSymbolText').textContent = midcpPutSym;
+            document.getElementById('midcpCallSymbolText').textContent = midcpCallSym;
+            document.getElementById('midcpPutStrike').textContent = midcpExpiryPutStrike.toLocaleString();
+            document.getElementById('midcpCallStrike').textContent = midcpExpiryCallStrike.toLocaleString();
+        }
+
+        // NSE's own API rejects cross-origin browser requests (no CORS headers),
+        // so it can't be called directly from a static GitHub Pages site.
+        //
+        // NIFTY 50 and INDIA VIX are scraped from Google Finance (the price is
+        // rendered directly into the page HTML, no login/auth/crumb required —
+        // unlike Yahoo's quote API). Google Finance does not list "NIFTY MID
+        // SELECT" though, so that one still comes from Yahoo's chart endpoint
+        // (v8), which works anonymously. Yahoo's chart endpoint is also kept as
+        // an automatic fallback for NIFTY/VIX in case Google's markup changes.
+        //
+        // Everything is routed through a public CORS proxy. Proxy order matters:
+        // corsproxy.io's free tier only allows a fixed allowlist of origins
+        // (localhost, *.github.io, CodePen, Replit, etc.) and silently fails for
+        // anything else (e.g. a custom domain on GitHub Pages), so it's listed
+        // LAST as a fallback; the primary proxies have no such restriction.
+
+        const GOOGLE_SYMBOLS = {
+            nifty: 'NIFTY_50:INDEXNSE',
+            vix: 'INDIA_VIX:INDEXNSE'
+        };
+
+        const YAHOO_SYMBOLS = {
+            nifty: '%5ENSEI',            // ^NSEI = NIFTY 50
+            vix: '%5EINDIAVIX',          // ^INDIAVIX = INDIA VIX
+            midcp: 'NIFTY_MID_SELECT.NS' // NIFTY MID SELECT
+        };
+
+        const CORS_PROXIES = [
+            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+            (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`
+        ];
+
+        // Remembers which proxy answered fastest last time, per source, so we
+        // can try it first on the next refresh. Doesn't change worst-case
+        // speed (everything races in parallel regardless) but tends to make
+        // the "winning" response come back sooner on repeat fetches.
+        const lastGoodProxy = { google: 0, yahoo: 0 };
+        function orderedProxies(sourceKey) {
+            const idx = lastGoodProxy[sourceKey] || 0;
+            if (idx === 0) return CORS_PROXIES;
+            return [CORS_PROXIES[idx], ...CORS_PROXIES.filter((_, i) => i !== idx)];
+        }
+
+        async function fetchWithTimeout(url, ms) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), ms);
+            try {
+                return await fetch(url, { cache: 'no-store', signal: controller.signal });
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        function parseGoogleFinancePrice(html) {
+            // Google Finance renders the headline price inside a span with
+            // class "YMlKec fxKbKc", e.g. <div class="YMlKec fxKbKc">23,913.70</div>
+            const m = html.match(/class="YMlKec fxKbKc"[^>]*>([\d,]+(?:\.\d+)?)/);
+            if (m) {
+                const price = parseFloat(m[1].replace(/,/g, ''));
+                if (!isNaN(price)) return price;
+            }
+            return null;
+        }
+
+        // Fires all 3 proxies for a given target URL AT ONCE and resolves with
+        // whichever comes back first with a usable value — instead of trying
+        // them one after another, which is what made a single price take up
+        // to 24s (3 proxies x 8s timeout) before even falling back to Yahoo.
+        function raceProxies(targetUrl, sourceKey, parseFn, timeoutMs) {
+            const attempts = orderedProxies(sourceKey).map((buildProxyUrl, i) => {
+                const proxyIndex = CORS_PROXIES.indexOf(buildProxyUrl);
+                return (async () => {
+                    const res = await fetchWithTimeout(buildProxyUrl(targetUrl), timeoutMs);
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const body = await (parseFn.isJson ? res.json() : res.text());
+                    const price = parseFn(body);
+                    if (price === null || price === undefined || isNaN(price)) {
+                        throw new Error('No usable price in response');
+                    }
+                    lastGoodProxy[sourceKey] = proxyIndex;
+                    return price;
+                })();
+            });
+            return Promise.any(attempts);
+        }
+
+        function parseYahooPrice(data) {
+            const result = data && data.chart && data.chart.result && data.chart.result[0];
+            const price = result && result.meta && (result.meta.regularMarketPrice ?? result.meta.previousClose);
+            return typeof price === 'number' ? price : null;
+        }
+        parseYahooPrice.isJson = true;
+
+        function fetchGooglePriceRaced(symbolPath, timeoutMs) {
+            const googleUrl = `https://www.google.com/finance/quote/${symbolPath}?_=${Date.now()}`;
+            return raceProxies(googleUrl, 'google', parseGoogleFinancePrice, timeoutMs);
+        }
+
+        function fetchYahooPriceRaced(symbol, timeoutMs) {
+            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d&_=${Date.now()}`;
+            return raceProxies(yahooUrl, 'yahoo', parseYahooPrice, timeoutMs);
+        }
+
+        const FETCH_TIMEOUT_MS = 4500; // per proxy attempt; all attempts run in parallel, so this is close to the real worst case now
+
+        // Race Google Finance and Yahoo simultaneously too (rather than trying
+        // Google, waiting for it to fully fail, then trying Yahoo) — whichever
+        // of the two sources answers first wins.
+        function fetchNiftyPrice() {
+            return Promise.any([
+                fetchGooglePriceRaced(GOOGLE_SYMBOLS.nifty, FETCH_TIMEOUT_MS),
+                fetchYahooPriceRaced(YAHOO_SYMBOLS.nifty, FETCH_TIMEOUT_MS)
+            ]);
+        }
+
+        function fetchVixPrice() {
+            return Promise.any([
+                fetchGooglePriceRaced(GOOGLE_SYMBOLS.vix, FETCH_TIMEOUT_MS),
+                fetchYahooPriceRaced(YAHOO_SYMBOLS.vix, FETCH_TIMEOUT_MS)
+            ]);
+        }
+
+        let fetchInProgress = false;
+
+        async function fetchLiveData() {
+            if (fetchInProgress) return;
+            fetchInProgress = true;
+
+            const btn = document.getElementById('refreshBtn');
+            const statusEl = document.getElementById('fetchStatus');
+            btn.disabled = true;
+            btn.innerHTML = 'Fetching... <span class="loading"></span>';
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            const results = await Promise.allSettled([
+                fetchNiftyPrice(),
+                fetchVixPrice(),
+                fetchYahooPriceRaced(YAHOO_SYMBOLS.midcp, FETCH_TIMEOUT_MS)
+            ]);
+
+            const [niftyResult, vixResult, midcpResult] = results;
+            let successCount = 0;
+
+            if (niftyResult.status === 'fulfilled') {
+                currentNifty = niftyResult.value;
+                document.getElementById('manualNifty').value = currentNifty;
+                successCount++;
+            }
+            if (vixResult.status === 'fulfilled') {
+                currentVix = vixResult.value;
+                document.getElementById('manualVix').value = currentVix;
+                successCount++;
+            }
+            if (midcpResult.status === 'fulfilled') {
+                currentMidcp = midcpResult.value;
+                document.getElementById('manualMidcp').value = currentMidcp;
+                successCount++;
+            }
+
+            if (successCount > 0) {
+                // We have at least one real, live number — safe to render strikes now.
+                liveDataLoaded = true;
+                calculateRange();
+                clearPlaceholders();
+            }
+
+            if (successCount === 3) {
+                statusEl.textContent = `Updated ${timeStr}`;
+                statusEl.style.color = '#4ade80';
+            } else if (successCount > 0) {
+                statusEl.textContent = `Partial update ${timeStr} (${successCount}/3) — remaining value(s) held at last known price`;
+                statusEl.style.color = '#fbbf24';
+            } else {
+                console.error('NIFTY:', niftyResult.reason, 'VIX:', vixResult.reason, 'MIDCP:', midcpResult.reason);
+                if (!liveDataLoaded) {
+                    // Never had real data yet — do NOT reveal strikes computed
+                    // from the hardcoded defaults. Prompt for manual entry instead.
+                    statusEl.textContent = `Live fetch failed — enter NIFTY/VIX/MIDCP manually below`;
+                    statusEl.style.color = '#f87171';
+                    document.getElementById('manualInputs').classList.add('active');
+                } else {
+                    // We already have a good value on screen from an earlier
+                    // successful fetch; leave it displayed and just flag it as stale.
+                    statusEl.textContent = `Refresh failed ${timeStr} — showing last known prices`;
+                    statusEl.style.color = '#f87171';
+                }
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = 'Fetch Live Data';
+            fetchInProgress = false;
+        }
+
+        function toggleManualInputs() {
+            const el = document.getElementById('manualInputs');
+            el.classList.toggle('active');
+        }
+
+        // ── Shared DOTM filter persistence ──────────────────────────────────
+        // The Put/Call visibility choice is meant to apply to EVERY visitor of
+        // this page (it's served statically from GitHub Pages, same repo as
+        // the settings-editor dashboard), not just the browser that set it.
+        // So it's stored as settings-editor/dotm-filter.json in the repo and
+        // read by anyone who loads this page.
+        //
+        // Only the admin can CHANGE it — that requires a GitHub token, which
+        // this page never asks for directly. Instead it reuses the same
+        // 'wealthalgo_cfg' localStorage entry the settings-editor dashboard
+        // already stores {owner, repo, token} in — since both pages are
+        // served from the same origin, a browser that's already set up as
+        // admin there is automatically recognized as admin here too. Anyone
+        // else just sees the current shared choice with the radios disabled.
+        const DOTM_REPO_OWNER  = 'durgeshh-create';
+        const DOTM_REPO_NAME   = 'Wealthplus';
+        const DOTM_FILTER_PATH = 'settings-editor/dotm-filter.json';
+
+        let _dotmSha = '';
+
+        function getDotmAdminToken() {
+            try {
+                const c = JSON.parse(localStorage.getItem('wealthalgo_cfg') || '{}');
+                // Only trust the stored token if it was configured for THIS repo.
+                return (c.owner === DOTM_REPO_OWNER && c.repo === DOTM_REPO_NAME && c.token) ? c.token : null;
+            } catch (e) { return null; }
+        }
+
+        function setDotmStatus(msg, color) {
+            const el = document.getElementById('dotmFilterStatus');
+            if (el) { el.textContent = msg; el.style.color = color || '#94a3b8'; }
+        }
+
+        // Fetches the shared choice from GitHub and applies it. Works for
+        // every visitor — this is an unauthenticated read against a public
+        // repo, no token required.
+        async function loadDOTMFilter() {
+            const isAdmin = !!getDotmAdminToken();
+            document.querySelectorAll('input[name="dotmFilter"]').forEach(r => r.disabled = !isAdmin);
+            if (!isAdmin) setDotmStatus('set by admin');
+
+            try {
+                const url = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}?ref=gh-pages`;
+                const r = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
+                if (r.ok) {
+                    const data = await r.json();
+                    _dotmSha = data.sha;
+                    const json = JSON.parse(atob(data.content.replace(/\n/g, '')));
+                    const mode = ['both', 'put', 'call'].includes(json.mode) ? json.mode : 'both';
+                    applyDOTMFilter(mode);
+                } else if (r.status === 404) {
+                    // Doesn't exist yet — default to "both", and if this browser
+                    // is the admin, seed the file so future visitors see it too.
+                    applyDOTMFilter('both');
+                    if (isAdmin) await saveDOTMFilter('both');
+                } else {
+                    throw new Error(`GitHub API ${r.status}`);
+                }
+            } catch (e) {
+                console.error('loadDOTMFilter failed:', e);
+                applyDOTMFilter('both');
+                if (isAdmin) setDotmStatus('⚠ could not load shared setting', '#f87171');
+            }
+        }
+
+        // Commits the admin's choice to GitHub so every visitor sees it.
+        async function saveDOTMFilter(mode) {
+            const token = getDotmAdminToken();
+            if (!token) return;   // not admin on this browser — nothing to persist
+            setDotmStatus('saving…');
+            try {
+                const url  = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}`;
+                const body = {
+                    message: `dotm-filter: ${mode} (${new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'})} IST)`,
+                    content: btoa(unescape(encodeURIComponent(JSON.stringify({ mode }, null, 2)))),
+                    branch: 'gh-pages',
+                };
+                if (_dotmSha) body.sha = _dotmSha;
+                const r = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token ' + token,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(body),
+                });
+                if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+                const resp = await r.json();
+                _dotmSha = resp.content.sha;
+                setDotmStatus('✓ saved for all visitors', '#4ade80');
+            } catch (e) {
+                console.error('saveDOTMFilter failed:', e);
+                setDotmStatus('⚠ save failed — check GitHub token/repo', '#f87171');
+            }
+        }
+
+        // Admin changed a radio — apply it locally immediately, then persist.
+        function onDotmRadioChange(mode) {
+            applyDOTMFilter(mode);
+            saveDOTMFilter(mode);
+        }
+
+        // Lets the viewer hide the DOTM Put or Call card independently — e.g.
+        // if they're only trading one side this expiry and don't need the
+        // other symbol cluttering the view. Purely a display filter; doesn't
+        // touch any of the underlying strike calculations.
+        function applyDOTMFilter(mode) {
+            const putCard  = document.getElementById('dotmPutCard');
+            const callCard = document.getElementById('dotmCallCard');
+            const row      = document.getElementById('regularResults');
+
+            const showPut  = mode === 'both' || mode === 'put';
+            const showCall = mode === 'both' || mode === 'call';
+            putCard.style.display  = showPut  ? '' : 'none';
+            callCard.style.display = showCall ? '' : 'none';
+            row.classList.toggle('single-col', mode !== 'both');
+
+            const radio = document.querySelector(`input[name="dotmFilter"][value="${mode}"]`);
+            if (radio) radio.checked = true;
+
+            document.getElementById('dotmFilterPutLabel').classList.toggle('active-put', mode === 'put');
+            document.getElementById('dotmFilterCallLabel').classList.toggle('active-call', mode === 'call');
+        }
+
+        // Expiry strikes sections (NIFTY & MIDCPNIFTY EXPIRY DAY INTRADAY) are
+        // only relevant on Tuesdays (the weekly expiry day), so they're hidden
+        // by default on other days. The button lets users reveal them manually.
+        let manualExpiryOverride = false;
+
+        // Determines "is it Tuesday" using India Standard Time explicitly,
+        // rather than new Date().getDay() (which reflects whatever timezone
+        // the viewer's device happens to be set to). Since this page is
+        // served statically from GitHub Pages, all this logic runs in the
+        // visitor's own browser — so without this, someone opening the page
+        // from a non-IST device could see the wrong day near midnight IST.
+        function isTuesdayIST() {
+            const istWeekday = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'Asia/Kolkata',
+                weekday: 'short'
+            }).format(new Date());
+            return istWeekday === 'Tue';
+        }
+
+        // Is today the LAST Tuesday of its month, per India Standard Time
+        // (not the viewer's device timezone). Used to gate the MIDCPNIFTY
+        // expiry-day strikes, which are only worth showing automatically on
+        // the monthly expiry Tuesday.
+        function isLastTuesdayOfMonthIST() {
+            if (!isTuesdayIST()) return false;
+            const parts = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit'
+            }).formatToParts(new Date());
+            const map = {};
+            parts.forEach(p => { map[p.type] = p.value; });
+            const year = +map.year, month = +map.month - 1, day = +map.day;
+
+            const nextMonth = month === 11 ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
+            let lastTuesday = null;
+            const d = new Date(year, month, 1);
+            while (d < nextMonth) {
+                if (d.getDay() === 2) lastTuesday = d.getDate();
+                d.setDate(d.getDate() + 1);
+            }
+            return lastTuesday !== null && day === lastTuesday;
+        }
+
+        function updateExpiryVisibility() {
+            const isTuesday = isTuesdayIST();
+            const isLastTue = isLastTuesdayOfMonthIST();
+            const section = document.getElementById('expiryStrikesSection');
+            const midcpSection = document.getElementById('midcpExpirySection');
+            const btn = document.getElementById('expiryToggleBtn');
+
+            if (isTuesday) {
+                // Always shown on Tuesday; no need for the toggle button.
+                section.style.display = '';
+                btn.style.display = 'none';
+                manualExpiryOverride = false;
+            } else {
+                btn.style.display = '';
+                if (manualExpiryOverride) {
+                    section.style.display = '';
+                    btn.textContent = 'Hide Expiry Strikes';
+                } else {
+                    section.style.display = 'none';
+                    btn.textContent = 'Display Expiry Strikes';
+                }
+            }
+
+            // MIDCPNIFTY expiry-day strikes: auto-shown only on the monthly
+            // (last Tuesday) expiry, unlike NIFTY which shows every Tuesday.
+            // Still respects the manual "Display Expiry Strikes" preview on
+            // non-Tuesday days, since that's an explicit user action.
+            if (midcpSection) {
+                midcpSection.style.display = (isLastTue || (!isTuesday && manualExpiryOverride)) ? '' : 'none';
+            }
+        }
+
+        function toggleExpiryStrikes() {
+            manualExpiryOverride = !manualExpiryOverride;
+            updateExpiryVisibility();
+        }
+
+        function checkMarketStatus() {
+            const now = new Date();
+            const hour = now.getHours(), minute = now.getMinutes(), day = now.getDay();
+            const isWeekday = day >= 1 && day <= 5;
+            const isMarketHours = (hour > 9 || (hour === 9 && minute >= 15)) && (hour < 15 || (hour === 15 && minute <= 30));
+
+            const statusEl = document.getElementById('marketStatus');
+            if (isWeekday && isMarketHours) {
+                statusEl.textContent = 'Market Open';
+                statusEl.className = 'market-status market-open';
+            } else {
+                statusEl.textContent = 'Market Closed';
+                statusEl.className = 'market-status market-closed';
+            }
+        }
+
+        // ── Order Execution (Kite Publisher) ────────────────────────────
+        // This page is opened per-instance from /settings-editor/index.html
+        // (below "Active Signals") as e.g. optiontrade.html?account=PS5673 or
+        // optiontrade.html?account=RD1858. The account param decides which
+        // instance's Today's Positions (status_<account>.json) is pulled
+        // for the Switch section, and which Kite Connect publisher app/API
+        // key is used to build the basket.
+        const ORDER_PARAMS  = new URLSearchParams(window.location.search);
+        const ORDER_ACCOUNT = ORDER_PARAMS.get('account') === 'RD1858' ? 'RD1858' : 'PS5673';
+
+        // Same host as settings-editor's dashboard JSON feeds.
+        const ORDER_STATUS_URLS = {
+            PS5673: 'https://durgeshh-create.github.io/Wealthplus/status_ps5673.json',
+            RD1858: 'https://durgeshh-create.github.io/Wealthplus/status_rd1858.json',
+        };
+
+        // Kite Connect "publisher" API key registered at https://kite.trade
+        // for each Zerodha login. The sample script this page is based on
+        // used a single key (hdl91r34b05rek2v) — that only works for BOTH
+        // instances if PS5673 and RD1858 trade through the SAME Zerodha
+        // account. If they're two different Zerodha logins, each needs its
+        // own registered publisher app — replace the RD1858 value below.
+        const KITE_API_KEYS = {
+            PS5673: 'hdl91r34b05rek2v',
+            RD1858: 'hdl91r34b05rek2v', // TODO: swap in RD1858's own key if it's a separate Zerodha account
+        };
+
+        const NIFTY_FREEZE_QTY = 1755; // NSE freeze limit — no single NFO order may exceed this
+        const MAX_LOTS = 15;
+
+        let kitePublisherReady = false;
+        KiteConnect.ready(function () { kitePublisherReady = true; });
+
+        document.getElementById('orderAccountBadge').textContent = `Instance: ${ORDER_ACCOUNT}`;
+
+        function populateLotOptions(selectId) {
+            const sel = document.getElementById(selectId);
+            for (let i = 1; i <= MAX_LOTS; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = `${i}  →  ${i * NIFTY_FREEZE_QTY} qty`;
+                sel.appendChild(opt);
+            }
+        }
+
+        // Splits a total quantity into NSE-freeze-limit-sized chunks (≤1755
+        // each) since a single NFO order can't exceed the freeze qty.
+        function chunkQty(totalQty) {
+            const chunks = [];
+            let remaining = Math.round(Math.abs(totalQty));
+            while (remaining > 0) {
+                const c = Math.min(NIFTY_FREEZE_QTY, remaining);
+                chunks.push(c);
+                remaining -= c;
+            }
+            return chunks;
+        }
+
+        function makeOrder(symbol, txn, qty) {
+            return {
+                tradingsymbol: symbol, exchange: 'NFO', transaction_type: txn,
+                order_type: 'MARKET', product: 'NRML', quantity: qty,
+                variety: 'regular', readonly: true
+            };
+        }
+
+        // BUY orders (market) to close every existing sold position, split
+        // into freeze-limit-sized chunks.
+        function buildExitOrders(positions) {
+            const orders = [];
+            positions.forEach(p => {
+                chunkQty(p.quantity).forEach(qty => orders.push(makeOrder(p.symbol, 'BUY', qty)));
+            });
+            return orders;
+        }
+
+        // SELL orders for the fresh DOTM PUT/CALL, put-then-call per lot.
+        function buildEntryOrders(putSym, callSym, lots) {
+            const orders = [];
+            for (let i = 0; i < lots; i++) {
+                orders.push(makeOrder(putSym, 'SELL', NIFTY_FREEZE_QTY));
+                orders.push(makeOrder(callSym, 'SELL', NIFTY_FREEZE_QTY));
+            }
+            return orders;
+        }
+
+        // The "NIFTY" + expiry-code prefix (e.g. "NIFTY26721" weekly or
+        // "NIFTY26JUL" monthly) used to match Today's Positions rows against
+        // the CURRENT relevant expiry, using the same expiry logic as the
+        // DOTM strike calculation above. Deliberately anchored to "NIFTY" so
+        // it never matches BANKNIFTY/MIDCPNIFTY/FINNIFTY symbols.
+        function currentNiftyOptionExpiryPrefix() {
+            const today = new Date();
+            const expiry = getExpiryForWeekday(today);
+            const yy = expiry.getFullYear().toString().slice(-2);
+            if (isLastTuesdayOfMonth(expiry)) {
+                return `NIFTY${yy}${MONTH_NAMES[expiry.getMonth()]}`;
+            }
+            const m = (expiry.getMonth() + 1).toString();
+            const dd = expiry.getDate().toString().padStart(2, '0');
+            return `NIFTY${yy}${m}${dd}`;
+        }
+
+        let switchCandidates = [];
+
+        function renderSwitchPositions() {
+            const body = document.getElementById('switchPosBody');
+            body.innerHTML = switchCandidates.length
+                ? switchCandidates.map(p => `<tr><td>${p.symbol}</td><td class="neg-qty">${p.quantity}</td></tr>`).join('')
+                : `<tr><td colspan="2" style="color:#64748b">No current-expiry NIFTY option sold positions found</td></tr>`;
+        }
+
+        async function refreshSwitchPositions() {
+            const statusEl = document.getElementById('switchStatus');
+            statusEl.textContent = 'Loading Today\'s Positions…';
+            statusEl.style.color = '#60a5fa';
+            try {
+                const url = ORDER_STATUS_URLS[ORDER_ACCOUNT] + '?_=' + Date.now();
+                const r = await fetch(url, { cache: 'no-store' });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const data = await r.json();
+                const positions = data.positions || [];
+                const prefix = currentNiftyOptionExpiryPrefix();
+                switchCandidates = positions
+                    .filter(p => p && typeof p.symbol === 'string' && (p.quantity ?? 0) < 0
+                        && p.symbol.startsWith(prefix) && /[CP]E$/.test(p.symbol))
+                    .map(p => ({ symbol: p.symbol, quantity: p.quantity }));
+                renderSwitchPositions();
+                statusEl.textContent = `Updated · ${switchCandidates.length} position(s) matched`;
+                statusEl.style.color = '#4ade80';
+            } catch (e) {
+                console.error('refreshSwitchPositions failed:', e);
+                statusEl.textContent = '⚠ could not load Today\'s Positions — try Refresh';
+                statusEl.style.color = '#f87171';
+            }
+        }
+
+        // Replaces a button with a clone of itself so any Kite click-listener
+        // bound to it on a previous Run doesn't stack / fire twice.
+        function resetButton(id) {
+            const old = document.getElementById(id);
+            const clone = old.cloneNode(true);
+            old.parentNode.replaceChild(clone, old);
+            return clone;
+        }
+
+        function prepareKiteBasket(orders, buttonId) {
+            const btn = resetButton(buttonId);
+            const kite = new KiteConnect(KITE_API_KEYS[ORDER_ACCOUNT]);
+            orders.forEach(o => kite.add(o));
+            kite.link('#' + buttonId);
+            btn.style.display = 'inline-block';
+            btn.textContent = `Place Basket in Kite (${orders.length} orders)`;
+        }
+
+        function renderBasketPreview(elId, orders) {
+            document.getElementById(elId).textContent = orders
+                .map(o => `${o.transaction_type} ${o.tradingsymbol}  x${o.quantity}  (${o.order_type})`)
+                .join('\n');
+        }
+
+        function currentDotmSymbols() {
+            const putSym = document.getElementById('putSymbolText').textContent.trim();
+            const callSym = document.getElementById('callSymbolText').textContent.trim();
+            if (!putSym || !callSym || putSym === '···' || callSym === '···') return null;
+            return { putSym, callSym };
+        }
+
+        function runSwitch() {
+            const statusEl = document.getElementById('switchStatus');
+            if (!kitePublisherReady) { statusEl.textContent = '⚠ Kite Publisher still loading — try again in a second.'; statusEl.style.color = '#f87171'; return; }
+            if (!switchCandidates.length) { statusEl.textContent = '⚠ No current-expiry NIFTY sold positions to switch.'; statusEl.style.color = '#f87171'; return; }
+            const symbols = currentDotmSymbols();
+            if (!symbols) { statusEl.textContent = '⚠ DOTM strikes not loaded yet — wait for live data.'; statusEl.style.color = '#f87171'; return; }
+
+            const lots = parseInt(document.getElementById('switchLotSize').value, 10) || 1;
+            const orders = buildExitOrders(switchCandidates).concat(buildEntryOrders(symbols.putSym, symbols.callSym, lots));
+            renderBasketPreview('switchBasketPreview', orders);
+            prepareKiteBasket(orders, 'switchKiteBtn');
+            statusEl.textContent = orders.length > 20
+                ? `Basket ready (${orders.length} orders) — Kite baskets over 20 legs may need placing in parts.`
+                : `Basket ready (${orders.length} orders) — click "Place Basket in Kite".`;
+            statusEl.style.color = orders.length > 20 ? '#fbbf24' : '#4ade80';
+        }
+
+        function runFreshDotm() {
+            const statusEl = document.getElementById('freshStatus');
+            if (!kitePublisherReady) { statusEl.textContent = '⚠ Kite Publisher still loading — try again in a second.'; statusEl.style.color = '#f87171'; return; }
+            const symbols = currentDotmSymbols();
+            if (!symbols) { statusEl.textContent = '⚠ DOTM strikes not loaded yet — wait for live data.'; statusEl.style.color = '#f87171'; return; }
+
+            const lots = parseInt(document.getElementById('freshLotSize').value, 10) || 1;
+            const orders = buildEntryOrders(symbols.putSym, symbols.callSym, lots);
+            renderBasketPreview('freshBasketPreview', orders);
+            prepareKiteBasket(orders, 'freshKiteBtn');
+            statusEl.textContent = `Basket ready (${orders.length} orders) — click "Place Basket in Kite".`;
+            statusEl.style.color = '#4ade80';
+        }
+
+        populateLotOptions('switchLotSize');
+        populateLotOptions('freshLotSize');
+        refreshSwitchPositions();
+
+        // Run immediately on load. Note: we deliberately do NOT call
+        // calculateRange() here — that would render strikes off the
+        // hardcoded default NIFTY/VIX/MIDCP values before any real price
+        // has been fetched, which is exactly the stale-looking-live bug
+        // this was rewritten to avoid. Placeholders stay up until
+        // fetchLiveData() resolves with at least one real price.
+        checkMarketStatus();
+        showLoadingPlaceholders();
+        updateExpiryVisibility();
+        fetchLiveData();
+        loadDOTMFilter();
+
+        setInterval(() => {
+            checkMarketStatus();
+            fetchLiveData();
+        }, 10000);
+
+        setInterval(refreshSwitchPositions, 10000);
+    </script>
+</body>
+</html>
