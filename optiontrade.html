@@ -220,6 +220,14 @@
             text-align: center; font-family: 'Courier New', monospace;
         }
         .freeze-qty-box input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
+        .freeze-qty-box input:disabled { background: #f1f5f9; color: #64748b; cursor: not-allowed; }
+        .freeze-qty-save {
+            padding: 3px 9px; background: linear-gradient(90deg, #2563eb, #4338ca);
+            color: #fff; border: none; border-radius: 4px; font-size: 0.58rem;
+            font-weight: 700; cursor: pointer;
+        }
+        .freeze-qty-save:hover { filter: brightness(1.1); }
+        .freeze-qty-save.saved { background: linear-gradient(90deg, #16a34a, #15803d); }
         .account-badge {
             padding: 2px 8px; border-radius: 8px; font-size: 0.6rem; font-weight: 700;
             background: rgba(37, 99, 235, 0.1); color: #2563eb; border: 1px solid rgba(37, 99, 235, 0.3);
@@ -313,10 +321,11 @@
             <div class="orders-head">
                 <h1>⚡ Execute Orders</h1>
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                    <span class="freeze-qty-box" title="NSE freeze limit — max quantity per single NFO order. Change here if NSE revises it; applies everywhere on this page (chunking, lot-size dropdowns, order quantities).">
+                    <span class="freeze-qty-box" title="NSE freeze limit — max quantity per single NFO order. Shared across everyone via this repo's settings-editor/freeze-qty.json — only an admin browser (same GitHub token used for the DOTM filter) can change it.">
                         <label for="freezeQtyInput">Freeze limit</label>
-                        <input type="number" id="freezeQtyInput" min="1" step="1" value="1755" onchange="updateFreezeQty()">
-                        <span style="color:#64748b">qty/order</span>
+                        <input type="number" id="freezeQtyInput" min="1" step="1" value="1755">
+                        <button type="button" class="freeze-qty-save" id="freezeQtySaveBtn" onclick="updateFreezeQty()">Save</button>
+                        <span class="order-status" id="freezeQtyStatus" style="margin:0"></span>
                     </span>
                     <span class="account-badge" id="orderAccountBadge">Instance: PS5673</span>
                 </div>
@@ -1097,6 +1106,7 @@
         const DOTM_REPO_OWNER  = 'durgeshh-create';
         const DOTM_REPO_NAME   = 'Wealthplus';
         const DOTM_FILTER_PATH = 'settings-editor/dotm-filter.json';
+        const FREEZE_QTY_PATH  = 'settings-editor/freeze-qty.json';
 
         let _dotmSha = '';
 
@@ -1181,6 +1191,102 @@
         function onDotmRadioChange(mode) {
             applyDOTMFilter(mode);
             saveDOTMFilter(mode);
+        }
+
+        // ── Shared freeze-limit persistence ─────────────────────────────
+        // Same pattern as the DOTM filter above: stored as
+        // settings-editor/freeze-qty.json in the repo, readable by every
+        // visitor, writable only from a browser holding the admin token.
+        let _freezeQtySha = '';
+
+        function setFreezeQtyStatus(msg, color) {
+            const el = document.getElementById('freezeQtyStatus');
+            if (el) { el.textContent = msg; el.style.color = color || '#64748b'; }
+        }
+
+        // Reads the shared freeze limit from GitHub and applies it for
+        // everyone — unauthenticated read, no token required.
+        async function loadFreezeQty() {
+            const isAdmin = !!getDotmAdminToken();
+            const input = document.getElementById('freezeQtyInput');
+            const btn = document.getElementById('freezeQtySaveBtn');
+            input.disabled = !isAdmin;
+            btn.disabled = !isAdmin;
+            btn.style.display = isAdmin ? 'inline-block' : 'none';
+            if (!isAdmin) setFreezeQtyStatus('set by admin');
+
+            try {
+                const url = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${FREEZE_QTY_PATH}?ref=gh-pages`;
+                const r = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
+                if (r.ok) {
+                    const data = await r.json();
+                    _freezeQtySha = data.sha;
+                    const json = JSON.parse(atob(data.content.replace(/\n/g, '')));
+                    if (json.qty > 0) applyFreezeQty(json.qty);
+                } else if (r.status === 404) {
+                    // Doesn't exist yet — keep the NSE default, and if this
+                    // browser is admin, seed the file so future visitors see it.
+                    applyFreezeQty(NIFTY_FREEZE_QTY);
+                    if (isAdmin) await saveFreezeQty(NIFTY_FREEZE_QTY);
+                } else {
+                    throw new Error(`GitHub API ${r.status}`);
+                }
+            } catch (e) {
+                console.error('loadFreezeQty failed:', e);
+                applyFreezeQty(NIFTY_FREEZE_QTY);
+                if (isAdmin) setFreezeQtyStatus('⚠ could not load shared setting', '#dc2626');
+            }
+        }
+
+        // Applies a freeze-qty value locally: updates the working variable,
+        // the input box, and rebuilds both lot-size dropdowns (preserving
+        // whatever lot count was already selected) so their math stays
+        // correct. Also invalidates any basket built under the old limit.
+        function applyFreezeQty(val) {
+            const changed = val !== NIFTY_FREEZE_QTY;
+            NIFTY_FREEZE_QTY = val;
+            document.getElementById('freezeQtyInput').value = val;
+            if (typeof populateLotOptions === 'function') {
+                populateLotOptions('switchLotSize', 5);
+                populateLotOptions('freshLotSize', 9);
+            }
+            if (changed) {
+                invalidateBasket('switch');
+                invalidateBasket('fresh');
+            }
+        }
+
+        // Commits the admin's chosen freeze limit to GitHub so every
+        // visitor sees it.
+        async function saveFreezeQty(val) {
+            const token = getDotmAdminToken();
+            if (!token) return; // not admin on this browser — nothing to persist
+            setFreezeQtyStatus('saving…', '#64748b');
+            try {
+                const url  = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${FREEZE_QTY_PATH}`;
+                const body = {
+                    message: `freeze-qty: ${val} (${new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'})} IST)`,
+                    content: btoa(unescape(encodeURIComponent(JSON.stringify({ qty: val }, null, 2)))),
+                    branch: 'gh-pages',
+                };
+                if (_freezeQtySha) body.sha = _freezeQtySha;
+                const r = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token ' + token,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(body),
+                });
+                if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+                const resp = await r.json();
+                _freezeQtySha = resp.content.sha;
+                setFreezeQtyStatus('✓ saved for all visitors', '#16a34a');
+            } catch (e) {
+                console.error('saveFreezeQty failed:', e);
+                setFreezeQtyStatus('⚠ save failed — check GitHub token/repo', '#dc2626');
+            }
         }
 
         // Lets the viewer hide the DOTM Put or Call card independently — e.g.
@@ -1328,15 +1434,12 @@
         };
 
         // NSE freeze limit — max quantity allowed on a single NFO order.
-        // Editable via the "Freeze limit" box in the header (in case NSE
-        // revises it in future); the chosen value is remembered in this
-        // browser via localStorage and used everywhere on this page —
-        // order chunking, lot-size dropdown math, and per-lot quantities.
+        // Shared across every visitor (see loadFreezeQty/saveFreezeQty
+        // below, same GitHub-JSON pattern as the DOTM filter setting) and
+        // used everywhere on this page — order chunking, lot-size dropdown
+        // math, and per-lot quantities. Starts at the NSE default; the
+        // shared value (if any) overwrites this once loadFreezeQty() runs.
         let NIFTY_FREEZE_QTY = 1755;
-        try {
-            const savedFreeze = parseInt(localStorage.getItem('optiontrade_freezeQty'), 10);
-            if (savedFreeze > 0) NIFTY_FREEZE_QTY = savedFreeze;
-        } catch (e) { /* localStorage unavailable — fall back to default */ }
         const MAX_LOTS = 15;
 
         // The Kite Connect login/checkout popup is opened by Zerodha's own
@@ -1391,24 +1494,26 @@
             invalidateBasket(selectId === 'switchLotSize' ? 'switch' : 'fresh');
         }
 
-        // Applies a new NSE freeze-limit value everywhere on the page:
-        // remembers it for next time, rebuilds both lot-size dropdowns
-        // (preserving whatever lot count was already selected), and
-        // invalidates any basket that was built under the old limit so it
-        // can't be placed with stale per-order quantities.
+        // Save button click: validates input, applies locally right away,
+        // and commits to the shared settings-editor/freeze-qty.json file
+        // (admin browsers only — saveFreezeQty is a no-op otherwise).
         function updateFreezeQty() {
             const input = document.getElementById('freezeQtyInput');
+            const btn = document.getElementById('freezeQtySaveBtn');
             const val = parseInt(input.value, 10);
             if (!val || val <= 0) {
                 input.value = NIFTY_FREEZE_QTY; // reject bad input, restore last-good value
                 return;
             }
-            NIFTY_FREEZE_QTY = val;
-            try { localStorage.setItem('optiontrade_freezeQty', String(val)); } catch (e) { /* ignore */ }
-            populateLotOptions('switchLotSize', 5);
-            populateLotOptions('freshLotSize', 9);
-            invalidateBasket('switch');
-            invalidateBasket('fresh');
+            applyFreezeQty(val);
+            saveFreezeQty(val).then(() => {
+                if (btn) {
+                    const original = btn.textContent;
+                    btn.textContent = 'Saved ✓';
+                    btn.classList.add('saved');
+                    setTimeout(() => { btn.textContent = original; btn.classList.remove('saved'); }, 1200);
+                }
+            });
         }
 
         // ── Editable PUT/CALL symbol boxes ──────────────────────────────
@@ -1656,6 +1761,7 @@
         updateExpiryVisibility();
         fetchLiveData();
         loadDOTMFilter();
+        loadFreezeQty();
 
         setInterval(() => {
             checkMarketStatus();
