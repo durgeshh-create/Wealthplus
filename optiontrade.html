@@ -132,7 +132,7 @@
         .midcp .strike-badge { background: rgba(168, 85, 247, 0.3); color: #c084fc; }
         .symbol-display { padding: 8px; text-align: center; }
         .symbol-code {
-            font-family: 'Courier New', monospace; font-size: 1.4rem; font-weight: 700;
+            font-family: 'Courier New', monospace; font-size: 1.65rem; font-weight: 700;
             padding: 10px; background: rgba(15, 23, 42, 0.6); border-radius: 6px;
             border: 1px solid rgba(148, 163, 184, 0.2); letter-spacing: 1px;
             display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -232,6 +232,32 @@
             flex: 1; padding: 4px 6px; background: rgba(15, 23, 42, 0.7); color: #f1f5f9;
             border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 4px; font-size: 0.65rem;
         }
+        /* Draws the eye to the lot-size dropdown until the user has picked one */
+        .lot-row select.needs-selection {
+            border: 1px solid #fbbf24; background: rgba(251, 191, 36, 0.12);
+            box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
+            animation: lotPulse 1.6s ease-in-out infinite;
+        }
+        @keyframes lotPulse {
+            0%, 100% { box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25); }
+            50%      { box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.45); }
+        }
+        .symbol-edit-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+        .symbol-edit-row label {
+            width: 32px; font-size: 0.6rem; font-weight: 700; flex-shrink: 0;
+        }
+        .symbol-edit-row.put label { color: #f87171; }
+        .symbol-edit-row.call label { color: #4ade80; }
+        .symbol-edit-row input {
+            flex: 1; padding: 5px 7px; background: rgba(15, 23, 42, 0.7); color: #f1f5f9;
+            border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 4px;
+            font-family: 'Courier New', monospace; font-size: 0.85rem; font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .symbol-edit-row.put input { border-color: rgba(239, 68, 68, 0.35); }
+        .symbol-edit-row.call input { border-color: rgba(34, 197, 94, 0.35); }
+        .symbol-edit-row input:focus { outline: none; border-color: #60a5fa; box-shadow: 0 0 0 2px rgba(96,165,250,0.25); }
+        .symbol-edit-hint { font-size: 0.5rem; color: #64748b; margin-bottom: 6px; }
         .basket-preview {
             background: rgba(0,0,0,0.35); border-radius: 4px; padding: 6px;
             font-family: 'Courier New', monospace; font-size: 0.58rem; color: #cbd5e1;
@@ -282,8 +308,18 @@
 
                     <div class="lot-row" style="margin-top:8px">
                         <label>Lot size</label>
-                        <select id="switchLotSize"></select>
+                        <select id="switchLotSize" class="needs-selection" onchange="onLotChosen('switchLotSize')"></select>
                     </div>
+
+                    <div class="symbol-edit-row put">
+                        <label>PUT</label>
+                        <input type="text" id="switchPutSymbol" spellcheck="false" autocomplete="off">
+                    </div>
+                    <div class="symbol-edit-row call">
+                        <label>CALL</label>
+                        <input type="text" id="switchCallSymbol" spellcheck="false" autocomplete="off">
+                    </div>
+                    <div class="symbol-edit-hint">Auto-filled from the computed NIFTY DOTM strikes below — edit if you want to sell a different strike/symbol. <a href="#" onclick="resetSymbolInputs('switch');return false;" style="color:#60a5fa">↺ reset to computed</a></div>
 
                     <div class="basket-preview" id="switchBasketPreview">Basket preview appears here after Run.</div>
 
@@ -301,8 +337,18 @@
 
                     <div class="lot-row">
                         <label>Lot size</label>
-                        <select id="freshLotSize"></select>
+                        <select id="freshLotSize" class="needs-selection" onchange="onLotChosen('freshLotSize')"></select>
                     </div>
+
+                    <div class="symbol-edit-row put">
+                        <label>PUT</label>
+                        <input type="text" id="freshPutSymbol" spellcheck="false" autocomplete="off">
+                    </div>
+                    <div class="symbol-edit-row call">
+                        <label>CALL</label>
+                        <input type="text" id="freshCallSymbol" spellcheck="false" autocomplete="off">
+                    </div>
+                    <div class="symbol-edit-hint">Auto-filled from the computed NIFTY DOTM strikes below — edit if you want to sell a different strike/symbol. <a href="#" onclick="resetSymbolInputs('fresh');return false;" style="color:#60a5fa">↺ reset to computed</a></div>
 
                     <div class="basket-preview" id="freshBasketPreview">Basket preview appears here after Run.</div>
 
@@ -799,6 +845,10 @@
             document.getElementById('midcpCallSymbolText').textContent = midcpCallSym;
             document.getElementById('midcpPutStrike').textContent = midcpExpiryPutStrike.toLocaleString();
             document.getElementById('midcpCallStrike').textContent = midcpExpiryCallStrike.toLocaleString();
+
+            // Keep the editable PUT/CALL order boxes in sync with the freshly
+            // computed DOTM strikes, unless the user has typed their own override.
+            if (typeof syncSymbolInputs === 'function') syncSymbolInputs();
         }
 
         // NSE's own API rejects cross-origin browser requests (no CORS headers),
@@ -1252,13 +1302,39 @@
         const NIFTY_FREEZE_QTY = 1755; // NSE freeze limit — no single NFO order may exceed this
         const MAX_LOTS = 15;
 
+        // The Kite Connect login popup (kite.zerodha.com/connect/login) is
+        // opened by Zerodha's own publisher.js via window.open() with a
+        // small default size, which can clip the password/login button on
+        // some screens. We can't edit their script, but we CAN intercept
+        // window.open() and force a larger, resizable window whenever the
+        // target URL is the Kite login page.
+        (function enlargeKiteLoginPopup() {
+            const nativeOpen = window.open;
+            window.open = function (url, name, specs) {
+                if (typeof url === 'string' && url.indexOf('kite.zerodha.com/connect/login') !== -1) {
+                    specs = 'width=520,height=800,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';
+                }
+                return nativeOpen.call(window, url, name, specs);
+            };
+        })();
+
         let kitePublisherReady = false;
         KiteConnect.ready(function () { kitePublisherReady = true; });
 
         document.getElementById('orderAccountBadge').textContent = `Instance: ${ORDER_ACCOUNT}`;
 
+        // First option is an unselected placeholder so the dropdown starts
+        // empty — forces a deliberate lot-size choice rather than silently
+        // defaulting to lot 1. The .needs-selection CSS class (pulsing amber
+        // outline) is removed once the user actually picks a value.
         function populateLotOptions(selectId) {
             const sel = document.getElementById(selectId);
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = '— Select lot size —';
+            placeholder.disabled = true;
+            placeholder.selected = true;
+            sel.appendChild(placeholder);
             for (let i = 1; i <= MAX_LOTS; i++) {
                 const opt = document.createElement('option');
                 opt.value = i;
@@ -1266,6 +1342,48 @@
                 sel.appendChild(opt);
             }
         }
+
+        function onLotChosen(selectId) {
+            const sel = document.getElementById(selectId);
+            if (sel.value) sel.classList.remove('needs-selection');
+        }
+
+        // ── Editable PUT/CALL symbol boxes ──────────────────────────────
+        // Auto-filled from the computed DOTM strikes on every refresh, but
+        // the user can type over them to sell a different strike/symbol.
+        // Once hand-edited, auto-sync stops touching that pair until reset.
+        let switchSymbolsEdited = false;
+        let freshSymbolsEdited  = false;
+
+        function syncSymbolInputs() {
+            const putSym  = document.getElementById('putSymbolText').textContent.trim();
+            const callSym = document.getElementById('callSymbolText').textContent.trim();
+            if (!putSym || !callSym || putSym === '···' || callSym === '···') return;
+            if (!switchSymbolsEdited) {
+                document.getElementById('switchPutSymbol').value  = putSym;
+                document.getElementById('switchCallSymbol').value = callSym;
+            }
+            if (!freshSymbolsEdited) {
+                document.getElementById('freshPutSymbol').value  = putSym;
+                document.getElementById('freshCallSymbol').value = callSym;
+            }
+        }
+
+        function markEdited(which) {
+            if (which === 'switch') switchSymbolsEdited = true;
+            else freshSymbolsEdited = true;
+        }
+
+        function resetSymbolInputs(which) {
+            if (which === 'switch') switchSymbolsEdited = false;
+            else freshSymbolsEdited = false;
+            syncSymbolInputs();
+        }
+
+        ['switchPutSymbol', 'switchCallSymbol'].forEach(id =>
+            document.getElementById(id).addEventListener('input', () => markEdited('switch')));
+        ['freshPutSymbol', 'freshCallSymbol'].forEach(id =>
+            document.getElementById(id).addEventListener('input', () => markEdited('fresh')));
 
         // Splits a total quantity into NSE-freeze-limit-sized chunks (≤1755
         // each) since a single NFO order can't exceed the freeze qty.
@@ -1308,21 +1426,26 @@
             return orders;
         }
 
-        // The "NIFTY" + expiry-code prefix (e.g. "NIFTY26721" weekly or
-        // "NIFTY26JUL" monthly) used to match Today's Positions rows against
-        // the CURRENT relevant expiry, using the same expiry logic as the
-        // DOTM strike calculation above. Deliberately anchored to "NIFTY" so
-        // it never matches BANKNIFTY/MIDCPNIFTY/FINNIFTY symbols.
-        function currentNiftyOptionExpiryPrefix() {
+        // Builds a regex that matches ONLY plain NIFTY index option symbols
+        // for the current relevant expiry — "NIFTY" + expiry-code, followed
+        // by nothing but digits (the strike) and CE/PE. Anchored at both
+        // ends so lookalike underlyings can never slip through:
+        //   BANKNIFTY..., MIDCPNIFTY..., FINNIFTY... — don't start with "NIFTY"
+        //   NIFTYNXT50..., NIFTYIETF-style tickers    — have letters right
+        //     after "NIFTY" instead of the expiry's digits, so they fail too
+        function currentNiftyOptionExpiryRegex() {
             const today = new Date();
             const expiry = getExpiryForWeekday(today);
             const yy = expiry.getFullYear().toString().slice(-2);
+            let prefix;
             if (isLastTuesdayOfMonth(expiry)) {
-                return `NIFTY${yy}${MONTH_NAMES[expiry.getMonth()]}`;
+                prefix = `NIFTY${yy}${MONTH_NAMES[expiry.getMonth()]}`;
+            } else {
+                const m = (expiry.getMonth() + 1).toString();
+                const dd = expiry.getDate().toString().padStart(2, '0');
+                prefix = `NIFTY${yy}${m}${dd}`;
             }
-            const m = (expiry.getMonth() + 1).toString();
-            const dd = expiry.getDate().toString().padStart(2, '0');
-            return `NIFTY${yy}${m}${dd}`;
+            return new RegExp('^' + prefix + '\\d+[CP]E$');
         }
 
         let switchCandidates = [];
@@ -1344,10 +1467,9 @@
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 const data = await r.json();
                 const positions = data.positions || [];
-                const prefix = currentNiftyOptionExpiryPrefix();
+                const symRe = currentNiftyOptionExpiryRegex();
                 switchCandidates = positions
-                    .filter(p => p && typeof p.symbol === 'string' && (p.quantity ?? 0) < 0
-                        && p.symbol.startsWith(prefix) && /[CP]E$/.test(p.symbol))
+                    .filter(p => p && typeof p.symbol === 'string' && (p.quantity ?? 0) < 0 && symRe.test(p.symbol))
                     .map(p => ({ symbol: p.symbol, quantity: p.quantity }));
                 renderSwitchPositions();
                 statusEl.textContent = `Updated · ${switchCandidates.length} position(s) matched`;
@@ -1383,9 +1505,12 @@
                 .join('\n');
         }
 
-        function currentDotmSymbols() {
-            const putSym = document.getElementById('putSymbolText').textContent.trim();
-            const callSym = document.getElementById('callSymbolText').textContent.trim();
+        // Reads the (possibly user-edited) PUT/CALL symbol boxes for a
+        // section rather than the read-only DOTM display, so manual
+        // overrides are honoured.
+        function editedSymbols(prefixId) {
+            const putSym = document.getElementById(prefixId + 'PutSymbol').value.trim().toUpperCase();
+            const callSym = document.getElementById(prefixId + 'CallSymbol').value.trim().toUpperCase();
             if (!putSym || !callSym || putSym === '···' || callSym === '···') return null;
             return { putSym, callSym };
         }
@@ -1394,10 +1519,12 @@
             const statusEl = document.getElementById('switchStatus');
             if (!kitePublisherReady) { statusEl.textContent = '⚠ Kite Publisher still loading — try again in a second.'; statusEl.style.color = '#f87171'; return; }
             if (!switchCandidates.length) { statusEl.textContent = '⚠ No current-expiry NIFTY sold positions to switch.'; statusEl.style.color = '#f87171'; return; }
-            const symbols = currentDotmSymbols();
-            if (!symbols) { statusEl.textContent = '⚠ DOTM strikes not loaded yet — wait for live data.'; statusEl.style.color = '#f87171'; return; }
+            const symbols = editedSymbols('switch');
+            if (!symbols) { statusEl.textContent = '⚠ PUT/CALL symbol boxes are empty — wait for live data or type a symbol.'; statusEl.style.color = '#f87171'; return; }
+            const lotSel = document.getElementById('switchLotSize');
+            if (!lotSel.value) { lotSel.classList.add('needs-selection'); statusEl.textContent = '⚠ Pick a lot size first.'; statusEl.style.color = '#f87171'; return; }
 
-            const lots = parseInt(document.getElementById('switchLotSize').value, 10) || 1;
+            const lots = parseInt(lotSel.value, 10);
             const orders = buildExitOrders(switchCandidates).concat(buildEntryOrders(symbols.putSym, symbols.callSym, lots));
             renderBasketPreview('switchBasketPreview', orders);
             prepareKiteBasket(orders, 'switchKiteBtn');
@@ -1410,10 +1537,12 @@
         function runFreshDotm() {
             const statusEl = document.getElementById('freshStatus');
             if (!kitePublisherReady) { statusEl.textContent = '⚠ Kite Publisher still loading — try again in a second.'; statusEl.style.color = '#f87171'; return; }
-            const symbols = currentDotmSymbols();
-            if (!symbols) { statusEl.textContent = '⚠ DOTM strikes not loaded yet — wait for live data.'; statusEl.style.color = '#f87171'; return; }
+            const symbols = editedSymbols('fresh');
+            if (!symbols) { statusEl.textContent = '⚠ PUT/CALL symbol boxes are empty — wait for live data or type a symbol.'; statusEl.style.color = '#f87171'; return; }
+            const lotSel = document.getElementById('freshLotSize');
+            if (!lotSel.value) { lotSel.classList.add('needs-selection'); statusEl.textContent = '⚠ Pick a lot size first.'; statusEl.style.color = '#f87171'; return; }
 
-            const lots = parseInt(document.getElementById('freshLotSize').value, 10) || 1;
+            const lots = parseInt(lotSel.value, 10);
             const orders = buildEntryOrders(symbols.putSym, symbols.callSym, lots);
             renderBasketPreview('freshBasketPreview', orders);
             prepareKiteBasket(orders, 'freshKiteBtn');
