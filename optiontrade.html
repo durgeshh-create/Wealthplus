@@ -8,32 +8,32 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh; color: #e2e8f0; padding: 8px;
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
+            min-height: 100vh; color: #1e293b; padding: 8px;
         }
         .container { max-width: 1200px; margin: 0 auto; }
 
         .header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 6px; padding: 6px 12px;
-            background: rgba(30, 41, 59, 0.8); border-radius: 8px;
-            border: 1px solid rgba(148, 163, 184, 0.1);
+            background: #ffffff; border-radius: 8px;
+            border: 1px solid rgba(15, 23, 42, 0.08); box-shadow: 0 1px 2px rgba(15,23,42,0.04);
         }
         .header-left { display: flex; flex-direction: column; }
         .header h1 {
             font-size: 1.1rem;
-            background: linear-gradient(90deg, #60a5fa, #34d399);
+            background: linear-gradient(90deg, #2563eb, #059669);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        .header .subtitle { color: #94a3b8; font-size: 0.6rem; }
+        .header .subtitle { color: #64748b; font-size: 0.6rem; }
         .market-status {
             display: inline-block; padding: 1px 6px; border-radius: 8px;
             font-size: 0.55rem; font-weight: 600; margin-top: 2px; width: fit-content;
         }
-        .market-open { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
-        .market-closed { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .market-open { background: rgba(34, 197, 94, 0.12); color: #16a34a; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .market-closed { background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3); }
         .fetch-btn {
-            padding: 5px 12px; background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            padding: 5px 12px; background: linear-gradient(90deg, #2563eb, #7c3aed);
             color: white; border: none; border-radius: 6px; font-size: 0.65rem;
             font-weight: 600; cursor: pointer; white-space: nowrap;
         }
@@ -47,46 +47,46 @@
         @keyframes spin { to { transform: rotate(360deg); } }
 
         .info-bar {
-            background: rgba(30, 41, 59, 0.8); padding: 4px 8px; border-radius: 6px;
-            margin-bottom: 6px; border: 1px solid rgba(148, 163, 184, 0.1);
+            background: #ffffff; padding: 4px 8px; border-radius: 6px;
+            margin-bottom: 6px; border: 1px solid rgba(15, 23, 42, 0.08); box-shadow: 0 1px 2px rgba(15,23,42,0.04);
             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px;
         }
         .info-item { display: flex; align-items: center; gap: 3px; font-size: 0.65rem; }
         .info-item .dot { width: 5px; height: 5px; border-radius: 50%; }
-        .weekday-highlight { color: #fbbf24; font-weight: 700; }
+        .weekday-highlight { color: #b45309; font-weight: 700; }
 
         .toggle-row { text-align: center; margin-bottom: 6px; }
         .dotm-filter-row {
             display: flex; justify-content: center; align-items: center; gap: 10px;
-            margin-bottom: 6px; font-size: 0.65rem; color: #94a3b8; flex-wrap: wrap;
+            margin-bottom: 6px; font-size: 0.65rem; color: #64748b; flex-wrap: wrap;
         }
         .dotm-filter-row label {
             display: inline-flex; align-items: center; gap: 3px; cursor: pointer;
-            padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(148, 163, 184, 0.2);
-            background: rgba(30, 41, 59, 0.6);
+            padding: 3px 8px; border-radius: 5px; border: 1px solid rgba(15, 23, 42, 0.12);
+            background: #f8fafc;
         }
-        .dotm-filter-row input[type="radio"] { accent-color: #60a5fa; cursor: pointer; margin: 0; }
+        .dotm-filter-row input[type="radio"] { accent-color: #2563eb; cursor: pointer; margin: 0; }
         .dotm-filter-row input[type="radio"]:disabled { cursor: default; opacity: 0.6; }
         .dotm-filter-row label:has(input:disabled) { cursor: default; opacity: 0.85; }
-        .dotm-filter-row label.active-put { border-color: rgba(239, 68, 68, 0.4); color: #f87171; }
-        .dotm-filter-row label.active-call { border-color: rgba(34, 197, 94, 0.4); color: #4ade80; }
+        .dotm-filter-row label.active-put { border-color: rgba(220, 38, 38, 0.4); color: #dc2626; }
+        .dotm-filter-row label.active-call { border-color: rgba(22, 163, 74, 0.4); color: #16a34a; }
         .toggle-btn {
-            background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.3);
-            color: #e2e8f0; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+            background: #eef2f7; border: 1px solid rgba(15, 23, 42, 0.15);
+            color: #1e293b; padding: 6px 14px; border-radius: 6px; cursor: pointer;
             font-size: 0.75rem; font-weight: 700;
         }
-        .toggle-btn:hover { background: rgba(148, 163, 184, 0.3); color: #fff; }
+        .toggle-btn:hover { background: #e2e8f0; color: #0f172a; }
         .manual-inputs {
             display: none; grid-template-columns: repeat(3, 1fr);
             gap: 6px; margin-bottom: 6px; padding: 6px;
-            background: rgba(15, 23, 42, 0.4); border-radius: 6px;
+            background: #f1f5f9; border-radius: 6px;
         }
         .manual-inputs.active { display: grid; }
         .manual-inputs .input-card { padding: 4px; }
         .manual-inputs input {
-            width: 100%; padding: 3px 5px; background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 4px;
-            color: #f1f5f9; font-size: 0.7rem; font-weight: 600;
+            width: 100%; padding: 3px 5px; background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.15); border-radius: 4px;
+            color: #1e293b; font-size: 0.7rem; font-weight: 600;
         }
 
         .inputs-row {
@@ -94,15 +94,15 @@
             gap: 6px; margin-bottom: 6px;
         }
         .input-card {
-            background: rgba(30, 41, 59, 0.8); padding: 6px 8px; border-radius: 6px;
-            border: 1px solid rgba(148, 163, 184, 0.1);
+            background: #ffffff; padding: 6px 8px; border-radius: 6px;
+            border: 1px solid rgba(15, 23, 42, 0.08); box-shadow: 0 1px 2px rgba(15,23,42,0.04);
         }
-        .input-card label { display: block; color: #94a3b8; font-size: 0.55rem; margin-bottom: 1px; }
-        .input-card .value-display { font-size: 0.9rem; font-weight: 700; color: #60a5fa; }
+        .input-card label { display: block; color: #64748b; font-size: 0.55rem; margin-bottom: 1px; }
+        .input-card .value-display { font-size: 0.9rem; font-weight: 700; color: #2563eb; }
         .formula-box {
-            background: rgba(15, 23, 42, 0.6); padding: 3px 5px; border-radius: 4px; margin-top: 2px;
-            font-family: 'Courier New', monospace; font-size: 0.5rem; color: #94a3b8;
-            border-left: 2px solid #60a5fa;
+            background: #f1f5f9; padding: 3px 5px; border-radius: 4px; margin-top: 2px;
+            font-family: 'Courier New', monospace; font-size: 0.5rem; color: #64748b;
+            border-left: 2px solid #2563eb;
         }
 
         .results-row {
@@ -113,176 +113,185 @@
         @media (max-width: 500px) { .results-row { grid-template-columns: 1fr; } }
 
         .result-card {
-            background: rgba(30, 41, 59, 0.8); border-radius: 8px;
-            border: 1px solid rgba(148, 163, 184, 0.1); overflow: hidden;
+            background: #ffffff; border-radius: 8px;
+            border: 1px solid rgba(15, 23, 42, 0.08); overflow: hidden; box-shadow: 0 1px 2px rgba(15,23,42,0.04);
         }
         .result-header {
             padding: 6px 10px; display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
         }
-        .result-header.put { background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), rgba(30, 41, 59, 0.8)); }
-        .result-header.call { background: linear-gradient(90deg, rgba(34, 197, 94, 0.2), rgba(30, 41, 59, 0.8)); }
-        .result-header.expiry-section { background: linear-gradient(90deg, rgba(251, 191, 36, 0.2), rgba(30, 41, 59, 0.8)); }
-        .result-header.midcp { background: linear-gradient(90deg, rgba(168, 85, 247, 0.2), rgba(30, 41, 59, 0.8)); }
+        .result-header.put { background: linear-gradient(90deg, rgba(239, 68, 68, 0.12), #ffffff); }
+        .result-header.call { background: linear-gradient(90deg, rgba(34, 197, 94, 0.12), #ffffff); }
+        .result-header.expiry-section { background: linear-gradient(90deg, rgba(251, 191, 36, 0.15), #ffffff); }
+        .result-header.midcp { background: linear-gradient(90deg, rgba(168, 85, 247, 0.12), #ffffff); }
         .result-header h2 { font-size: 0.75rem; display: flex; align-items: center; gap: 4px; }
         .result-header .strike-badge { padding: 2px 6px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; }
-        .put .strike-badge { background: rgba(239, 68, 68, 0.3); color: #f87171; }
-        .call .strike-badge { background: rgba(34, 197, 94, 0.3); color: #4ade80; }
-        .expiry .strike-badge { background: rgba(251, 191, 36, 0.3); color: #fbbf24; }
-        .midcp .strike-badge { background: rgba(168, 85, 247, 0.3); color: #c084fc; }
+        .put .strike-badge { background: rgba(239, 68, 68, 0.14); color: #dc2626; }
+        .call .strike-badge { background: rgba(34, 197, 94, 0.14); color: #16a34a; }
+        .expiry .strike-badge { background: rgba(251, 191, 36, 0.2); color: #b45309; }
+        .midcp .strike-badge { background: rgba(168, 85, 247, 0.15); color: #9333ea; }
         .symbol-display { padding: 8px; text-align: center; }
         .symbol-code {
             font-family: 'Courier New', monospace; font-size: 1.65rem; font-weight: 700;
-            padding: 10px; background: rgba(15, 23, 42, 0.6); border-radius: 6px;
-            border: 1px solid rgba(148, 163, 184, 0.2); letter-spacing: 1px;
+            padding: 10px; background: #f8fafc; border-radius: 6px;
+            border: 1px solid rgba(15, 23, 42, 0.1); letter-spacing: 1px;
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        .put .symbol-code { color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
-        .call .symbol-code { color: #4ade80; border-color: rgba(34, 197, 94, 0.3); }
-        .expiry .symbol-code { color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); }
-        .midcp .symbol-code { color: #c084fc; border-color: rgba(168, 85, 247, 0.3); }
+        .put .symbol-code { color: #dc2626; border-color: rgba(220, 38, 38, 0.25); }
+        .call .symbol-code { color: #16a34a; border-color: rgba(22, 163, 74, 0.25); }
+        .expiry .symbol-code { color: #b45309; border-color: rgba(180, 83, 9, 0.25); }
+        .midcp .symbol-code { color: #9333ea; border-color: rgba(147, 51, 234, 0.25); }
         .option-type-badge {
             display: inline-block; padding: 1px 4px; border-radius: 2px;
             font-size: 0.45rem; font-weight: 700; margin-left: 3px;
         }
-        .weekly-badge { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-        .monthly-badge { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+        .weekly-badge { background: rgba(34, 197, 94, 0.15); color: #16a34a; }
+        .monthly-badge { background: rgba(168, 85, 247, 0.15); color: #9333ea; }
 
         .copy-btn {
-            background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.3);
-            color: #cbd5e1; padding: 3px 8px; border-radius: 5px; cursor: pointer;
+            background: #eef2f7; border: 1px solid rgba(15, 23, 42, 0.15);
+            color: #334155; padding: 3px 8px; border-radius: 5px; cursor: pointer;
             font-size: 0.6rem; font-weight: 600; transition: all 0.2s;
             display: inline-flex; align-items: center; gap: 3px; white-space: nowrap;
         }
-        .copy-btn:hover { background: rgba(148, 163, 184, 0.3); color: #fff; }
-        .copy-btn.copied { background: rgba(34, 197, 94, 0.3); color: #4ade80; border-color: rgba(34, 197, 94, 0.4); }
+        .copy-btn:hover { background: #e2e8f0; color: #0f172a; }
+        .copy-btn.copied { background: rgba(34, 197, 94, 0.18); color: #16a34a; border-color: rgba(34, 197, 94, 0.4); }
         .copy-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
         .section-divider { text-align: center; margin: 4px 0; position: relative; }
         .section-divider::before {
             content: ''; position: absolute; top: 50%; left: 0; right: 0;
-            height: 1px; background: rgba(148, 163, 184, 0.15);
+            height: 1px; background: rgba(15, 23, 42, 0.12);
         }
         .section-divider span {
-            background: #0f172a; padding: 0 8px; color: #fbbf24;
+            background: #f8fafc; padding: 0 8px; color: #b45309;
             font-weight: 600; font-size: 0.6rem; position: relative;
         }
         .expiry-day-banner {
-            background: linear-gradient(90deg, rgba(251, 191, 36, 0.1), rgba(30, 41, 59, 0.8));
-            border: 1px solid rgba(251, 191, 36, 0.15); border-radius: 5px;
+            background: linear-gradient(90deg, rgba(251, 191, 36, 0.12), #ffffff);
+            border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 5px;
             padding: 3px 6px; margin-bottom: 4px; text-align: center;
-            color: #fbbf24; font-size: 0.55rem; font-weight: 600;
+            color: #b45309; font-size: 0.55rem; font-weight: 600;
         }
         .midcp-banner {
-            background: linear-gradient(90deg, rgba(168, 85, 247, 0.1), rgba(30, 41, 59, 0.8));
-            border: 1px solid rgba(168, 85, 247, 0.15); border-radius: 5px;
+            background: linear-gradient(90deg, rgba(168, 85, 247, 0.1), #ffffff);
+            border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 5px;
             padding: 3px 6px; margin-bottom: 4px; text-align: center;
-            color: #c084fc; font-size: 0.55rem; font-weight: 600;
+            color: #9333ea; font-size: 0.55rem; font-weight: 600;
         }
 
-        .pending { opacity: 0.35; }
+        .pending { opacity: 0.4; }
         .pending-badge {
             display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 0.55rem;
-            font-weight: 700; margin-top: 2px; background: rgba(96, 165, 250, 0.15); color: #60a5fa;
-            border: 1px solid rgba(96, 165, 250, 0.25);
+            font-weight: 700; margin-top: 2px; background: rgba(37, 99, 235, 0.1); color: #2563eb;
+            border: 1px solid rgba(37, 99, 235, 0.25);
         }
         .note {
-            background: rgba(251, 191, 36, 0.06); border: 1px solid rgba(251, 191, 36, 0.1);
-            color: #fbbf24; padding: 4px 6px; border-radius: 5px; margin-top: 4px;
+            background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3);
+            color: #92400e; padding: 4px 6px; border-radius: 5px; margin-top: 4px;
             font-size: 0.55rem; line-height: 1.4;
         }
         .midcp-caveat {
-            text-align: center; font-size: 0.55rem; color: #c084fc; opacity: 0.75;
+            text-align: center; font-size: 0.55rem; color: #9333ea; opacity: 0.8;
             font-style: italic; margin-top: 4px; margin-bottom: 2px;
         }
 
         /* ── Order Execution (Kite Publisher) ─────────────────────────── */
         .orders-wrap {
-            background: rgba(30, 41, 59, 0.8); border-radius: 8px;
-            border: 1px solid rgba(96, 165, 250, 0.25); margin-bottom: 8px; overflow: hidden;
+            background: #ffffff; border-radius: 8px;
+            border: 1px solid rgba(37, 99, 235, 0.25); margin-bottom: 8px; overflow: hidden;
+            box-shadow: 0 1px 3px rgba(15,23,42,0.06);
         }
         .orders-head {
             display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;
-            padding: 6px 10px; background: linear-gradient(90deg, rgba(96, 165, 250, 0.18), rgba(30, 41, 59, 0.8));
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            padding: 6px 10px; background: linear-gradient(90deg, rgba(37, 99, 235, 0.1), #ffffff);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
         }
-        .orders-head h1 { font-size: 0.85rem; }
+        .orders-head h1 { font-size: 0.85rem; color: #1e293b; }
         .account-badge {
             padding: 2px 8px; border-radius: 8px; font-size: 0.6rem; font-weight: 700;
-            background: rgba(96, 165, 250, 0.2); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.35);
+            background: rgba(37, 99, 235, 0.1); color: #2563eb; border: 1px solid rgba(37, 99, 235, 0.3);
         }
         .orders-body { padding: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         @media (max-width: 640px) { .orders-body { grid-template-columns: 1fr; } }
         .order-section {
-            background: rgba(15, 23, 42, 0.5); border-radius: 6px; padding: 8px;
-            border: 1px solid rgba(148, 163, 184, 0.12);
+            background: #f8fafc; border-radius: 6px; padding: 8px;
+            border: 1px solid rgba(15, 23, 42, 0.08);
         }
         .order-section h3 {
             font-size: 0.72rem; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;
-            color: #f1f5f9;
+            color: #1e293b;
         }
-        .order-section .hint { font-size: 0.55rem; color: #94a3b8; margin-bottom: 6px; line-height: 1.4; }
+        .order-section .hint { font-size: 0.55rem; color: #64748b; margin-bottom: 6px; line-height: 1.4; }
         .mini-tbl { width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 0.62rem; }
-        .mini-tbl th { text-align: left; color: #94a3b8; font-weight: 600; padding: 2px 4px; border-bottom: 1px solid rgba(148,163,184,0.15); }
-        .mini-tbl td { padding: 2px 4px; border-bottom: 1px solid rgba(148,163,184,0.06); font-family: 'Courier New', monospace; }
-        .mini-tbl .neg-qty { color: #f87171; }
+        .mini-tbl th { text-align: left; color: #64748b; font-weight: 600; padding: 2px 4px; border-bottom: 1px solid rgba(15,23,42,0.1); }
+        .mini-tbl td { padding: 2px 4px; border-bottom: 1px solid rgba(15,23,42,0.05); font-family: 'Courier New', monospace; color: #1e293b; }
+        .mini-tbl .neg-qty { color: #dc2626; }
         .lot-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
-        .lot-row label { font-size: 0.6rem; color: #94a3b8; white-space: nowrap; }
+        .lot-row label { font-size: 0.6rem; color: #64748b; white-space: nowrap; }
         .lot-row select {
-            flex: 1; padding: 4px 6px; background: rgba(15, 23, 42, 0.7); color: #f1f5f9;
-            border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 4px; font-size: 0.65rem;
+            flex: 1; padding: 4px 6px; background: #ffffff; color: #1e293b;
+            border: 1px solid rgba(15, 23, 42, 0.2); border-radius: 4px; font-size: 0.65rem;
         }
+        .lot-row select option { background: #ffffff; color: #1e293b; }
         /* Draws the eye to the lot-size dropdown until the user has picked one */
         .lot-row select.needs-selection {
-            border: 1px solid #fbbf24; background: rgba(251, 191, 36, 0.12);
-            box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25);
+            border: 1px solid #d97706; background: rgba(251, 191, 36, 0.12);
+            box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.25);
             animation: lotPulse 1.6s ease-in-out infinite;
         }
         @keyframes lotPulse {
-            0%, 100% { box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25); }
-            50%      { box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.45); }
+            0%, 100% { box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.25); }
+            50%      { box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.45); }
         }
         .symbol-edit-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
         .symbol-edit-row label {
             width: 32px; font-size: 0.6rem; font-weight: 700; flex-shrink: 0;
         }
-        .symbol-edit-row.put label { color: #f87171; }
-        .symbol-edit-row.call label { color: #4ade80; }
+        .symbol-edit-row.put label { color: #dc2626; }
+        .symbol-edit-row.call label { color: #16a34a; }
         .symbol-edit-row input {
-            flex: 1; padding: 5px 7px; background: rgba(15, 23, 42, 0.7); color: #f1f5f9;
-            border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 4px;
+            flex: 1; padding: 5px 7px; background: #ffffff; color: #1e293b;
+            border: 1px solid rgba(15, 23, 42, 0.2); border-radius: 4px;
             font-family: 'Courier New', monospace; font-size: 0.85rem; font-weight: 700;
             letter-spacing: 0.5px;
         }
-        .symbol-edit-row.put input { border-color: rgba(239, 68, 68, 0.35); }
-        .symbol-edit-row.call input { border-color: rgba(34, 197, 94, 0.35); }
-        .symbol-edit-row input:focus { outline: none; border-color: #60a5fa; box-shadow: 0 0 0 2px rgba(96,165,250,0.25); }
+        .symbol-edit-row.put input { border-color: rgba(220, 38, 38, 0.4); }
+        .symbol-edit-row.call input { border-color: rgba(22, 163, 74, 0.4); }
+        .symbol-edit-row input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
         .symbol-edit-hint { font-size: 0.5rem; color: #64748b; margin-bottom: 6px; }
+        .update-symbol-btn {
+            padding: 3px 8px; background: #e0e7ff; border: 1px solid rgba(79, 70, 229, 0.35);
+            color: #4338ca; border-radius: 5px; font-size: 0.55rem; font-weight: 700; cursor: pointer;
+            margin-bottom: 6px;
+        }
+        .update-symbol-btn:hover { background: #c7d2fe; }
         .basket-preview {
-            background: rgba(0,0,0,0.35); border-radius: 4px; padding: 6px;
-            font-family: 'Courier New', monospace; font-size: 0.58rem; color: #cbd5e1;
+            background: #0f172a; border-radius: 4px; padding: 6px;
+            font-family: 'Courier New', monospace; font-size: 0.58rem; color: #e2e8f0;
             max-height: 130px; overflow-y: auto; white-space: pre-wrap; margin-bottom: 6px;
-            border: 1px dashed rgba(148, 163, 184, 0.2); min-height: 20px;
+            border: 1px dashed rgba(15, 23, 42, 0.2); min-height: 20px;
         }
         .order-btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
         .run-btn {
-            padding: 6px 12px; background: linear-gradient(90deg, #f59e0b, #f97316);
-            color: #1e1b0f; border: none; border-radius: 6px; font-size: 0.65rem;
+            padding: 6px 12px; background: linear-gradient(90deg, #f59e0b, #ea580c);
+            color: #fff; border: none; border-radius: 6px; font-size: 0.65rem;
             font-weight: 700; cursor: pointer;
         }
         .run-btn:hover { filter: brightness(1.08); }
         .kite-btn {
             display: none; padding: 6px 12px; background: linear-gradient(90deg, #22c55e, #16a34a);
-            color: #08240f; border: none; border-radius: 6px; font-size: 0.65rem;
+            color: #fff; border: none; border-radius: 6px; font-size: 0.65rem;
             font-weight: 700; cursor: pointer;
         }
         .kite-btn:hover { filter: brightness(1.08); }
         .refresh-mini-btn {
-            padding: 2px 8px; background: rgba(148,163,184,0.15); border: 1px solid rgba(148,163,184,0.3);
-            color: #cbd5e1; border-radius: 5px; font-size: 0.55rem; cursor: pointer;
+            padding: 2px 8px; background: #eef2f7; border: 1px solid rgba(15,23,42,0.15);
+            color: #334155; border-radius: 5px; font-size: 0.55rem; cursor: pointer;
         }
-        .order-status { font-size: 0.55rem; color: #94a3b8; margin-top: 4px; }
+        .order-status { font-size: 0.55rem; color: #64748b; margin-top: 4px; }
     </style>
+
 </head>
 <body>
     <div class="container">
@@ -307,7 +316,7 @@
                     <button class="refresh-mini-btn" onclick="refreshSwitchPositions()">🔄 Refresh positions</button>
 
                     <div class="lot-row" style="margin-top:8px">
-                        <label>Lot size</label>
+                        <label>Lot size for new positions</label>
                         <select id="switchLotSize" class="needs-selection" onchange="onLotChosen('switchLotSize')"></select>
                     </div>
 
@@ -336,7 +345,7 @@
                     <div class="hint">Sells fresh NIFTY DOTM PUT/CALL (symbols computed below) — put then call, repeated per lot. No exits.</div>
 
                     <div class="lot-row">
-                        <label>Lot size</label>
+                        <label>Lot size for new positions</label>
                         <select id="freshLotSize" class="needs-selection" onchange="onLotChosen('freshLotSize')"></select>
                     </div>
 
@@ -1302,19 +1311,22 @@
         const NIFTY_FREEZE_QTY = 1755; // NSE freeze limit — no single NFO order may exceed this
         const MAX_LOTS = 15;
 
-        // The Kite Connect login popup (kite.zerodha.com/connect/login) is
-        // opened by Zerodha's own publisher.js via window.open() with a
-        // small default size, which can clip the password/login button on
-        // some screens. We can't edit their script, but we CAN intercept
-        // window.open() and force a larger, resizable window whenever the
-        // target URL is the Kite login page.
-        (function enlargeKiteLoginPopup() {
+        // The Kite Connect login/checkout popup is opened by Zerodha's own
+        // publisher.js via window.open(). Two things defeat a simple
+        // "resize only the login URL" patch: (1) some flows open a BLANK
+        // window first and navigate it afterwards, so the login URL is
+        // never actually passed to window.open, and (2) reusing the same
+        // window "name" on a later call makes the browser reuse the
+        // existing (wrongly-sized) window and IGNORE new size specs. This
+        // page has no legitimate use of window.open of its own, so we just
+        // force a generously large, resizable window with a fresh unique
+        // name on every call.
+        (function enlargeKitePopups() {
             const nativeOpen = window.open;
             window.open = function (url, name, specs) {
-                if (typeof url === 'string' && url.indexOf('kite.zerodha.com/connect/login') !== -1) {
-                    specs = 'width=520,height=800,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';
-                }
-                return nativeOpen.call(window, url, name, specs);
+                const forcedSpecs = 'width=560,height=850,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';
+                const forcedName = 'kitePopup_' + Date.now();
+                return nativeOpen.call(window, url, forcedName, forcedSpecs);
             };
         })();
 
@@ -1346,6 +1358,7 @@
         function onLotChosen(selectId) {
             const sel = document.getElementById(selectId);
             if (sel.value) sel.classList.remove('needs-selection');
+            invalidateBasket(selectId === 'switchLotSize' ? 'switch' : 'fresh');
         }
 
         // ── Editable PUT/CALL symbol boxes ──────────────────────────────
@@ -1372,12 +1385,14 @@
         function markEdited(which) {
             if (which === 'switch') switchSymbolsEdited = true;
             else freshSymbolsEdited = true;
+            invalidateBasket(which);
         }
 
         function resetSymbolInputs(which) {
             if (which === 'switch') switchSymbolsEdited = false;
             else freshSymbolsEdited = false;
             syncSymbolInputs();
+            invalidateBasket(which);
         }
 
         ['switchPutSymbol', 'switchCallSymbol'].forEach(id =>
@@ -1417,11 +1432,13 @@
         }
 
         // SELL orders for the fresh DOTM PUT/CALL, put-then-call per lot.
+        // Either symbol may be null (box left blank) — that leg is simply
+        // skipped, so a one-sided basket (put only, or call only) works too.
         function buildEntryOrders(putSym, callSym, lots) {
             const orders = [];
             for (let i = 0; i < lots; i++) {
-                orders.push(makeOrder(putSym, 'SELL', NIFTY_FREEZE_QTY));
-                orders.push(makeOrder(callSym, 'SELL', NIFTY_FREEZE_QTY));
+                if (putSym) orders.push(makeOrder(putSym, 'SELL', NIFTY_FREEZE_QTY));
+                if (callSym) orders.push(makeOrder(callSym, 'SELL', NIFTY_FREEZE_QTY));
             }
             return orders;
         }
@@ -1506,48 +1523,72 @@
         }
 
         // Reads the (possibly user-edited) PUT/CALL symbol boxes for a
-        // section rather than the read-only DOTM display, so manual
-        // overrides are honoured.
+        // section. Either box may be left blank — that leg is simply
+        // omitted from the basket rather than blocking the whole run.
         function editedSymbols(prefixId) {
-            const putSym = document.getElementById(prefixId + 'PutSymbol').value.trim().toUpperCase();
-            const callSym = document.getElementById(prefixId + 'CallSymbol').value.trim().toUpperCase();
-            if (!putSym || !callSym || putSym === '···' || callSym === '···') return null;
+            const putRaw = document.getElementById(prefixId + 'PutSymbol').value.trim().toUpperCase();
+            const callRaw = document.getElementById(prefixId + 'CallSymbol').value.trim().toUpperCase();
+            const putSym = (putRaw && putRaw !== '···') ? putRaw : null;
+            const callSym = (callRaw && callRaw !== '···') ? callRaw : null;
+            if (!putSym && !callSym) return null; // both blank — nothing to sell
             return { putSym, callSym };
+        }
+
+        // Editing a symbol box, or changing lot size, after a basket has
+        // already been prepared means the previously-built Kite basket is
+        // now stale (Kite's kite.add() calls already happened at Run time
+        // and won't pick up further edits on their own) — so hide the
+        // "Place Basket in Kite" button and prompt for a fresh Run.
+        function invalidateBasket(prefixId) {
+            const btn = document.getElementById(prefixId + 'KiteBtn');
+            if (btn) btn.style.display = 'none';
+            const statusEl = document.getElementById(prefixId + 'Status');
+            if (statusEl) {
+                statusEl.textContent = '✎ Inputs changed — click Run to rebuild the basket.';
+                statusEl.style.color = '#d97706';
+            }
         }
 
         function runSwitch() {
             const statusEl = document.getElementById('switchStatus');
-            if (!kitePublisherReady) { statusEl.textContent = '⚠ Kite Publisher still loading — try again in a second.'; statusEl.style.color = '#f87171'; return; }
-            if (!switchCandidates.length) { statusEl.textContent = '⚠ No current-expiry NIFTY sold positions to switch.'; statusEl.style.color = '#f87171'; return; }
+            if (!kitePublisherReady) { statusEl.textContent = '⚠ Kite Publisher still loading — try again in a second.'; statusEl.style.color = '#dc2626'; return; }
+            if (!switchCandidates.length) { statusEl.textContent = '⚠ No current-expiry NIFTY sold positions to switch.'; statusEl.style.color = '#dc2626'; return; }
             const symbols = editedSymbols('switch');
-            if (!symbols) { statusEl.textContent = '⚠ PUT/CALL symbol boxes are empty — wait for live data or type a symbol.'; statusEl.style.color = '#f87171'; return; }
+            if (!symbols) { statusEl.textContent = '⚠ Both PUT and CALL boxes are empty — fill at least one, or wait for live data.'; statusEl.style.color = '#dc2626'; return; }
             const lotSel = document.getElementById('switchLotSize');
-            if (!lotSel.value) { lotSel.classList.add('needs-selection'); statusEl.textContent = '⚠ Pick a lot size first.'; statusEl.style.color = '#f87171'; return; }
+            if (!lotSel.value) { lotSel.classList.add('needs-selection'); statusEl.textContent = '⚠ Pick a lot size first.'; statusEl.style.color = '#dc2626'; return; }
 
             const lots = parseInt(lotSel.value, 10);
-            const orders = buildExitOrders(switchCandidates).concat(buildEntryOrders(symbols.putSym, symbols.callSym, lots));
+            // Exits the FULL quantity of every current-expiry NIFTY short
+            // position found (chunked to the freeze limit), then adds the
+            // new sell legs — exits always come first in the basket.
+            const exitOrders = buildExitOrders(switchCandidates);
+            const entryOrders = buildEntryOrders(symbols.putSym, symbols.callSym, lots);
+            const orders = exitOrders.concat(entryOrders);
             renderBasketPreview('switchBasketPreview', orders);
             prepareKiteBasket(orders, 'switchKiteBtn');
-            statusEl.textContent = orders.length > 20
-                ? `Basket ready (${orders.length} orders) — Kite baskets over 20 legs may need placing in parts.`
-                : `Basket ready (${orders.length} orders) — click "Place Basket in Kite".`;
-            statusEl.style.color = orders.length > 20 ? '#fbbf24' : '#4ade80';
+            const sideNote = (!symbols.putSym || !symbols.callSym) ? ' (one-sided — only ' + (symbols.putSym ? 'PUT' : 'CALL') + ' entry)' : '';
+            statusEl.textContent = (orders.length > 20
+                ? `Basket ready — ${exitOrders.length} exit + ${entryOrders.length} entry = ${orders.length} orders${sideNote}. Kite baskets over 20 legs may need placing in parts.`
+                : `Basket ready — ${exitOrders.length} exit + ${entryOrders.length} entry = ${orders.length} orders${sideNote}. Click "Place Basket in Kite".`);
+            statusEl.style.color = orders.length > 20 ? '#b45309' : '#16a34a';
         }
 
         function runFreshDotm() {
             const statusEl = document.getElementById('freshStatus');
-            if (!kitePublisherReady) { statusEl.textContent = '⚠ Kite Publisher still loading — try again in a second.'; statusEl.style.color = '#f87171'; return; }
+            if (!kitePublisherReady) { statusEl.textContent = '⚠ Kite Publisher still loading — try again in a second.'; statusEl.style.color = '#dc2626'; return; }
             const symbols = editedSymbols('fresh');
-            if (!symbols) { statusEl.textContent = '⚠ PUT/CALL symbol boxes are empty — wait for live data or type a symbol.'; statusEl.style.color = '#f87171'; return; }
+            if (!symbols) { statusEl.textContent = '⚠ Both PUT and CALL boxes are empty — fill at least one, or wait for live data.'; statusEl.style.color = '#dc2626'; return; }
             const lotSel = document.getElementById('freshLotSize');
-            if (!lotSel.value) { lotSel.classList.add('needs-selection'); statusEl.textContent = '⚠ Pick a lot size first.'; statusEl.style.color = '#f87171'; return; }
+            if (!lotSel.value) { lotSel.classList.add('needs-selection'); statusEl.textContent = '⚠ Pick a lot size first.'; statusEl.style.color = '#dc2626'; return; }
 
             const lots = parseInt(lotSel.value, 10);
             const orders = buildEntryOrders(symbols.putSym, symbols.callSym, lots);
             renderBasketPreview('freshBasketPreview', orders);
             prepareKiteBasket(orders, 'freshKiteBtn');
-            statusEl.textContent = `Basket ready (${orders.length} orders) — click "Place Basket in Kite".`;
-            statusEl.style.color = '#4ade80';
+            const sideNote = (!symbols.putSym || !symbols.callSym) ? ' (one-sided — only ' + (symbols.putSym ? 'PUT' : 'CALL') + ')' : '';
+            statusEl.textContent = `Basket ready (${orders.length} orders${sideNote}) — click "Place Basket in Kite".`;
+            statusEl.style.color = '#16a34a';
         }
 
         populateLotOptions('switchLotSize');
