@@ -3486,8 +3486,11 @@ async function syncLiveBotStatus(snapshotBotOn) {
 // optiontrade.html) for whichever instance (PS5673 / RD1858) is currently
 // selected on the dashboard tabs, so it can pull that instance's own
 // Today's Positions and use the right Kite Connect publisher key.
+// Uses the same absolute BASE as the status JSON feeds below, rather than
+// a path relative to this page, since this page lives under /settings-editor/
+// while optiontrade.html lives at the repo root (/Wealthplus/optiontrade.html).
 function openOrdersPage() {
-  window.open(`../optiontrade.html?account=${account}`, '_blank');
+  window.open(`${BASE}optiontrade.html?account=${account}`, '_blank');
 }
 
 function switchAccount(acc) {
