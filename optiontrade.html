@@ -208,6 +208,18 @@
             border-bottom: 1px solid rgba(15, 23, 42, 0.08);
         }
         .orders-head h1 { font-size: 0.85rem; color: #1e293b; }
+        .freeze-qty-box {
+            display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px;
+            background: #ffffff; border: 1px solid rgba(15, 23, 42, 0.15); border-radius: 8px;
+            font-size: 0.6rem;
+        }
+        .freeze-qty-box label { color: #64748b; font-weight: 600; white-space: nowrap; }
+        .freeze-qty-box input {
+            width: 58px; padding: 2px 4px; border: 1px solid rgba(15, 23, 42, 0.2);
+            border-radius: 4px; font-size: 0.65rem; font-weight: 700; color: #1e293b;
+            text-align: center; font-family: 'Courier New', monospace;
+        }
+        .freeze-qty-box input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
         .account-badge {
             padding: 2px 8px; border-radius: 8px; font-size: 0.6rem; font-weight: 700;
             background: rgba(37, 99, 235, 0.1); color: #2563eb; border: 1px solid rgba(37, 99, 235, 0.3);
@@ -300,7 +312,14 @@
         <div class="orders-wrap">
             <div class="orders-head">
                 <h1>⚡ Execute Orders</h1>
-                <span class="account-badge" id="orderAccountBadge">Instance: PS5673</span>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <span class="freeze-qty-box" title="NSE freeze limit — max quantity per single NFO order. Change here if NSE revises it; applies everywhere on this page (chunking, lot-size dropdowns, order quantities).">
+                        <label for="freezeQtyInput">Freeze limit</label>
+                        <input type="number" id="freezeQtyInput" min="1" step="1" value="1755" onchange="updateFreezeQty()">
+                        <span style="color:#64748b">qty/order</span>
+                    </span>
+                    <span class="account-badge" id="orderAccountBadge">Instance: PS5673</span>
+                </div>
             </div>
             <div class="orders-body">
 
@@ -1308,7 +1327,16 @@
             RD1858: 'hdl91r34b05rek2v', // TODO: swap in RD1858's own key if it's a separate Zerodha account
         };
 
-        const NIFTY_FREEZE_QTY = 1755; // NSE freeze limit — no single NFO order may exceed this
+        // NSE freeze limit — max quantity allowed on a single NFO order.
+        // Editable via the "Freeze limit" box in the header (in case NSE
+        // revises it in future); the chosen value is remembered in this
+        // browser via localStorage and used everywhere on this page —
+        // order chunking, lot-size dropdown math, and per-lot quantities.
+        let NIFTY_FREEZE_QTY = 1755;
+        try {
+            const savedFreeze = parseInt(localStorage.getItem('optiontrade_freezeQty'), 10);
+            if (savedFreeze > 0) NIFTY_FREEZE_QTY = savedFreeze;
+        } catch (e) { /* localStorage unavailable — fall back to default */ }
         const MAX_LOTS = 15;
 
         // The Kite Connect login/checkout popup is opened by Zerodha's own
@@ -1334,17 +1362,24 @@
         KiteConnect.ready(function () { kitePublisherReady = true; });
 
         document.getElementById('orderAccountBadge').textContent = `Instance: ${ORDER_ACCOUNT}`;
+        document.getElementById('freezeQtyInput').value = NIFTY_FREEZE_QTY;
 
         // Pre-selects a sensible default lot size per section (still
         // changeable) — Switch defaults to 5, Fresh DOTM to 9 — instead of
-        // forcing an empty placeholder choice.
+        // forcing an empty placeholder choice. Re-callable: if the select
+        // already has options (e.g. re-run after a freeze-limit change),
+        // it preserves whatever lot count was currently chosen instead of
+        // resetting to the default.
         function populateLotOptions(selectId, defaultLots) {
             const sel = document.getElementById(selectId);
+            const preserved = sel.options.length ? parseInt(sel.value, 10) : null;
+            const chosen = preserved || defaultLots;
+            sel.innerHTML = '';
             for (let i = 1; i <= MAX_LOTS; i++) {
                 const opt = document.createElement('option');
                 opt.value = i;
                 opt.textContent = `${i}  →  ${i * NIFTY_FREEZE_QTY} qty`;
-                if (i === defaultLots) opt.selected = true;
+                if (i === chosen) opt.selected = true;
                 sel.appendChild(opt);
             }
             sel.classList.remove('needs-selection');
@@ -1354,6 +1389,26 @@
             const sel = document.getElementById(selectId);
             if (sel.value) sel.classList.remove('needs-selection');
             invalidateBasket(selectId === 'switchLotSize' ? 'switch' : 'fresh');
+        }
+
+        // Applies a new NSE freeze-limit value everywhere on the page:
+        // remembers it for next time, rebuilds both lot-size dropdowns
+        // (preserving whatever lot count was already selected), and
+        // invalidates any basket that was built under the old limit so it
+        // can't be placed with stale per-order quantities.
+        function updateFreezeQty() {
+            const input = document.getElementById('freezeQtyInput');
+            const val = parseInt(input.value, 10);
+            if (!val || val <= 0) {
+                input.value = NIFTY_FREEZE_QTY; // reject bad input, restore last-good value
+                return;
+            }
+            NIFTY_FREEZE_QTY = val;
+            try { localStorage.setItem('optiontrade_freezeQty', String(val)); } catch (e) { /* ignore */ }
+            populateLotOptions('switchLotSize', 5);
+            populateLotOptions('freshLotSize', 9);
+            invalidateBasket('switch');
+            invalidateBasket('fresh');
         }
 
         // ── Editable PUT/CALL symbol boxes ──────────────────────────────
