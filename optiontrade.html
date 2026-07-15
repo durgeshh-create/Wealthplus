@@ -306,7 +306,7 @@
 
                 <!-- Switch: Tue (or Mon if Tue holiday) — exit sold current-expiry NIFTY options, re-enter DOTM -->
                 <div class="order-section">
-                    <h3>🔁 Switch <span style="font-size:0.55rem;color:#94a3b8;font-weight:400">Tue / Mon if holiday</span></h3>
+                    <h3>🔁 Switch <span style="font-size:0.55rem;color:#64748b;font-weight:400">Tue Expiry (Mon if it's holiday)</span></h3>
                     <div class="hint">Exits (BUY, market) all current-expiry NIFTY option sold positions pulled from Today's Positions, then sells fresh NIFTY DOTM PUT/CALL — put then call, repeated per lot.</div>
 
                     <table class="mini-tbl">
@@ -317,7 +317,7 @@
 
                     <div class="lot-row" style="margin-top:8px">
                         <label>Lot size for new positions</label>
-                        <select id="switchLotSize" class="needs-selection" onchange="onLotChosen('switchLotSize')"></select>
+                        <select id="switchLotSize" onchange="onLotChosen('switchLotSize')"></select>
                     </div>
 
                     <div class="symbol-edit-row put">
@@ -341,12 +341,12 @@
 
                 <!-- Fresh DOTM: Wed (or Thu if Wed holiday) — take fresh DOTM sell positions -->
                 <div class="order-section">
-                    <h3>🆕 Fresh DOTM <span style="font-size:0.55rem;color:#94a3b8;font-weight:400">Wed / Thu if holiday</span></h3>
+                    <h3>🆕 Fresh DOTM <span style="font-size:0.55rem;color:#64748b;font-weight:400">Wed (Thu if its holiday)</span></h3>
                     <div class="hint">Sells fresh NIFTY DOTM PUT/CALL (symbols computed below) — put then call, repeated per lot. No exits.</div>
 
                     <div class="lot-row">
                         <label>Lot size for new positions</label>
-                        <select id="freshLotSize" class="needs-selection" onchange="onLotChosen('freshLotSize')"></select>
+                        <select id="freshLotSize" onchange="onLotChosen('freshLotSize')"></select>
                     </div>
 
                     <div class="symbol-edit-row put">
@@ -1335,24 +1335,19 @@
 
         document.getElementById('orderAccountBadge').textContent = `Instance: ${ORDER_ACCOUNT}`;
 
-        // First option is an unselected placeholder so the dropdown starts
-        // empty — forces a deliberate lot-size choice rather than silently
-        // defaulting to lot 1. The .needs-selection CSS class (pulsing amber
-        // outline) is removed once the user actually picks a value.
-        function populateLotOptions(selectId) {
+        // Pre-selects a sensible default lot size per section (still
+        // changeable) — Switch defaults to 5, Fresh DOTM to 9 — instead of
+        // forcing an empty placeholder choice.
+        function populateLotOptions(selectId, defaultLots) {
             const sel = document.getElementById(selectId);
-            const placeholder = document.createElement('option');
-            placeholder.value = '';
-            placeholder.textContent = '— Select lot size —';
-            placeholder.disabled = true;
-            placeholder.selected = true;
-            sel.appendChild(placeholder);
             for (let i = 1; i <= MAX_LOTS; i++) {
                 const opt = document.createElement('option');
                 opt.value = i;
                 opt.textContent = `${i}  →  ${i * NIFTY_FREEZE_QTY} qty`;
+                if (i === defaultLots) opt.selected = true;
                 sel.appendChild(opt);
             }
+            sel.classList.remove('needs-selection');
         }
 
         function onLotChosen(selectId) {
@@ -1591,8 +1586,8 @@
             statusEl.style.color = '#16a34a';
         }
 
-        populateLotOptions('switchLotSize');
-        populateLotOptions('freshLotSize');
+        populateLotOptions('switchLotSize', 5);
+        populateLotOptions('freshLotSize', 9);
         refreshSwitchPositions();
 
         // Run immediately on load. Note: we deliberately do NOT call
