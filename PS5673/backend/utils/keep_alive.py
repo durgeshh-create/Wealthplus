@@ -284,6 +284,27 @@ def _ws_watchdog_loop(realtime_manager) -> None:
         stale_for = time.monotonic() - _last_tick_ts["t"]
 
         if stale_for > _STALE_AFTER:
+            # realtime.py's own _on_close -> _schedule_reconnect -> _reconnect_loop
+            # is likely already handling this exact disconnect with its own
+            # growing backoff (capped at 60s). Forcing ANOTHER reconnect on top
+            # of that — full initialize() + a brand new start() thread — races
+            # it: two attempts to connect() the same session in overlapping
+            # windows is a plausible cause of repeated 1006 "peer dropped the
+            # connection" closes, which then never lets either mechanism
+            # actually stabilize (this is exactly what produced an all-day
+            # outage on 2026-07-16 instead of a brief blip).
+            #
+            # So: only step in here if that reconnect thread isn't actually
+            # alive/working right now. If it is, this cycle just logs and
+            # waits for the next check instead of piling on.
+            reconnect_thread = getattr(realtime_manager, '_reconnect_thread', None)
+            if reconnect_thread is not None and reconnect_thread.is_alive():
+                logger.info(
+                    f"No ticks for {stale_for:.0f}s, but realtime's own reconnect "
+                    f"thread is already active — not forcing a competing one"
+                )
+                continue
+
             logger.warning(f"No ticks for {stale_for:.0f}s - forcing WebSocket reconnect")
             try:
                 if realtime_manager.kws:
