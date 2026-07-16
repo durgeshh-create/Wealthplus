@@ -13,6 +13,7 @@ _RECONNECT_DELAY_SECONDS = 10
 # We never give up reconnecting — _MAX_RECONNECT_ATTEMPTS=0 means unlimited.
 import os as _os
 _MAX_RECONNECT_ATTEMPTS = int(_os.environ.get("WS_MAX_RECONNECT", "0"))  # 0 = unlimited
+_LTP_STALE_AFTER_SEC = 45  # cached tick older than this is untrusted; falls through to REST quote
 
 from kiteconnect import KiteTicker
 import pandas as pd
@@ -645,8 +646,18 @@ class RealtimeDataManager:
         with self._lock:
             if symbol in self.live_data:
                 price = self.live_data[symbol].get('last_price')
+                ts    = self.live_data[symbol].get('timestamp')
                 if price is not None:
-                    return price
+                    # A cached tick is only trustworthy if it's recent. During
+                    # a WebSocket outage, live_data keeps whatever the last
+                    # good tick was — potentially minutes/hours stale — and
+                    # without this check get_ltp() would keep returning that
+                    # frozen price forever instead of ever trying the REST
+                    # fallback below, silently feeding stale prices into buy
+                    # decisions during exactly the kind of outage that should
+                    # trigger the fallback.
+                    if ts is not None and (datetime.now() - ts).total_seconds() <= _LTP_STALE_AFTER_SEC:
+                        return price
 
         # WebSocket tick not received yet — try REST quote as fallback
         try:
