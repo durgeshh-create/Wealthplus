@@ -661,7 +661,18 @@ class SignalGenerator:
             else:
                 sched_dt   = now.replace(hour=sched.hour, minute=sched.minute,
                                          second=0, microsecond=0)
-                window_end = sched_dt + timedelta(minutes=1)
+                # Widened from 1 minute: a pre-flight failure (e.g. LTP
+                # unavailable during a WebSocket outage) clears _attempted_today
+                # via allow_retry, but the symbol is REMOVED from pending_buys
+                # the moment it's first seen as "due" (below) regardless of
+                # whether execution actually succeeds. Since nothing re-queues
+                # it until the next signal-detection cycle, and this fixed
+                # daily-time anchor never advances to "now", a narrow 1-minute
+                # window meant the retry-eligibility clearing was structurally
+                # useless — the window had already closed for the day. 10
+                # minutes gives a real outage a chance to clear and still fire
+                # today instead of silently going quiet until tomorrow.
+                window_end = sched_dt + timedelta(minutes=10)
                 if sched_dt <= now < window_end:
                     due.append(entry['signal'])
                     remove.append(symbol)
@@ -680,7 +691,10 @@ class SignalGenerator:
             if sched is None:
                 continue   # anytime entries never expire — signal_generator handles cooldown
             sched_dt = now.replace(hour=sched.hour, minute=sched.minute, second=0, microsecond=0)
-            if now > sched_dt + timedelta(minutes=5):
+            # Must stay AHEAD of get_due_buys()'s window (10 min) — otherwise
+            # this deletes the pending entry before that window ever gets a
+            # chance to use it, silently defeating the wider retry window.
+            if now > sched_dt + timedelta(minutes=15):
                 stale.append(symbol)
                 logger.warning(f"🗑️ Expired stale pending buy: {symbol}")
         for s in stale:
