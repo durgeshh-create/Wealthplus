@@ -356,7 +356,7 @@
                         <label>CALL</label>
                         <input type="text" id="switchCallSymbol" spellcheck="false" autocomplete="off">
                     </div>
-                    <div class="symbol-edit-hint">Auto-filled from the computed NIFTY DOTM strikes below — edit if you want to sell a different strike/symbol. <a href="#" onclick="resetSymbolInputs('switch');return false;" style="color:#60a5fa">↺ reset to computed</a></div>
+                    <div class="symbol-edit-hint">Auto-filled from the NIFTY EXPIRY PUT/CALL strikes below (current-expiry) — edit if you want to sell a different strike/symbol. <a href="#" onclick="resetSymbolInputs('switch');return false;" style="color:#2563eb">↺ reset to computed</a></div>
 
                     <div class="basket-preview" id="switchBasketPreview">Basket preview appears here after Run.</div>
 
@@ -385,7 +385,7 @@
                         <label>CALL</label>
                         <input type="text" id="freshCallSymbol" spellcheck="false" autocomplete="off">
                     </div>
-                    <div class="symbol-edit-hint">Auto-filled from the computed NIFTY DOTM strikes below — edit if you want to sell a different strike/symbol. <a href="#" onclick="resetSymbolInputs('fresh');return false;" style="color:#60a5fa">↺ reset to computed</a></div>
+                    <div class="symbol-edit-hint">Auto-filled from the computed NIFTY DOTM strikes below — edit if you want to sell a different strike/symbol. <a href="#" onclick="resetSymbolInputs('fresh');return false;" style="color:#2563eb">↺ reset to computed</a></div>
 
                     <div class="basket-preview" id="freshBasketPreview">Basket preview appears here after Run.</div>
 
@@ -1517,21 +1517,28 @@
         }
 
         // ── Editable PUT/CALL symbol boxes ──────────────────────────────
-        // Auto-filled from the computed DOTM strikes on every refresh, but
-        // the user can type over them to sell a different strike/symbol.
-        // Once hand-edited, auto-sync stops touching that pair until reset.
+        // Switch pulls from the "NIFTY EXPIRY PUT/CALL" strikes (the
+        // immediate/current-expiry intraday strikes further down the page)
+        // since Switch is about rolling into the CURRENT expiry, not next
+        // week's DOTM. Fresh DOTM keeps using the regular weekly/monthly
+        // DOTM strikes at the top. Both boxes are auto-filled on every
+        // refresh, but the user can type over them to sell a different
+        // strike/symbol — once hand-edited, auto-sync stops touching that
+        // pair until reset.
         let switchSymbolsEdited = false;
         let freshSymbolsEdited  = false;
 
         function syncSymbolInputs() {
+            const expiryPutSym  = document.getElementById('expiryPutSymbolText').textContent.trim();
+            const expiryCallSym = document.getElementById('expiryCallSymbolText').textContent.trim();
+            if (!switchSymbolsEdited && expiryPutSym && expiryCallSym && expiryPutSym !== '···' && expiryCallSym !== '···') {
+                document.getElementById('switchPutSymbol').value  = expiryPutSym;
+                document.getElementById('switchCallSymbol').value = expiryCallSym;
+            }
+
             const putSym  = document.getElementById('putSymbolText').textContent.trim();
             const callSym = document.getElementById('callSymbolText').textContent.trim();
-            if (!putSym || !callSym || putSym === '···' || callSym === '···') return;
-            if (!switchSymbolsEdited) {
-                document.getElementById('switchPutSymbol').value  = putSym;
-                document.getElementById('switchCallSymbol').value = callSym;
-            }
-            if (!freshSymbolsEdited) {
+            if (!freshSymbolsEdited && putSym && callSym && putSym !== '···' && callSym !== '···') {
                 document.getElementById('freshPutSymbol').value  = putSym;
                 document.getElementById('freshCallSymbol').value = callSym;
             }
