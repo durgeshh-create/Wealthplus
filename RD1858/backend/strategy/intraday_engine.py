@@ -667,7 +667,13 @@ class IntradayEngine:
                         # retries on the next loop tick within the same
                         # 3:15–3:16 PM window instead of burning the week's attempt.
                         if not st.buy_in_progress:
-                            at_weekday_trigger = (dtime(BUY_HOUR, BUY_MIN) <= t <= dtime(BUY_HOUR, BUY_MIN + 1))
+                            # Widened from a hard 15:15-15:16 window: a transient
+                            # data outage (e.g. WebSocket down) spanning that
+                            # single minute used to cost the whole week's
+                            # systematic buy with no way to recover same-day.
+                            # Now retries for 10 minutes past the nominal 3:15 PM
+                            # trigger before giving up for the week.
+                            at_weekday_trigger = (dtime(BUY_HOUR, BUY_MIN) <= t <= dtime(BUY_HOUR, BUY_MIN + 10))
                             st.reset_weekday_buy_if_new_week()
 
                             # ── Thursday → Friday holiday fallback ───────────────────────
