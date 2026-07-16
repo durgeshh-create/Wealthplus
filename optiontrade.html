@@ -520,11 +520,11 @@
         <div id="expiryStrikesSection">
         <!-- NIFTY Expiry Day Intraday Strikes -->
         <div class="section-divider">
-            <span>NIFTY EXPIRY DAY INTRADAY (Div: 23,000)</span>
+            <span>NIFTY EXPIRY DAY INTRADAY (Div: 30,000)</span>
         </div>
 
         <div class="expiry-day-banner" id="niftyExpiryBanner">
-            Today is NIFTY Expiry Day! Intraday strikes with divisor 23,000.
+            Today is NIFTY Expiry Day! Intraday strikes with divisor 30,000.
         </div>
 
         <div class="results-row">
@@ -612,7 +612,7 @@
         const DIVISORS = { 1: 3300, 2: 3800, 3: 4500, 4: 6000, 5: 8000, 6: 3300, 0: 3300 };
         const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-        const EXPIRY_DAY_DIVISOR = 23000;
+        const EXPIRY_DAY_DIVISOR = 30000;
         const MIDCP_EXPIRY_DAY_DIVISOR = 17000;
 
         let currentNifty = 23945, currentVix = 13.61, currentMidcp = 14367;
@@ -843,8 +843,8 @@
 
             // NIFTY Expiry Day Intraday
             const niftyExpiryDayRange = nifty * Math.sqrt((vix * 2) / EXPIRY_DAY_DIVISOR);
-            const niftyExpiryPutStrike = Math.floor((nifty - niftyExpiryDayRange) / 50) * 50;
-            const niftyExpiryCallStrike = Math.ceil((nifty + niftyExpiryDayRange) / 50) * 50;
+            const niftyExpiryPutStrike = Math.floor((nifty - niftyExpiryDayRange) / 100) * 100;
+            const niftyExpiryCallStrike = Math.ceil((nifty + niftyExpiryDayRange) / 100) * 100;
 
             const niftyImmediateExpiry = getNextTuesday(today);
             const niftyImmediateIsMonthly = isLastTuesdayOfMonth(niftyImmediateExpiry);
@@ -865,8 +865,8 @@
 
             const isTodayNiftyExpiry = (dayOfWeek === 2);
             document.getElementById('niftyExpiryBanner').textContent = isTodayNiftyExpiry 
-                ? 'Today is NIFTY Expiry Day! Intraday strikes with divisor 23,000.'
-                : "NIFTY intraday strikes for today's expiry using divisor 23,000.";
+                ? 'Today is NIFTY Expiry Day! Intraday strikes with divisor 30,000.'
+                : "NIFTY intraday strikes for today's expiry using divisor 30,000.";
 
             // MIDCPNIFTY Expiry Day Intraday
             const midcpExpiryDayRange = midcp * Math.sqrt((vix * 2) / MIDCP_EXPIRY_DAY_DIVISOR);
