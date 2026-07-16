@@ -401,8 +401,13 @@ def check_and_execute_signals(signal_generator, executor):
             from datetime import timezone as _tz_d, timedelta as _td_d
             _IST_d = _tz_d(_td_d(hours=5, minutes=30))
             now_t = _dt.now(_IST_d).time()
+            # Widened from 1 minute to 10 — same reasoning as get_due_buys()'s
+            # window in signal_generator.py: a transient data outage spanning
+            # the original single minute used to silently push a sell to
+            # "never happens today" with no way to recover once the window
+            # closed, even though nothing about the sell itself was wrong.
             sell_window_end = _dtime(sell_exec_time.hour,
-                                     min(sell_exec_time.minute + 1, 59))
+                                     min(sell_exec_time.minute + 10, 59))
             in_sell_window  = sell_exec_time <= now_t <= sell_window_end
 
             if sell_signals and not in_sell_window:
