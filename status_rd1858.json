@@ -1,16 +1,16 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-07-16 10:58:32 IST",
+  "timestamp": "2026-07-16 10:59:33 IST",
   "bot_running": true,
-  "total_value": 8516593.38,
-  "today_pnl": -1294.66,
+  "total_value": 8515458.71,
+  "today_pnl": -1810.44,
   "today_pnl_pct": -0.02,
   "liquidcase": {
     "quantity": 61889,
     "free_quantity": 0,
-    "price": 115.02,
-    "value": 7118472.78,
-    "pct": 83.58
+    "price": 115.01,
+    "value": 7117853.89,
+    "pct": 83.59
   },
   "slots": {
     "total": 6,
@@ -34,12 +34,12 @@
       "symbol": "BANKBEES",
       "quantity": 33,
       "avg": 593.17,
-      "ltp": 598.25,
-      "value": 19742.25,
-      "pnl": 22.44,
-      "pnl_pct": 0.11,
-      "unrealised_pnl": 167.64,
-      "unrealised_pnl_pct": 0.86,
+      "ltp": 598.5,
+      "value": 19750.5,
+      "pnl": 30.69,
+      "pnl_pct": 0.16,
+      "unrealised_pnl": 166.98,
+      "unrealised_pnl_pct": 0.85,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 6
@@ -48,12 +48,12 @@
       "symbol": "GOLDBEES",
       "quantity": 4231,
       "avg": 120.49,
-      "ltp": 116.25,
-      "value": 491853.75,
-      "pnl": -592.34,
-      "pnl_pct": -0.12,
-      "unrealised_pnl": -17927.04,
-      "unrealised_pnl_pct": -3.52,
+      "ltp": 116.2,
+      "value": 491642.2,
+      "pnl": -803.89,
+      "pnl_pct": -0.16,
+      "unrealised_pnl": -18180.9,
+      "unrealised_pnl_pct": -3.57,
       "strategy": "active",
       "buys_today": 7,
       "max_slots": 6
@@ -62,12 +62,12 @@
       "symbol": "MID150BEES",
       "quantity": 2604,
       "avg": 229.46,
-      "ltp": 239.65,
-      "value": 624048.6,
-      "pnl": 1380.12,
-      "pnl_pct": 0.22,
-      "unrealised_pnl": 26275.44,
-      "unrealised_pnl_pct": 4.4,
+      "ltp": 239.53,
+      "value": 623736.12,
+      "pnl": 1067.64,
+      "pnl_pct": 0.17,
+      "unrealised_pnl": 26223.36,
+      "unrealised_pnl_pct": 4.39,
       "strategy": "bnh",
       "buys_today": 0,
       "max_slots": 6
@@ -116,9 +116,9 @@
   "williams_r": [
     {
       "symbol": "GOLDBEES",
-      "ltp": 116.25,
-      "change_pct": -0.12,
-      "williams_r": -77.14,
+      "ltp": 116.2,
+      "change_pct": -0.16,
+      "williams_r": -77.71,
       "is_held": true,
       "avg_price": 120.49,
       "strategy": "active"
@@ -134,45 +134,45 @@
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 782.45,
-      "change_pct": 0.46,
-      "williams_r": -39.47,
+      "ltp": 782.37,
+      "change_pct": 0.45,
+      "williams_r": -39.68,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 441.49,
-      "change_pct": -0.54,
-      "williams_r": -44.55,
+      "ltp": 441.29,
+      "change_pct": -0.58,
+      "williams_r": -45.4,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 598.25,
-      "change_pct": 0.11,
-      "williams_r": -70.51,
+      "ltp": 598.5,
+      "change_pct": 0.16,
+      "williams_r": -69.92,
       "is_held": true,
       "avg_price": 593.17,
       "strategy": "active"
     },
     {
       "symbol": "NXST-RR",
-      "ltp": 165.34,
-      "change_pct": 0.21,
-      "williams_r": -26.08,
+      "ltp": 165.5,
+      "change_pct": 0.3,
+      "williams_r": -23.2,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 239.65,
-      "change_pct": 0.22,
-      "williams_r": -13.84,
+      "ltp": 239.53,
+      "change_pct": 0.17,
+      "williams_r": -15.18,
       "is_held": true,
       "avg_price": 229.46,
       "strategy": "bnh"
@@ -182,9 +182,9 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24164.05,
+      "ltp": 24164.2,
       "prev_close": 24078.5,
-      "change": 85.55,
+      "change": 85.7,
       "change_pct": 0.36,
       "open": 24142.1,
       "high": 24167.4,
@@ -378,6 +378,6 @@
     }
   },
   "available_cash": 39177.3,
-  "available_margin": 2646375.44,
+  "available_margin": 2646254.34,
   "available_margin_note": null
 }
