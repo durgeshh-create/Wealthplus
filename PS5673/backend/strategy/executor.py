@@ -159,11 +159,23 @@ class StrategyExecutor:
             liquidcase_price = self.realtime.get_ltp(LIQUIDCASE_SYMBOL)
             if not liquidcase_price:
                 logger.error("Cannot get LIQUIDCASE price")
+                # BUG FIX: this early return used to skip unlock_symbol()
+                # entirely, leaving executing_symbols[symbol] set until the
+                # 60s stale-lock sweep in generate_signals() force-cleared
+                # it — but that sweep does NOT clear _attempted_today, so
+                # the symbol stayed latched out of buying for the rest of
+                # the session even though the price gap was transient
+                # (e.g. WebSocket not yet populated right at market open).
+                if self.signal_generator and is_automated:
+                    self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=True)
                 return False
 
             etf_price = self.realtime.get_ltp(symbol)
             if not etf_price:
                 logger.error(f"Cannot get price for {symbol}")
+                # Same lock-leak fix as above.
+                if self.signal_generator and is_automated:
+                    self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=True)
                 return False
 
             # ── budget for this transaction ──────────────────────
@@ -186,6 +198,14 @@ class StrategyExecutor:
                 remaining_capacity = max_cash_stock - deployed
                 if remaining_capacity <= 0:
                     logger.warning(f"⚠️ {symbol}: max_cash_per_stock already reached (₹{deployed:.0f})")
+                    # Lock-leak fix: release the execution lock immediately
+                    # instead of letting it sit until the 60s stale-lock
+                    # sweep. Not a transient/data issue, so no retry this
+                    # session — matches the pre-existing latched-skip
+                    # behavior _check_buy_signal already applies for this
+                    # same condition.
+                    if self.signal_generator and is_automated:
+                        self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=False)
                     return False
                 budget = min(budget, remaining_capacity)
                 logger.info(f"Capacity remaining for {symbol}: ₹{remaining_capacity:.2f} → budget capped to ₹{budget:.2f}")
@@ -203,6 +223,10 @@ class StrategyExecutor:
                     )
                 else:
                     logger.error(f"Budget ₹{budget:.2f} too small for 1 unit of {symbol} @ ₹{etf_price:.2f}")
+                # Lock-leak fix — same reasoning as the max_cash_per_stock
+                # branch above: not transient, so unlock without retry.
+                if self.signal_generator and is_automated:
+                    self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=False)
                 return False
 
             # Apply max_qty_per_trade cap
@@ -254,6 +278,11 @@ class StrategyExecutor:
                     f"(total ₹{avail_cash:.2f} − reserve ₹{cash_reserve:.2f}) + "
                     f"LIQUIDCASE ₹{liq_held_value:.2f} < ETF cost ₹{etf_cost:.2f}"
                 )
+                # Lock-leak fix: unlock_symbol's own docstring already names
+                # "insufficient funds" as the canonical allow_retry=True
+                # example — this return path just never actually called it.
+                if self.signal_generator and is_automated:
+                    self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=True)
                 return False, f"Insufficient funds: cash ₹{spendable_cash:.0f} + LIQUIDCASE ₹{liq_held_value:.0f} < cost ₹{etf_cost:.0f}"
 
             if liq_to_sell > 0:
