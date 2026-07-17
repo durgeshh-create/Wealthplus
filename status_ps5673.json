@@ -1,16 +1,16 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-07-17 11:38:29 IST",
+  "timestamp": "2026-07-17 11:39:31 IST",
   "bot_running": true,
-  "total_value": 8755147.32,
-  "today_pnl": -11688.72,
-  "today_pnl_pct": -0.13,
+  "total_value": 8754212.68,
+  "today_pnl": -12623.36,
+  "today_pnl_pct": -0.14,
   "liquidcase": {
     "quantity": 63751,
     "free_quantity": 0,
     "price": 115.07,
     "value": 7335827.57,
-    "pct": 83.79
+    "pct": 83.8
   },
   "slots": {
     "total": 6,
@@ -34,12 +34,12 @@
       "symbol": "BANKBEES",
       "quantity": 66,
       "avg": 594.36,
-      "ltp": 600.0,
-      "value": 39600.0,
-      "pnl": 192.06,
-      "pnl_pct": 0.49,
-      "unrealised_pnl": 378.18,
-      "unrealised_pnl_pct": 0.96,
+      "ltp": 600.44,
+      "value": 39629.04,
+      "pnl": 221.1,
+      "pnl_pct": 0.56,
+      "unrealised_pnl": 401.94,
+      "unrealised_pnl_pct": 1.02,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 6
@@ -48,12 +48,12 @@
       "symbol": "GOLDBEES",
       "quantity": 4559,
       "avg": 120.46,
-      "ltp": 115.65,
-      "value": 527248.35,
-      "pnl": -3738.38,
-      "pnl_pct": -0.7,
-      "unrealised_pnl": -21959.14,
-      "unrealised_pnl_pct": -4.0,
+      "ltp": 115.49,
+      "value": 526518.91,
+      "pnl": -4467.82,
+      "pnl_pct": -0.84,
+      "unrealised_pnl": -22460.63,
+      "unrealised_pnl_pct": -4.09,
       "strategy": "active",
       "buys_today": 7,
       "max_slots": 6
@@ -76,12 +76,12 @@
       "symbol": "SILVERBEES",
       "quantity": 1464,
       "avg": 224.97,
-      "ltp": 204.6,
-      "value": 299534.4,
-      "pnl": -3279.36,
-      "pnl_pct": -1.08,
-      "unrealised_pnl": -29853.83,
-      "unrealised_pnl_pct": -9.06,
+      "ltp": 204.44,
+      "value": 299300.16,
+      "pnl": -3513.6,
+      "pnl_pct": -1.16,
+      "unrealised_pnl": -30117.35,
+      "unrealised_pnl_pct": -9.14,
       "strategy": "active",
       "buys_today": 7,
       "max_slots": 6
@@ -116,45 +116,45 @@
   "williams_r": [
     {
       "symbol": "GOLDBEES",
-      "ltp": 115.65,
-      "change_pct": -0.7,
-      "williams_r": -84.0,
+      "ltp": 115.49,
+      "change_pct": -0.84,
+      "williams_r": -85.83,
       "is_held": true,
       "avg_price": 120.46,
       "strategy": "active"
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 204.6,
-      "change_pct": -1.08,
-      "williams_r": -92.46,
+      "ltp": 204.44,
+      "change_pct": -1.16,
+      "williams_r": -93.27,
       "is_held": true,
       "avg_price": 224.97,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 774.78,
-      "change_pct": -0.28,
-      "williams_r": -58.86,
+      "ltp": 774.69,
+      "change_pct": -0.29,
+      "williams_r": -59.09,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 453.07,
+      "ltp": 453.06,
       "change_pct": 1.31,
-      "williams_r": -3.39,
+      "williams_r": -3.44,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 600.0,
-      "change_pct": 0.49,
-      "williams_r": -66.35,
+      "ltp": 600.44,
+      "change_pct": 0.56,
+      "williams_r": -65.3,
       "is_held": true,
       "avg_price": 594.36,
       "strategy": "active"
@@ -182,19 +182,19 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24247.05,
+      "ltp": 24252.0,
       "prev_close": 24072.75,
-      "change": 174.3,
-      "change_pct": 0.72,
+      "change": 179.25,
+      "change_pct": 0.74,
       "open": 24127.6,
       "high": 24288.9,
       "low": 24099.05
     },
     "INDIA VIX": {
-      "ltp": 13.27,
+      "ltp": 13.28,
       "prev_close": 12.88,
-      "change": 0.39,
-      "change_pct": 3.03,
+      "change": 0.4,
+      "change_pct": 3.11,
       "open": 12.88,
       "high": 13.35,
       "low": 12.81
@@ -327,6 +327,6 @@
     }
   },
   "available_cash": 24161.7,
-  "available_margin": 2497264.87,
+  "available_margin": 2492573.76,
   "available_margin_note": null
 }
