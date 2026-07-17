@@ -1,15 +1,15 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-07-17 12:53:43 IST",
+  "timestamp": "2026-07-17 12:54:44 IST",
   "bot_running": true,
-  "total_value": 8515090.15,
-  "today_pnl": -10429.87,
+  "total_value": 8515615.27,
+  "today_pnl": -10522.19,
   "today_pnl_pct": -0.12,
   "liquidcase": {
     "quantity": 61744,
     "free_quantity": 0,
-    "price": 115.07,
-    "value": 7104882.08,
+    "price": 115.08,
+    "value": 7105499.52,
     "pct": 83.44
   },
   "slots": {
@@ -35,12 +35,12 @@
       "symbol": "BANKBEES",
       "quantity": 33,
       "avg": 593.17,
-      "ltp": 600.72,
-      "value": 19823.76,
-      "pnl": 119.79,
-      "pnl_pct": 0.61,
-      "unrealised_pnl": 249.48,
-      "unrealised_pnl_pct": 1.27,
+      "ltp": 600.43,
+      "value": 19814.19,
+      "pnl": 110.22,
+      "pnl_pct": 0.56,
+      "unrealised_pnl": 246.18,
+      "unrealised_pnl_pct": 1.26,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 6
@@ -49,12 +49,12 @@
       "symbol": "GOLDBEES",
       "quantity": 4231,
       "avg": 120.49,
-      "ltp": 115.69,
-      "value": 489484.39,
-      "pnl": -3300.18,
-      "pnl_pct": -0.67,
-      "unrealised_pnl": -20381.02,
-      "unrealised_pnl_pct": -4.0,
+      "ltp": 115.62,
+      "value": 489188.22,
+      "pnl": -3596.35,
+      "pnl_pct": -0.73,
+      "unrealised_pnl": -20465.64,
+      "unrealised_pnl_pct": -4.01,
       "strategy": "active",
       "buys_today": 7,
       "max_slots": 6
@@ -63,12 +63,12 @@
       "symbol": "MID150BEES",
       "quantity": 2604,
       "avg": 229.46,
-      "ltp": 236.84,
-      "value": 616731.36,
-      "pnl": -4530.96,
-      "pnl_pct": -0.73,
-      "unrealised_pnl": 19218.6,
-      "unrealised_pnl_pct": 3.22,
+      "ltp": 236.89,
+      "value": 616861.56,
+      "pnl": -4400.76,
+      "pnl_pct": -0.71,
+      "unrealised_pnl": 19348.8,
+      "unrealised_pnl_pct": 3.24,
       "strategy": "bnh",
       "buys_today": 0,
       "max_slots": 6
@@ -77,12 +77,12 @@
       "symbol": "SILVERBEES",
       "quantity": 1387,
       "avg": 226.45,
-      "ltp": 204.88,
-      "value": 284168.56,
-      "pnl": -2718.52,
-      "pnl_pct": -0.95,
-      "unrealised_pnl": -29853.4,
-      "unrealised_pnl_pct": -9.5,
+      "ltp": 204.94,
+      "value": 284251.78,
+      "pnl": -2635.3,
+      "pnl_pct": -0.92,
+      "unrealised_pnl": -29881.14,
+      "unrealised_pnl_pct": -9.51,
       "strategy": "active",
       "buys_today": 7,
       "max_slots": 6
@@ -141,27 +141,27 @@
   "williams_r": [
     {
       "symbol": "GOLDBEES",
-      "ltp": 115.69,
-      "change_pct": -0.67,
-      "williams_r": -83.54,
+      "ltp": 115.62,
+      "change_pct": -0.73,
+      "williams_r": -84.34,
       "is_held": true,
       "avg_price": 120.49,
       "strategy": "active"
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 204.88,
-      "change_pct": -0.95,
-      "williams_r": -91.04,
+      "ltp": 204.94,
+      "change_pct": -0.92,
+      "williams_r": -90.74,
       "is_held": true,
       "avg_price": 226.45,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 775.92,
-      "change_pct": -0.14,
-      "williams_r": -55.98,
+      "ltp": 775.94,
+      "change_pct": -0.13,
+      "williams_r": -55.93,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -177,9 +177,9 @@
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 600.72,
-      "change_pct": 0.61,
-      "williams_r": -64.64,
+      "ltp": 600.43,
+      "change_pct": 0.56,
+      "williams_r": -65.33,
       "is_held": true,
       "avg_price": 593.17,
       "strategy": "active"
@@ -195,18 +195,18 @@
     },
     {
       "symbol": "NTPC",
-      "ltp": 341.8,
-      "change_pct": -0.19,
-      "williams_r": -92.48,
+      "ltp": 342.15,
+      "change_pct": -0.09,
+      "williams_r": -90.78,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 236.84,
-      "change_pct": -0.73,
-      "williams_r": -45.2,
+      "ltp": 236.89,
+      "change_pct": -0.71,
+      "williams_r": -44.64,
       "is_held": true,
       "avg_price": 229.46,
       "strategy": "bnh"
@@ -216,9 +216,9 @@
     {
       "type": "BUY",
       "symbol": "NTPC",
-      "reason": "W%R -92.5 \u2264 -75.0",
-      "ltp": 341.8,
-      "williams_r": -92.48
+      "reason": "W%R -90.8 \u2264 -75.0",
+      "ltp": 342.15,
+      "williams_r": -90.78
     }
   ],
   "orders": [
@@ -247,10 +247,10 @@
   ],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24277.1,
+      "ltp": 24273.3,
       "prev_close": 24072.75,
-      "change": 204.35,
-      "change_pct": 0.85,
+      "change": 200.55,
+      "change_pct": 0.83,
       "open": 24127.6,
       "high": 24297.5,
       "low": 24099.05
@@ -443,6 +443,6 @@
     }
   },
   "available_cash": 5897.4,
-  "available_margin": 2576586.06,
+  "available_margin": 2579653.8,
   "available_margin_note": null
 }
