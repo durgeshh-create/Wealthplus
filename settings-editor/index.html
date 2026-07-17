@@ -4157,7 +4157,7 @@ async function _fetchCSV(url) {
     const lines = (await r.text()).trim().split('\n').slice(1); // skip header
     return lines.map(l => {
       const p = l.trim().split(',');
-      return { date:p[0], open:+p[1], high:+p[2], low:+p[3], close:+p[4] };
+      return { date:p[0], open:+p[1], high:+p[2], low:+p[3], close:+p[4], volume:+p[5] };
     }).filter(c => !isNaN(c.close) && c.close > 0);
   } catch { return null; }
 }
@@ -4174,6 +4174,24 @@ function _calcWR(candles, period) {
 function _calcDMA20(candles) {
   if (!candles || candles.length < 20) return null;
   return candles.slice(-20).reduce((s,c) => s+c.close, 0) / 20;
+}
+
+// Average daily volume over the past month (~21 trading days)
+function _calcAvgVolume(candles, days = 21) {
+  if (!candles || !candles.length) return null;
+  const sl = candles.slice(-days).filter(c => !isNaN(c.volume) && c.volume >= 0);
+  if (!sl.length) return null;
+  return sl.reduce((s,c) => s + c.volume, 0) / sl.length;
+}
+
+// Compact ₹ formatting for large trade-value figures (Lakh/Crore)
+function _fmtINRCompact(v) {
+  if (v == null || isNaN(v)) return '—';
+  const abs = Math.abs(v);
+  if (abs >= 1e7) return '₹' + (v/1e7).toFixed(2) + ' Cr';
+  if (abs >= 1e5) return '₹' + (v/1e5).toFixed(2) + ' L';
+  if (abs >= 1e3) return '₹' + (v/1e3).toFixed(1) + ' K';
+  return '₹' + v.toFixed(0);
 }
 
 function _toWeekly(daily) {
@@ -4201,7 +4219,9 @@ async function _scanOne(sym, dailyT, weeklyT) {
   const wwr   = _calcWR(wkly, Math.min(14, wkly?.length||0));
   const dOk   = dwr  != null && dwr  <= dailyT;
   const wOk   = wwr  != null && wwr  <= weeklyT;
-  return { sym, ltp, dwr, wwr, dma20, below20: dma20!=null && ltp<dma20, dOk, wOk, bothOk:dOk&&wOk };
+  const avgVol   = _calcAvgVolume(daily, 21);
+  const avgTradeValue = (avgVol != null && ltp != null) ? avgVol * ltp : null;
+  return { sym, ltp, dwr, wwr, dma20, below20: dma20!=null && ltp<dma20, dOk, wOk, bothOk:dOk&&wOk, avgVol, avgTradeValue };
 }
 
 async function runScanner() {
@@ -4260,10 +4280,10 @@ async function runScanner() {
 function setScanSort(col) {
   _scnSortDir = _scnSortCol===col ? -_scnSortDir : 1;
   _scnSortCol = col;
-  ['dwr','wwr','dma'].forEach(c => {
+  ['dwr','wwr','dma','atv'].forEach(c => {
     const th = document.getElementById('scn-th-'+c);
     if (!th) return;
-    const lbl = c==='dwr'?'Daily W%R':c==='wwr'?'Weekly W%R':'vs 20 DMA';
+    const lbl = c==='dwr'?'Daily W%R':c==='wwr'?'Weekly W%R':c==='dma'?'vs 20 DMA':'Avg Trade Value';
     th.textContent = lbl + (c===_scnSortCol ? (_scnSortDir>0?' ↑':' ↓'):' ↕');
     th.className   = c===_scnSortCol ? 'sorted-col' : '';
   });
@@ -4280,7 +4300,8 @@ function renderScanResults() {
     else if (_scnSortCol==='dma') {
       av=a.dma20&&a.ltp?((a.ltp-a.dma20)/a.dma20*100):fallback*999;
       bv=b.dma20&&b.ltp?((b.ltp-b.dma20)/b.dma20*100):fallback*999;
-    } else { av=a.dwr??fallback; bv=b.dwr??fallback; }
+    } else if (_scnSortCol==='atv') { av=a.avgTradeValue??fallback*999; bv=b.avgTradeValue??fallback*999; }
+    else { av=a.dwr??fallback; bv=b.dwr??fallback; }
     return _scnSortDir*(av-bv);
   });
 
@@ -4310,6 +4331,9 @@ function renderScanResults() {
     if (r.bothOk)      sig='<span class="sig-both">✅ Both</span>';
     else if (r.dOk)    sig='<span class="sig-daily">📉 Daily</span>';
     else if (r.wOk)    sig='<span class="sig-weekly">📊 Weekly</span>';
+    const atvHtml = r.avgTradeValue != null
+      ? `<span title="Avg monthly volume ${Math.round(r.avgVol).toLocaleString('en-IN')} × LTP">${_fmtINRCompact(r.avgTradeValue)}</span>`
+      : '—';
     const inMW  = _marketwatch.includes(r.sym);
     const mwBtn = `<button class="mw-add-btn ${inMW?'in-mw':''}" onclick="addToMW('${r.sym}')" title="${inMW?'Remove from Marketwatch':'Add to Marketwatch'}">${inMW?'✓':'+'}</button>`;
     return `<tr class="${r.bothOk&&r.below20?'row-both':''}">
@@ -4317,7 +4341,9 @@ function renderScanResults() {
       <td>${badge}</td><td>${ltp}</td>
       <td class="wr-val ${dCls}">${dwr}</td>
       <td class="wr-val ${wCls}">${wwr}</td>
-      <td>${dmaHtml}</td><td>${sig}</td>
+      <td>${dmaHtml}</td>
+      <td>${atvHtml}</td>
+      <td>${sig}</td>
       <td>${mwBtn}</td>
     </tr>`;
   }).join('');
@@ -4437,14 +4463,15 @@ function _renderDeltaCell(el, delta, qty) {
         <div class="scn-tbl-wrap">
           <table class="scn-tbl" id="scn-tbl">
             <colgroup>
-              <col style="width:17%">
-              <col style="width:8%">
-              <col style="width:11%">
               <col style="width:15%">
-              <col style="width:15%">
-              <col style="width:13%">
-              <col style="width:14%">
               <col style="width:7%">
+              <col style="width:10%">
+              <col style="width:13%">
+              <col style="width:13%">
+              <col style="width:12%">
+              <col style="width:13%">
+              <col style="width:11%">
+              <col style="width:6%">
             </colgroup>
             <thead>
               <tr>
@@ -4454,6 +4481,7 @@ function _renderDeltaCell(el, delta, qty) {
                 <th id="scn-th-dwr" class="sorted-col" onclick="setScanSort('dwr')">Daily<br>W%R ↑</th>
                 <th id="scn-th-wwr" onclick="setScanSort('wwr')">Weekly<br>W%R ↕</th>
                 <th id="scn-th-dma" onclick="setScanSort('dma')">vs 20<br>DMA ↕</th>
+                <th id="scn-th-atv" onclick="setScanSort('atv')" title="Average monthly volume (past ~21 trading days) × LTP">Avg Trade<br>Value ↕</th>
                 <th>Signal</th>
                 <th title="Add to Marketwatch">⭐</th>
               </tr>
