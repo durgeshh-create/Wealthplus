@@ -3726,12 +3726,16 @@ function renderMWPanel() {
     } else if (r && !loading) {
       dmaHtml = '<span title="No CSV data found for this symbol in the repo">n/a</span>';
     }
+    const atvHtml = r && r.avgTradeValue != null
+      ? `<span title="Avg monthly volume ${Math.round(r.avgVol).toLocaleString('en-IN')} × LTP">${_fmtINRCompact(r.avgTradeValue)}</span>`
+      : (loading ? '…' : '—');
     return `<tr>
       <td style="font-weight:600">${sym}</td>
       <td>${ltp}</td>
       <td class="wr-val ${dCls}">${dwr}</td>
       <td class="wr-val ${wCls}">${wwr}</td>
       <td>${dmaHtml}</td>
+      <td>${atvHtml}</td>
       <td><span class="mw-rm-cell" onclick="removeFromMW('${sym}')" title="Remove">✕</span></td>
     </tr>`;
   }).join('');
@@ -4292,7 +4296,10 @@ function setScanSort(col) {
 
 function renderScanResults() {
   const only20 = document.getElementById('scn-20dma').checked;
+  const atvT   = parseFloat(document.getElementById('scn-atv-t')?.value || 0);
+  const atvMin = (isNaN(atvT) ? 0 : atvT) * 1e7; // Cr → ₹
   let rows = _scnRows.filter(r => !only20 || r.below20);
+  rows = rows.filter(r => atvMin <= 0 || (r.avgTradeValue != null && r.avgTradeValue >= atvMin));
   rows.sort((a,b) => {
     let av,bv;
     const fallback = _scnSortDir>0 ? 1 : -999;
@@ -4441,6 +4448,13 @@ function _renderDeltaCell(el, delta, qty) {
           <label>Filter</label>
           <label class="scn-chk-label"><input type="checkbox" id="scn-20dma" checked onchange="renderScanResults()"> Below 20 DMA</label>
         </div>
+        <div class="scn-fg">
+          <label>Avg Trade Value ≥</label>
+          <span style="display:flex;align-items:center;gap:4px">
+            <input type="number" id="scn-atv-t" class="scn-thresh" value="10" min="0" step="1" oninput="renderScanResults()">
+            <span style="font-size:11px;color:var(--muted)">Cr</span>
+          </span>
+        </div>
         <button class="scn-run-btn" id="scn-run-btn" onclick="runScanner()">▶ Run Scanner</button>
         <button class="scn-run-btn" id="scn-seed-btn" onclick="seedScannerData()" style="background:var(--bg2);border:1px solid var(--border2);color:var(--text)" title="Refreshes all ~575 ETF/NIFTY200/Midcap150 CSVs in the repo via a separate GitHub Actions workflow. Takes a few minutes — does not block this page.">⬇ Seed Scanner Data</button>
         <span class="mw-status" id="scn-seed-status" style="margin-left:0"></span>
@@ -4507,12 +4521,13 @@ function _renderDeltaCell(el, delta, qty) {
         <div class="mw-tbl-wrap" id="mw-tbl-wrap" style="display:none">
           <table class="mw-tbl" id="mw-tbl">
             <colgroup>
-              <col style="width:26%">
-              <col style="width:19%">
-              <col style="width:18%">
-              <col style="width:18%">
-              <col style="width:13%">
-              <col style="width:6%">
+              <col style="width:22%">
+              <col style="width:16%">
+              <col style="width:15%">
+              <col style="width:15%">
+              <col style="width:11%">
+              <col style="width:16%">
+              <col style="width:5%">
             </colgroup>
             <thead>
               <tr>
@@ -4521,6 +4536,7 @@ function _renderDeltaCell(el, delta, qty) {
                 <th>Daily<br>W%R</th>
                 <th>Weekly<br>W%R</th>
                 <th>vs 20<br>DMA</th>
+                <th title="Average monthly volume (past ~21 trading days) × LTP">Avg Trade<br>Value</th>
                 <th></th>
               </tr>
             </thead>
