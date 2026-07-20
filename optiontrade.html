@@ -1614,7 +1614,14 @@
         //     after "NIFTY" instead of the expiry's digits, so they fail too
         function currentNiftyOptionExpiryRegex() {
             const today = new Date();
-            const expiry = getExpiryForWeekday(today);
+            // Existing sold positions being switched out were sold for the
+            // CURRENT (nearest/this-week) Tuesday expiry — not the "next
+            // entry" expiry from getExpiryForWeekday(), which on Mon/Tue
+            // deliberately skips ahead to next week for fresh DOTM entries.
+            // Using that here would search for next week's symbol prefix
+            // while today's about-to-expire positions are still this
+            // week's, so nothing would ever match on switch day.
+            const expiry = getNextTuesday(today);
             const yy = expiry.getFullYear().toString().slice(-2);
             let prefix;
             if (isLastTuesdayOfMonth(expiry)) {
