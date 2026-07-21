@@ -301,13 +301,18 @@ class StrategyExecutor:
             order_type = self._get_order_type()
 
             if order_type == 'LIMIT':
-                # Use top bid (best buy price in market depth) for buy LIMIT orders
-                top_bid = None
-                if hasattr(self.realtime, 'get_top_bid'):
-                    top_bid = self.realtime.get_top_bid(symbol)
-                limit_price = float(top_bid) if top_bid and top_bid > 0 else etf_price
+                # ✅ FIX: was using top_bid here, which is the WRONG side of
+                # the book for a BUY order — top_bid only matches what other
+                # buyers are already offering, so the order doesn't cross the
+                # spread and may sit unfilled. BUY orders need top_ask (best
+                # offer) to guarantee a marketable fill — same reasoning
+                # already documented for the LIQUIDCASE buy leg below.
+                top_ask = None
+                if hasattr(self.realtime, 'get_top_ask'):
+                    top_ask = self.realtime.get_top_ask(symbol)
+                limit_price = float(top_ask) if top_ask and top_ask > 0 else etf_price
                 logger.info(
-                    f"LIMIT BUY: using top_bid ₹{limit_price:.2f} for {symbol} "                    f"(LTP was ₹{etf_price:.2f}, {'top_bid from depth' if top_bid else 'fell back to LTP'})"                )
+                    f"LIMIT BUY: using top_ask ₹{limit_price:.2f} for {symbol} "                    f"(LTP was ₹{etf_price:.2f}, {'top_ask from depth' if top_ask else 'fell back to LTP'})"                )
             else:
                 limit_price = None
                 logger.info(f"MARKET BUY: {symbol} @ ₹{etf_price:.2f}")
@@ -519,14 +524,18 @@ class StrategyExecutor:
             sell_order_type = self._get_order_type()
 
             if sell_order_type == 'LIMIT':
-                # Use top ask (best offer price in market depth) for sell LIMIT orders
-                top_ask = None
-                if hasattr(self.realtime, 'get_top_ask'):
-                    top_ask = self.realtime.get_top_ask(symbol)
-                sell_limit_price = float(top_ask) if top_ask and top_ask > 0 else etf_price
+                # ✅ FIX: was using top_ask here — the WRONG side for a SELL
+                # order. top_ask is what other sellers are asking, so pricing
+                # your sell there doesn't cross the spread against a buyer
+                # and may sit unfilled. SELL orders need top_bid (best bid)
+                # to guarantee a marketable fill.
+                top_bid = None
+                if hasattr(self.realtime, 'get_top_bid'):
+                    top_bid = self.realtime.get_top_bid(symbol)
+                sell_limit_price = float(top_bid) if top_bid and top_bid > 0 else etf_price
                 logger.info(
-                    f"LIMIT SELL: using top_ask ₹{sell_limit_price:.2f} for {symbol} "
-                    f"(LTP was ₹{etf_price:.2f}, {'top_ask from depth' if top_ask else 'fell back to LTP'})"
+                    f"LIMIT SELL: using top_bid ₹{sell_limit_price:.2f} for {symbol} "
+                    f"(LTP was ₹{etf_price:.2f}, {'top_bid from depth' if top_bid else 'fell back to LTP'})"
                 )
             else:
                 sell_limit_price = None
