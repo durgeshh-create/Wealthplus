@@ -279,6 +279,10 @@
         .symbol-edit-row.put input { border-color: rgba(220, 38, 38, 0.4); }
         .symbol-edit-row.call input { border-color: rgba(22, 163, 74, 0.4); }
         .symbol-edit-row input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
+        .symbol-edit-row input:disabled { opacity: 0.35; cursor: not-allowed; }
+        .leg-toggle { width: 12px; height: 12px; margin: 0; cursor: pointer; flex-shrink: 0; }
+        .mini-tbl input[type="checkbox"] { width: 11px; height: 11px; margin: 0; cursor: pointer; }
+        .mini-tbl th:first-child, .mini-tbl td:first-child { width: 18px; }
         .symbol-edit-hint { font-size: 0.5rem; color: #64748b; margin-bottom: 6px; }
         .update-symbol-btn {
             padding: 3px 8px; background: #e0e7ff; border: 1px solid rgba(79, 70, 229, 0.35);
@@ -293,6 +297,7 @@
             border: 1px dashed rgba(15, 23, 42, 0.2); min-height: 20px;
         }
         .order-btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+        .kite-btn-group { display: contents; }
         .run-btn {
             padding: 6px 12px; background: linear-gradient(90deg, #f59e0b, #ea580c);
             color: #fff; border: none; border-radius: 6px; font-size: 0.65rem;
@@ -338,8 +343,8 @@
                     <div class="hint">Exits (BUY, market) all current-expiry NIFTY option sold positions pulled from Today's Positions, then sells fresh NIFTY DOTM PUT/CALL — put then call, repeated per lot.</div>
 
                     <table class="mini-tbl">
-                        <thead><tr><th>Existing sold position</th><th>Qty</th></tr></thead>
-                        <tbody id="switchPosBody"><tr><td colspan="2" style="color:#64748b">Loading Today's Positions…</td></tr></tbody>
+                        <thead><tr><th></th><th>Existing sold position</th><th>Qty</th></tr></thead>
+                        <tbody id="switchPosBody"><tr><td colspan="3" style="color:#64748b">Loading Today's Positions…</td></tr></tbody>
                     </table>
                     <button class="refresh-mini-btn" onclick="refreshSwitchPositions()">🔄 Refresh positions</button>
 
@@ -349,20 +354,22 @@
                     </div>
 
                     <div class="symbol-edit-row put">
+                        <input type="checkbox" id="switchPutEnabled" class="leg-toggle" checked onchange="toggleLegEnabled('switch','Put', this.checked)">
                         <label>PUT</label>
                         <input type="text" id="switchPutSymbol" spellcheck="false" autocomplete="off">
                     </div>
                     <div class="symbol-edit-row call">
+                        <input type="checkbox" id="switchCallEnabled" class="leg-toggle" checked onchange="toggleLegEnabled('switch','Call', this.checked)">
                         <label>CALL</label>
                         <input type="text" id="switchCallSymbol" spellcheck="false" autocomplete="off">
                     </div>
-                    <div class="symbol-edit-hint">Auto-filled from the NIFTY EXPIRY PUT/CALL strikes below (current-expiry) — edit if you want to sell a different strike/symbol. <a href="#" onclick="resetSymbolInputs('switch');return false;" style="color:#2563eb">↺ reset to computed</a></div>
+                    <div class="symbol-edit-hint">Auto-filled from the NIFTY EXPIRY PUT/CALL strikes below (current-expiry) — edit if you want to sell a different strike/symbol, or untick a leg to skip it entirely. <a href="#" onclick="resetSymbolInputs('switch');return false;" style="color:#2563eb">↺ reset to computed</a></div>
 
                     <div class="basket-preview" id="switchBasketPreview">Basket preview appears here after Run.</div>
 
                     <div class="order-btn-row">
                         <button class="run-btn" onclick="runSwitch()">▶ Run</button>
-                        <button class="kite-btn" id="switchKiteBtn">Place Basket in Kite</button>
+                        <span id="switchKiteBtns" class="kite-btn-group"></span>
                     </div>
                     <div class="order-status" id="switchStatus"></div>
                 </div>
@@ -378,20 +385,22 @@
                     </div>
 
                     <div class="symbol-edit-row put">
+                        <input type="checkbox" id="freshPutEnabled" class="leg-toggle" checked onchange="toggleLegEnabled('fresh','Put', this.checked)">
                         <label>PUT</label>
                         <input type="text" id="freshPutSymbol" spellcheck="false" autocomplete="off">
                     </div>
                     <div class="symbol-edit-row call">
+                        <input type="checkbox" id="freshCallEnabled" class="leg-toggle" checked onchange="toggleLegEnabled('fresh','Call', this.checked)">
                         <label>CALL</label>
                         <input type="text" id="freshCallSymbol" spellcheck="false" autocomplete="off">
                     </div>
-                    <div class="symbol-edit-hint">Auto-filled from the computed NIFTY DOTM strikes below — edit if you want to sell a different strike/symbol. <a href="#" onclick="resetSymbolInputs('fresh');return false;" style="color:#2563eb">↺ reset to computed</a></div>
+                    <div class="symbol-edit-hint">Auto-filled from the computed NIFTY DOTM strikes below — edit if you want to sell a different strike/symbol, or untick a leg to sell only PUT or only CALL. <a href="#" onclick="resetSymbolInputs('fresh');return false;" style="color:#2563eb">↺ reset to computed</a></div>
 
                     <div class="basket-preview" id="freshBasketPreview">Basket preview appears here after Run.</div>
 
                     <div class="order-btn-row">
                         <button class="run-btn" onclick="runFreshDotm()">▶ Run</button>
-                        <button class="kite-btn" id="freshKiteBtn">Place Basket in Kite</button>
+                        <span id="freshKiteBtns" class="kite-btn-group"></span>
                     </div>
                     <div class="order-status" id="freshStatus"></div>
                 </div>
@@ -1553,6 +1562,10 @@
         function resetSymbolInputs(which) {
             if (which === 'switch') switchSymbolsEdited = false;
             else freshSymbolsEdited = false;
+            ['Put', 'Call'].forEach(leg => {
+                document.getElementById(which + leg + 'Enabled').checked = true;
+                document.getElementById(which + leg + 'Symbol').disabled = false;
+            });
             syncSymbolInputs();
             invalidateBasket(which);
         }
@@ -1639,8 +1652,16 @@
         function renderSwitchPositions() {
             const body = document.getElementById('switchPosBody');
             body.innerHTML = switchCandidates.length
-                ? switchCandidates.map(p => `<tr><td>${p.symbol}</td><td class="neg-qty">${p.quantity}</td></tr>`).join('')
-                : `<tr><td colspan="2" style="color:#64748b">No current-expiry NIFTY option sold positions found</td></tr>`;
+                ? switchCandidates.map((p, i) => `<tr><td><input type="checkbox" ${p.included ? 'checked' : ''} onchange="toggleSwitchCandidate(${i}, this.checked)"></td><td>${p.symbol}</td><td class="neg-qty">${p.quantity}</td></tr>`).join('')
+                : `<tr><td colspan="3" style="color:#64748b">No current-expiry NIFTY option sold positions found</td></tr>`;
+        }
+
+        // Lets the user exclude an individual existing sold position (e.g.
+        // "only exit the PUT, leave the CALL as-is") from the exit basket
+        // without unchecking every position.
+        function toggleSwitchCandidate(idx, checked) {
+            switchCandidates[idx].included = checked;
+            invalidateBasket('switch');
         }
 
         async function refreshSwitchPositions() {
@@ -1656,7 +1677,7 @@
                 const symRe = currentNiftyOptionExpiryRegex();
                 switchCandidates = positions
                     .filter(p => p && typeof p.symbol === 'string' && (p.quantity ?? 0) < 0 && symRe.test(p.symbol))
-                    .map(p => ({ symbol: p.symbol, quantity: p.quantity }));
+                    .map(p => ({ symbol: p.symbol, quantity: p.quantity, included: true }));
                 renderSwitchPositions();
                 statusEl.textContent = `Updated · ${switchCandidates.length} position(s) matched`;
                 statusEl.style.color = '#4ade80';
@@ -1667,22 +1688,46 @@
             }
         }
 
-        // Replaces a button with a clone of itself so any Kite click-listener
-        // bound to it on a previous Run doesn't stack / fire twice.
-        function resetButton(id) {
-            const old = document.getElementById(id);
-            const clone = old.cloneNode(true);
-            old.parentNode.replaceChild(clone, old);
-            return clone;
+        // Kite's basket-order checkout hard-caps every basket at 20 orders
+        // (support.zerodha.com — "A maximum of 20 orders can be added to
+        // the basket"). Orders added beyond that via kite.add() are not
+        // reliably executed — this is why a 28-order basket only traded
+        // ~11 legs. So baskets are always split into ≤20-order chunks.
+        const KITE_BASKET_MAX = 20;
+
+        // Splits an order list into ≤20-order chunks. Called separately on
+        // exit orders and entry orders (never on the combined list) so a
+        // chunk boundary never lands mid-way between an exit and an entry.
+        function chunkOrders(orders) {
+            const batches = [];
+            for (let i = 0; i < orders.length; i += KITE_BASKET_MAX) {
+                batches.push(orders.slice(i, i + KITE_BASKET_MAX));
+            }
+            return batches;
         }
 
-        function prepareKiteBasket(orders, buttonId) {
-            const btn = resetButton(buttonId);
-            const kite = new KiteConnect(KITE_API_KEYS[ORDER_ACCOUNT]);
-            orders.forEach(o => kite.add(o));
-            kite.link('#' + buttonId);
-            btn.style.display = 'inline-block';
-            btn.textContent = `Place Basket in Kite (${orders.length} orders)`;
+        // Renders one "Place Basket in Kite" button per batch into
+        // `containerId`, each wired to its own KiteConnect basket. The
+        // container is rebuilt from scratch every call, so old click
+        // bindings from a previous Run are simply discarded along with
+        // their buttons (no clone/replace trick needed).
+        function renderKiteBatches(containerId, batches) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            batches.forEach((batch, i) => {
+                const btnId = containerId + 'Btn' + i;
+                const btn = document.createElement('button');
+                btn.className = 'kite-btn';
+                btn.id = btnId;
+                btn.style.display = 'inline-block';
+                btn.textContent = batches.length > 1
+                    ? `Place Batch ${i + 1}/${batches.length} in Kite (${batch.length} orders)`
+                    : `Place Basket in Kite (${batch.length} orders)`;
+                container.appendChild(btn);
+                const kite = new KiteConnect(KITE_API_KEYS[ORDER_ACCOUNT]);
+                batch.forEach(o => kite.add(o));
+                kite.link('#' + btnId);
+            });
         }
 
         function renderBasketPreview(elId, orders) {
@@ -1692,25 +1737,36 @@
         }
 
         // Reads the (possibly user-edited) PUT/CALL symbol boxes for a
-        // section. Either box may be left blank — that leg is simply
-        // omitted from the basket rather than blocking the whole run.
+        // section. Either leg may be omitted — via a blank box, or via its
+        // enable checkbox being unticked — so a one-sided basket (put
+        // only, or call only) works either way.
         function editedSymbols(prefixId) {
+            const putEnabled = document.getElementById(prefixId + 'PutEnabled').checked;
+            const callEnabled = document.getElementById(prefixId + 'CallEnabled').checked;
             const putRaw = document.getElementById(prefixId + 'PutSymbol').value.trim().toUpperCase();
             const callRaw = document.getElementById(prefixId + 'CallSymbol').value.trim().toUpperCase();
-            const putSym = (putRaw && putRaw !== '···') ? putRaw : null;
-            const callSym = (callRaw && callRaw !== '···') ? callRaw : null;
-            if (!putSym && !callSym) return null; // both blank — nothing to sell
+            const putSym = (putEnabled && putRaw && putRaw !== '···') ? putRaw : null;
+            const callSym = (callEnabled && callRaw && callRaw !== '···') ? callRaw : null;
+            if (!putSym && !callSym) return null; // both blank/unticked — nothing to sell
             return { putSym, callSym };
         }
 
+        // Unticking a leg's checkbox disables (greys out) its symbol box
+        // and excludes that leg from the basket on the next Run, without
+        // clearing whatever symbol was typed in — so re-ticking restores it.
+        function toggleLegEnabled(which, leg, checked) {
+            document.getElementById(which + leg + 'Symbol').disabled = !checked;
+            invalidateBasket(which);
+        }
+
         // Editing a symbol box, or changing lot size, after a basket has
-        // already been prepared means the previously-built Kite basket is
-        // now stale (Kite's kite.add() calls already happened at Run time
-        // and won't pick up further edits on their own) — so hide the
-        // "Place Basket in Kite" button and prompt for a fresh Run.
+        // already been prepared means the previously-built Kite basket(s)
+        // are now stale (Kite's kite.add() calls already happened at Run
+        // time and won't pick up further edits on their own) — so clear
+        // the "Place Basket in Kite" button(s) and prompt for a fresh Run.
         function invalidateBasket(prefixId) {
-            const btn = document.getElementById(prefixId + 'KiteBtn');
-            if (btn) btn.style.display = 'none';
+            const container = document.getElementById(prefixId + 'KiteBtns');
+            if (container) container.innerHTML = '';
             const statusEl = document.getElementById(prefixId + 'Status');
             if (statusEl) {
                 statusEl.textContent = '✎ Inputs changed — click Run to rebuild the basket.';
@@ -1723,41 +1779,51 @@
             if (!kitePublisherReady) { statusEl.textContent = '⚠ Kite Publisher still loading — try again in a second.'; statusEl.style.color = '#dc2626'; return; }
             if (!switchCandidates.length) { statusEl.textContent = '⚠ No current-expiry NIFTY sold positions to switch.'; statusEl.style.color = '#dc2626'; return; }
             const symbols = editedSymbols('switch');
-            if (!symbols) { statusEl.textContent = '⚠ Both PUT and CALL boxes are empty — fill at least one, or wait for live data.'; statusEl.style.color = '#dc2626'; return; }
+            if (!symbols) { statusEl.textContent = '⚠ Both PUT and CALL legs are empty or unticked — enable/fill at least one, or wait for live data.'; statusEl.style.color = '#dc2626'; return; }
             const lotSel = document.getElementById('switchLotSize');
             if (!lotSel.value) { lotSel.classList.add('needs-selection'); statusEl.textContent = '⚠ Pick a lot size first.'; statusEl.style.color = '#dc2626'; return; }
 
             const lots = parseInt(lotSel.value, 10);
-            // Exits the FULL quantity of every current-expiry NIFTY short
-            // position found (chunked to the freeze limit), then adds the
-            // new sell legs — exits always come first in the basket.
-            const exitOrders = buildExitOrders(switchCandidates);
+            // Exits the FULL quantity of every TICKED current-expiry NIFTY
+            // short position (chunked to the freeze limit), then adds the
+            // ticked new sell legs — exits always come first. Exit and
+            // entry orders are chunked into ≤20-order Kite baskets
+            // SEPARATELY (never merged before chunking) so a basket
+            // boundary never splits an exit from an entry mid-batch.
+            const selectedCandidates = switchCandidates.filter(p => p.included);
+            const exitOrders = buildExitOrders(selectedCandidates);
             const entryOrders = buildEntryOrders(symbols.putSym, symbols.callSym, lots);
             const orders = exitOrders.concat(entryOrders);
             renderBasketPreview('switchBasketPreview', orders);
-            prepareKiteBasket(orders, 'switchKiteBtn');
+            const batches = chunkOrders(exitOrders).concat(chunkOrders(entryOrders));
+            renderKiteBatches('switchKiteBtns', batches);
             const sideNote = (!symbols.putSym || !symbols.callSym) ? ' (one-sided — only ' + (symbols.putSym ? 'PUT' : 'CALL') + ' entry)' : '';
-            statusEl.textContent = (orders.length > 20
-                ? `Basket ready — ${exitOrders.length} exit + ${entryOrders.length} entry = ${orders.length} orders${sideNote}. Kite baskets over 20 legs may need placing in parts.`
-                : `Basket ready — ${exitOrders.length} exit + ${entryOrders.length} entry = ${orders.length} orders${sideNote}. Click "Place Basket in Kite".`);
-            statusEl.style.color = orders.length > 20 ? '#b45309' : '#16a34a';
+            const batchNote = batches.length > 1
+                ? ` Split into ${batches.length} Kite baskets (Kite caps a basket at 20 orders) — place each button below in order.`
+                : ' Click "Place Basket in Kite".';
+            statusEl.textContent = `Basket ready — ${exitOrders.length} exit + ${entryOrders.length} entry = ${orders.length} orders${sideNote}.${batchNote}`;
+            statusEl.style.color = batches.length > 1 ? '#b45309' : '#16a34a';
         }
 
         function runFreshDotm() {
             const statusEl = document.getElementById('freshStatus');
             if (!kitePublisherReady) { statusEl.textContent = '⚠ Kite Publisher still loading — try again in a second.'; statusEl.style.color = '#dc2626'; return; }
             const symbols = editedSymbols('fresh');
-            if (!symbols) { statusEl.textContent = '⚠ Both PUT and CALL boxes are empty — fill at least one, or wait for live data.'; statusEl.style.color = '#dc2626'; return; }
+            if (!symbols) { statusEl.textContent = '⚠ Both PUT and CALL legs are empty or unticked — enable/fill at least one, or wait for live data.'; statusEl.style.color = '#dc2626'; return; }
             const lotSel = document.getElementById('freshLotSize');
             if (!lotSel.value) { lotSel.classList.add('needs-selection'); statusEl.textContent = '⚠ Pick a lot size first.'; statusEl.style.color = '#dc2626'; return; }
 
             const lots = parseInt(lotSel.value, 10);
             const orders = buildEntryOrders(symbols.putSym, symbols.callSym, lots);
             renderBasketPreview('freshBasketPreview', orders);
-            prepareKiteBasket(orders, 'freshKiteBtn');
+            const batches = chunkOrders(orders);
+            renderKiteBatches('freshKiteBtns', batches);
             const sideNote = (!symbols.putSym || !symbols.callSym) ? ' (one-sided — only ' + (symbols.putSym ? 'PUT' : 'CALL') + ')' : '';
-            statusEl.textContent = `Basket ready (${orders.length} orders${sideNote}) — click "Place Basket in Kite".`;
-            statusEl.style.color = '#16a34a';
+            const batchNote = batches.length > 1
+                ? ` Split into ${batches.length} Kite baskets (Kite caps a basket at 20 orders) — place each button below in order.`
+                : ' Click "Place Basket in Kite".';
+            statusEl.textContent = `Basket ready (${orders.length} orders${sideNote}).${batchNote}`;
+            statusEl.style.color = batches.length > 1 ? '#b45309' : '#16a34a';
         }
 
         populateLotOptions('switchLotSize', 5);
