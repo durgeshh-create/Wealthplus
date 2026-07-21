@@ -1675,9 +1675,21 @@
                 const data = await r.json();
                 const positions = data.positions || [];
                 const symRe = currentNiftyOptionExpiryRegex();
+                // The 10s auto-refresh (setInterval below) rebuilds this
+                // list from scratch on every tick — without this, any
+                // position the user had manually unticked would silently
+                // flip back to included:true a few seconds later. Carry
+                // forward each symbol's previous ticked state; only
+                // symbols that are genuinely new to this refresh default
+                // to included:true.
+                const prevIncluded = new Map(switchCandidates.map(p => [p.symbol, p.included]));
                 switchCandidates = positions
                     .filter(p => p && typeof p.symbol === 'string' && (p.quantity ?? 0) < 0 && symRe.test(p.symbol))
-                    .map(p => ({ symbol: p.symbol, quantity: p.quantity, included: true }));
+                    .map(p => ({
+                        symbol: p.symbol,
+                        quantity: p.quantity,
+                        included: prevIncluded.has(p.symbol) ? prevIncluded.get(p.symbol) : true
+                    }));
                 renderSwitchPositions();
                 statusEl.textContent = `Updated · ${switchCandidates.length} position(s) matched`;
                 statusEl.style.color = '#4ade80';
