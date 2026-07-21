@@ -620,8 +620,7 @@ class OrderManager:
             )
         # ─────────────────────────────────────────────────────────────────────
         # After LIQUIDCASE sell + margin poll (up to 90s), the limit price
-        # captured before the poll is stale — market has moved. Force MARKET
-        # so the fill is guaranteed and we don't orphan the cash.
+        # captured before the poll is stale — market has moved.
         # Recalculate qty using fresh LTP after 90s poll — price may have moved
         _fresh_ltp = realtime_manager.get_ltp(buy_symbol) if realtime_manager else None
         if _fresh_ltp and _fresh_ltp > 0 and _fresh_ltp != exec_price:
@@ -631,13 +630,39 @@ class OrderManager:
                 logger.info(f"[smart_buy] Price moved ₹{exec_price:.2f}→₹{_fresh_ltp:.2f} — qty {buy_quantity}→{_fresh_qty}")
                 buy_quantity = _fresh_qty
 
-        _actual_order_type  = 'MARKET'
-        _actual_limit_price = None
-        if buy_order_type != 'MARKET':
+        # ✅ FIX: previously this forced order_type to MARKET unconditionally
+        # ("guaranteed fill"), which silently ignored the configured LIMIT
+        # order type. Several symbols (EMBASSY-RR, NXST-RR, and other
+        # illiquid REIT/InvIT scrips) have plain MARKET orders blocked
+        # outright by the exchange — "MARKET orders are blocked for
+        # EMBASSY-RR... Try placing MARKET order with market protection
+        # enabled" — so forcing MARKET here doesn't just violate the LIMIT
+        # setting, it actively fails, orphaning the LIQUIDCASE sale.
+        # Instead: if LIMIT was requested, keep it LIMIT but refresh the
+        # price using current top_ask (best offer) — the same "top offer
+        # for BUY orders" convention used everywhere else in the codebase
+        # (executor.py LIQUIDCASE buy, intraday_engine.py dip-buy/weekday-buy)
+        # — since the original limit price is stale after the margin-poll
+        # delay. Falls back to fresh LTP + a small buffer only if market
+        # depth isn't available.
+        if buy_order_type == 'LIMIT':
+            _actual_order_type = 'LIMIT'
+            _top_ask = realtime_manager.get_top_ask(buy_symbol) if (realtime_manager and hasattr(realtime_manager, 'get_top_ask')) else None
+            if _top_ask and _top_ask > 0:
+                _actual_limit_price = round(float(_top_ask), 2)
+                _src = f"top_ask from depth"
+            else:
+                _limit_buffer_pct = 0.005  # 0.5% above LTP — marketable, near-guaranteed fill
+                _base_price = _fresh_ltp if (_fresh_ltp and _fresh_ltp > 0) else exec_price
+                _actual_limit_price = round(_base_price * (1 + _limit_buffer_pct), 2)
+                _src = f"depth unavailable, fell back to LTP ₹{_base_price:.2f} + {_limit_buffer_pct*100:.1f}% buffer"
             logger.info(
-                f"[smart_buy] Overriding {buy_order_type} → MARKET after LIQUIDCASE sell "
-                f"(limit price ₹{buy_limit_price} is stale after margin poll delay)"
+                f"[smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: "
+                f"₹{buy_limit_price} → ₹{_actual_limit_price:.2f} ({_src})"
             )
+        else:
+            _actual_order_type  = 'MARKET'
+            _actual_limit_price = None
 
         buy_oid, buy_msg = self.place_order(
             buy_symbol, 'BUY', buy_quantity,
