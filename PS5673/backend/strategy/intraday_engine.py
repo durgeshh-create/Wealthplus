@@ -339,9 +339,12 @@ class IntradayEngine:
             order_type  = self._order_type()
             limit_price = None
             try:
-                top_ask = self.realtime.get_top_ask(symbol)
-                if order_type == 'LIMIT' and top_ask and top_ask > 0:
-                    limit_price = round(float(top_ask), 2)
+                # ✅ FIX: was reading get_top_ask() for a SELL order — the
+                # wrong side of the book (doesn't cross the spread against a
+                # buyer, may sit unfilled). SELL orders need top_bid.
+                top_bid = self.realtime.get_top_bid(symbol)
+                if order_type == 'LIMIT' and top_bid and top_bid > 0:
+                    limit_price = round(float(top_bid), 2)
             except Exception:
                 pass
 
