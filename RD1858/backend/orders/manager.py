@@ -535,9 +535,31 @@ class OrderManager:
             import time as _t; _t.sleep(2)
 
         # Sell LIQUIDCASE for the shortfall (CNC — delivery sell)
+        # ✅ FIX: was hardcoded MARKET ("always market for LIQUIDCASE sell")
+        # on the assumption LIQUIDCASE is always liquid enough. That's no
+        # longer holding — the exchange has started rejecting it outright:
+        # "MARKET orders are blocked for illiquid ETFs... enable market
+        # protection" — the same mechanism seen earlier for EMBASSY-RR/
+        # NXST-RR, just now hitting LIQUIDCASE itself. Every retry then hit
+        # this same pre-flight rejection every 2s (MARKET_DATA_REFRESH_INTERVAL),
+        # with no successful sell ever reaching the exchange.
+        # Switch to LIMIT using top_bid (best bid) — the correct SELL-side
+        # convention used everywhere else in this codebase — so the sell is
+        # still marketable (fills at the real, better bid) without being
+        # rejected as a bare MARKET order. Falls back to LTP - a small
+        # buffer only if depth isn't available.
+        _liq_top_bid = realtime_manager.get_top_bid(LIQUIDCASE_SYMBOL) if (realtime_manager and hasattr(realtime_manager, 'get_top_bid')) else None
+        if _liq_top_bid and _liq_top_bid > 0:
+            _liq_sell_price = round(float(_liq_top_bid), 2)
+            _liq_src = "top_bid from depth"
+        else:
+            _liq_sell_price = round(liq_price * 0.995, 2)  # 0.5% below LTP — marketable fallback
+            _liq_src = f"depth unavailable, fell back to LTP ₹{liq_price:.2f} - 0.5%"
+        logger.info(f"[smart_buy] LIQUIDCASE sell LIMIT ₹{_liq_sell_price:.2f} ({_liq_src})")
+
         liq_oid, liq_msg = self.place_order(
             LIQUIDCASE_SYMBOL, 'SELL', liq_to_sell,
-            order_type='MARKET',   # always market for LIQUIDCASE sell
+            order_type='LIMIT', price=_liq_sell_price,
             product='CNC',
         )
         if not liq_oid:
