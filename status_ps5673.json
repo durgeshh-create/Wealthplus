@@ -1,16 +1,16 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-07-22 15:31:40 IST",
+  "timestamp": "2026-07-22 15:32:44 IST",
   "bot_running": true,
-  "total_value": 8819736.0,
+  "total_value": 1511862.54,
   "today_pnl": 2544.34,
-  "today_pnl_pct": 0.03,
+  "today_pnl_pct": 0.17,
   "liquidcase": {
     "quantity": 63486,
     "free_quantity": 0,
-    "price": 115.11,
-    "value": 7307873.46,
-    "pct": 82.86
+    "price": 0,
+    "value": 0,
+    "pct": 0.0
   },
   "slots": {
     "total": 6,
@@ -38,8 +38,8 @@
       "value": 39087.84,
       "pnl": -482.46,
       "pnl_pct": -1.22,
-      "unrealised_pnl": -110.88,
-      "unrealised_pnl_pct": -0.28,
+      "unrealised_pnl": -139.92,
+      "unrealised_pnl_pct": -0.36,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 6
@@ -52,8 +52,8 @@
       "value": 22308.0,
       "pnl": 26.0,
       "pnl_pct": 0.12,
-      "unrealised_pnl": 98.5,
-      "unrealised_pnl_pct": 0.44,
+      "unrealised_pnl": 96.0,
+      "unrealised_pnl_pct": 0.43,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 6
@@ -66,8 +66,8 @@
       "value": 584262.56,
       "pnl": 6914.64,
       "pnl_pct": 1.2,
-      "unrealised_pnl": -4948.42,
-      "unrealised_pnl_pct": -0.84,
+      "unrealised_pnl": -4850.34,
+      "unrealised_pnl_pct": -0.82,
       "strategy": "active",
       "buys_today": 7,
       "max_slots": 6
@@ -80,8 +80,8 @@
       "value": 554269.66,
       "pnl": -5143.6,
       "pnl_pct": -0.92,
-      "unrealised_pnl": 17145.72,
-      "unrealised_pnl_pct": 3.19,
+      "unrealised_pnl": 16257.28,
+      "unrealised_pnl_pct": 3.02,
       "strategy": "bnh",
       "buys_today": 0,
       "max_slots": 6
@@ -94,8 +94,8 @@
       "value": 311934.48,
       "pnl": 1229.76,
       "pnl_pct": 0.4,
-      "unrealised_pnl": -17673.35,
-      "unrealised_pnl_pct": -5.37,
+      "unrealised_pnl": -17424.47,
+      "unrealised_pnl_pct": -5.29,
       "strategy": "active",
       "buys_today": 7,
       "max_slots": 6
@@ -154,77 +154,69 @@
   "williams_r": [
     {
       "symbol": "GOLDBEES",
-      "ltp": 119.14,
-      "change_pct": 1.2,
-      "williams_r": -49.17,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -67.13,
       "is_held": true,
       "avg_price": 120.13,
       "strategy": "active"
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 213.07,
-      "change_pct": 0.4,
-      "williams_r": -49.6,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -53.85,
       "is_held": true,
       "avg_price": 224.97,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 779.61,
-      "change_pct": -0.61,
-      "williams_r": -49.95,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -36.9,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 446.16,
-      "change_pct": 0.12,
-      "williams_r": -58.92,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -62.02,
       "is_held": true,
       "avg_price": 444.24,
       "strategy": "active"
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 592.24,
-      "change_pct": -1.22,
-      "williams_r": -71.14,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -38.12,
       "is_held": true,
       "avg_price": 594.36,
       "strategy": "active"
     },
     {
       "symbol": "NXST-RR",
-      "ltp": 167.9,
-      "change_pct": 0.24,
-      "williams_r": -80.81,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -21.04,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 237.07,
-      "change_pct": -0.92,
-      "williams_r": -42.63,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -18.08,
       "is_held": true,
       "avg_price": 230.12,
       "strategy": "bnh"
     }
   ],
-  "signals": [
-    {
-      "type": "BUY",
-      "symbol": "NXST-RR",
-      "reason": "W%R -80.8 \u2264 -75.0",
-      "ltp": 167.9,
-      "williams_r": -80.81
-    }
-  ],
+  "signals": [],
   "orders": [
     {
       "order_id": "260722150065735",
