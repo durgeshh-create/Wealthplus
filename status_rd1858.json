@@ -1,16 +1,16 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-07-22 15:30:18 IST",
+  "timestamp": "2026-07-22 15:31:21 IST",
   "bot_running": true,
-  "total_value": 8565164.72,
-  "today_pnl": 2341.58,
-  "today_pnl_pct": 0.03,
+  "total_value": 1510991.2,
+  "today_pnl": 2339.08,
+  "today_pnl_pct": 0.16,
   "liquidcase": {
     "quantity": 61282,
     "free_quantity": 0,
-    "price": 115.11,
-    "value": 7054171.02,
-    "pct": 82.36
+    "price": 0,
+    "value": 0,
+    "pct": 0.0
   },
   "slots": {
     "total": 6,
@@ -38,8 +38,8 @@
       "value": 19558.44,
       "pnl": -226.71,
       "pnl_pct": -1.15,
-      "unrealised_pnl": -17.82,
-      "unrealised_pnl_pct": -0.09,
+      "unrealised_pnl": -16.17,
+      "unrealised_pnl_pct": -0.08,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 6
@@ -48,12 +48,12 @@
       "symbol": "EMBASSY-RR",
       "quantity": 50,
       "avg": 444.24,
-      "ltp": 446.21,
-      "value": 22310.5,
-      "pnl": 28.5,
-      "pnl_pct": 0.13,
-      "unrealised_pnl": 101.5,
-      "unrealised_pnl_pct": 0.46,
+      "ltp": 446.16,
+      "value": 22308.0,
+      "pnl": 26.0,
+      "pnl_pct": 0.12,
+      "unrealised_pnl": 98.5,
+      "unrealised_pnl_pct": 0.44,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 6
@@ -66,8 +66,8 @@
       "value": 539970.96,
       "pnl": 6300.87,
       "pnl_pct": 1.18,
-      "unrealised_pnl": -4639.4,
-      "unrealised_pnl_pct": -0.85,
+      "unrealised_pnl": -4775.39,
+      "unrealised_pnl_pct": -0.88,
       "strategy": "active",
       "buys_today": 7,
       "max_slots": 6
@@ -94,8 +94,8 @@
       "value": 310834.0,
       "pnl": 978.2,
       "pnl_pct": 0.32,
-      "unrealised_pnl": -18304.07,
-      "unrealised_pnl_pct": -5.56,
+      "unrealised_pnl": -18231.07,
+      "unrealised_pnl_pct": -5.54,
       "strategy": "active",
       "buys_today": 7,
       "max_slots": 6
@@ -142,9 +142,9 @@
       "symbol": "NXST-RR",
       "quantity": 159,
       "avg": 167.34,
-      "ltp": 167.8,
-      "pnl": 73.14,
-      "unrealised": 73.14,
+      "ltp": 167.9,
+      "pnl": 89.04,
+      "unrealised": 89.04,
       "realised": 0.0,
       "buy_qty": 159,
       "sell_qty": 0,
@@ -154,63 +154,63 @@
   "williams_r": [
     {
       "symbol": "GOLDBEES",
-      "ltp": 119.12,
-      "change_pct": 1.18,
-      "williams_r": -49.43,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -67.13,
       "is_held": true,
       "avg_price": 120.17,
       "strategy": "active"
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 212.9,
-      "change_pct": 0.32,
-      "williams_r": -50.46,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -53.85,
       "is_held": true,
       "avg_price": 225.39,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 778.56,
-      "change_pct": -0.75,
-      "williams_r": -52.79,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -36.9,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 446.21,
-      "change_pct": 0.13,
-      "williams_r": -58.58,
+      "ltp": 446.16,
+      "change_pct": 0.12,
+      "williams_r": -58.92,
       "is_held": true,
       "avg_price": 444.24,
       "strategy": "active"
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 592.68,
-      "change_pct": -1.15,
-      "williams_r": -69.15,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -38.12,
       "is_held": true,
       "avg_price": 593.17,
       "strategy": "active"
     },
     {
       "symbol": "NXST-RR",
-      "ltp": 167.8,
-      "change_pct": 0.19,
-      "williams_r": -81.14,
+      "ltp": 167.9,
+      "change_pct": 0.24,
+      "williams_r": -80.81,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 237.45,
-      "change_pct": -0.76,
-      "williams_r": -38.39,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -18.08,
       "is_held": true,
       "avg_price": 229.46,
       "strategy": "bnh"
@@ -220,9 +220,9 @@
     {
       "type": "BUY",
       "symbol": "NXST-RR",
-      "reason": "W%R -81.1 \u2264 -75.0",
-      "ltp": 167.8,
-      "williams_r": -81.14
+      "reason": "W%R -80.8 \u2264 -75.0",
+      "ltp": 167.9,
+      "williams_r": -80.81
     }
   ],
   "orders": [
@@ -251,10 +251,10 @@
   ],
   "indices": {
     "NIFTY 50": {
-      "ltp": 23991.25,
+      "ltp": 23996.25,
       "prev_close": 24187.7,
-      "change": -196.45,
-      "change_pct": -0.81,
+      "change": -191.45,
+      "change_pct": -0.79,
       "open": 24150.45,
       "high": 24166.3,
       "low": 23961.4
@@ -447,6 +447,6 @@
     }
   },
   "available_cash": 33538.56,
-  "available_margin": 725622.55,
+  "available_margin": 876820.19,
   "available_margin_note": null
 }
