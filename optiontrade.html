@@ -1588,20 +1588,45 @@
             return chunks;
         }
 
-        function makeOrder(symbol, txn, qty) {
+        // ✅ FIX: every order this page built used order_type: 'MARKET'.
+        // Deep-OTM NIFTY weekly options (the whole point of this DOTM
+        // strategy) trade at ₹0.25–0.40 premium with very thin books —
+        // firing several back-to-back MARKET orders at 1755 qty each
+        // routinely exhausts the exchange's price-protection band after
+        // the first few fill, and the rest get rejected outright (the
+        // same failure mode as "MARKET orders are blocked for
+        // EMBASSY-RR" seen earlier — this is the same NSE mechanism,
+        // just triggered by thin depth instead of an outright instrument
+        // block). Switching to LIMIT avoids that:
+        //   • SELL (entry) legs use a floor price at the NSE tick size
+        //     (₹0.05) — a SELL LIMIT only refuses to sell BELOW this, so
+        //     it still executes at the real (better) market price as
+        //     long as the bid is ≥ ₹0.05, which it always is. Functions
+        //     like an unprotected MARKET sell, but as a LIMIT order.
+        //   • BUY (exit) legs use a generous ceiling (₹2000) for the same
+        //     reason in reverse — it won't buy ABOVE this, but any real
+        //     NIFTY weekly premium is far below it, so it fills at the
+        //     real (better) ask.
+        // Kite's own checkout screen still lets you review/edit price per
+        // row before the final "Place" click if a specific trade needs a
+        // tighter price.
+        const NIFTY_OPTION_SELL_FLOOR   = 0.05;   // entries (SELL) — NSE tick size
+        const NIFTY_OPTION_BUY_CEILING  = 2000;   // exits (BUY) — generous vs. real weekly premiums
+
+        function makeOrder(symbol, txn, qty, limitPrice) {
             return {
                 tradingsymbol: symbol, exchange: 'NFO', transaction_type: txn,
-                order_type: 'MARKET', product: 'NRML', quantity: qty,
+                order_type: 'LIMIT', price: limitPrice, product: 'NRML', quantity: qty,
                 variety: 'regular', readonly: true
             };
         }
 
-        // BUY orders (market) to close every existing sold position, split
-        // into freeze-limit-sized chunks.
+        // BUY orders (LIMIT, marketable ceiling) to close every existing
+        // sold position, split into freeze-limit-sized chunks.
         function buildExitOrders(positions) {
             const orders = [];
             positions.forEach(p => {
-                chunkQty(p.quantity).forEach(qty => orders.push(makeOrder(p.symbol, 'BUY', qty)));
+                chunkQty(p.quantity).forEach(qty => orders.push(makeOrder(p.symbol, 'BUY', qty, NIFTY_OPTION_BUY_CEILING)));
             });
             return orders;
         }
@@ -1612,8 +1637,8 @@
         function buildEntryOrders(putSym, callSym, lots) {
             const orders = [];
             for (let i = 0; i < lots; i++) {
-                if (putSym) orders.push(makeOrder(putSym, 'SELL', NIFTY_FREEZE_QTY));
-                if (callSym) orders.push(makeOrder(callSym, 'SELL', NIFTY_FREEZE_QTY));
+                if (putSym) orders.push(makeOrder(putSym, 'SELL', NIFTY_FREEZE_QTY, NIFTY_OPTION_SELL_FLOOR));
+                if (callSym) orders.push(makeOrder(callSym, 'SELL', NIFTY_FREEZE_QTY, NIFTY_OPTION_SELL_FLOOR));
             }
             return orders;
         }
@@ -1744,7 +1769,7 @@
 
         function renderBasketPreview(elId, orders) {
             document.getElementById(elId).textContent = orders
-                .map(o => `${o.transaction_type} ${o.tradingsymbol}  x${o.quantity}  (${o.order_type})`)
+                .map(o => `${o.transaction_type} ${o.tradingsymbol}  x${o.quantity}  (${o.order_type}${o.order_type === 'LIMIT' ? ' ₹' + o.price : ''})`)
                 .join('\n');
         }
 
