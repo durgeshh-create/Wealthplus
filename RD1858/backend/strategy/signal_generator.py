@@ -81,6 +81,17 @@ class SignalGenerator:
         # Symbols for which a buy was attempted today — latched at queue time,
         # prevents duplicate triggers in the 2s window before executing_symbols is set
         self._attempted_today: set           = set()
+        # ✅ FIX: consecutive pre-flight (allow_retry=True) failure count per
+        # symbol, and when the resulting backoff cooldown expires. Without
+        # this, a persistently-failing pre-flight condition (e.g. an order
+        # rejected outright by the exchange, not just a transient network
+        # blip) gets retried every MARKET_DATA_REFRESH_INTERVAL (2s) with no
+        # backoff — dozens of identical failures per minute, hammering the
+        # broker API. Same class of problem the 403/auth path already
+        # guards against, just not previously covered for other pre-flight
+        # RuntimeErrors (e.g. "MARKET orders are blocked for illiquid ETFs").
+        self._preflight_fail_count: Dict[str, int]      = defaultdict(int)
+        self._preflight_backoff_until: Dict[str, datetime] = {}
         self._session_date: Optional[object] = None
         self._lock = threading.Lock()
 
@@ -193,6 +204,8 @@ class SignalGenerator:
                 self._session_date = today
                 self._buys_today.clear()
                 self._attempted_today.clear()
+                self._preflight_fail_count.clear()
+                self._preflight_backoff_until.clear()
                 logger.info(f"📅 Signal generator daily reset for {today}")
 
     # ── Portfolio helpers ─────────────────────────────────────────────────────
@@ -599,6 +612,19 @@ class SignalGenerator:
         # Don't re-queue if already queued
         if symbol in self.pending_buys:
             return
+        # ✅ FIX: honor the escalating backoff set by unlock_symbol after
+        # repeated pre-flight failures — without this, a persistently-
+        # rejected order (e.g. "MARKET orders are blocked...") gets
+        # re-queued and re-fired every 2s forever, since allow_retry=True
+        # clears _attempted_today/recently_bought and nothing else stood
+        # in the way.
+        backoff_until = self._preflight_backoff_until.get(symbol)
+        if backoff_until and _now_ist() < backoff_until:
+            logger.debug(
+                f"Skip re-queue {symbol}: backing off until "
+                f"{backoff_until.strftime('%H:%M:%S')} after repeated pre-flight failures"
+            )
+            return
         # Don't re-queue within 5 minutes of a buy firing (execution cooldown)
         if symbol in self.recently_bought:
             elapsed = (_now_ist() - self.recently_bought[symbol]).total_seconds()
@@ -727,8 +753,12 @@ class SignalGenerator:
         if success:
             # Order confirmed — set cooldown and keep session latch
             self.recently_bought[symbol] = _now_ist()
+            self._preflight_fail_count.pop(symbol, None)
+            self._preflight_backoff_until.pop(symbol, None)
         elif allow_retry:
-            # Pre-flight failure — order never reached broker; allow full retry
+            # Pre-flight failure — order never reached broker; allow retry,
+            # but back off if this keeps failing for the same symbol rather
+            # than retrying every 2s indefinitely.
             if symbol in self.recently_bought:
                 del self.recently_bought[symbol]
             self._attempted_today.discard(symbol)
@@ -737,6 +767,22 @@ class SignalGenerator:
             if symbol in self._pending_exec:
                 del self._pending_exec[symbol]
                 logger.debug(f"🔄 {symbol}: pending_exec cleared on allow_retry")
+            # ✅ FIX: escalating backoff after repeated pre-flight failures.
+            # 1st–2nd failure: retry next cycle as before (transient blips
+            # clear fast). 3rd+ failure: back off for min(2^n, 30) minutes
+            # instead of hammering every 2s — a persistent rejection (like
+            # a broker-side order-type block) won't resolve itself within
+            # seconds, and retrying it that fast just spams logs/API calls
+            # without changing the outcome.
+            self._preflight_fail_count[symbol] += 1
+            n = self._preflight_fail_count[symbol]
+            if n >= 3:
+                backoff_min = min(2 ** (n - 2), 30)
+                self._preflight_backoff_until[symbol] = _now_ist() + timedelta(minutes=backoff_min)
+                logger.warning(
+                    f"⏸ {symbol}: {n} consecutive pre-flight failures — "
+                    f"backing off {backoff_min}min before next retry"
+                )
         else:
             # Order outcome uncertain — clear cooldown but keep session latch
             # (prevents duplicate orders if broker silently accepted)
