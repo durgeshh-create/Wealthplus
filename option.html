@@ -945,35 +945,89 @@
             }
         }
 
+        // Fetches the current blob SHA for dotm-filter.json fresh from gh-pages,
+        // or null if it doesn't exist yet. Used right before every save attempt
+        // rather than relying on a cached _dotmSha, because gh-pages is under
+        // near-constant concurrent commits from trading-bot.yml's snapshot
+        // pusher (status_rd1858.json / status_ps5673.json) — a sha captured at
+        // page-load time can be stale by the time the admin clicks a radio.
+        async function fetchDotmSha(token) {
+            const url = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}?ref=gh-pages`;
+            const r = await fetch(url, {
+                headers: {
+                    'Authorization': 'token ' + token,
+                    'Accept': 'application/vnd.github.v3+json',
+                },
+            });
+            if (r.status === 404) return null;
+            if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+            const data = await r.json();
+            return data.sha;
+        }
+
         // Commits the admin's choice to GitHub so every visitor sees it.
+        // Retries on 409 (stale-sha conflict) with a freshly-fetched sha, the
+        // same pattern push_snapshot.py already uses — needed because gh-pages
+        // gets committed to very frequently by the bot workflow, so a single
+        // attempt can lose a race and fail silently otherwise.
         async function saveDOTMFilter(mode) {
             const token = getDotmAdminToken();
             if (!token) return;   // not admin on this browser — nothing to persist
             setDotmStatus('saving…');
-            try {
-                const url  = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}`;
-                const body = {
-                    message: `dotm-filter: ${mode} (${new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'})} IST)`,
-                    content: btoa(unescape(encodeURIComponent(JSON.stringify({ mode }, null, 2)))),
-                    branch: 'gh-pages',
-                };
-                if (_dotmSha) body.sha = _dotmSha;
-                const r = await fetch(url, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': 'token ' + token,
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(body),
-                });
-                if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
-                const resp = await r.json();
-                _dotmSha = resp.content.sha;
-                setDotmStatus('✓ saved for all visitors', '#4ade80');
-            } catch (e) {
-                console.error('saveDOTMFilter failed:', e);
-                setDotmStatus('⚠ save failed — check GitHub token/repo', '#f87171');
+
+            const url = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}`;
+            const MAX_RETRIES = 4;
+
+            for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+                try {
+                    const sha = await fetchDotmSha(token);
+                    _dotmSha = sha;
+
+                    const body = {
+                        message: `dotm-filter: ${mode} (${new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'})} IST)`,
+                        content: btoa(unescape(encodeURIComponent(JSON.stringify({ mode }, null, 2)))),
+                        branch: 'gh-pages',
+                    };
+                    if (sha) body.sha = sha;
+
+                    const r = await fetch(url, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': 'token ' + token,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(body),
+                    });
+
+                    if (r.status === 409 || r.status === 422) {
+                        // Branch moved between our GET and PUT — another commit
+                        // (almost certainly the bot's snapshot pusher) landed
+                        // first. Back off briefly and retry with a fresh sha.
+                        console.warn(`saveDOTMFilter: sha conflict (attempt ${attempt}/${MAX_RETRIES}), retrying...`);
+                        if (attempt < MAX_RETRIES) {
+                            await new Promise(res => setTimeout(res, 400 * attempt));
+                            continue;
+                        }
+                        throw new Error(`GitHub API ${r.status} after ${MAX_RETRIES} attempts: ${await r.text()}`);
+                    }
+
+                    if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+
+                    const resp = await r.json();
+                    _dotmSha = resp.content.sha;
+                    setDotmStatus('✓ saved for all visitors', '#4ade80');
+                    return;
+                } catch (e) {
+                    if (attempt >= MAX_RETRIES) {
+                        console.error('saveDOTMFilter failed:', e);
+                        setDotmStatus('⚠ save failed — check GitHub token/repo', '#f87171');
+                        return;
+                    }
+                    // Network-level error, not a 409 — still worth a retry.
+                    console.warn(`saveDOTMFilter: error on attempt ${attempt}/${MAX_RETRIES}, retrying...`, e);
+                    await new Promise(res => setTimeout(res, 400 * attempt));
+                }
             }
         }
 
