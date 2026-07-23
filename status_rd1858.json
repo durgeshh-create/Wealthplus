@@ -1,16 +1,16 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-07-23 09:01:56 IST",
+  "timestamp": "2026-07-23 09:03:00 IST",
   "bot_running": true,
-  "total_value": 8591193.14,
+  "total_value": 1537022.12,
   "today_pnl": 0.0,
   "today_pnl_pct": 0.0,
   "liquidcase": {
     "quantity": 61282,
     "free_quantity": 0,
-    "price": 115.11,
-    "value": 7054171.02,
-    "pct": 82.11
+    "price": 0,
+    "value": 0,
+    "pct": 0.0
   },
   "slots": {
     "total": 6,
@@ -144,8 +144,8 @@
   "williams_r": [
     {
       "symbol": "GOLDBEES",
-      "ltp": 119.14,
-      "change_pct": 0.0,
+      "ltp": null,
+      "change_pct": null,
       "williams_r": -49.17,
       "is_held": true,
       "avg_price": 120.17,
@@ -153,8 +153,8 @@
     },
     {
       "symbol": "SILVERBEES",
-      "ltp": 213.07,
-      "change_pct": 0.0,
+      "ltp": null,
+      "change_pct": null,
       "williams_r": -49.6,
       "is_held": true,
       "avg_price": 225.39,
@@ -162,9 +162,9 @@
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 779.61,
-      "change_pct": 0.0,
-      "williams_r": -48.63,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -49.95,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -180,9 +180,9 @@
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 592.24,
-      "change_pct": 0.0,
-      "williams_r": -71.11,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -71.14,
       "is_held": true,
       "avg_price": 593.17,
       "strategy": "active"
@@ -198,8 +198,8 @@
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 237.07,
-      "change_pct": 0.0,
+      "ltp": null,
+      "change_pct": null,
       "williams_r": -42.63,
       "is_held": true,
       "avg_price": 229.46,
@@ -210,10 +210,10 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24000.15,
+      "ltp": 23979.35,
       "prev_close": 23996.25,
-      "change": 3.9,
-      "change_pct": 0.02,
+      "change": -16.9,
+      "change_pct": -0.07,
       "open": null,
       "high": null,
       "low": null
@@ -406,6 +406,6 @@
     }
   },
   "available_cash": 34849.6,
-  "available_margin": 2150038.2,
+  "available_margin": 2153118.22,
   "available_margin_note": null
 }
