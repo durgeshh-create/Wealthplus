@@ -4642,7 +4642,7 @@ function _stopLogsAutoRefresh() {
 <main>
   <div style="margin-bottom:6px">
     <h2 style="font-family:var(--head);font-size:16px;font-weight:800;color:var(--accent)">📜 Live Bot Logs</h2>
-    <p style="font-size:11px;color:var(--muted);margin-top:2px">Shows the last 500 lines of each bot's live trading.log, pushed to gh-pages every 60s while the bot is running. Auto-refreshes every 20s while this tab is open.</p>
+    <p style="font-size:11px;color:var(--muted);margin-top:2px">Last 500 INFO/WARNING/ERROR lines from each bot's trading.log (DEBUG noise filtered out before pushing, so trade decisions and failures don't get crowded out). Pushed every 60s while the bot is running; auto-refreshes here every 20s.</p>
   </div>
 
   <div class="instance-tabs" style="margin-bottom:10px">
