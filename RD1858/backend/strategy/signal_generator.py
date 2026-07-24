@@ -663,7 +663,7 @@ class SignalGenerator:
         # NSE trading hours: 09:15–15:30 IST.  Block ALL order execution outside
         # this window — prevents AMO rejections when GitHub Actions runner starts
         # before market open (runner clock is UTC; _now_ist() corrects this).
-        _MARKET_OPEN  = dtime(9, 15)
+        _MARKET_OPEN  = dtime(9, 20)
         _MARKET_CLOSE = dtime(15, 25)   # 5-min buffer before 15:30 hard close
         if not (_MARKET_OPEN <= now.time() <= _MARKET_CLOSE):
             logger.debug(

@@ -461,10 +461,10 @@ class StrategyExecutor:
                 from backend.strategy.signal_generator import _now_ist as _now_sell
                 _now_t = _now_sell().time()
                 _SELL_CLOSE = _dtime(15, 25)
-                _SELL_OPEN  = _dtime(9, 15)
+                _SELL_OPEN  = _dtime(9, 20)
                 if not (_SELL_OPEN <= _now_t <= _SELL_CLOSE):
                     logger.info(
-                        f"⏸ Automated SELL {symbol} blocked — outside 09:15–15:25 IST "
+                        f"⏸ Automated SELL {symbol} blocked — outside 09:20–15:25 IST "
                         f"({_now_t.strftime('%H:%M')}). Will retry next cycle."
                     )
                     if self.signal_generator:
