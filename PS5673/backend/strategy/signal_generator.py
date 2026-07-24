@@ -81,6 +81,13 @@ class SignalGenerator:
         # Symbols for which a buy was attempted today — latched at queue time,
         # prevents duplicate triggers in the 2s window before executing_symbols is set
         self._attempted_today: set           = set()
+        # Throttle for the repeating "averaging down" INFO log — without
+        # this it re-fires every scan cycle (~2s) for as long as price sits
+        # in the averaging-down zone, flooding the log with an identical
+        # line and crowding out anything else. Logged once per symbol per
+        # slot, then only again if the slot changes or the throttle window
+        # (5 min) elapses.
+        self._last_avg_down_log: Dict[str, tuple] = {}   # symbol -> (slot, datetime)
         # ✅ FIX: consecutive pre-flight (allow_retry=True) failure count per
         # symbol, and when the resulting backoff cooldown expires. Without
         # this, a persistently-failing pre-flight condition (e.g. an order
@@ -204,6 +211,7 @@ class SignalGenerator:
                 self._session_date = today
                 self._buys_today.clear()
                 self._attempted_today.clear()
+                self._last_avg_down_log.clear()
                 self._preflight_fail_count.clear()
                 self._preflight_backoff_until.clear()
                 logger.info(f"📅 Signal generator daily reset for {today}")
@@ -480,11 +488,24 @@ class SignalGenerator:
                 )
                 return False
 
-            logger.info(
-                f"📉 {symbol}: slot-{slots_used+1} averaging down — "
-                f"₹{live_price:.2f} is {drop_from_avg:.2f}% below avg ₹{avg_buy_price:.2f} "
-                f"(threshold {min_drop:.1f}%)"
+            # Only re-log this if the slot changed or 5 min have passed since
+            # last time — the condition can stay true for many minutes while
+            # other guards below repeatedly block the actual buy, and without
+            # this it re-fires every scan cycle (~2s) with an identical line.
+            slot_no = slots_used + 1
+            last = self._last_avg_down_log.get(symbol)
+            should_log = (
+                last is None
+                or last[0] != slot_no
+                or (_now_ist() - last[1]).total_seconds() >= 300
             )
+            if should_log:
+                logger.info(
+                    f"📉 {symbol}: slot-{slot_no} averaging down — "
+                    f"₹{live_price:.2f} is {drop_from_avg:.2f}% below avg ₹{avg_buy_price:.2f} "
+                    f"(threshold {min_drop:.1f}%)"
+                )
+                self._last_avg_down_log[symbol] = (slot_no, _now_ist())
 
         # ── Common guards ─────────────────────────────────────────────────
 
