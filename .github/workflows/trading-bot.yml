@@ -298,6 +298,14 @@ jobs:
             echo "[pusher-rd1858] First snapshot detected — starting push loop"
             while true; do
               python3 push_snapshot.py /tmp/status_rd1858.json status_rd1858.json || true
+              # Tail the live trading.log so the settings-editor Logs tab has
+              # something to read — the Actions API only serves job logs
+              # after the job completes, so we can't rely on that while the
+              # bot is running for hours during market hours.
+              if [ -f RD1858/logs/trading.log ]; then
+                tail -n 500 RD1858/logs/trading.log > /tmp/logtail_rd1858.txt
+                python3 push_snapshot.py /tmp/logtail_rd1858.txt logtail_rd1858.txt || true
+              fi
               sleep 60
             done
           ) &
@@ -436,6 +444,10 @@ jobs:
             echo "[pusher-ps5673] First snapshot detected — starting push loop"
             while true; do
               python3 push_snapshot.py /tmp/status_ps5673.json status_ps5673.json || true
+              if [ -f PS5673/logs/trading.log ]; then
+                tail -n 500 PS5673/logs/trading.log > /tmp/logtail_ps5673.txt
+                python3 push_snapshot.py /tmp/logtail_ps5673.txt logtail_ps5673.txt || true
+              fi
               sleep 60
             done
           ) &
