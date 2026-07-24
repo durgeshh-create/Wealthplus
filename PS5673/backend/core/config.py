@@ -78,7 +78,7 @@ class Config:
     
     # Market hours (IST)
     MARKET_OPEN_HOUR = 9
-    MARKET_OPEN_MINUTE = 15
+    MARKET_OPEN_MINUTE = 20
     MARKET_CLOSE_HOUR = 15
     MARKET_CLOSE_MINUTE = 30
     
