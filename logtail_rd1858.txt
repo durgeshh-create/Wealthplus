@@ -1,48 +1,3 @@
-2026-07-24 12:36:49 IST | INFO     | backend.strategy.signal_generator | [startup] Rebuilt _buys_today from order history: BANKBEES×1, EMBASSY-RR×1, JUNIORBEES×1
-2026-07-24 12:36:49 IST | INFO     | backend.strategy.intraday_engine | Dip Accumulator engine initialised for ['MID150BEES']
-2026-07-24 12:36:49 IST | INFO     | frontend.app         | Dashboard initialized with backend instances
-2026-07-24 12:36:49 IST | INFO     | __main__             | 🤖 Trading loop thread started (60s startup grace period — monitoring only)
-2026-07-24 12:36:49 IST | INFO     | __main__             | ✅ Trading loop thread started (waiting for bot activation)
-2026-07-24 12:36:49 IST | INFO     | __main__             | ☁️  Cloud mode — bot_running auto-set to True (no dashboard button needed)
-2026-07-24 12:36:49 IST | INFO     | backend.strategy.intraday_engine | Dip Accumulator engine loop started
-2026-07-24 12:36:49 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] Session reset for 2026-07-24
-2026-07-24 12:36:49 IST | INFO     | backend.strategy.intraday_engine | Dip Accumulator engine STARTED — watching ['MID150BEES']
-2026-07-24 12:36:49 IST | INFO     | __main__             | ☁️  Cloud mode — intraday/dip-accumulator engine auto-start succeeded
-2026-07-24 12:36:49 IST | INFO     | __main__             | ⏰ Market-close watchdog started — auto-shutdown at 15:35 IST
-2026-07-24 12:36:49 IST | INFO     | __main__             | ✅ Market-close watchdog started — auto-shutdown at 15:35 IST
-2026-07-24 12:36:49 IST | INFO     | backend.strategy.position_slots | 📌 EMBASSY-RR: position slots seeded to 1 (pre-existing holding, no prior record)
-2026-07-24 12:36:49 IST | INFO     | backend.strategy.position_slots | 📌 NIFTYBEES: position slots seeded to 1 (pre-existing holding, no prior record)
-2026-07-24 12:36:49 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ⏰ anytime — W%R=-73.5: executing buy
-2026-07-24 12:36:49 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] Skip — LTP ₹234.30 only -1.81% below avg ₹230.14
-2026-07-24 12:36:49 IST | INFO     | backend.utils.keep_alive | Hibernate watchdog started
-2026-07-24 12:36:49 IST | INFO     | backend.utils.keep_alive | WebSocket watchdog started (stale threshold: 90s)
-2026-07-24 12:36:49 IST | INFO     | backend.utils.keep_alive | Hibernate watchdog + WS watchdog threads started
-2026-07-24 12:36:49 IST | INFO     | __main__             | ✅ Hibernate + WebSocket watchdogs started
-2026-07-24 12:36:49 IST | INFO     | werkzeug             | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:5000
- * Running on http://10.1.0.253:5000
-2026-07-24 12:36:49 IST | INFO     | werkzeug             | [33mPress CTRL+C to quit[0m
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 58664 pledged + 0 T1 = 58664 units @ ₹115.17
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -693 units @ ₹115.17
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 58664 units (Holdings updated | -693 sold today)
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 58664 units (free: 0) = ₹6756332.88
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, GOLDBEES, NIFTYBEES
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | Slots: 0 available, 6 locked (EMBASSY-RR, JUNIORBEES, BANKBEES, GOLDBEES, NIFTYBEES, SILVERBEES)
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 58664 units (₹6756332.88)
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, GOLDBEES, NIFTYBEES
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | Held ETFs (6): EMBASSY-RR, JUNIORBEES, BANKBEES, GOLDBEES, NIFTYBEES, SILVERBEES
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | Available slots: 0/6
-2026-07-24 12:37:50 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-24 12:37:50 IST | INFO     | backend.strategy.signal_generator | 📅 Signal generator daily reset for 2026-07-24
-2026-07-24 12:37:50 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹270.99 is 4.28% below avg ₹283.10 (threshold 1.0%)
-2026-07-24 12:37:51 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.00 is 4.28% below avg ₹283.10 (threshold 1.0%)
-2026-07-24 12:37:53 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.00 is 4.28% below avg ₹283.10 (threshold 1.0%)
-2026-07-24 12:37:55 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.00 is 4.28% below avg ₹283.10 (threshold 1.0%)
 2026-07-24 12:37:57 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹270.99 is 4.28% below avg ₹283.10 (threshold 1.0%)
 2026-07-24 12:37:59 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹270.99 is 4.28% below avg ₹283.10 (threshold 1.0%)
 2026-07-24 12:38:01 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹270.99 is 4.28% below avg ₹283.10 (threshold 1.0%)
@@ -498,3 +453,48 @@
 2026-07-24 12:48:10 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.27 is 4.18% below avg ₹283.10 (threshold 1.0%)
 2026-07-24 12:48:12 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.23 is 4.19% below avg ₹283.10 (threshold 1.0%)
 2026-07-24 12:48:14 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.23 is 4.19% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:16 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.23 is 4.19% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:18 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.27 is 4.18% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:20 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.27 is 4.18% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:22 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.25 is 4.19% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:24 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.25 is 4.19% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:26 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.27 is 4.18% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:28 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.24 is 4.19% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:30 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.27 is 4.18% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:32 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.27 is 4.18% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:34 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.26 is 4.18% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:36 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.27 is 4.18% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:38 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.27 is 4.18% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:40 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.27 is 4.18% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:42 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.27 is 4.18% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:44 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.27 is 4.18% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:46 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.27 is 4.18% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:48 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.30 is 4.17% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:50 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.30 is 4.17% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:52 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.30 is 4.17% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 58664 pledged + 0 T1 = 58664 units @ ₹115.17
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -693 units @ ₹115.18
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 58664 units (Holdings updated | -693 sold today)
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 58664 units (free: 0) = ₹6756919.52
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, GOLDBEES, NIFTYBEES
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | Slots: 0 available, 6 locked (EMBASSY-RR, JUNIORBEES, BANKBEES, GOLDBEES, NIFTYBEES, SILVERBEES)
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 58664 units (₹6756919.52)
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, GOLDBEES, NIFTYBEES
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | Held ETFs (6): EMBASSY-RR, JUNIORBEES, BANKBEES, GOLDBEES, NIFTYBEES, SILVERBEES
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | Available slots: 0/6
+2026-07-24 12:48:54 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-24 12:48:55 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.30 is 4.17% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:57 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.31 is 4.17% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:48:59 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.31 is 4.17% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:49:01 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.31 is 4.17% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:49:03 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.31 is 4.17% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:49:05 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.34 is 4.16% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:49:07 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.34 is 4.16% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:49:09 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.31 is 4.17% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:49:11 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.35 is 4.15% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:49:13 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.32 is 4.16% below avg ₹283.10 (threshold 1.0%)
+2026-07-24 12:49:15 IST | INFO     | backend.strategy.signal_generator | 📉 NIFTYBEES: slot-1 averaging down — ₹271.32 is 4.16% below avg ₹283.10 (threshold 1.0%)
