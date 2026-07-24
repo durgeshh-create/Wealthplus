@@ -88,6 +88,13 @@ class SignalGenerator:
         # slot, then only again if the slot changes or the throttle window
         # (5 min) elapses.
         self._last_avg_down_log: Dict[str, tuple] = {}   # symbol -> (slot, datetime)
+        # Generic throttle for terminal "why didn't this buy go through" reasons
+        # (cash limit, LIQUIDCASE buffer, already-queued, already-attempted,
+        # cooldown). These only fire for symbols that already passed the
+        # price/slot signal check, so they're the actual answer to "why hasn't
+        # it bought X" — worth surfacing at INFO, but throttled so a symbol
+        # stuck on the same gate for many scan cycles doesn't spam.
+        self._block_reason_log: Dict[str, datetime] = {}   # f"{symbol}:{reason_key}" -> datetime
         # ✅ FIX: consecutive pre-flight (allow_retry=True) failure count per
         # symbol, and when the resulting backoff cooldown expires. Without
         # this, a persistently-failing pre-flight condition (e.g. an order
@@ -187,6 +194,18 @@ class SignalGenerator:
         """Total allowed buy slots per symbol (default 5)."""
         return int(_load_settings().get('slots_count', Config.SLOTS_COUNT))
 
+    def _log_block_reason(self, symbol: str, reason_key: str, message: str, window_sec: int = 300):
+        """INFO-level, throttled per (symbol, reason). Use for the terminal
+        reason a detected buy signal didn't convert into an order — distinct
+        from the per-scan DEBUG noise for symbols that never had a signal at
+        all. Without throttling this would re-fire every scan cycle (~2s)
+        for as long as the same gate keeps blocking the symbol."""
+        key = f"{symbol}:{reason_key}"
+        last = self._block_reason_log.get(key)
+        if last is None or (_now_ist() - last).total_seconds() >= window_sec:
+            logger.info(message)
+            self._block_reason_log[key] = _now_ist()
+
     def _get_min_price_drop_pct(self) -> float:
         return float(_load_settings().get('min_price_drop_pct', 1.0))
 
@@ -212,6 +231,7 @@ class SignalGenerator:
                 self._buys_today.clear()
                 self._attempted_today.clear()
                 self._last_avg_down_log.clear()
+                self._block_reason_log.clear()
                 self._preflight_fail_count.clear()
                 self._preflight_backoff_until.clear()
                 logger.info(f"📅 Signal generator daily reset for {today}")
@@ -514,8 +534,10 @@ class SignalGenerator:
         if max_cash_stock > 0:
             deployed = self._get_cash_deployed(symbol)
             if deployed >= max_cash_stock:
-                logger.debug(
-                    f"Skip {symbol}: deployed ₹{deployed:.0f} >= limit ₹{max_cash_stock:.0f}"
+                self._log_block_reason(
+                    symbol, "max_cash",
+                    f"⏸ {symbol}: buy signal detected but blocked — "
+                    f"deployed ₹{deployed:.0f} >= per-stock limit ₹{max_cash_stock:.0f}"
                 )
                 return False
 
@@ -529,29 +551,40 @@ class SignalGenerator:
         if max_tx > 0 and liq_price and liq_price > 0:
             liq_value = self.portfolio.liquidcase_quantity * liq_price
             if liq_value <= 0:
-                logger.debug(
-                    f"Skip {symbol}: LIQUIDCASE is empty (₹{liq_value:.0f}) — no buffer to fund buy"
+                self._log_block_reason(
+                    symbol, "liquidcase_empty",
+                    f"⏸ {symbol}: buy signal detected but blocked — "
+                    f"LIQUIDCASE is empty (₹{liq_value:.0f}), no buffer to fund buy"
                 )
                 return False
 
         # Not already queued
         if symbol in self.pending_buys:
-            logger.debug(f"Skip {symbol}: already queued")
+            self._log_block_reason(
+                symbol, "already_queued",
+                f"⏸ {symbol}: buy signal detected but blocked — already queued, waiting on executor"
+            )
             return False
 
         # Already attempted this session (latched at queue time — covers the
         # 2s window between get_due_buys() clearing pending_buys and the
         # executor setting executing_symbols)
         if symbol in self._attempted_today:
-            logger.debug(f"Skip {symbol}: already attempted today")
+            self._log_block_reason(
+                symbol, "already_attempted",
+                f"⏸ {symbol}: buy signal detected but blocked — already attempted today "
+                f"(a prior attempt this session failed or completed; won't retry until tomorrow)"
+            )
             return False
 
         # Within post-buy cooldown (5 min after a confirmed buy)
         if symbol in self.recently_bought:
             elapsed = (_now_ist() - self.recently_bought[symbol]).total_seconds()
             if elapsed < 300:
-                logger.debug(
-                    f"Skip {symbol}: within post-buy cooldown ({elapsed:.0f}s / 300s)"
+                self._log_block_reason(
+                    symbol, "cooldown",
+                    f"⏸ {symbol}: buy signal detected but blocked — "
+                    f"within post-buy cooldown ({elapsed:.0f}s / 300s)"
                 )
                 return False
 
