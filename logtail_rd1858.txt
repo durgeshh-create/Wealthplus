@@ -1,500 +1,500 @@
-2026-07-24 11:06:02 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:02 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:02 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:02 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
-2026-07-24 11:06:02 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
-2026-07-24 11:06:02 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
-2026-07-24 11:06:02 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
-2026-07-24 11:06:02 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.52 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:03 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.79 is 7.81% below avg ₹225.39 (threshold 1.0%)
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:03 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:03 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.81% < target=4.0%
-2026-07-24 11:06:03 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-74.2 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.75%
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
-2026-07-24 11:06:03 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=-0.02% < target=4.0%
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:03 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.98 only 0.21% below avg ₹441.89 (need >= 1.0% for next slot)
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:03 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.21% < target=4.0%
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:03 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.39 only 0.83% below avg ₹587.29 (need >= 1.0% for next slot)
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:03 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.83% < target=4.0%
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:03 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:03 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:03 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
-2026-07-24 11:06:03 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
-2026-07-24 11:06:03 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.52 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:05 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.82 is 7.79% below avg ₹225.39 (threshold 1.0%)
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:05 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:05 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.79% < target=4.0%
-2026-07-24 11:06:05 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-74.2 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.75%
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
-2026-07-24 11:06:05 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=-0.02% < target=4.0%
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:05 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.62 only 0.29% below avg ₹441.89 (need >= 1.0% for next slot)
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:05 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.29% < target=4.0%
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:05 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.22 only 0.86% below avg ₹587.29 (need >= 1.0% for next slot)
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:05 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.86% < target=4.0%
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:05 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:05 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:05 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
-2026-07-24 11:06:05 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
-2026-07-24 11:06:05 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.52 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
-2026-07-24 11:06:05 IST | DEBUG    | urllib3.connectionpool | https://kite.zerodha.com:443 "GET /oms/orders HTTP/1.1" 200 None
-2026-07-24 11:06:05 IST | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): kite.zerodha.com:443
-2026-07-24 11:06:05 IST | DEBUG    | urllib3.connectionpool | https://kite.zerodha.com:443 "GET /oms/user/margins HTTP/1.1" 200 None
-2026-07-24 11:06:06 IST | DEBUG    | urllib3.connectionpool | https://kite.zerodha.com:443 "GET /oms/portfolio/positions HTTP/1.1" 200 None
-2026-07-24 11:06:06 IST | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): kite.zerodha.com:443
-2026-07-24 11:06:06 IST | DEBUG    | urllib3.connectionpool | https://kite.zerodha.com:443 "GET /oms/mf/holdings HTTP/1.1" 200 756
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:07 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.82 is 7.79% below avg ₹225.39 (threshold 1.0%)
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:07 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:07 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.79% < target=4.0%
-2026-07-24 11:06:07 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-74.2 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.75%
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
-2026-07-24 11:06:07 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=-0.02% < target=4.0%
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:07 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.62 only 0.29% below avg ₹441.89 (need >= 1.0% for next slot)
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:07 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.29% < target=4.0%
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:07 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.22 only 0.86% below avg ₹587.29 (need >= 1.0% for next slot)
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:07 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.86% < target=4.0%
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:07 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:07 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:07 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
-2026-07-24 11:06:07 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
-2026-07-24 11:06:07 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.52 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:09 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.82 is 7.79% below avg ₹225.39 (threshold 1.0%)
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:09 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:09 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.79% < target=4.0%
-2026-07-24 11:06:09 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-74.2 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.75%
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
-2026-07-24 11:06:09 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=-0.02% < target=4.0%
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:09 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.97 only 0.21% below avg ₹441.89 (need >= 1.0% for next slot)
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:09 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.21% < target=4.0%
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:09 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.22 only 0.86% below avg ₹587.29 (need >= 1.0% for next slot)
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:09 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.86% < target=4.0%
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:09 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:09 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:09 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
-2026-07-24 11:06:09 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
-2026-07-24 11:06:09 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.52 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:11 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.83 is 7.79% below avg ₹225.39 (threshold 1.0%)
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:11 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:11 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.79% < target=4.0%
-2026-07-24 11:06:11 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-74.2 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.75%
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
-2026-07-24 11:06:11 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=-0.02% < target=4.0%
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:11 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.61 only 0.29% below avg ₹441.89 (need >= 1.0% for next slot)
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:11 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.29% < target=4.0%
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:11 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.22 only 0.86% below avg ₹587.29 (need >= 1.0% for next slot)
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:11 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.86% < target=4.0%
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:11 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:11 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:11 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
-2026-07-24 11:06:11 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
-2026-07-24 11:06:11 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.52 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:13 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.80 is 7.80% below avg ₹225.39 (threshold 1.0%)
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:13 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:13 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.80% < target=4.0%
-2026-07-24 11:06:13 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-73.9 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.74%
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
-2026-07-24 11:06:13 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=0.00% < target=4.0%
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:13 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.61 only 0.29% below avg ₹441.89 (need >= 1.0% for next slot)
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:13 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.29% < target=4.0%
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:13 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.25 only 0.86% below avg ₹587.29 (need >= 1.0% for next slot)
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:13 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.86% < target=4.0%
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:13 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:13 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:13 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
-2026-07-24 11:06:13 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
-2026-07-24 11:06:13 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.52 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:15 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.83 is 7.79% below avg ₹225.39 (threshold 1.0%)
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:15 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:15 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.79% < target=4.0%
-2026-07-24 11:06:15 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-73.9 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.74%
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
-2026-07-24 11:06:15 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=0.00% < target=4.0%
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:15 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.61 only 0.29% below avg ₹441.89 (need >= 1.0% for next slot)
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:15 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.29% < target=4.0%
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:15 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.25 only 0.86% below avg ₹587.29 (need >= 1.0% for next slot)
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:15 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.86% < target=4.0%
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:15 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:15 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:15 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
-2026-07-24 11:06:15 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
-2026-07-24 11:06:15 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.52 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:17 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.84 is 7.79% below avg ₹225.39 (threshold 1.0%)
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:17 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:17 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.79% < target=4.0%
-2026-07-24 11:06:17 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-73.9 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.74%
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
-2026-07-24 11:06:17 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=0.00% < target=4.0%
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:17 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.61 only 0.29% below avg ₹441.89 (need >= 1.0% for next slot)
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:17 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.29% < target=4.0%
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:17 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.25 only 0.86% below avg ₹587.29 (need >= 1.0% for next slot)
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:17 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.86% < target=4.0%
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:17 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:17 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:17 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
-2026-07-24 11:06:17 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
-2026-07-24 11:06:17 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.52 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:19 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.83 is 7.79% below avg ₹225.39 (threshold 1.0%)
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:19 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
-2026-07-24 11:06:19 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.79% < target=4.0%
-2026-07-24 11:06:19 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-73.9 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.74%
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
-2026-07-24 11:06:19 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=0.00% < target=4.0%
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:19 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.95 only 0.21% below avg ₹441.89 (need >= 1.0% for next slot)
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
-2026-07-24 11:06:19 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.21% < target=4.0%
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:19 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.28 only 0.85% below avg ₹587.29 (need >= 1.0% for next slot)
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
-2026-07-24 11:06:19 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.85% < target=4.0%
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:19 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:19 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
-2026-07-24 11:06:19 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
-2026-07-24 11:06:19 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
-2026-07-24 11:06:19 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.52 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
+2026-07-24 11:07:04 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:04 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:04 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:04 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
+2026-07-24 11:07:04 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
+2026-07-24 11:07:04 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
+2026-07-24 11:07:04 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
+2026-07-24 11:07:04 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.53 only -1.04% below avg ₹230.14 (need >= 1.0% for next slot)
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:06 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.75 is 7.83% below avg ₹225.39 (threshold 1.0%)
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:06 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:06 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.83% < target=4.0%
+2026-07-24 11:07:06 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-74.3 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.76%
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
+2026-07-24 11:07:06 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=-0.02% < target=4.0%
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:06 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.65 only 0.28% below avg ₹441.89 (need >= 1.0% for next slot)
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:06 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.28% < target=4.0%
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:06 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.18 only 0.87% below avg ₹587.29 (need >= 1.0% for next slot)
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:06 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.87% < target=4.0%
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:06 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:06 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:06 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
+2026-07-24 11:07:06 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.53 only -1.04% below avg ₹230.14 (need >= 1.0% for next slot)
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:06 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
+2026-07-24 11:07:06 IST | DEBUG    | urllib3.connectionpool | https://kite.zerodha.com:443 "GET /oms/orders HTTP/1.1" 200 None
+2026-07-24 11:07:06 IST | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): kite.zerodha.com:443
+2026-07-24 11:07:06 IST | DEBUG    | urllib3.connectionpool | https://kite.zerodha.com:443 "GET /oms/user/margins HTTP/1.1" 200 None
+2026-07-24 11:07:07 IST | DEBUG    | urllib3.connectionpool | https://kite.zerodha.com:443 "GET /oms/portfolio/positions HTTP/1.1" 200 None
+2026-07-24 11:07:07 IST | DEBUG    | urllib3.connectionpool | Starting new HTTPS connection (1): kite.zerodha.com:443
+2026-07-24 11:07:07 IST | DEBUG    | urllib3.connectionpool | https://kite.zerodha.com:443 "GET /oms/mf/holdings HTTP/1.1" 200 756
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:08 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.75 is 7.83% below avg ₹225.39 (threshold 1.0%)
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:08 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:08 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.83% < target=4.0%
+2026-07-24 11:07:08 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-74.3 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.76%
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
+2026-07-24 11:07:08 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=-0.02% < target=4.0%
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:08 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.65 only 0.28% below avg ₹441.89 (need >= 1.0% for next slot)
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:08 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.28% < target=4.0%
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:08 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.18 only 0.87% below avg ₹587.29 (need >= 1.0% for next slot)
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:08 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.87% < target=4.0%
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:08 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:08 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:08 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
+2026-07-24 11:07:08 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
+2026-07-24 11:07:08 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.51 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:10 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.75 is 7.83% below avg ₹225.39 (threshold 1.0%)
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:10 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:10 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.83% < target=4.0%
+2026-07-24 11:07:10 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-74.3 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.76%
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
+2026-07-24 11:07:10 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=-0.02% < target=4.0%
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:10 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.97 only 0.21% below avg ₹441.89 (need >= 1.0% for next slot)
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:10 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.21% < target=4.0%
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:10 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.13 only 0.88% below avg ₹587.29 (need >= 1.0% for next slot)
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:10 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.88% < target=4.0%
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:10 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:10 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:10 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
+2026-07-24 11:07:10 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
+2026-07-24 11:07:10 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.51 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:12 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.75 is 7.83% below avg ₹225.39 (threshold 1.0%)
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:12 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:12 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.83% < target=4.0%
+2026-07-24 11:07:12 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-74.3 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.76%
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
+2026-07-24 11:07:12 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=-0.02% < target=4.0%
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:12 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.69 only 0.27% below avg ₹441.89 (need >= 1.0% for next slot)
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:12 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.27% < target=4.0%
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:12 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.13 only 0.88% below avg ₹587.29 (need >= 1.0% for next slot)
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:12 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.88% < target=4.0%
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:12 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.88 is 2.74% below avg ₹120.17 (threshold 1.0%)
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:12 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:12 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.74% < target=4.0%
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
+2026-07-24 11:07:12 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
+2026-07-24 11:07:12 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.51 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:14 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.74 is 7.83% below avg ₹225.39 (threshold 1.0%)
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:14 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:14 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.83% < target=4.0%
+2026-07-24 11:07:14 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-74.3 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.76%
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
+2026-07-24 11:07:14 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=-0.02% < target=4.0%
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:14 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.69 only 0.27% below avg ₹441.89 (need >= 1.0% for next slot)
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:14 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.27% < target=4.0%
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:14 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.13 only 0.88% below avg ₹587.29 (need >= 1.0% for next slot)
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:14 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.88% < target=4.0%
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:14 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.88 is 2.74% below avg ₹120.17 (threshold 1.0%)
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:14 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:14 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.74% < target=4.0%
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
+2026-07-24 11:07:14 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
+2026-07-24 11:07:14 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.51 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
+2026-07-24 11:07:15 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
+2026-07-24 11:07:15 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
+2026-07-24 11:07:15 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
+2026-07-24 11:07:15 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:16 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.71 is 7.84% below avg ₹225.39 (threshold 1.0%)
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:16 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:16 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.84% < target=4.0%
+2026-07-24 11:07:16 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-74.3 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.76%
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
+2026-07-24 11:07:16 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=-0.02% < target=4.0%
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:16 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.65 only 0.28% below avg ₹441.89 (need >= 1.0% for next slot)
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:16 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.28% < target=4.0%
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:16 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.18 only 0.87% below avg ₹587.29 (need >= 1.0% for next slot)
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:16 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.87% < target=4.0%
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:16 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.88 is 2.74% below avg ₹120.17 (threshold 1.0%)
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:16 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:16 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.74% < target=4.0%
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
+2026-07-24 11:07:16 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
+2026-07-24 11:07:16 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.51 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:18 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.70 is 7.85% below avg ₹225.39 (threshold 1.0%)
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:18 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:18 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.85% < target=4.0%
+2026-07-24 11:07:18 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-74.3 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.76%
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
+2026-07-24 11:07:18 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=-0.02% < target=4.0%
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:18 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.65 only 0.28% below avg ₹441.89 (need >= 1.0% for next slot)
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:18 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.28% < target=4.0%
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:18 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.18 only 0.87% below avg ₹587.29 (need >= 1.0% for next slot)
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:18 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.87% < target=4.0%
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:18 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:18 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:18 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
+2026-07-24 11:07:18 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
+2026-07-24 11:07:18 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.51 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:20 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.70 is 7.85% below avg ₹225.39 (threshold 1.0%)
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:20 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:20 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.85% < target=4.0%
+2026-07-24 11:07:20 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-74.3 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.76%
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
+2026-07-24 11:07:20 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=-0.02% < target=4.0%
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:20 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.69 only 0.27% below avg ₹441.89 (need >= 1.0% for next slot)
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:20 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.27% < target=4.0%
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:20 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.16 only 0.87% below avg ₹587.29 (need >= 1.0% for next slot)
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:20 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.87% < target=4.0%
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:20 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:20 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:20 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
+2026-07-24 11:07:20 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
+2026-07-24 11:07:20 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.51 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:22 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹207.68 is 7.86% below avg ₹225.39 (threshold 1.0%)
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:22 IST | DEBUG    | backend.strategy.signal_generator | Skip SILVERBEES: deployed ₹329065 >= limit ₹150000
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found SILVERBEES in Holdings: 1460 free + 0 pledged + 0 T1 = 1460 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | 📊 SILVERBEES: 1460 units (Holdings only)
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ SILVERBEES avg from HOLDINGS: ₹225.39
+2026-07-24 11:07:22 IST | DEBUG    | backend.strategy.signal_generator | No sell signal SILVERBEES: profit=-7.86% < target=4.0%
+2026-07-24 11:07:22 IST | DEBUG    | backend.strategy.signal_generator | No trigger JUNIORBEES: W%R=-74.3 (A<=-75.0, B<=-60+drop>=1.0%, C<=-75+drop>=1.0%), drop=0.76%
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found JUNIORBEES in NET Positions: +34 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | 📊 JUNIORBEES: 0 (Holdings) + 34 (Bought) = 34 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ JUNIORBEES avg from NET positions: ₹770.52
+2026-07-24 11:07:22 IST | DEBUG    | backend.strategy.signal_generator | No sell signal JUNIORBEES: profit=-0.02% < target=4.0%
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:22 IST | DEBUG    | backend.strategy.signal_generator | Skip EMBASSY-RR slot-1: price ₹440.95 only 0.21% below avg ₹441.89 (need >= 1.0% for next slot)
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in Holdings: 50 free + 0 pledged + 0 T1 = 50 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found EMBASSY-RR in NET Positions: +56 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | 📊 EMBASSY-RR: 50 (Holdings) + 56 (Bought) = 106 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ EMBASSY-RR blended avg: (50×₹444.24 + 56×₹439.79) / 106 = ₹441.89
+2026-07-24 11:07:22 IST | DEBUG    | backend.strategy.signal_generator | No sell signal EMBASSY-RR: profit=-0.21% < target=4.0%
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:22 IST | DEBUG    | backend.strategy.signal_generator | Skip BANKBEES slot-1: price ₹582.16 only 0.87% below avg ₹587.29 (need >= 1.0% for next slot)
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in Holdings: 33 free + 0 pledged + 42 T1 = 75 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found BANKBEES in NET Positions: +45 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | 📊 BANKBEES: 75 (Holdings) + 45 (Bought) = 120 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ BANKBEES blended avg: (75×₹589.84 + 45×₹583.03) / 120 = ₹587.29
+2026-07-24 11:07:22 IST | DEBUG    | backend.strategy.signal_generator | No sell signal BANKBEES: profit=-0.87% < target=4.0%
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:22 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.89 is 2.73% below avg ₹120.17 (threshold 1.0%)
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:22 IST | DEBUG    | backend.strategy.signal_generator | Skip GOLDBEES: deployed ₹544746 >= limit ₹150000
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found GOLDBEES in Holdings: 4533 free + 0 pledged + 0 T1 = 4533 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | 📊 GOLDBEES: 4533 units (Holdings only)
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ GOLDBEES avg from HOLDINGS: ₹120.17
+2026-07-24 11:07:22 IST | DEBUG    | backend.strategy.signal_generator | No sell signal GOLDBEES: profit=-2.73% < target=4.0%
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ Found MID150BEES in Holdings: 2604 free + 0 pledged + 370 T1 = 2974 units
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | 📊 MID150BEES: 2974 units (Holdings only)
+2026-07-24 11:07:22 IST | DEBUG    | backend.portfolio.tracker | ✓ MID150BEES avg from HOLDINGS: ₹230.14
+2026-07-24 11:07:22 IST | DEBUG    | backend.strategy.signal_generator | Skip MID150BEES slot-1: price ₹232.51 only -1.03% below avg ₹230.14 (need >= 1.0% for next slot)
