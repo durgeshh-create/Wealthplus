@@ -2659,6 +2659,11 @@ const URLS = {
   RD1858: BASE + "/status_rd1858.json",
 };
 
+const LOG_URLS = {
+  PS5673: BASE + "/logtail_ps5673.txt",
+  RD1858: BASE + "/logtail_rd1858.txt",
+};
+
 // ── State ─────────────────────────────────────────────────────────────────────
 let account = "PS5673";
 let timer        = null;
@@ -4425,12 +4430,15 @@ function _renderDeltaCell(el, delta, qty) {
 }
 
 // ── LOGS TAB ─────────────────────────────────────────────────────────────────
-// Pulls the latest trading-bot.yml run, finds the job matching the selected
-// instance (job id === "RD1858" / "PS5673", no name override in the workflow),
-// and displays its live console log. GitHub's job-logs endpoint redirects to a
-// signed blob URL — most browsers will let fetch() follow that fine, but if a
-// CORS setup blocks it, we fall back to the "Open full log on GitHub" link
-// (job.html_url), which always works since it's a normal page navigation.
+// Reads logtail_rd1858.txt / logtail_ps5673.txt directly from gh-pages — the
+// bot process itself tails its own trading.log and pushes it every 60s via
+// push_snapshot.py, the same reliable mechanism status_*.json already uses.
+//
+// NOTE: we deliberately do NOT use the GitHub Actions "job logs" REST API
+// here. That endpoint reliably returns 404 for any job that's still running
+// and only serves logs once the job completes — useless for a bot job that
+// runs for hours straight during market hours. Reading the pushed file
+// avoids that limitation entirely.
 let _logInstance = 'RD1858';
 let _logsRefreshTimer = null;
 let _logsTabActive = false;
@@ -4454,72 +4462,33 @@ function _colorizeLogLine(line) {
 }
 
 async function loadJobLogs(manual) {
-  const cfg = getCfg();
   const statusEl = document.getElementById('log-status');
   const viewer   = document.getElementById('log-viewer');
   const openLink = document.getElementById('log-open-github');
   if (!statusEl || !viewer) return; // pane not in DOM yet
 
-  if (!cfg.owner || !cfg.repo || !cfg.token) {
-    statusEl.textContent = '⚠ Configure GitHub owner/repo/token first (Settings tab).';
-    return;
-  }
+  const cfg = getCfg();
+  openLink.href = `https://github.com/${cfg.owner || 'durgeshh-create'}/${cfg.repo || 'Wealthplus'}/actions/workflows/${WORKFLOW_FILE}`;
+  openLink.style.display = 'inline';
+
   if (manual) statusEl.textContent = 'Loading…';
 
   try {
-    // 1. Most recent run of the trading-bot workflow (any status)
-    const runsUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${WORKFLOW_FILE}/runs?per_page=1`;
-    const runsResp = await fetch(runsUrl, { headers: apiHeaders() });
-    if (!runsResp.ok) throw new Error(`GitHub API ${runsResp.status} (runs)`);
-    const runs = (await runsResp.json()).workflow_runs || [];
-    if (runs.length === 0) {
-      statusEl.textContent = 'No workflow runs found yet.';
+    const url = LOG_URLS[_logInstance] + '?t=' + Date.now(); // cache-bust, this is a plain static file
+    const r = await fetch(url, { cache: 'no-store' });
+    if (r.status === 404) {
+      statusEl.textContent = `No log pushed yet for ${_logInstance} — the bot may not be running right now.`;
       viewer.textContent = '';
-      openLink.style.display = 'none';
       return;
     }
-    const run = runs[0];
-
-    // 2. Jobs for that run — find the one matching this instance
-    const jobsResp = await fetch(
-      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${run.id}/jobs`,
-      { headers: apiHeaders() }
-    );
-    if (!jobsResp.ok) throw new Error(`GitHub API ${jobsResp.status} (jobs)`);
-    const jobs = (await jobsResp.json()).jobs || [];
-    const job = jobs.find(j => j.name === _logInstance);
-
-    if (!job) {
-      statusEl.textContent = `No "${_logInstance}" job in the latest run yet.`;
-      viewer.textContent = '';
-      openLink.href = run.html_url;
-      openLink.style.display = 'inline';
-      return;
-    }
-
-    openLink.href = job.html_url;
-    openLink.style.display = 'inline';
-    statusEl.textContent = `${job.status}${job.conclusion ? ' · ' + job.conclusion : ''} — updated ` +
-      new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST';
-
-    if (job.status === 'queued' || job.status === 'waiting') {
-      viewer.textContent = 'Job is queued — logs will appear once it starts running.';
-      return;
-    }
-
-    // 3. Actual log text
-    const logsResp = await fetch(
-      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/jobs/${job.id}/logs`,
-      { headers: apiHeaders() }
-    );
-    if (!logsResp.ok) {
-      throw new Error(`GitHub API ${logsResp.status} (logs) — try "Open full log on GitHub" instead`);
-    }
-    const text = await logsResp.text();
+    if (!r.ok) throw new Error(`${r.status} fetching log file`);
+    const text = await r.text();
     const lines = text.split('\n');
-    const tail = lines.slice(-400); // keep the DOM light — full log is one click away
+    const tail = lines.slice(-500);
     viewer.innerHTML = tail.map(_colorizeLogLine).join('\n');
     viewer.scrollTop = viewer.scrollHeight;
+    statusEl.textContent = `Updated ${new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })} IST` +
+      ' · refreshes every 20s (bot pushes every 60s)';
   } catch (e) {
     statusEl.textContent = '⚠ ' + e.message;
     console.error('loadJobLogs failed:', e);
@@ -4673,7 +4642,7 @@ function _stopLogsAutoRefresh() {
 <main>
   <div style="margin-bottom:6px">
     <h2 style="font-family:var(--head);font-size:16px;font-weight:800;color:var(--accent)">📜 Live Bot Logs</h2>
-    <p style="font-size:11px;color:var(--muted);margin-top:2px">Streams the current/most recent GitHub Actions run log for each bot job. Auto-refreshes every 20s while this tab is open.</p>
+    <p style="font-size:11px;color:var(--muted);margin-top:2px">Shows the last 500 lines of each bot's live trading.log, pushed to gh-pages every 60s while the bot is running. Auto-refreshes every 20s while this tab is open.</p>
   </div>
 
   <div class="instance-tabs" style="margin-bottom:10px">
@@ -4684,7 +4653,7 @@ function _stopLogsAutoRefresh() {
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
     <span class="mw-status" id="log-status">Loading…</span>
     <button class="scn-run-btn" style="background:var(--bg2);border:1px solid var(--border2);color:var(--text)" onclick="loadJobLogs(true)">↻ Refresh now</button>
-    <a id="log-open-github" href="#" target="_blank" style="font-size:11px;color:var(--accent);display:none">Open full log on GitHub ↗</a>
+    <a id="log-open-github" href="#" target="_blank" style="font-size:11px;color:var(--accent);display:none">Open Actions run on GitHub ↗</a>
   </div>
 
   <pre id="log-viewer" style="background:#0a0e14;border:1px solid var(--border);border-radius:6px;padding:14px;font-family:'Consolas','Monaco',monospace;font-size:11px;line-height:1.5;color:#cbd5e1;max-height:70vh;overflow-y:auto;white-space:pre-wrap;word-break:break-word;margin:0">Select a bot tab above to load logs…</pre>
