@@ -1641,6 +1641,23 @@
                     .filter(d => d.amount && !isNaN(d.amount))
                     .sort((a, b) => a.date - b.date);
 
+                // Yahoo's `meta` block carries a live/delayed regularMarketPrice
+                // that's typically fresher than the last point in the daily
+                // candle series above - for thinly-traded names (REITs/InvITs
+                // especially) today's candle often isn't finalized in
+                // indicators.quote until end of day, so the plain closes
+                // array can lag a full trading day behind. Attach meta's
+                // live price (and its timestamp/previous close) onto the
+                // array so callers can prefer it for "current price" while
+                // still using the daily series for 20DMA/CAGR history.
+                const meta = result.meta || {};
+                if (typeof meta.regularMarketPrice === 'number' && !isNaN(meta.regularMarketPrice)) {
+                    data.regularMarketPrice = meta.regularMarketPrice;
+                    data.regularMarketTime = meta.regularMarketTime ? new Date(meta.regularMarketTime * 1000) : null;
+                    const prevClose = meta.previousClose ?? meta.chartPreviousClose;
+                    data.previousClose = (typeof prevClose === 'number' && !isNaN(prevClose)) ? prevClose : null;
+                }
+
                 return data;
             };
 
@@ -1918,11 +1935,24 @@
                     fund.history = history;
                     fund.pct20dma = computePct20DMA(history);
                     fund.sparkSvg = buildSparklineSVG(history);
-                    fund.dayChange = computeDayChange(history);
-                    fund.ltp = computeLTP(history);
                     fund.cagr3y = computeReturnForFund(fund, history, 3);
                     fund.cagr5y = computeReturnForFund(fund, history, 5);
                     fund.cagr10y = computeReturnForFund(fund, history, 10);
+
+                    // Prefer Yahoo's live/delayed regularMarketPrice over the
+                    // last daily-candle close - for illiquid REITs/InvITs the
+                    // candle series often hasn't rolled forward to today yet,
+                    // which otherwise leaves LTP/day-change stuck a day behind.
+                    if (typeof history.regularMarketPrice === 'number') {
+                        fund.ltp = history.regularMarketPrice;
+                        fund.dayChange = (typeof history.previousClose === 'number' && history.previousClose)
+                            ? ((history.regularMarketPrice - history.previousClose) / history.previousClose) * 100
+                            : computeDayChange(history);
+                    } else {
+                        fund.ltp = computeLTP(history);
+                        fund.dayChange = computeDayChange(history);
+                    }
+
                     fund.status = 'ok';
                     fund.errorMsg = null;
                     renderSectionTable(section);
@@ -1944,8 +1974,15 @@
                 fund.history = bestSparse;
                 fund.pct20dma = computePct20DMA(bestSparse);
                 fund.sparkSvg = buildSparklineSVG(bestSparse);
-                fund.dayChange = computeDayChange(bestSparse);
-                fund.ltp = computeLTP(bestSparse);
+                if (typeof bestSparse.regularMarketPrice === 'number') {
+                    fund.ltp = bestSparse.regularMarketPrice;
+                    fund.dayChange = (typeof bestSparse.previousClose === 'number' && bestSparse.previousClose)
+                        ? ((bestSparse.regularMarketPrice - bestSparse.previousClose) / bestSparse.previousClose) * 100
+                        : computeDayChange(bestSparse);
+                } else {
+                    fund.ltp = computeLTP(bestSparse);
+                    fund.dayChange = computeDayChange(bestSparse);
+                }
                 fund.cagr3y = computeReturnForFund(fund, bestSparse, 3);
                 fund.cagr5y = computeReturnForFund(fund, bestSparse, 5);
                 fund.cagr10y = computeReturnForFund(fund, bestSparse, 10);
