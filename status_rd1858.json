@@ -1,16 +1,16 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-07-27 09:01:47 IST",
+  "timestamp": "2026-07-27 09:02:49 IST",
   "bot_running": true,
-  "total_value": 7908465.06,
+  "total_value": 1179081.96,
   "today_pnl": 0.0,
   "today_pnl_pct": 0.0,
   "liquidcase": {
     "quantity": 58430,
     "free_quantity": 0,
-    "price": 115.17,
-    "value": 6729383.1,
-    "pct": 85.09
+    "price": 0,
+    "value": 0,
+    "pct": 0.0
   },
   "slots": {
     "total": 6,
@@ -129,17 +129,17 @@
   "williams_r": [
     {
       "symbol": "SILVERBEES",
-      "ltp": 210.96,
-      "change_pct": 0.0,
-      "williams_r": -37.6,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -49.65,
       "is_held": true,
       "avg_price": 225.39,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 776.3,
-      "change_pct": 0.0,
+      "ltp": null,
+      "change_pct": null,
       "williams_r": -57.82,
       "is_held": true,
       "avg_price": 770.52,
@@ -156,17 +156,17 @@
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 587.76,
-      "change_pct": 0.0,
-      "williams_r": -72.95,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -74.94,
       "is_held": true,
       "avg_price": 587.29,
       "strategy": "active"
     },
     {
       "symbol": "HDFCSML250",
-      "ltp": 177.58,
-      "change_pct": 0.0,
+      "ltp": null,
+      "change_pct": null,
       "williams_r": -73.43,
       "is_held": false,
       "avg_price": null,
@@ -174,8 +174,8 @@
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 234.83,
-      "change_pct": 0.0,
+      "ltp": null,
+      "change_pct": null,
       "williams_r": -67.63,
       "is_held": true,
       "avg_price": 230.14,
@@ -186,10 +186,10 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 23751.65,
+      "ltp": 23844.75,
       "prev_close": 23767.45,
-      "change": -15.8,
-      "change_pct": -0.07,
+      "change": 77.3,
+      "change_pct": 0.33,
       "open": null,
       "high": null,
       "low": null
@@ -382,6 +382,6 @@
     }
   },
   "available_cash": 5222.6,
-  "available_margin": 3621363.98,
+  "available_margin": 3560316.3,
   "available_margin_note": null
 }
