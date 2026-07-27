@@ -1364,6 +1364,7 @@
                 assetType: "reit",
                 symbol: "EMBASSY-RR.NS",
                 fallbackSymbols: ["EMBASSY.NS", "EMBASSY.BO", "542602.BO"],
+                tickertapeUrl: "https://www.tickertape.in/stocks/embassy-office-parks-reit-EMBA",
                 gfTicker: "BOM:542602",
                 url: "https://www.google.com/finance/quote/542602:BOM",
                 history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
@@ -1373,6 +1374,7 @@
                 assetType: "reit",
                 symbol: "MINDSPACE-RR.NS",
                 fallbackSymbols: ["MINDSPACE.NS", "MINDSPACE.BO", "543217.BO"],
+                tickertapeUrl: "https://www.tickertape.in/stocks/mindspace-business-parks-reit-MINS",
                 gfTicker: "BOM:543217",
                 url: "https://www.google.com/finance/quote/543217:BOM",
                 history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
@@ -1382,6 +1384,7 @@
                 assetType: "invit",
                 symbol: "INDIGRID-IV.NS",
                 fallbackSymbols: ["INDIGRID.NS", "INDIGRID.BO", "540565.BO"],
+                tickertapeUrl: "https://www.tickertape.in/stocks/india-grid-trust-IGTR",
                 gfTicker: "BOM:540565",
                 url: "https://www.google.com/finance/quote/540565:BOM",
                 history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
@@ -1391,6 +1394,7 @@
                 assetType: "reit",
                 symbol: "NXST-RR.NS",
                 fallbackSymbols: ["NXST.NS", "NXST.BO", "543913.BO"],
+                tickertapeUrl: "https://www.tickertape.in/stocks/nexus-select-trust-NXS",
                 gfTicker: "BOM:543913",
                 url: "https://www.google.com/finance/quote/543913:BOM",
                 history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
@@ -1913,6 +1917,53 @@
             return computeCAGR(history, years);
         }
 
+        // Extracts live price + day change from a TickerTape stock page's
+        // rendered price header, e.g. "₹593.94▲0.04% (+0.26)". Same proven
+        // pattern already used for the Debt section's TickerTape mutual-fund
+        // pages (see extractMetrics METHOD 6 above) - TickerTape server-
+        // renders this header text (unlike Google Finance, which requires
+        // client-side JS and isn't present in a plain proxy fetch), so this
+        // works reliably for a non-JS page fetch through the CORS proxies.
+        function extractTickerTapePriceChange(html) {
+            try {
+                const headerChunk = html.slice(0, 20000)
+                    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+                    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+                    .replace(/<[^>]+>/g, '');
+
+                const changeMatch = headerChunk.match(/₹\s*([\d,]+\.\d{2})[^\d%()]{0,40}([+-]?[\d.]+)\s*%\s*\(([+-]?[\d.]+)\)/);
+                if (!changeMatch) return null;
+
+                const price = parseFloat(changeMatch[1].replace(/,/g, ''));
+                const absChange = parseFloat(changeMatch[3]);
+                const pctMagnitude = Math.abs(parseFloat(changeMatch[2]));
+                if (isNaN(price) || isNaN(absChange) || isNaN(pctMagnitude)) return null;
+
+                return { price, dayChangeAbs: absChange, dayChangePct: absChange < 0 ? -pctMagnitude : pctMagnitude };
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Best-effort override: replaces the Yahoo-daily-candle-derived LTP/
+        // day-change with a fresher TickerTape scrape when the fund has a
+        // tickertapeUrl configured. Never throws - on any failure the
+        // Yahoo-derived values already on `fund` are left untouched, so a
+        // TickerTape hiccup degrades gracefully rather than blanking the row.
+        async function tryOverrideWithTickerTapeQuote(fund) {
+            if (!fund.tickertapeUrl) return;
+            try {
+                const html = await fetchWithProxy(fund.tickertapeUrl);
+                const q = extractTickerTapePriceChange(html);
+                if (q) {
+                    fund.ltp = q.price;
+                    fund.dayChange = q.dayChangePct;
+                }
+            } catch (e) {
+                console.warn(`TickerTape live quote failed for ${fund.name}, keeping Yahoo-derived LTP:`, e.message);
+            }
+        }
+
         async function loadSectionFundData(section, fund) {
             fund.status = 'loading';
             fund.errorMsg = null;
@@ -1955,6 +2006,7 @@
 
                     fund.status = 'ok';
                     fund.errorMsg = null;
+                    await tryOverrideWithTickerTapeQuote(fund);
                     renderSectionTable(section);
                     return;
                 } catch (err) {
@@ -1988,6 +2040,7 @@
                 fund.cagr10y = computeReturnForFund(fund, bestSparse, 10);
                 fund.status = 'ok';
                 fund.errorMsg = null;
+                await tryOverrideWithTickerTapeQuote(fund);
                 renderSectionTable(section);
                 return;
             }
