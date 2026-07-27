@@ -1,33 +1,3 @@
-2026-07-27 13:38:07 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55779 units (₹6425740.80)
-2026-07-27 13:38:07 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 13:38:07 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 13:38:07 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 13:38:07 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55779 pledged + 0 T1 = 55779 units @ ₹115.19
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4340 units @ ₹115.19
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55779 units (Holdings updated | -4340 sold today)
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55779 units (free: 0) = ₹6425183.01
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55779 units (₹6425183.01)
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 13:39:08 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 13:40:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55779 pledged + 0 T1 = 55779 units @ ₹115.20
-2026-07-27 13:40:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4340 units @ ₹115.20
-2026-07-27 13:40:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55779 units (Holdings updated | -4340 sold today)
-2026-07-27 13:40:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55779 units (free: 0) = ₹6425740.80
-2026-07-27 13:40:08 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 13:40:08 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 13:40:08 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 13:40:08 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 13:40:08 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 13:40:08 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
 2026-07-27 13:40:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55779 units (₹6425740.80)
 2026-07-27 13:40:08 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
 2026-07-27 13:40:08 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
@@ -498,3 +468,33 @@
 2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
 2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
 2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-27 14:11:37 IST | INFO     | backend.strategy.signal_generator | 📉 EMBASSY-RR: slot-1 averaging down — ₹437.39 is 1.00% below avg ₹441.82 (threshold 1.0%)
+2026-07-27 14:11:37 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-97.9)]: EMBASSY-RR | Price=₹437.39 | PrevClose=₹437.98 | AvgBuy=₹441.82 | Slot 1/6
+2026-07-27 14:11:37 IST | INFO     | backend.strategy.signal_generator | ⚡ QUEUED (anytime): EMBASSY-RR — executes on next signal check (W%R=-97.92)
+2026-07-27 14:11:37 IST | INFO     | backend.strategy.signal_generator | ⚡ Buy due (anytime): EMBASSY-RR
+2026-07-27 14:11:37 IST | INFO     | __main__             | ============================================================
+2026-07-27 14:11:37 IST | INFO     | __main__             | 📊 Executing signals — Buy: 1, Sell: 0
+2026-07-27 14:11:37 IST | INFO     | __main__             | ⚙️  Profit Target=4.0%, Max Qty=Unlimited
+2026-07-27 14:11:37 IST | INFO     | __main__             |   🟢 BUY: EMBASSY-RR | W%R=-97.92 | ₹437.39
+2026-07-27 14:11:37 IST | INFO     | __main__             | ============================================================
+2026-07-27 14:11:37 IST | INFO     | __main__             | ⚡ Executing signals...
+2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor | --------------------------------------------------------------------------------
+2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: EMBASSY-RR                       
+2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor | --------------------------------------------------------------------------------
+2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor | Budget: ₹25000.00 (max_cash_per_transaction)
+2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor | Capacity remaining for EMBASSY-RR: ₹101400.00 → budget capped to ₹25000.00
+2026-07-27 14:11:37 IST | INFO     | backend.orders.manager | Available cash: live=₹5,901.51 net(cash)=₹8,475.10 opening=₹8,475.10 adhoc=₹0.00 → using ₹8,475.10
+2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor | 💵 Spendable cash ₹3475.10 (total ₹8475.10 − reserve ₹5000.00) < cost ₹24931.23 — will sell LIQUIDCASE for shortfall
+2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹3475.10 + sell 187 LIQUIDCASE × ₹115.19 = ₹21540.53 (shortfall) → Buy 57 EMBASSY-RR × ₹437.39 = ₹24931.23
+2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹437.39 for EMBASSY-RR (LTP was ₹437.39, top_ask from depth)
+2026-07-27 14:11:37 IST | INFO     | backend.strategy.position_slots | 📌 EMBASSY-RR: position slot 2 recorded (persists across days)
+2026-07-27 14:11:37 IST | INFO     | backend.strategy.signal_generator | 📌 EMBASSY-RR: buy #1 recorded today @ ₹437.39 x57 (pending sync)
+2026-07-27 14:11:38 IST | INFO     | backend.orders.manager | Available cash: live=₹5,901.51 net(cash)=₹8,475.10 opening=₹8,475.10 adhoc=₹0.00 → using ₹8,475.10
+2026-07-27 14:11:38 IST | INFO     | backend.orders.manager | smart_buy 57 × EMBASSY-RR @ ₹437.39 (cost ₹24,931.23) | Available cash: ₹8,475.10 (spendable after ₹5000 reserve: ₹3,475.10)
+2026-07-27 14:11:38 IST | INFO     | backend.orders.manager | 💡 Partial cash (₹3,475.10) + LIQUIDCASE shortfall (₹21,456.13 → 202 units)
+2026-07-27 14:11:39 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.19 (top_bid from depth)
+2026-07-27 14:11:39 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 202 x LIQUIDCASE
+2026-07-27 14:11:39 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260727151048079
+2026-07-27 14:11:39 IST | INFO     | backend.orders.manager | Monitoring order 260727151048079...
+2026-07-27 14:11:39 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.19
+2026-07-27 14:11:39 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 202 units @ ₹115.19
