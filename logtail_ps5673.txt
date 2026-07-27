@@ -1,18 +1,3 @@
-2026-07-27 10:02:47 IST | INFO     | backend.data.historical | ✅ HDFCSML250: bootstrapped 270 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/HDFCSML250.csv
-2026-07-27 10:02:47 IST | INFO     | backend.data.historical | 📥 MID150BEES: bootstrapping historical data 2025-06-22 → 2026-07-26 (token=2177537)
-2026-07-27 10:02:47 IST | INFO     | backend.data.historical | ✅ MID150BEES: bootstrapped 270 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/MID150BEES.csv
-2026-07-27 10:02:47 IST | INFO     | backend.data.historical | ✓ Historical data loaded for 6 symbols (active + BnH)
-2026-07-27 10:02:47 IST | INFO     | backend.data.realtime | Initializing WebSocket connection...
-2026-07-27 10:02:47 IST | INFO     | backend.data.realtime | ✓ Instruments CSV from https://api.kite.trade/instruments (120242 rows)
-2026-07-27 10:02:47 IST | INFO     | backend.data.realtime | Looking up tokens for: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, MID150BEES, LIQUIDCASE
-2026-07-27 10:02:47 IST | INFO     | backend.data.realtime | ✓ SILVERBEES: token 2068481 (segment=NSE)
-2026-07-27 10:02:47 IST | INFO     | backend.data.realtime | ✓ JUNIORBEES: token 2800385 (segment=NSE)
-2026-07-27 10:02:48 IST | INFO     | backend.data.realtime | ✓ EMBASSY-RR: token 2402049 (segment=NSE)
-2026-07-27 10:02:48 IST | INFO     | backend.data.realtime | ✓ BANKBEES: token 2928385 (segment=NSE)
-2026-07-27 10:02:48 IST | INFO     | backend.data.realtime | ✓ HDFCSML250: token 3643649 (segment=NSE)
-2026-07-27 10:02:48 IST | INFO     | backend.data.realtime | ✓ MID150BEES: token 2177537 (segment=NSE)
-2026-07-27 10:02:48 IST | INFO     | backend.data.realtime | ✓ LIQUIDCASE: token 5568001 (segment=NSE)
-2026-07-27 10:02:48 IST | INFO     | backend.data.realtime | ✓ Index NIFTY 50: token 256265
 2026-07-27 10:02:48 IST | INFO     | backend.data.realtime | ✓ Index NIFTY MIDCAP 150: token 266249
 2026-07-27 10:02:48 IST | INFO     | backend.data.realtime | ✓ Index INDIA VIX: token 264969
 2026-07-27 10:02:48 IST | INFO     | backend.data.realtime | ✓ Token cache saved: 10 tokens → instrument_tokens.json
@@ -498,3 +483,18 @@
 2026-07-27 10:31:59 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
 2026-07-27 10:31:59 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
 2026-07-27 10:31:59 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55779 pledged + 0 T1 = 55779 units @ ₹115.20
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4340 units @ ₹115.20
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55779 units (Holdings updated | -4340 sold today)
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55779 units (free: 0) = ₹6425740.80
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55779 units (₹6425740.80)
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
+2026-07-27 10:33:00 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
