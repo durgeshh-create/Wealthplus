@@ -1,18 +1,3 @@
-2026-07-27 14:55:02 IST | WARNING  | backend.auth.manager | OMS 403 — token stale, extracting fresh token from browser via CDP...
-2026-07-27 14:55:12 IST | INFO     | backend.auth.manager | Performing fresh credentials login (no browser detected)...
-2026-07-27 14:55:13 IST | INFO     | backend.auth.token_store | ✓ Enctoken saved to /home/runner/work/Wealthplus/Wealthplus/RD1858/config/enctoken.json
-2026-07-27 14:55:13 IST | INFO     | backend.auth.manager | Fresh login successful for RD1858
-2026-07-27 14:55:13 IST | INFO     | backend.auth.manager | ✅ Re-auth via credentials (headless fallback)
-2026-07-27 14:55:13 IST | INFO     | backend.data.historical | ✅ SILVERBEES: historical data fetched after re-auth
-2026-07-27 14:55:13 IST | INFO     | backend.data.historical | ✅ SILVERBEES: added 5 new candles (CSV now has 335 bars)
-2026-07-27 14:55:13 IST | INFO     | backend.data.historical | 📥 JUNIORBEES: CSV data stale (last=2026-07-20). Fetching 2026-07-21 → 2026-07-26...
-2026-07-27 14:55:13 IST | INFO     | backend.data.historical | ✅ JUNIORBEES: added 4 new candles (CSV now has 324 bars)
-2026-07-27 14:55:13 IST | INFO     | backend.data.historical | 📥 EMBASSY-RR: CSV data stale (last=2026-07-20). Fetching 2026-07-21 → 2026-07-26...
-2026-07-27 14:55:13 IST | INFO     | backend.data.historical | ✅ EMBASSY-RR: added 4 new candles (CSV now has 335 bars)
-2026-07-27 14:55:13 IST | INFO     | backend.data.historical | 📥 BANKBEES: CSV data stale (last=2026-07-20). Fetching 2026-07-21 → 2026-07-26...
-2026-07-27 14:55:13 IST | INFO     | backend.data.historical | ✅ BANKBEES: added 4 new candles (CSV now has 314 bars)
-2026-07-27 14:55:13 IST | INFO     | backend.data.historical | 📥 HDFCSML250: CSV data stale (last=2026-07-20). Fetching 2026-07-21 → 2026-07-26...
-2026-07-27 14:55:14 IST | INFO     | backend.data.historical | ✅ HDFCSML250: added 4 new candles (CSV now has 312 bars)
 2026-07-27 14:55:14 IST | INFO     | backend.data.historical | 📥 MID150BEES: CSV data stale (last=2026-07-20). Fetching 2026-07-21 → 2026-07-26...
 2026-07-27 14:55:14 IST | INFO     | backend.data.historical | ✅ MID150BEES: added 4 new candles (CSV now has 374 bars)
 2026-07-27 14:55:14 IST | INFO     | backend.data.historical | ✓ Historical data loaded for 6 symbols (active + BnH)
@@ -498,3 +483,18 @@
 2026-07-27 15:23:26 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, SILVERBEES, EMBASSY-RR
 2026-07-27 15:23:26 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
 2026-07-27 15:23:26 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 49750 pledged + 0 T1 = 49750 units @ ₹115.20
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -8680 units @ ₹115.20
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 49750 units (Holdings updated | -8680 sold today)
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 49750 units (free: 0) = ₹5731200.00
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, SILVERBEES, EMBASSY-RR)
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 49750 units (₹5731200.00)
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, SILVERBEES, EMBASSY-RR
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
+2026-07-27 15:24:26 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
