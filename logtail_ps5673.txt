@@ -1,500 +1,100 @@
-2026-07-27 14:10:18 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4340 units @ ₹115.19
-2026-07-27 14:10:18 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55779 units (Holdings updated | -4340 sold today)
-2026-07-27 14:10:18 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55779 units (free: 0) = ₹6425183.01
-2026-07-27 14:10:18 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:10:18 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:10:18 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:10:18 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:10:18 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:10:18 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:10:18 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55779 units (₹6425183.01)
-2026-07-27 14:10:18 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:10:18 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:10:18 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:10:18 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55779 pledged + 0 T1 = 55779 units @ ₹115.19
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4340 units @ ₹115.20
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55779 units (Holdings updated | -4340 sold today)
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55779 units (free: 0) = ₹6425740.80
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55779 units (₹6425740.80)
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:11:18 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:11:37 IST | INFO     | backend.strategy.signal_generator | 📉 EMBASSY-RR: slot-1 averaging down — ₹437.39 is 1.00% below avg ₹441.82 (threshold 1.0%)
-2026-07-27 14:11:37 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-97.9)]: EMBASSY-RR | Price=₹437.39 | PrevClose=₹437.98 | AvgBuy=₹441.82 | Slot 1/6
-2026-07-27 14:11:37 IST | INFO     | backend.strategy.signal_generator | ⚡ QUEUED (anytime): EMBASSY-RR — executes on next signal check (W%R=-97.92)
-2026-07-27 14:11:37 IST | INFO     | backend.strategy.signal_generator | ⚡ Buy due (anytime): EMBASSY-RR
-2026-07-27 14:11:37 IST | INFO     | __main__             | ============================================================
-2026-07-27 14:11:37 IST | INFO     | __main__             | 📊 Executing signals — Buy: 1, Sell: 0
-2026-07-27 14:11:37 IST | INFO     | __main__             | ⚙️  Profit Target=4.0%, Max Qty=Unlimited
-2026-07-27 14:11:37 IST | INFO     | __main__             |   🟢 BUY: EMBASSY-RR | W%R=-97.92 | ₹437.39
-2026-07-27 14:11:37 IST | INFO     | __main__             | ============================================================
-2026-07-27 14:11:37 IST | INFO     | __main__             | ⚡ Executing signals...
-2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor | --------------------------------------------------------------------------------
-2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: EMBASSY-RR                       
-2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor | --------------------------------------------------------------------------------
-2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor | Budget: ₹25000.00 (max_cash_per_transaction)
-2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor | Capacity remaining for EMBASSY-RR: ₹101400.00 → budget capped to ₹25000.00
-2026-07-27 14:11:37 IST | INFO     | backend.orders.manager | Available cash: live=₹5,901.51 net(cash)=₹8,475.10 opening=₹8,475.10 adhoc=₹0.00 → using ₹8,475.10
-2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor | 💵 Spendable cash ₹3475.10 (total ₹8475.10 − reserve ₹5000.00) < cost ₹24931.23 — will sell LIQUIDCASE for shortfall
-2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹3475.10 + sell 187 LIQUIDCASE × ₹115.19 = ₹21540.53 (shortfall) → Buy 57 EMBASSY-RR × ₹437.39 = ₹24931.23
-2026-07-27 14:11:37 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹437.39 for EMBASSY-RR (LTP was ₹437.39, top_ask from depth)
-2026-07-27 14:11:37 IST | INFO     | backend.strategy.position_slots | 📌 EMBASSY-RR: position slot 2 recorded (persists across days)
-2026-07-27 14:11:37 IST | INFO     | backend.strategy.signal_generator | 📌 EMBASSY-RR: buy #1 recorded today @ ₹437.39 x57 (pending sync)
-2026-07-27 14:11:38 IST | INFO     | backend.orders.manager | Available cash: live=₹5,901.51 net(cash)=₹8,475.10 opening=₹8,475.10 adhoc=₹0.00 → using ₹8,475.10
-2026-07-27 14:11:38 IST | INFO     | backend.orders.manager | smart_buy 57 × EMBASSY-RR @ ₹437.39 (cost ₹24,931.23) | Available cash: ₹8,475.10 (spendable after ₹5000 reserve: ₹3,475.10)
-2026-07-27 14:11:38 IST | INFO     | backend.orders.manager | 💡 Partial cash (₹3,475.10) + LIQUIDCASE shortfall (₹21,456.13 → 202 units)
-2026-07-27 14:11:39 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.19 (top_bid from depth)
-2026-07-27 14:11:39 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 202 x LIQUIDCASE
-2026-07-27 14:11:39 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260727151048079
-2026-07-27 14:11:39 IST | INFO     | backend.orders.manager | Monitoring order 260727151048079...
-2026-07-27 14:11:39 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.19
-2026-07-27 14:11:39 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 202 units @ ₹115.19
-2026-07-27 14:13:22 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [EMBASSY-RR]: Margin not credited after 90s: live_balance ₹29,169.89 < required ₹29,931.23. LIQUIDCASE was sold (202 units) — cash should credit shortly.
-2026-07-27 14:13:22 IST | INFO     | backend.strategy.position_slots | 📌 EMBASSY-RR: position slot rolled back to 1 (buy failed)
-2026-07-27 14:13:22 IST | INFO     | backend.strategy.signal_generator | ↩️ EMBASSY-RR: rolled back pre-registered buy (execution failed)
-2026-07-27 14:13:22 IST | INFO     | __main__             | ❌ BUY_EMBASSY-RR
-2026-07-27 14:13:22 IST | INFO     | __main__             | ✅ BUY_EMBASSY-RR__reason
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.19
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.19
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401914.63
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401914.63)
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:13:23 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.20
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.19
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401914.63
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401914.63)
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:14:23 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.19
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.20
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6402470.40
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6402470.40)
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:15:23 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.19
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.20
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6402470.40
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6402470.40)
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:16:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.20
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.19
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401914.63
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401914.63)
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:17:24 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.19
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.19
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401914.63
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401914.63)
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:18:24 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.18
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.18
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401358.86
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401358.86)
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:19:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.18
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.18
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401358.86
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401358.86)
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:20:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.19
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.18
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401358.86
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401358.86)
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:21:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.19
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.18
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401358.86
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401358.86)
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:22:25 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.18
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.19
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401914.63
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401914.63)
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:23:26 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.19
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.19
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401914.63
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401914.63)
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:24:26 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.19
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.19
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401914.63
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401914.63)
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:25:26 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.19
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.19
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401914.63
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401914.63)
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:26:27 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.18
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.19
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401914.63
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401914.63)
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:27:27 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.18
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.18
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401358.86
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401358.86)
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:28:27 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.18
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.19
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401914.63
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401914.63)
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:29:27 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.19
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.18
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401358.86
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401358.86)
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:30:28 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.20
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.19
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401914.63
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401914.63)
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:31:28 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.20
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.20
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6402470.40
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6402470.40)
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:32:29 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.19
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.20
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6402470.40
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6402470.40)
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:33:29 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.20
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.19
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401914.63
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401914.63)
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:34:29 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.20
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.19
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401914.63
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401914.63)
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:35:30 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.19
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.20
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6402470.40
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6402470.40)
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:36:30 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.19
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.19
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6401914.63
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6401914.63)
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:37:30 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.20
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.20
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6402470.40
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6402470.40)
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:38:31 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.20
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.20
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6402470.40
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6402470.40)
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:39:31 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:40:41 IST | ERROR    | backend.portfolio.tracker | Error fetching holdings: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.20
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.20
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6402470.40
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6402470.40)
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:41:32 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 55577 pledged + 0 T1 = 55577 units @ ₹115.20
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -4542 units @ ₹115.20
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (Holdings updated | -4542 sold today)
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 55577 units (free: 0) = ₹6402470.40
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (BANKBEES, EMBASSY-RR, SILVERBEES)
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 55577 units (₹6402470.40)
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): BANKBEES, EMBASSY-RR, SILVERBEES
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
-2026-07-27 14:42:32 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-27 14:55:00 IST | INFO     | SYSTEM               | ================================================================================
+2026-07-27 14:55:00 IST | INFO     | SYSTEM               | ETF Trading System Started - 2026-07-27 14:55:00 IST
+2026-07-27 14:55:00 IST | INFO     | SYSTEM               | Log file: /home/runner/work/Wealthplus/Wealthplus/PS5673/logs/trading.log
+2026-07-27 14:55:00 IST | INFO     | SYSTEM               | Mode: LIVE TRADING
+2026-07-27 14:55:00 IST | INFO     | SYSTEM               | ================================================================================
+2026-07-27 14:55:00 IST | INFO     | backend.auth.manager | Starting authentication...
+2026-07-27 14:55:00 IST | INFO     | backend.auth.manager | GH Actions: skipping session verification HTTP call — trusting saved token
+2026-07-27 14:55:00 IST | INFO     | backend.auth.manager | Loaded saved enctoken for user PS5673
+2026-07-27 14:55:00 IST | INFO     | backend.auth.manager | ✓ Authenticated using saved enctoken
+2026-07-27 14:55:00 IST | INFO     | backend.data.historical | Loading historical data...
+2026-07-27 14:55:00 IST | INFO     | backend.data.historical | Loading data for 6 symbols: 'SILVERBEES'JUNIORBEES'EMBASSY-RR'BANKBEES'HDFCSML250'MID150BEES'
+2026-07-27 14:55:00 IST | INFO     | backend.data.historical | ✓ Pre-loaded 5 instrument tokens from saved cache (instrument_tokens.json)
+2026-07-27 14:55:01 IST | INFO     | backend.data.historical | ✓ Instruments CSV for historical from https://api.kite.trade/instruments (121077 rows)
+2026-07-27 14:55:01 IST | INFO     | backend.data.historical | ✓ Instrument token for SILVERBEES: 2068481
+2026-07-27 14:55:01 IST | INFO     | backend.data.historical | ✓ Instrument token for JUNIORBEES: 2800385
+2026-07-27 14:55:01 IST | INFO     | backend.data.historical | ✓ Instrument token for EMBASSY-RR: 2402049
+2026-07-27 14:55:01 IST | INFO     | backend.data.historical | ✓ Instrument token for BANKBEES: 2928385
+2026-07-27 14:55:01 IST | INFO     | backend.data.historical | ✓ Instrument token for HDFCSML250: 3643649
+2026-07-27 14:55:01 IST | INFO     | backend.data.historical | ✓ Instrument token for MID150BEES: 2177537
+2026-07-27 14:55:01 IST | INFO     | backend.data.historical | 📥 SILVERBEES: bootstrapping historical data 2025-06-22 → 2026-07-26 (token=2068481)
+2026-07-27 14:55:01 IST | WARNING  | backend.data.historical | SILVERBEES: HTTP 403 during bootstrap — re-authenticating and retrying once...
+2026-07-27 14:55:01 IST | WARNING  | backend.auth.manager | OMS 403 — token stale, extracting fresh token from browser via CDP...
+2026-07-27 14:55:11 IST | INFO     | backend.auth.manager | Performing fresh credentials login (no browser detected)...
+2026-07-27 14:55:11 IST | INFO     | backend.auth.token_store | ✓ Enctoken saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/config/enctoken.json
+2026-07-27 14:55:11 IST | INFO     | backend.auth.manager | Fresh login successful for PS5673
+2026-07-27 14:55:11 IST | INFO     | backend.auth.manager | ✅ Re-auth via credentials (headless fallback)
+2026-07-27 14:55:12 IST | INFO     | backend.data.historical | ✅ SILVERBEES: bootstrap fetch succeeded after re-auth
+2026-07-27 14:55:12 IST | INFO     | backend.data.historical | ✅ SILVERBEES: bootstrapped 270 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/SILVERBEES.csv
+2026-07-27 14:55:12 IST | INFO     | backend.data.historical | 📥 JUNIORBEES: bootstrapping historical data 2025-06-22 → 2026-07-26 (token=2800385)
+2026-07-27 14:55:12 IST | INFO     | backend.data.historical | ✅ JUNIORBEES: bootstrapped 270 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/JUNIORBEES.csv
+2026-07-27 14:55:12 IST | INFO     | backend.data.historical | 📥 EMBASSY-RR: bootstrapping historical data 2025-06-22 → 2026-07-26 (token=2402049)
+2026-07-27 14:55:12 IST | INFO     | backend.data.historical | ✅ EMBASSY-RR: bootstrapped 270 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/EMBASSY-RR.csv
+2026-07-27 14:55:12 IST | INFO     | backend.data.historical | 📥 BANKBEES: bootstrapping historical data 2025-06-22 → 2026-07-26 (token=2928385)
+2026-07-27 14:55:13 IST | INFO     | backend.data.historical | ✅ BANKBEES: bootstrapped 270 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/BANKBEES.csv
+2026-07-27 14:55:13 IST | INFO     | backend.data.historical | 📥 HDFCSML250: bootstrapping historical data 2025-06-22 → 2026-07-26 (token=3643649)
+2026-07-27 14:55:13 IST | INFO     | backend.data.historical | ✅ HDFCSML250: bootstrapped 270 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/HDFCSML250.csv
+2026-07-27 14:55:13 IST | INFO     | backend.data.historical | 📥 MID150BEES: bootstrapping historical data 2025-06-22 → 2026-07-26 (token=2177537)
+2026-07-27 14:55:13 IST | INFO     | backend.data.historical | ✅ MID150BEES: bootstrapped 270 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/MID150BEES.csv
+2026-07-27 14:55:13 IST | INFO     | backend.data.historical | ✓ Historical data loaded for 6 symbols (active + BnH)
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | Initializing WebSocket connection...
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | ✓ Instruments CSV from https://api.kite.trade/instruments (121077 rows)
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | Looking up tokens for: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, MID150BEES, LIQUIDCASE
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | ✓ SILVERBEES: token 2068481 (segment=NSE)
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | ✓ JUNIORBEES: token 2800385 (segment=NSE)
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | ✓ EMBASSY-RR: token 2402049 (segment=NSE)
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | ✓ BANKBEES: token 2928385 (segment=NSE)
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | ✓ HDFCSML250: token 3643649 (segment=NSE)
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | ✓ MID150BEES: token 2177537 (segment=NSE)
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | ✓ LIQUIDCASE: token 5568001 (segment=NSE)
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | ✓ Index NIFTY 50: token 256265
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | ✓ Index NIFTY MIDCAP 150: token 266249
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | ✓ Index INDIA VIX: token 264969
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | ✓ Token cache saved: 10 tokens → instrument_tokens.json
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | ✓ 10 instrument tokens ready
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | ✓ WebSocket initialized
+2026-07-27 14:55:13 IST | INFO     | backend.data.realtime | Starting WebSocket connection...
+2026-07-27 14:55:14 IST | INFO     | backend.data.realtime | ✓ WebSocket connected successfully
+2026-07-27 14:55:14 IST | INFO     | backend.data.realtime | Subscribing to 10 instruments...
+2026-07-27 14:55:14 IST | INFO     | backend.data.realtime | ✅ Subscribe called successfully
+2026-07-27 14:55:14 IST | INFO     | backend.data.realtime | ✅ Set mode to FULL successfully
+2026-07-27 14:55:14 IST | INFO     | backend.data.realtime | ✅ Subscribed to 10 instruments - waiting for ticks...
+2026-07-27 14:55:14 IST | INFO     | backend.data.realtime | ✓ WebSocket connected and subscribed
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 51237 pledged + 0 T1 = 51237 units @ ₹115.18
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -8882 units @ ₹115.19
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 51237 units (Holdings updated | -8882 sold today)
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 51237 units (free: 0) = ₹5901990.03
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 3 locked (EMBASSY-RR, BANKBEES, SILVERBEES)
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 51237 units (₹5901990.03)
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | Held ETFs (3): EMBASSY-RR, BANKBEES, SILVERBEES
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | Available slots: 2/5
+2026-07-27 14:55:16 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-27 14:55:16 IST | INFO     | backend.strategy.signal_generator | [startup] Rebuilt _buys_today from order history: INDIGRID-IV×1, NXST×1
+2026-07-27 14:55:16 IST | INFO     | backend.strategy.intraday_engine | Dip Accumulator engine initialised for ['MID150BEES']
+2026-07-27 14:55:16 IST | INFO     | frontend.app         | Dashboard initialized with backend instances
+2026-07-27 14:55:16 IST | INFO     | __main__             | 🤖 Trading loop thread started (60s startup grace period — monitoring only)
+2026-07-27 14:55:16 IST | INFO     | __main__             | ✅ Trading loop thread started (waiting for bot activation)
+2026-07-27 14:55:16 IST | INFO     | __main__             | ☁️  Cloud mode — bot_running auto-set to True (no dashboard button needed)
+2026-07-27 14:55:16 IST | INFO     | backend.strategy.intraday_engine | Dip Accumulator engine loop started
+2026-07-27 14:55:16 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] Session reset for 2026-07-27
+2026-07-27 14:55:16 IST | INFO     | backend.strategy.intraday_engine | Dip Accumulator engine STARTED — watching ['MID150BEES']
+2026-07-27 14:55:16 IST | INFO     | __main__             | ☁️  Cloud mode — intraday/dip-accumulator engine auto-start succeeded
+2026-07-27 14:55:16 IST | INFO     | __main__             | ⏰ Market-close watchdog started — auto-shutdown at 15:35 IST
+2026-07-27 14:55:16 IST | INFO     | __main__             | ✅ Market-close watchdog started — auto-shutdown at 15:35 IST
+2026-07-27 14:55:16 IST | INFO     | backend.strategy.position_slots | 📌 EMBASSY-RR: position slots seeded to 1 (pre-existing holding, no prior record)
+2026-07-27 14:55:16 IST | INFO     | backend.strategy.position_slots | 📌 JUNIORBEES: position slots seeded to 1 (pre-existing holding, no prior record)
+2026-07-27 14:55:16 IST | INFO     | backend.utils.keep_alive | Hibernate watchdog started
+2026-07-27 14:55:16 IST | INFO     | backend.utils.keep_alive | WebSocket watchdog started (stale threshold: 90s)
+2026-07-27 14:55:16 IST | INFO     | backend.utils.keep_alive | Hibernate watchdog + WS watchdog threads started
+2026-07-27 14:55:16 IST | INFO     | __main__             | ✅ Hibernate + WebSocket watchdogs started
+2026-07-27 14:55:16 IST | INFO     | werkzeug             | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://10.1.1.147:5001
+2026-07-27 14:55:16 IST | INFO     | werkzeug             | [33mPress CTRL+C to quit[0m
