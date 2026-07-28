@@ -1,22 +1,3 @@
-2026-07-28 10:37:38 IST | INFO     | backend.portfolio.tracker | Available slots: 1/6
-2026-07-28 10:37:38 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-07-28 10:37:38 IST | INFO     | backend.strategy.signal_generator | [startup] Rebuilt _buys_today from order history: MID150BEES×1, NIFTY26JUL21100PE×10, NIFTY26JUL22000PE×2, NIFTY26JUL26000CE×10
-2026-07-28 10:37:38 IST | INFO     | backend.strategy.intraday_engine | Dip Accumulator engine initialised for ['MID150BEES']
-2026-07-28 10:37:38 IST | INFO     | frontend.app         | Dashboard initialized with backend instances
-2026-07-28 10:37:38 IST | INFO     | __main__             | 🤖 Trading loop thread started (60s startup grace period — monitoring only)
-2026-07-28 10:37:38 IST | INFO     | __main__             | ✅ Trading loop thread started (waiting for bot activation)
-2026-07-28 10:37:38 IST | INFO     | __main__             | ☁️  Cloud mode — bot_running auto-set to True (no dashboard button needed)
-2026-07-28 10:37:38 IST | INFO     | backend.strategy.intraday_engine | Dip Accumulator engine loop started
-2026-07-28 10:37:38 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] Session reset for 2026-07-28
-2026-07-28 10:37:38 IST | INFO     | backend.strategy.intraday_engine | Dip Accumulator engine STARTED — watching ['MID150BEES']
-2026-07-28 10:37:38 IST | INFO     | __main__             | ☁️  Cloud mode — intraday/dip-accumulator engine auto-start succeeded
-2026-07-28 10:37:38 IST | INFO     | __main__             | ⏰ Market-close watchdog started — auto-shutdown at 12:35 IST
-2026-07-28 10:37:38 IST | INFO     | __main__             | ✅ Market-close watchdog started — auto-shutdown at 12:35 IST
-2026-07-28 10:37:38 IST | INFO     | backend.strategy.position_slots | 📌 EMBASSY-RR: position slots seeded to 1 (pre-existing holding, no prior record)
-2026-07-28 10:37:38 IST | INFO     | backend.strategy.position_slots | 📌 JUNIORBEES: position slots seeded to 1 (pre-existing holding, no prior record)
-2026-07-28 10:37:38 IST | INFO     | backend.utils.keep_alive | Hibernate watchdog started
-2026-07-28 10:37:38 IST | INFO     | backend.utils.keep_alive | WebSocket watchdog started (stale threshold: 90s)
-2026-07-28 10:37:38 IST | INFO     | backend.utils.keep_alive | Hibernate watchdog + WS watchdog threads started
 2026-07-28 10:37:38 IST | INFO     | __main__             | ✅ Hibernate + WebSocket watchdogs started
 2026-07-28 10:37:38 IST | INFO     | werkzeug             | [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
@@ -498,3 +479,22 @@
 2026-07-28 11:07:50 IST | INFO     | backend.portfolio.tracker | Held ETFs (5): EMBASSY-RR, GOLDBEES, SILVERBEES, JUNIORBEES, BANKBEES
 2026-07-28 11:07:50 IST | INFO     | backend.portfolio.tracker | Available slots: 1/6
 2026-07-28 11:07:50 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-28 11:08:45 IST | INFO     | backend.strategy.signal_generator | 📉 SILVERBEES: slot-1 averaging down — ₹206.59 is 8.17% below avg ₹224.97 (threshold 1.0%)
+2026-07-28 11:08:45 IST | INFO     | backend.strategy.signal_generator | ⏸ SILVERBEES: buy signal detected but blocked — deployed ₹329359 >= per-stock limit ₹150000
+2026-07-28 11:08:45 IST | INFO     | backend.strategy.signal_generator | 📉 GOLDBEES: slot-1 averaging down — ₹116.85 is 2.73% below avg ₹120.13 (threshold 1.0%)
+2026-07-28 11:08:45 IST | INFO     | backend.strategy.signal_generator | ⏸ GOLDBEES: buy signal detected but blocked — deployed ₹589113 >= per-stock limit ₹150000
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 49501 pledged + 0 T1 = 49501 units @ ₹115.19
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -1736 units @ ₹115.20
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 49501 units (Holdings updated | -1736 sold today)
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 49501 units (free: 0) = ₹5702515.20
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, GOLDBEES
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | Slots: 1 available, 5 locked (EMBASSY-RR, GOLDBEES, SILVERBEES, JUNIORBEES, BANKBEES)
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 49501 units (₹5702515.20)
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, GOLDBEES
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | Held ETFs (5): EMBASSY-RR, GOLDBEES, SILVERBEES, JUNIORBEES, BANKBEES
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | Available slots: 1/6
+2026-07-28 11:08:51 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
