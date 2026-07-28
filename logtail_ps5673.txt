@@ -1,21 +1,3 @@
-2026-07-28 11:16:14 IST | INFO     | __main__             | ============================================================
-2026-07-28 11:16:14 IST | INFO     | __main__             | ⚡ Executing signals...
-2026-07-28 11:16:14 IST | INFO     | backend.strategy.executor | --------------------------------------------------------------------------------
-2026-07-28 11:16:14 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: EMBASSY-RR                       
-2026-07-28 11:16:14 IST | INFO     | backend.strategy.executor | --------------------------------------------------------------------------------
-2026-07-28 11:16:14 IST | INFO     | backend.strategy.executor | Budget: ₹25000.00 (max_cash_per_transaction)
-2026-07-28 11:16:14 IST | INFO     | backend.strategy.executor | Capacity remaining for EMBASSY-RR: ₹101400.00 → budget capped to ₹25000.00
-2026-07-28 11:16:14 IST | INFO     | backend.orders.manager | Available cash: live=₹8,035.42 net(cash)=₹25,777.70 opening=₹25,777.70 adhoc=₹0.00 → using ₹25,777.70
-2026-07-28 11:16:14 IST | INFO     | backend.strategy.executor | 💵 Spendable cash ₹20777.70 (total ₹25777.70 − reserve ₹5000.00) < cost ₹24930.66 — will sell LIQUIDCASE for shortfall
-2026-07-28 11:16:14 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹20777.70 + sell 37 LIQUIDCASE × ₹115.19 = ₹4262.03 (shortfall) → Buy 57 EMBASSY-RR × ₹437.38 = ₹24930.66
-2026-07-28 11:16:14 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹437.39 for EMBASSY-RR (LTP was ₹437.38, top_ask from depth)
-2026-07-28 11:16:14 IST | INFO     | backend.strategy.position_slots | 📌 EMBASSY-RR: position slot 2 recorded (persists across days)
-2026-07-28 11:16:14 IST | INFO     | backend.strategy.signal_generator | 📌 EMBASSY-RR: buy #1 recorded today @ ₹437.39 x57 (pending sync)
-2026-07-28 11:16:15 IST | INFO     | backend.orders.manager | Available cash: live=₹10,689.24 net(cash)=₹25,777.70 opening=₹25,777.70 adhoc=₹0.00 → using ₹25,777.70
-2026-07-28 11:16:15 IST | INFO     | backend.orders.manager | smart_buy 57 × EMBASSY-RR @ ₹437.39 (cost ₹24,931.23) | Available cash: ₹25,777.70 (spendable after ₹5000 reserve: ₹20,777.70)
-2026-07-28 11:16:15 IST | INFO     | backend.orders.manager | 💡 Partial cash (₹20,777.70) + LIQUIDCASE shortfall (₹4,153.53 → 39 units)
-2026-07-28 11:16:15 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.19 (top_bid from depth)
-2026-07-28 11:16:15 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 39 x LIQUIDCASE
 2026-07-28 11:16:15 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260728150757542
 2026-07-28 11:16:16 IST | INFO     | backend.orders.manager | Monitoring order 260728150757542...
 2026-07-28 11:16:16 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.19
@@ -498,3 +480,21 @@
 2026-07-28 11:44:19 IST | INFO     | backend.portfolio.tracker | Available slots: 1/6
 2026-07-28 11:44:19 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
 2026-07-28 11:44:38 IST | INFO     | backend.utils.keep_alive | No ticks for 1139s, but realtime's own reconnect thread is already active — not forcing a competing one
+2026-07-28 11:45:08 IST | INFO     | backend.utils.keep_alive | No ticks for 1169s, but realtime's own reconnect thread is already active — not forcing a competing one
+2026-07-28 11:45:20 IST | INFO     | backend.data.realtime | 🔄 WebSocket reconnect attempt 20(∞) in 60s...
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 49462 pledged + 0 T1 = 49462 units @ ₹115.20
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -1775 units @ ₹115.20
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 49462 units (Holdings updated | -1775 sold today)
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 49462 units (free: 0) = ₹5698022.40
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, GOLDBEES
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | Slots: 1 available, 5 locked (EMBASSY-RR, GOLDBEES, SILVERBEES, JUNIORBEES, BANKBEES)
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 49462 units (₹5698022.40)
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, GOLDBEES
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | Held ETFs (5): EMBASSY-RR, GOLDBEES, SILVERBEES, JUNIORBEES, BANKBEES
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | Available slots: 1/6
+2026-07-28 11:45:21 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-28 11:45:38 IST | INFO     | backend.utils.keep_alive | No ticks for 1199s, but realtime's own reconnect thread is already active — not forcing a competing one
