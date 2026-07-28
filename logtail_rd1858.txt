@@ -1,18 +1,3 @@
-2026-07-28 12:57:00 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-100.0)]: EMBASSY-RR | Price=₹435.70 | PrevClose=₹437.95 | AvgBuy=₹440.17 | Slot 1/6
-2026-07-28 12:57:00 IST | INFO     | backend.strategy.signal_generator | ⚡ QUEUED (anytime): EMBASSY-RR — executes on next signal check (W%R=-100.0)
-2026-07-28 12:57:00 IST | INFO     | backend.strategy.signal_generator | ⚡ Buy due (anytime): EMBASSY-RR
-2026-07-28 12:57:00 IST | INFO     | __main__             | ============================================================
-2026-07-28 12:57:00 IST | INFO     | __main__             | 📊 Executing signals — Buy: 1, Sell: 0
-2026-07-28 12:57:00 IST | INFO     | __main__             | ⚙️  Profit Target=3.0%, Max Qty=Unlimited
-2026-07-28 12:57:00 IST | INFO     | __main__             |   🟢 BUY: EMBASSY-RR | W%R=-100.00 | ₹435.70
-2026-07-28 12:57:00 IST | INFO     | __main__             | ============================================================
-2026-07-28 12:57:00 IST | INFO     | __main__             | ⚡ Executing signals...
-2026-07-28 12:57:00 IST | INFO     | backend.strategy.executor | --------------------------------------------------------------------------------
-2026-07-28 12:57:00 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: EMBASSY-RR                       
-2026-07-28 12:57:00 IST | INFO     | backend.strategy.executor | --------------------------------------------------------------------------------
-2026-07-28 12:57:00 IST | INFO     | backend.strategy.executor | Budget: ₹25000.00 (max_cash_per_transaction)
-2026-07-28 12:57:00 IST | INFO     | backend.strategy.executor | Capacity remaining for EMBASSY-RR: ₹73851.30 → budget capped to ₹25000.00
-2026-07-28 12:57:00 IST | INFO     | backend.orders.manager | Available cash: live=₹8,453.40 net(cash)=₹3,136.40 opening=₹3,136.40 adhoc=₹0.00 → using ₹3,136.40
 2026-07-28 12:57:00 IST | INFO     | backend.strategy.executor | 💵 Spendable cash ₹0.00 (total ₹3136.40 − reserve ₹5000.00) < cost ₹24834.90 — will sell LIQUIDCASE for shortfall
 2026-07-28 12:57:00 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹0.00 + sell 216 LIQUIDCASE × ₹115.19 = ₹24881.04 (shortfall) → Buy 57 EMBASSY-RR × ₹435.70 = ₹24834.90
 2026-07-28 12:57:00 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹435.84 for EMBASSY-RR (LTP was ₹435.70, top_ask from depth)
@@ -498,3 +483,18 @@
 2026-07-28 13:26:05 IST | INFO     | backend.portfolio.tracker | Held ETFs (5): GOLDBEES, SILVERBEES, EMBASSY-RR, JUNIORBEES, BANKBEES
 2026-07-28 13:26:05 IST | INFO     | backend.portfolio.tracker | Available slots: 1/6
 2026-07-28 13:26:05 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 49517 pledged + 0 T1 = 49517 units @ ₹115.19
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -233 units @ ₹115.19
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 49517 units (Holdings updated | -233 sold today)
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 49517 units (free: 0) = ₹5703863.23
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, GOLDBEES
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | Slots: 1 available, 5 locked (GOLDBEES, SILVERBEES, EMBASSY-RR, JUNIORBEES, BANKBEES)
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 49517 units (₹5703863.23)
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, GOLDBEES
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | Held ETFs (5): GOLDBEES, SILVERBEES, EMBASSY-RR, JUNIORBEES, BANKBEES
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | Available slots: 1/6
+2026-07-28 13:27:06 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
