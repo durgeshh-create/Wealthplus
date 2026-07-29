@@ -1642,13 +1642,38 @@
                     .filter(d => d.amount && !isNaN(d.amount))
                     .sort((a, b) => a.date - b.date);
 
+                // Free CORS proxies (thingproxy/allorigins/corsproxy.io etc.)
+                // often sit behind their own edge cache and can serve back an
+                // old cached copy of this same URL - still valid, parseable
+                // JSON, so it would otherwise sail through as a "successful"
+                // fetch and silently freeze the row's %Chg/LTP at whatever
+                // that cached snapshot happened to contain. Since we race
+                // every proxy/host combo and take the FIRST to resolve, a
+                // cached response (near-instant) will beat a live one almost
+                // every time. Guard against that: if the newest candle in
+                // this response is implausibly old for a live-traded
+                // instrument, treat it as a bad/stale response so Promise.any
+                // falls through to another attempt instead of accepting it.
+                const newest = data[data.length - 1].date;
+                const staleMs = Date.now() - newest.getTime();
+                const maxStaleDays = 6; // covers weekends + a holiday, generous on purpose
+                if (staleMs > maxStaleDays * 24 * 60 * 60 * 1000) {
+                    throw new Error(`Stale chart data (newest point ${newest.toISOString().slice(0, 10)}) - likely a cached proxy response`);
+                }
+
                 return data;
             };
 
             // Race every (host x proxy) combo concurrently - first valid
             // response wins, bounding wall-clock time to ~1 timeout window.
+            // A random cache-buster is appended so proxies that key their own
+            // cache off the full request URL can't keep serving the same
+            // stored response call after call (period1/period2 already
+            // change every second, but this guards against proxies that
+            // normalize/ignore parts of the query string when caching).
+            const cacheBuster = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
             const attempts = hosts.map(host => {
-                const url = `${host}/v8/finance/chart/${symbol}?period1=${period1}&period2=${now}&interval=1d&includePrePost=false&events=div,splits`;
+                const url = `${host}/v8/finance/chart/${symbol}?period1=${period1}&period2=${now}&interval=1d&includePrePost=false&events=div,splits&_cb=${cacheBuster}`;
                 return fetchJSONWithProxies(url).then(parseChartJson);
             });
 
@@ -1995,7 +2020,7 @@
 
             const failedCount = section.funds.filter(f => f.status === 'error').length;
             statusEl.textContent = failedCount === 0
-                ? 'Updated successfully!'
+                ? `Updated successfully at ${new Date().toLocaleTimeString()}!`
                 : `${section.funds.length - failedCount} OK, ${failedCount} failed.`;
 
             progressBar.classList.remove('active');
