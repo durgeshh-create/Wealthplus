@@ -1685,6 +1685,67 @@
             }
         }
 
+        // Live LTP/%Chg via Yahoo's intraday-quote chart response (same
+        // request shape as the market ticker's fetchIndexQuote, which has
+        // NOT shown this staleness problem). Deriving LTP/%Chg from the tail
+        // of the big 10-year daily chart (fetchETFHistory) turned out to be
+        // fragile: a CORS proxy serving a several-day-old cached copy of
+        // that request is still perfectly valid JSON, just old, and easily
+        // slips past a loose staleness check. This endpoint instead exposes
+        // meta.regularMarketTime directly, so we can validate freshness on
+        // an hours-scale rather than a days-scale - a stale/cached response
+        // here is far more obviously wrong and easy to reject outright.
+        async function fetchLiveQuoteSingle(symbol) {
+            const hosts = ['https://query1.finance.yahoo.com', 'https://query2.finance.yahoo.com'];
+            const cacheBuster = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+            const attempts = hosts.map(host => {
+                const url = `${host}/v8/finance/chart/${symbol}?range=1d&interval=5m&_cb=${cacheBuster}`;
+                return fetchJSONWithProxies(url).then(json => {
+                    const meta = json?.chart?.result?.[0]?.meta;
+                    if (!meta || meta.regularMarketPrice === undefined) {
+                        throw new Error('No meta in chart response');
+                    }
+                    const price = meta.regularMarketPrice;
+                    const prevClose = meta.previousClose ?? meta.chartPreviousClose;
+                    if (!prevClose) throw new Error('No previous close in meta');
+
+                    // Freshness gate: regularMarketTime should be at most a
+                    // few hours old during/just after market hours, and at
+                    // most ~18h old first thing the next morning. Anything
+                    // older than that is almost certainly a cached proxy
+                    // response, not a real live quote - reject it so
+                    // Promise.any moves on to another attempt.
+                    const marketTimeMs = (meta.regularMarketTime || 0) * 1000;
+                    const ageMs = Date.now() - marketTimeMs;
+                    const maxAgeMs = 18 * 60 * 60 * 1000; // 18 hours
+                    if (!marketTimeMs || ageMs > maxAgeMs) {
+                        const ageDesc = marketTimeMs ? `${(ageMs / 3600000).toFixed(1)}h old` : 'missing timestamp';
+                        throw new Error(`Stale live quote (${ageDesc}) - likely a cached proxy response`);
+                    }
+
+                    return { price, changePct: ((price - prevClose) / prevClose) * 100, marketTimeMs };
+                });
+            });
+            return Promise.any(attempts).catch(aggregateErr => {
+                const firstMsg = aggregateErr.errors?.[0]?.message;
+                throw new Error(firstMsg || 'Live quote fetch failed on all hosts');
+            });
+        }
+
+        // Tries each candidate symbol (primary + fallbacks) in turn until
+        // one yields a fresh live quote.
+        async function fetchLiveQuote(symbols) {
+            let lastErr;
+            for (const sym of symbols) {
+                try {
+                    return await fetchLiveQuoteSingle(sym);
+                } catch (err) {
+                    lastErr = err;
+                }
+            }
+            throw lastErr || new Error('All symbol variants failed for live quote');
+        }
+
         function filterByDaysBack(data, daysBack) {
             const cutoff = new Date();
             cutoff.setDate(cutoff.getDate() - daysBack);
@@ -1949,6 +2010,23 @@
                     fund.cagr3y = computeReturnForFund(fund, history, 3);
                     fund.cagr5y = computeReturnForFund(fund, history, 5);
                     fund.cagr10y = computeReturnForFund(fund, history, 10);
+
+                    // The 10-year daily chart above is fine for 20DMA/
+                    // sparkline/CAGR, but has proven unreliable specifically
+                    // for "what's the price *right now*" - prefer the
+                    // tightly freshness-checked live quote for LTP/%Chg
+                    // when it's available, and only fall back to the
+                    // chart-derived values (already set above) if it fails.
+                    if (fund.assetType !== 'mf') {
+                        try {
+                            const liveQuote = await fetchLiveQuote([fund.symbol, ...(fund.fallbackSymbols || [])]);
+                            fund.ltp = liveQuote.price;
+                            fund.dayChange = liveQuote.changePct;
+                        } catch (quoteErr) {
+                            console.warn(`Live quote fetch failed for ${fund.name}, using chart-derived LTP/%Chg instead:`, quoteErr.message);
+                        }
+                    }
+
                     fund.status = 'ok';
                     fund.errorMsg = null;
                     renderSectionTable(section);
@@ -1975,6 +2053,15 @@
                 fund.cagr3y = computeReturnForFund(fund, bestSparse, 3);
                 fund.cagr5y = computeReturnForFund(fund, bestSparse, 5);
                 fund.cagr10y = computeReturnForFund(fund, bestSparse, 10);
+                if (fund.assetType !== 'mf') {
+                    try {
+                        const liveQuote = await fetchLiveQuote([fund.symbol, ...(fund.fallbackSymbols || [])]);
+                        fund.ltp = liveQuote.price;
+                        fund.dayChange = liveQuote.changePct;
+                    } catch (quoteErr) {
+                        console.warn(`Live quote fetch failed for ${fund.name}, using chart-derived LTP/%Chg instead:`, quoteErr.message);
+                    }
+                }
                 fund.status = 'ok';
                 fund.errorMsg = null;
                 renderSectionTable(section);
