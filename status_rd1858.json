@@ -1,10 +1,10 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-07-30 09:06:57 IST",
+  "timestamp": "2026-07-30 09:08:02 IST",
   "bot_running": true,
-  "total_value": 3001128.29,
-  "today_pnl": 0.0,
-  "today_pnl_pct": 0.0,
+  "total_value": 3000909.79,
+  "today_pnl": -218.5,
+  "today_pnl_pct": -0.01,
   "liquidcase": {
     "quantity": 49517,
     "free_quantity": 0,
@@ -49,12 +49,12 @@
       "symbol": "EMBASSY-RR",
       "quantity": 230,
       "avg": 439.36,
-      "ltp": 437.06,
-      "value": 100523.8,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
-      "unrealised_pnl": -528.2,
-      "unrealised_pnl_pct": -0.52,
+      "ltp": 436.11,
+      "value": 100305.3,
+      "pnl": -218.5,
+      "pnl_pct": -0.22,
+      "unrealised_pnl": -746.7,
+      "unrealised_pnl_pct": -0.74,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 6
@@ -189,9 +189,9 @@
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 437.06,
-      "change_pct": 0.0,
-      "williams_r": -89.62,
+      "ltp": 436.11,
+      "change_pct": -0.22,
+      "williams_r": -94.41,
       "is_held": true,
       "avg_price": 439.36,
       "strategy": "active"
@@ -246,13 +246,13 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24258.9,
+      "ltp": 24249.55,
       "prev_close": 24250.2,
-      "change": 8.7,
-      "change_pct": 0.04,
-      "open": null,
-      "high": null,
-      "low": null
+      "change": -0.65,
+      "change_pct": -0.0,
+      "open": 24249.55,
+      "high": 24249.55,
+      "low": 24249.55
     },
     "INDIA VIX": {
       "ltp": 12.01,
@@ -442,6 +442,6 @@
     }
   },
   "available_cash": 44928.1,
-  "available_margin": 328882.61,
+  "available_margin": 334684.64,
   "available_margin_note": null
 }
