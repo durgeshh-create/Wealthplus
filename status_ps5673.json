@@ -1,10 +1,10 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-07-31 09:06:15 IST",
+  "timestamp": "2026-07-31 09:07:20 IST",
   "bot_running": true,
-  "total_value": 3153808.14,
-  "today_pnl": 0.0,
-  "today_pnl_pct": 0.0,
+  "total_value": 3154373.03,
+  "today_pnl": 564.89,
+  "today_pnl_pct": 0.02,
   "liquidcase": {
     "quantity": 48369,
     "free_quantity": 0,
@@ -50,10 +50,10 @@
       "symbol": "BSE",
       "quantity": 35,
       "avg": 3539.35,
-      "ltp": 3530.3,
-      "value": 123560.5,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
+      "ltp": 3538.5,
+      "value": 123847.5,
+      "pnl": 287.0,
+      "pnl_pct": 0.23,
       "unrealised_pnl": -316.7,
       "unrealised_pnl_pct": -0.26,
       "strategy": "active",
@@ -64,10 +64,10 @@
       "symbol": "EMBASSY-RR",
       "quantity": 177,
       "avg": 439.6,
-      "ltp": 437.73,
-      "value": 77478.21,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
+      "ltp": 439.3,
+      "value": 77756.1,
+      "pnl": 277.89,
+      "pnl_pct": 0.36,
       "unrealised_pnl": -331.78,
       "unrealised_pnl_pct": -0.43,
       "strategy": "active",
@@ -204,9 +204,9 @@
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 437.73,
-      "change_pct": 0.0,
-      "williams_r": -86.25,
+      "ltp": 439.3,
+      "change_pct": 0.36,
+      "williams_r": -78.34,
       "is_held": true,
       "avg_price": 439.6,
       "strategy": "active"
@@ -249,9 +249,9 @@
     },
     {
       "symbol": "BSE",
-      "ltp": 3530.3,
-      "change_pct": 0.0,
-      "williams_r": -80.98,
+      "ltp": 3538.5,
+      "change_pct": 0.23,
+      "williams_r": -79.01,
       "is_held": true,
       "avg_price": 3539.35,
       "strategy": "active"
@@ -270,13 +270,13 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24361.2,
+      "ltp": 24361.45,
       "prev_close": 24317.15,
-      "change": 44.05,
+      "change": 44.3,
       "change_pct": 0.18,
-      "open": null,
-      "high": null,
-      "low": null
+      "open": 24361.45,
+      "high": 24361.45,
+      "low": 24361.45
     },
     "INDIA VIX": {
       "ltp": 12.16,
@@ -415,6 +415,6 @@
     }
   },
   "available_cash": 15025.7,
-  "available_margin": 1292277.81,
+  "available_margin": 1292081.51,
   "available_margin_note": null
 }
