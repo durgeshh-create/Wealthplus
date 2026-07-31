@@ -17,7 +17,7 @@ from pathlib import Path
 
 from backend.core.config import Config
 from backend.core.constants import SIGNAL_BUY, SIGNAL_SELL, LIQUIDCASE_SYMBOL
-from backend.orders.manager import PostSellError
+from backend.orders.manager import PostSellError  # also used below in execute_sell_signal
 from backend.utils.logger import get_logger, log_separator
 # ── Telegram trade notifications ──────────────────────────────────────────────
 try:
@@ -514,11 +514,34 @@ class StrategyExecutor:
             )
 
             proceeds    = etf_qty * etf_price
-            liq_to_buy  = int(proceeds / liq_limit_price)
+
+            # ✅ FIX: cash_reserve was never honored on this path — every ETF
+            # sell swept 100% of proceeds into LIQUIDCASE regardless of the
+            # configured "minimum idle cash to keep" setting. Mirror the same
+            # reserve logic already used in smart_buy(): check pre-sale free
+            # cash, and if it's already below the reserve target, hold back
+            # enough of the incoming proceeds to top it back up before
+            # parking the rest into LIQUIDCASE.
+            cash_reserve = Config.get_cash_reserve()
+            try:
+                pre_sale_cash = self.orders.get_available_cash()
+            except RuntimeError:
+                raise  # market closed / auth issue — propagate as before
+            reserve_shortfall = max(0.0, cash_reserve - pre_sale_cash)
+            buy_budget  = max(0.0, proceeds - reserve_shortfall)
+            liq_to_buy  = int(buy_budget / liq_limit_price)
+
+            if reserve_shortfall > 0:
+                logger.info(
+                    f"💰 Cash reserve: pre-sale free cash ₹{pre_sale_cash:,.2f} < "
+                    f"reserve ₹{cash_reserve:,.2f} — holding back ₹{reserve_shortfall:,.2f} "
+                    f"of proceeds (buy budget ₹{buy_budget:,.2f} instead of ₹{proceeds:,.2f})"
+                )
 
             logger.info(
                 f"SWAP: Sell {etf_qty} {symbol} @ ₹{etf_price:.2f} = ₹{proceeds:.2f} → "
-                f"Buy {liq_to_buy} LIQUIDCASE LIMIT @ ₹{liq_limit_price:.2f}"
+                f"Buy {liq_to_buy} LIQUIDCASE LIMIT @ ₹{liq_limit_price:.2f} "
+                f"(reserve ₹{cash_reserve:,.2f} respected)"
             )
 
             sell_order_type = self._get_order_type()
@@ -541,18 +564,38 @@ class StrategyExecutor:
                 sell_limit_price = None
                 logger.info(f"MARKET SELL: {symbol} @ ₹{etf_price:.2f}")
 
-            success = self.orders.execute_swap(
-                sell_symbol=symbol,
-                sell_quantity=etf_qty,
-                buy_symbol=LIQUIDCASE_SYMBOL,
-                buy_quantity=liq_to_buy,
-                buy_price_estimate=liq_limit_price,
-                sell_price_estimate=etf_price,
-                sell_order_type=sell_order_type,
-                sell_limit_price=sell_limit_price,
-                buy_order_type='LIMIT',
-                buy_limit_price=liq_limit_price,
-            )
+            if liq_to_buy <= 0:
+                # ✅ FIX: reserve consumes the entire proceeds — sell only,
+                # don't attempt a 0-quantity (or negative) LIQUIDCASE buy leg.
+                # Proceeds simply land as free cash, satisfying the reserve.
+                logger.info(
+                    f"💰 Cash reserve consumes full proceeds — selling {symbol} only, "
+                    f"no LIQUIDCASE buy this cycle."
+                )
+                sell_order_id, sell_msg = self.orders.place_order(
+                    symbol, 'SELL', etf_qty,
+                    order_type=sell_order_type, price=sell_limit_price,
+                )
+                if sell_order_id and self.orders.monitor_order(sell_order_id):
+                    success = True
+                else:
+                    err = sell_msg or "sell order did not complete"
+                    logger.error(f"✗ SELL FAILED (reserve-only path) for {symbol}: {err}")
+                    raise RuntimeError(f"Sell order rejected by Zerodha: {err}")
+            else:
+                success = self.orders.execute_swap(
+                    sell_symbol=symbol,
+                    sell_quantity=etf_qty,
+                    buy_symbol=LIQUIDCASE_SYMBOL,
+                    buy_quantity=liq_to_buy,
+                    buy_price_estimate=liq_limit_price,
+                    sell_price_estimate=etf_price,
+                    sell_order_type=sell_order_type,
+                    sell_limit_price=sell_limit_price,
+                    buy_order_type='LIMIT',
+                    buy_limit_price=liq_limit_price,
+                    cash_reserve=cash_reserve,
+                )
 
             if success:
                 avg_price = self.portfolio.get_average_price(symbol)
@@ -606,9 +649,33 @@ class StrategyExecutor:
                     self.signal_generator.unlock_symbol(symbol)
                 return False
 
+        except PostSellError as e:
+            # ✅ FIX: {symbol} was already SOLD — execute_swap's buy leg
+            # (LIQUIDCASE) is the part that failed. The shares are genuinely
+            # gone from the account, so we must NOT let this retry as a sell
+            # again: without the sync() below, the in-memory holdings cache
+            # still shows the old quantity, and the sell-signal cooldown
+            # (10s) is short enough that the next detection cycle would fire
+            # a second SELL for shares that no longer exist — producing
+            # "Insufficient stock holding, Holding quantity: 0".
+            # Sync now so the cache reflects reality, and don't allow_retry
+            # (mirrors how smart_buy's PostSellError is handled on the BUY
+            # side) — the freed cash will be picked up as a plain LIQUIDCASE
+            # buy on a later cycle instead of re-triggering this sell.
+            logger.error(f"✗ SELL succeeded but LIQUIDCASE buy failed for {symbol}: {e}")
+            self.portfolio.sync()
+            if self.signal_generator and is_automated:
+                self.signal_generator.unlock_symbol(symbol, success=False, allow_retry=False)
+            return False
+
         except Exception as e:
             err_str = str(e)
             logger.error(f"Error executing sell for {symbol}: {e}", exc_info=True)
+            # ✅ FIX: always resync portfolio on any sell-path exception —
+            # a partial failure (e.g. the sell itself succeeded but a later
+            # step errored) can leave the cached holdings stale, causing a
+            # duplicate sell attempt on the next detection cycle.
+            self.portfolio.sync()
             if self.signal_generator and is_automated:
                 if '403' in err_str or 'access_token' in err_str.lower() or 'api_key' in err_str.lower():
                     logger.critical(
