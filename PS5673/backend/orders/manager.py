@@ -806,6 +806,106 @@ class OrderManager:
             logger.error(error_msg)
             return False, error_msg
     
+    def _wait_for_margin_and_resize(
+        self,
+        sell_order_id: str,
+        sell_symbol: str,
+        buy_symbol: str,
+        buy_quantity: int,
+        buy_price_estimate: float,
+        poll_limit: int = 45,
+        cash_reserve: float = 0.0,
+    ) -> Tuple[int, Optional[float]]:
+        """
+        Poll live_balance after a sell leg until it covers the intended buy,
+        then return a (possibly downsized) buy_quantity that the account can
+        actually afford right now.
+
+        Why this exists: execute_swap() used to fire the buy leg ~0.5s after
+        the sell fill, assuming sale proceeds are credited to usable margin
+        instantly. They aren't — Zerodha's margins/RMS engine lags the fill
+        by several seconds. That caused the buy leg (e.g. 1107 LIQUIDCASE)
+        to be rejected as "Insufficient funds" even though the sell (e.g. 35
+        BSE) had just completed and the cash was genuinely on its way.
+
+        This mirrors the live_balance poll already proven out in smart_buy(),
+        with one addition: if the poll times out, we don't blindly fire the
+        original (possibly oversized) quantity — we resize it down to
+        whatever margin is actually available, so a slow credit degrades to
+        a smaller successful buy instead of a hard rejection.
+
+        Returns:
+            (buy_quantity, buy_price_estimate) — quantity may be reduced;
+            price is echoed back unchanged (present for symmetry/future use).
+        """
+        target_value = buy_quantity * buy_price_estimate + cash_reserve
+        logger.info(
+            f"[execute_swap] Waiting for margin credit from sell {sell_order_id} "
+            f"before buying {buy_quantity} {buy_symbol} "
+            f"(needs ≥ ₹{target_value:,.2f}, incl. ₹{cash_reserve:,.2f} reserve)..."
+        )
+
+        def _fetch_live_balance():
+            try:
+                r = self.auth.session.get(
+                    f"{Config.ZERODHA_API_BASE}/oms/user/margins", timeout=(4, 10)
+                )
+                if r.status_code != 200:
+                    return None
+                avail = r.json().get("data", {}).get("equity", {}).get("available", {})
+                lb = float(avail.get("live_balance", 0) or 0)
+                nb = float(avail.get("cash", 0) or 0)
+                return lb if lb > 0 else nb
+            except Exception:
+                return None
+
+        waited = 0
+        last_seen = 0.0
+        while waited < poll_limit:
+            time.sleep(2)
+            waited += 2
+            refreshed = _fetch_live_balance()
+            if refreshed is not None:
+                last_seen = refreshed
+                logger.debug(
+                    f"[execute_swap] Margin poll {waited}/{poll_limit}s: "
+                    f"live_balance=₹{refreshed:,.2f} (need ≥ ₹{target_value:,.2f})"
+                )
+                if refreshed >= target_value:
+                    logger.info(
+                        f"✅ Margin credited after {waited}s: "
+                        f"₹{refreshed:,.2f} ≥ ₹{target_value:,.2f} — proceeding with full buy"
+                    )
+                    return buy_quantity, buy_price_estimate
+
+        # Poll timed out — resize the buy to whatever margin is actually
+        # available now, rather than firing the original oversized order
+        # into a near-certain rejection.
+        final_balance = _fetch_live_balance()
+        if final_balance is not None:
+            last_seen = final_balance
+
+        if last_seen >= target_value:
+            return buy_quantity, buy_price_estimate
+
+        affordable_qty = int(max(0.0, last_seen - cash_reserve) // buy_price_estimate) if buy_price_estimate > 0 else 0
+        if affordable_qty <= 0:
+            logger.warning(
+                f"⚠️ Margin poll timed out at {poll_limit}s and live_balance "
+                f"₹{last_seen:,.2f} can't buy even 1 {buy_symbol} @ ₹{buy_price_estimate:.2f}. "
+                f"Proceeding with original quantity — expect a broker rejection; "
+                f"the failure will surface as a PostSellError for retry next cycle."
+            )
+            return buy_quantity, buy_price_estimate
+
+        logger.warning(
+            f"⚠️ Margin poll timed out at {poll_limit}s: live_balance ₹{last_seen:,.2f} "
+            f"< needed ₹{target_value:,.2f} — resizing buy {buy_quantity} → {affordable_qty} "
+            f"{buy_symbol} to fit what's actually available (rest will be picked up on a "
+            f"later cycle once the remaining proceeds settle)."
+        )
+        return affordable_qty, buy_price_estimate
+
     def execute_swap(
         self,
         sell_symbol: str,
@@ -820,6 +920,7 @@ class OrderManager:
         sell_limit_price: float = None,
         buy_product: str = None,     # None = use Config default (CNC). Set 'MIS' for intraday
         sell_product: str = None,    # None = use Config default (CNC). Set 'MIS' for intraday
+        cash_reserve: float = 0.0,   # ✅ FIX: honored during the post-sell margin poll/resize
     ) -> bool:
         """
         Execute atomic swap: Sell -> Buy
@@ -904,10 +1005,26 @@ class OrderManager:
             raise RuntimeError(err)
         
         logger.info(f"✓ [SWAP STEP 2/4] Sell leg completed: {sell_order_id}")
-        
-        # Brief delay between sell and buy (helps with margin update)
-        time.sleep(0.5)
-        
+
+        # ── Margin-credit poll before the buy leg ──────────────────────────
+        # ✅ FIX: a bare 0.5s sleep here assumed Zerodha credits CNC sale
+        # proceeds into usable margin almost instantly. It doesn't — the
+        # margins/RMS engine can lag several seconds behind the sell fill,
+        # so the very next buy attempt (e.g. 1107 LIQUIDCASE right after
+        # selling 35 BSE) gets rejected as "Insufficient funds" even though
+        # the sale genuinely succeeded and the cash is on its way.
+        # smart_buy() already solves this correctly elsewhere in this file
+        # by polling live_balance — reuse the same approach here so
+        # execute_swap() doesn't orphan the sell leg on a timing race.
+        buy_quantity, buy_limit_price = self._wait_for_margin_and_resize(
+            sell_order_id=sell_order_id,
+            sell_symbol=sell_symbol,
+            buy_symbol=buy_symbol,
+            buy_quantity=buy_quantity,
+            buy_price_estimate=(buy_limit_price if buy_limit_price else buy_price_estimate),
+            cash_reserve=cash_reserve,
+        )
+
         # Step 2: Buy (with one retry — sell is already done, must not leave cash unparked)
         logger.info(f"[SWAP STEP 3/4] Placing {buy_order_type} BUY order: {buy_quantity} {buy_symbol}")
         buy_order_id, buy_msg = self.place_order(buy_symbol, TRANSACTION_BUY, buy_quantity,
@@ -925,20 +1042,29 @@ class OrderManager:
                 f"🚨 ORPHAN SWAP: {sell_quantity} {sell_symbol} SOLD (id={sell_order_id}) "
                 f"but {buy_quantity} {buy_symbol} BUY FAILED. Cash is unparked. Manual intervention required."
             )
-            raise RuntimeError(err)
+            # ✅ FIX: raise PostSellError (not RuntimeError) — the sell leg
+            # already completed, so the caller (executor.py) must NOT retry
+            # the sell (the shares are gone; retrying it just produces a
+            # second "Insufficient stock holding, Holding quantity: 0"
+            # rejection). PostSellError signals "resume with a buy-only
+            # retry next cycle", mirroring how smart_buy() already handles
+            # this same failure mode on the BUY-signal side.
+            raise PostSellError(err)
 
         logger.info(f"[SWAP STEP 4/4] BUY order placed, ID: {buy_order_id}. Monitoring...")
 
         # Monitor buy order
         buy_status = self.get_order_status(buy_order_id)
         if not self.monitor_order(buy_order_id):
+            # ✅ FIX: same reasoning as above — sell already completed, so
+            # this must be a PostSellError, not a plain RuntimeError.
             status_msg = buy_status.get('status_message', '') if buy_status else ''
             err = f"Buy order not completed: {status_msg}" if status_msg else f"Buy order {buy_order_id} timed out"
             logger.error(
                 f"🚨 ORPHAN SWAP: {sell_quantity} {sell_symbol} SOLD (id={sell_order_id}) "
                 f"but {buy_quantity} {buy_symbol} BUY INCOMPLETE (id={buy_order_id}). Manual intervention required."
             )
-            raise RuntimeError(err)
+            raise PostSellError(err)
         
         logger.info(f"✓ [SWAP STEP 4/4] Buy leg completed: {buy_order_id}")
         logger.info(f"✓ SWAP COMPLETE: {sell_symbol} -> {buy_symbol}")
