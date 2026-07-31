@@ -1,8 +1,3 @@
-2026-07-31 11:18:34 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 49751 units (₹5735295.28)
-2026-07-31 11:18:34 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, GOLDBEES, NIFTYBEES
-2026-07-31 11:18:34 IST | INFO     | backend.portfolio.tracker | Held ETFs (6): JUNIORBEES, NIFTYBEES, BANKBEES, EMBASSY-RR, SILVERBEES, GOLDBEES
-2026-07-31 11:18:34 IST | INFO     | backend.portfolio.tracker | Available slots: 1/7
-2026-07-31 11:18:34 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
 2026-07-31 11:19:34 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 0 free + 49517 pledged + 0 T1 = 49517 units @ ₹115.28
 2026-07-31 11:19:34 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): +234 units @ ₹115.28
 2026-07-31 11:19:34 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 49517 (Holdings) + 234 (Bought) = 49751 units
@@ -498,3 +493,8 @@
 2026-07-31 11:51:47 IST | INFO     | backend.portfolio.tracker | Held ETFs (6): JUNIORBEES, NIFTYBEES, BANKBEES, EMBASSY-RR, SILVERBEES, GOLDBEES
 2026-07-31 11:51:47 IST | INFO     | backend.portfolio.tracker | Available slots: 1/7
 2026-07-31 11:51:47 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-07-31 11:53:08 IST | WARNING  | backend.auth.manager | OMS 403 — token stale, extracting fresh token from browser via CDP...
+2026-07-31 11:53:18 IST | INFO     | backend.auth.manager | Performing fresh credentials login (no browser detected)...
+2026-07-31 11:53:18 IST | INFO     | backend.auth.token_store | ✓ Enctoken saved to /home/runner/work/Wealthplus/Wealthplus/RD1858/config/enctoken.json
+2026-07-31 11:53:18 IST | INFO     | backend.auth.manager | Fresh login successful for RD1858
+2026-07-31 11:53:18 IST | INFO     | backend.auth.manager | ✅ Re-auth via credentials (headless fallback)
