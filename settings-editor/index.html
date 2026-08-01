@@ -2659,9 +2659,9 @@ function _setSuspendBtn(suspended, busy) {
 // a plain page refresh, making a successful Suspend look like it "didn't work".
 async function _fetchSuspendFile(cfg) {
   const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${SUSPEND_FILE_PATH}`;
-  const r   = await fetch(url, { headers: apiHeaders(), cache: "no-store" });
+  const r   = await fetch(url, { headers: apiHeaders(), cache: "no-store", signal: AbortSignal.timeout(15000) });
   if (r.status === 404) return { sha: null, suspended: false };
-  if (!r.ok) throw new Error(`GitHub API ${r.status}`);
+  if (!r.ok) throw new Error(`GitHub API ${r.status} on GET ${SUSPEND_FILE_PATH}`);
   const data = await r.json();
   const json = JSON.parse(atob(data.content.replace(/\n/g, '')));
   return { sha: data.sha, suspended: json.suspended === true };
@@ -2702,6 +2702,18 @@ async function handleSuspendBtn() {
 
   _setSuspendBtn(currentlySuspended, true);
   if (statusEl) { statusEl.textContent = "Saving…"; statusEl.style.color = "var(--muted)"; }
+  console.log("[suspend] starting, target suspended =", nextSuspended);
+
+  // Watchdog: if the whole flow hasn't resolved in 20s, force the button
+  // back and show an error instead of leaving "Saving…" hanging forever.
+  let settled = false;
+  const watchdog = setTimeout(() => {
+    if (settled) return;
+    settled = true;
+    console.error("[suspend] timed out after 20s — no response from GitHub API");
+    if (statusEl) { statusEl.style.color = "var(--red)"; statusEl.textContent = "⚠ timed out"; }
+    _setSuspendBtn(currentlySuspended, false);
+  }, 20000);
 
   try {
     if (nextSuspended) {
@@ -2709,7 +2721,7 @@ async function handleSuspendBtn() {
       try {
         const runId = await _cancelWorkflow(cfg);
         if (runId) await _pollUntilStopped(cfg, runId);
-      } catch (_) {}
+      } catch (e) { console.warn("[suspend] cancel step failed (non-fatal):", e); }
       _setBotBtn("stopped", false);
     }
 
@@ -2726,11 +2738,13 @@ async function handleSuspendBtn() {
     // sha here would make GitHub reject the write with a 409/422 and the
     // toggle would silently fall back to its old state on next refresh.
     let sha = _suspendSha;
-    try { sha = (await _fetchSuspendFile(cfg)).sha; } catch (_) {}
+    try { sha = (await _fetchSuspendFile(cfg)).sha; } catch (e) { console.warn("[suspend] pre-write sha fetch failed:", e); }
+    console.log("[suspend] writing with sha =", sha);
 
     const doPut = (shaToUse) => fetch(url, {
       method:  "PUT",
       headers: apiHeaders(),
+      signal:  AbortSignal.timeout(15000),
       body: JSON.stringify({
         message: `bot: ${nextSuspended ? "suspend" : "resume"} scheduled runs via dashboard`,
         content: content,
@@ -2739,15 +2753,21 @@ async function handleSuspendBtn() {
     });
 
     let r = await doPut(sha);
+    console.log("[suspend] PUT status:", r.status);
     if (!r.ok && (r.status === 409 || r.status === 422)) {
       // Someone else wrote in between — refetch sha once and retry.
       const retrySha = (await _fetchSuspendFile(cfg)).sha;
+      console.log("[suspend] retrying with sha =", retrySha);
       r = await doPut(retrySha);
+      console.log("[suspend] retry PUT status:", r.status);
     }
     if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
 
     const resp  = await r.json();
     _suspendSha = resp.content.sha;
+    if (settled) return;   // watchdog already fired, don't override its message
+    settled = true;
+    clearTimeout(watchdog);
     _setSuspendBtn(nextSuspended, false);
     if (statusEl) {
       statusEl.style.color = "var(--green)";
@@ -2755,6 +2775,10 @@ async function handleSuspendBtn() {
       setTimeout(() => { if (statusEl.textContent.startsWith("✓")) statusEl.textContent = ""; }, 4000);
     }
   } catch (e) {
+    console.error("[suspend] failed:", e);
+    if (settled) return;
+    settled = true;
+    clearTimeout(watchdog);
     alert("Suspend/Resume error: " + e.message);
     if (statusEl) { statusEl.style.color = "var(--red)"; statusEl.textContent = "⚠ failed"; }
     _setSuspendBtn(currentlySuspended, false);
