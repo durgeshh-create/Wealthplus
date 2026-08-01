@@ -2475,6 +2475,52 @@ async function _findRecentRun(cfg, workflowFile, sinceISO) {
   return runs.find(rn => new Date(rn.created_at) >= new Date(sinceISO)) || runs[0] || null;
 }
 
+// Dispatches seed-scanner.yml and polls until it completes. `onStatus(text, cls, url)`
+// is called with UI updates throughout — cls is '' | 'ok' | 'err'. Returns
+// { ok: true|false|null, run } — ok is null if we lost track of the run (still
+// visible via the Actions tab link) rather than a definite pass/fail.
+async function _seedScannerCore(cfg, onStatus) {
+  onStatus('Starting…', '');
+  const dispatchTime = new Date().toISOString();
+  const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${SEED_WORKFLOW_FILE}/dispatches`;
+  const r = await fetch(base, {
+    method: "POST",
+    headers: apiHeaders(),
+    body: JSON.stringify({ ref: "main" }),
+  });
+  if (!r.ok && r.status !== 204) throw new Error(`Dispatch failed: ${r.status} ${await r.text()}`);
+
+  onStatus('Queued…', '');
+  // Give GitHub a moment to register the run before we look for it.
+  await new Promise(res => setTimeout(res, 5000));
+  const run = await _findRecentRun(cfg, SEED_WORKFLOW_FILE, dispatchTime);
+
+  if (!run) {
+    onStatus('Dispatched — check the Actions tab for progress.', '');
+    return { ok: null, run: null };
+  }
+
+  onStatus('Running…', '', run.html_url);
+
+  // Poll every 10s, up to ~25 min (seed-scanner.yml has a 30 min timeout).
+  for (let i = 0; i < 150; i++) {
+    await new Promise(res => setTimeout(res, 10000));
+    const chk = await fetch(
+      `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${run.id}`,
+      { headers: apiHeaders() }
+    );
+    if (!chk.ok) continue;
+    const rd = await chk.json();
+    if (rd.status === 'completed') {
+      const ok = rd.conclusion === 'success';
+      onStatus(ok ? '✓ Seed complete' : '⚠ Seed finished with errors', ok ? 'ok' : 'err', run.html_url);
+      return { ok, run };
+    }
+  }
+  onStatus('Still running', '', run.html_url);
+  return { ok: null, run };
+}
+
 async function seedScannerData() {
   const btn    = document.getElementById('scn-seed-btn');
   const status = document.getElementById('scn-seed-status');
@@ -2488,57 +2534,16 @@ async function seedScannerData() {
   )) return;
 
   btn.disabled = true;
-  status.className = 'mw-status';
-  status.textContent = 'Starting…';
+  const setStat = (text, cls, url) => {
+    status.className = 'mw-status' + (cls ? ' ' + cls : '');
+    status.innerHTML = url ? `${text} — <a href="${url}" target="_blank" style="color:inherit">view log</a>` : text;
+  };
 
   try {
-    const dispatchTime = new Date().toISOString();
-    const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${SEED_WORKFLOW_FILE}/dispatches`;
-    const r = await fetch(base, {
-      method: "POST",
-      headers: apiHeaders(),
-      body: JSON.stringify({ ref: "main" }),
-    });
-    if (!r.ok && r.status !== 204) throw new Error(`Dispatch failed: ${r.status} ${await r.text()}`);
-
-    status.textContent = 'Queued…';
-    // Give GitHub a moment to register the run before we look for it.
-    await new Promise(res => setTimeout(res, 5000));
-    const run = await _findRecentRun(cfg, SEED_WORKFLOW_FILE, dispatchTime);
-
-    if (!run) {
-      status.className = 'mw-status';
-      status.textContent = 'Dispatched — check the Actions tab for progress.';
-      btn.disabled = false;
-      return;
-    }
-
-    status.innerHTML = `Running… <a href="${run.html_url}" target="_blank" style="color:var(--accent)">view log</a>`;
-
-    // Poll every 10s, up to ~25 min (seed-scanner.yml has a 30 min timeout).
-    for (let i = 0; i < 150; i++) {
-      await new Promise(res => setTimeout(res, 10000));
-      const chk = await fetch(
-        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${run.id}`,
-        { headers: apiHeaders() }
-      );
-      if (!chk.ok) continue;
-      const rd = await chk.json();
-      if (rd.status === 'completed') {
-        const ok = rd.conclusion === 'success';
-        status.className = 'mw-status ' + (ok ? 'ok' : 'err');
-        status.innerHTML = (ok ? '✓ Seed complete' : '⚠ Seed finished with errors') +
-          ` — <a href="${run.html_url}" target="_blank" style="color:inherit">view log</a>`;
-        btn.disabled = false;
-        return;
-      }
-    }
-    status.className = 'mw-status';
-    status.innerHTML = `Still running — <a href="${run.html_url}" target="_blank" style="color:var(--accent)">check Actions tab</a>`;
-    btn.disabled = false;
+    await _seedScannerCore(cfg, setStat);
   } catch (e) {
-    status.className = 'mw-status err';
-    status.textContent = '⚠ ' + e.message;
+    setStat('⚠ ' + e.message, 'err');
+  } finally {
     btn.disabled = false;
   }
 }
@@ -4459,7 +4464,7 @@ async function runScanner() {
   _scnRows = results;
   renderMWPanel(); // refresh Marketwatch table with latest LTP / W%R / DMA
   document.getElementById('scn-prog-wrap').style.display='none';
-  btn.disabled=false; btn.textContent='▶ Run Scanner';
+  btn.disabled=false; btn.textContent='▶ Run';
 
   // Summary
   const both=results.filter(r=>r.bothOk).length;
@@ -4511,42 +4516,158 @@ function renderScanResults() {
   if (!rows.length) { resEl.style.display='none'; emEl.style.display='block'; return; }
   emEl.style.display='none'; resEl.style.display='block';
 
-  tbody.innerHTML = rows.map(r => {
-    const isEtf  = SCN_ETF.includes(r.sym);
-    const isMid  = SCN_MID150.includes(r.sym) && !SCN_N200.includes(r.sym);
-    const badge  = isEtf ? '<span class="badge-etf">ETF</span>'
-                 : isMid ? '<span class="badge-mid">MID150</span>'
-                 :          '<span class="badge-n200">N200</span>';
-    const dwr  = r.dwr  != null ? r.dwr.toFixed(1)  : '—';
-    const wwr  = r.wwr  != null ? r.wwr.toFixed(1)  : '—';
-    const ltp  = r.ltp  != null ? '₹'+r.ltp.toFixed(2) : '—';
-    const dCls = r.dwr!=null&&r.dwr<=-80?'wr-os':r.dwr!=null&&r.dwr<=-50?'wr-warn':'wr-ok';
-    const wCls = r.wwr!=null&&r.wwr<=-80?'wr-os':r.wwr!=null&&r.wwr<=-50?'wr-warn':'wr-ok';
-    let dmaHtml='—';
-    if (r.dma20!=null&&r.ltp!=null) {
-      const pct=((r.ltp-r.dma20)/r.dma20*100);
-      dmaHtml=`<span class="${r.below20?'dma-below':'dma-above'}">${(pct>=0?'+':'')+pct.toFixed(2)}%</span>`;
+  tbody.innerHTML = rows.map(_scanRowHtml).join('');
+}
+
+// Renders one <tr> for the scanner results table. Shared by the normal
+// (sortable) table and the Top 5 view so both look identical.
+function _scanRowHtml(r) {
+  const isEtf  = SCN_ETF.includes(r.sym);
+  const isMid  = SCN_MID150.includes(r.sym) && !SCN_N200.includes(r.sym);
+  const badge  = isEtf ? '<span class="badge-etf">ETF</span>'
+               : isMid ? '<span class="badge-mid">MID150</span>'
+               :          '<span class="badge-n200">N200</span>';
+  const dwr  = r.dwr  != null ? r.dwr.toFixed(1)  : '—';
+  const wwr  = r.wwr  != null ? r.wwr.toFixed(1)  : '—';
+  const ltp  = r.ltp  != null ? '₹'+r.ltp.toFixed(2) : '—';
+  const dCls = r.dwr!=null&&r.dwr<=-80?'wr-os':r.dwr!=null&&r.dwr<=-50?'wr-warn':'wr-ok';
+  const wCls = r.wwr!=null&&r.wwr<=-80?'wr-os':r.wwr!=null&&r.wwr<=-50?'wr-warn':'wr-ok';
+  let dmaHtml='—';
+  if (r.dma20!=null&&r.ltp!=null) {
+    const pct=((r.ltp-r.dma20)/r.dma20*100);
+    dmaHtml=`<span class="${r.below20?'dma-below':'dma-above'}">${(pct>=0?'+':'')+pct.toFixed(2)}%</span>`;
+  }
+  let sig='<span class="sig-none">—</span>';
+  if (r.bothOk)      sig='<span class="sig-both">✅ Both</span>';
+  else if (r.dOk)    sig='<span class="sig-daily">📉 Daily</span>';
+  else if (r.wOk)    sig='<span class="sig-weekly">📊 Weekly</span>';
+  const atvHtml = r.avgTradeValue != null
+    ? `<span title="Avg monthly volume ${Math.round(r.avgVol).toLocaleString('en-IN')} × LTP">${_fmtINRCompact(r.avgTradeValue)}</span>`
+    : '—';
+  const inMW  = _marketwatch.includes(r.sym);
+  const mwBtn = `<button class="mw-add-btn ${inMW?'in-mw':''}" onclick="addToMW('${r.sym}')" title="${inMW?'Remove from Marketwatch':'Add to Marketwatch'}">${inMW?'✓':'+'}</button>`;
+  return `<tr class="${r.bothOk&&r.below20?'row-both':''}">
+    <td style="font-weight:600">${r.sym}</td>
+    <td>${badge}</td><td>${ltp}</td>
+    <td class="wr-val ${dCls}">${dwr}</td>
+    <td class="wr-val ${wCls}">${wwr}</td>
+    <td>${dmaHtml}</td>
+    <td>${atvHtml}</td>
+    <td>${sig}</td>
+    <td>${mwBtn}</td>
+  </tr>`;
+}
+
+// ── Top 5 — refresh CSVs, then scan the full universe for the sharpest ──────
+// oversold setups: Daily W%R ≤ -80, Weekly W%R ≤ -50, below 20 DMA, Avg
+// Trade Value ≥ ₹10 Cr. Ranked by Daily W%R (most negative first), then
+// Weekly W%R, then how far below the 20 DMA, then liquidity — top 5 shown.
+const TOP5_DAILY_T  = -80;
+const TOP5_WEEKLY_T = -50;
+const TOP5_ATV_CR   = 10;
+
+function _computeTop5() {
+  const atvMin = TOP5_ATV_CR * 1e7; // Cr → ₹
+  let rows = _scnRows.filter(r =>
+    r.bothOk && r.below20 && r.avgTradeValue != null && r.avgTradeValue >= atvMin
+  );
+  rows.sort((a, b) => {
+    const dA = a.dwr ?? 999, dB = b.dwr ?? 999;
+    if (dA !== dB) return dA - dB;                                   // Daily W%R — most negative first
+    const wA = a.wwr ?? 999, wB = b.wwr ?? 999;
+    if (wA !== wB) return wA - wB;                                   // Weekly W%R — most negative first
+    const pA = (a.dma20 && a.ltp) ? (a.ltp - a.dma20) / a.dma20 * 100 : 999;
+    const pB = (b.dma20 && b.ltp) ? (b.ltp - b.dma20) / b.dma20 * 100 : 999;
+    if (pA !== pB) return pA - pB;                                   // Further below 20 DMA first
+    return (b.avgTradeValue ?? -1) - (a.avgTradeValue ?? -1);        // Avg Trade Value — higher first
+  });
+  return rows.slice(0, 5);
+}
+
+function _renderTop5Table() {
+  const rows  = _computeTop5();
+  const tbody = document.getElementById('scn-tbody');
+  const resEl = document.getElementById('scn-results');
+  const emEl  = document.getElementById('scn-empty');
+
+  document.getElementById('scn-c-both').textContent   = `🏆 ${rows.length} of top ${_scnRows.filter(r=>r.bothOk&&r.below20&&r.avgTradeValue>=TOP5_ATV_CR*1e7).length} qualifying`;
+  document.getElementById('scn-c-daily').textContent  = '';
+  document.getElementById('scn-c-weekly').textContent = '';
+  document.getElementById('scn-c-nodata').textContent = '';
+  document.getElementById('scn-scanned').textContent  =
+    `Daily≤${TOP5_DAILY_T} · Weekly≤${TOP5_WEEKLY_T} · Below 20DMA · ATV≥₹${TOP5_ATV_CR}Cr`;
+  document.getElementById('scn-summary').style.display = 'flex';
+
+  if (!rows.length) {
+    resEl.style.display = 'none';
+    emEl.style.display  = 'block';
+    return;
+  }
+  emEl.style.display  = 'none';
+  resEl.style.display = 'block';
+  tbody.innerHTML = rows.map(_scanRowHtml).join('');
+}
+
+async function runTop5() {
+  const cfg = getCfg();
+  if (!hasCfg()) { alert("Please configure GitHub owner / repo / token first (Setup)."); return; }
+
+  if (!confirm(
+    "This refreshes all ~575 ETF/NIFTY200/Midcap150 CSVs first (≈7–8 min via GitHub Actions), " +
+    "then scans the FULL universe (ETFs + NIFTY 200 + Midcap 150) for:\n\n" +
+    `• Daily W%R ≤ ${TOP5_DAILY_T}   • Weekly W%R ≤ ${TOP5_WEEKLY_T}\n` +
+    `• Below 20 DMA        • Avg Trade Value ≥ ₹${TOP5_ATV_CR} Cr\n\n` +
+    "…and shows the Top 5, ranked by Daily W%R (most oversold first), then Weekly W%R, " +
+    "then how far below the 20 DMA, then liquidity.\n\nRun it now?"
+  )) return;
+
+  const top5Btn  = document.getElementById('scn-top5-btn');
+  const runBtn   = document.getElementById('scn-run-btn');
+  const seedBtn  = document.getElementById('scn-seed-btn');
+  const seedStat = document.getElementById('scn-seed-status');
+  const fill = document.getElementById('scn-prog-fill');
+  const lbl  = document.getElementById('scn-prog-lbl');
+
+  [top5Btn, runBtn, seedBtn].forEach(b => b.disabled = true);
+  top5Btn.textContent = '⏳ Seeding…';
+  ['scn-summary', 'scn-results', 'scn-empty', 'scn-idle'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('scn-prog-wrap').style.display = 'flex';
+  fill.style.width = '0%';
+  lbl.textContent = 'Refreshing scanner CSVs (≈7–8 min)…';
+
+  try {
+    const setStat = (text, cls, url) => {
+      seedStat.className = 'mw-status' + (cls ? ' ' + cls : '');
+      seedStat.innerHTML = url ? `${text} — <a href="${url}" target="_blank" style="color:inherit">view log</a>` : text;
+      lbl.textContent = 'Refreshing scanner CSVs — ' + text;
+    };
+    const seedResult = await _seedScannerCore(cfg, setStat);
+
+    if (seedResult.ok === false &&
+        !confirm('Seed finished with errors — some CSVs may be stale. Run the Top 5 scan anyway?')) {
+      return;
     }
-    let sig='<span class="sig-none">—</span>';
-    if (r.bothOk)      sig='<span class="sig-both">✅ Both</span>';
-    else if (r.dOk)    sig='<span class="sig-daily">📉 Daily</span>';
-    else if (r.wOk)    sig='<span class="sig-weekly">📊 Weekly</span>';
-    const atvHtml = r.avgTradeValue != null
-      ? `<span title="Avg monthly volume ${Math.round(r.avgVol).toLocaleString('en-IN')} × LTP">${_fmtINRCompact(r.avgTradeValue)}</span>`
-      : '—';
-    const inMW  = _marketwatch.includes(r.sym);
-    const mwBtn = `<button class="mw-add-btn ${inMW?'in-mw':''}" onclick="addToMW('${r.sym}')" title="${inMW?'Remove from Marketwatch':'Add to Marketwatch'}">${inMW?'✓':'+'}</button>`;
-    return `<tr class="${r.bothOk&&r.below20?'row-both':''}">
-      <td style="font-weight:600">${r.sym}</td>
-      <td>${badge}</td><td>${ltp}</td>
-      <td class="wr-val ${dCls}">${dwr}</td>
-      <td class="wr-val ${wCls}">${wwr}</td>
-      <td>${dmaHtml}</td>
-      <td>${atvHtml}</td>
-      <td>${sig}</td>
-      <td>${mwBtn}</td>
-    </tr>`;
-  }).join('');
+
+    // Full universe + the exact Top 5 filter rules.
+    document.getElementById('scn-chk-etf').checked    = true;
+    document.getElementById('scn-chk-n200').checked   = true;
+    document.getElementById('scn-chk-mid150').checked = true;
+    document.getElementById('scn-daily-t').value   = TOP5_DAILY_T;
+    document.getElementById('scn-weekly-t').value  = TOP5_WEEKLY_T;
+    document.getElementById('scn-20dma').checked   = true;
+    document.getElementById('scn-atv-t').value     = TOP5_ATV_CR;
+
+    top5Btn.textContent = '⏳ Scanning…';
+    lbl.textContent = 'Scanning full universe…';
+    await runScanner();   // populates _scnRows (also re-enables scn-run-btn's own state)
+
+    _renderTop5Table();
+  } catch (e) {
+    alert('Top 5 failed: ' + e.message);
+  } finally {
+    [top5Btn, runBtn, seedBtn].forEach(b => b.disabled = false);
+    top5Btn.textContent = '🏆 Top 5';
+  }
 }
 
 
@@ -4724,7 +4845,8 @@ function _stopLogsAutoRefresh() {
             <span style="font-size:11px;color:var(--muted)">Cr</span>
           </span>
         </div>
-        <button class="scn-run-btn" id="scn-run-btn" onclick="runScanner()">▶ Run Scanner</button>
+        <button class="scn-run-btn" id="scn-run-btn" onclick="runScanner()">▶ Run</button>
+        <button class="scn-run-btn" id="scn-top5-btn" onclick="runTop5()" style="background:linear-gradient(90deg,#7c3aed,#6366f1)" title="Refreshes all scanner CSVs (≈7-8 min), then scans the full universe for the sharpest oversold setups: Daily W%R ≤ -80, Weekly W%R ≤ -50, below 20 DMA, Avg Trade Value ≥ ₹10 Cr — top 5 shown.">🏆 Top 5</button>
         <button class="scn-run-btn" id="scn-seed-btn" onclick="seedScannerData()" style="background:var(--bg2);border:1px solid var(--border2);color:var(--text)" title="Refreshes all ~575 ETF/NIFTY200/Midcap150 CSVs in the repo via a separate GitHub Actions workflow. Takes a few minutes — does not block this page.">⬇ Seed Scanner Data</button>
         <span class="mw-status" id="scn-seed-status" style="margin-left:0"></span>
       </div>
@@ -4774,7 +4896,7 @@ function _stopLogsAutoRefresh() {
         </div>
       </div>
       <div class="scn-empty" id="scn-empty"  style="display:none">No symbols matched — try relaxing the thresholds.</div>
-      <div class="scn-empty" id="scn-idle"   style="display:block">Select universe and click ▶ Run Scanner to begin.</div>
+      <div class="scn-empty" id="scn-idle"   style="display:block">Select universe and click ▶ Run to begin.</div>
     </div>
 
     <!-- Marketwatch — always visible alongside the scanner -->
