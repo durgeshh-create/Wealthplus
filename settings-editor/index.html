@@ -28,7 +28,8 @@
   --head:    'Syne', sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;line-height:1.6}
+html{overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;line-height:1.6;overflow-x:hidden}
 
 /* ── header ── */
 header{display:flex;align-items:center;flex-wrap:wrap;padding:8px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06);min-height:52px;row-gap:8px;gap:0}
@@ -125,6 +126,11 @@ main{padding:18px 20px;max-width:960px;margin:0 auto}
   #wr-tbl th:last-child,#wr-tbl td:last-child{padding-right:8px}
   .wr-val{font-size:10px}
   .sym{font-size:11px}
+  /* Scanner table has 10 columns — on real phones, fixed-fit becomes
+     unreadable, so allow horizontal scroll here specifically (desktop/
+     tablet widths still use the fixed no-scroll layout above). */
+  .scn-tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .scn-tbl{table-layout:auto;min-width:640px}
 }
 
 /* ── panel ── */
@@ -281,12 +287,14 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .scn-chip-weekly{background:#f3e8ff;border-color:#d8b4fe;color:#7e22ce}
 .scn-chip-nodata{background:var(--bg3);border-color:var(--border2);color:var(--muted)}
 .scn-scanned{font-size:11px;color:var(--muted);align-self:center}
-.scn-tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
-.scn-tbl{width:100%;min-width:880px;border-collapse:collapse;font-size:11px}
-.scn-tbl th{padding:7px 6px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:2px solid var(--border);line-height:1.2;cursor:pointer;user-select:none;white-space:nowrap}
+.scn-tbl-wrap{overflow-x:hidden;width:100%}
+.scn-tbl{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+.scn-tbl th{padding:7px 5px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);border-bottom:2px solid var(--border);line-height:1.2;cursor:pointer;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .scn-tbl th:hover{color:var(--text)}
 .scn-tbl th.sorted-col{color:var(--accent)}
-.scn-tbl td{padding:6px 6px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
+.scn-tbl-fixed-rank th{cursor:default}
+.scn-tbl-fixed-rank th:hover{color:var(--muted)}
+.scn-tbl td{padding:6px 5px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .scn-tbl th:first-child,.scn-tbl td:first-child{padding-left:10px}
 .scn-tbl th:last-child,.scn-tbl td:last-child{padding-right:10px;text-align:center}
 .scn-tbl .scn-chart-cell{text-align:center}
@@ -321,7 +329,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .mw-chip .mw-rm{cursor:pointer;color:var(--muted);font-size:10px;line-height:1;padding:0 1px}
 .mw-chip .mw-rm:hover{color:#dc2626}
 .mw-empty-note{font-size:11px;color:var(--muted);padding:2px 0;align-self:center}
-.mw-tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
+.mw-tbl-wrap{overflow-x:hidden;width:100%}
 .mw-tbl{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
 .mw-tbl th{padding:6px 4px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:2px solid var(--border);line-height:1.2;overflow:hidden;text-overflow:ellipsis}
 .mw-tbl td{padding:6px 4px;border-bottom:1px solid var(--border);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;word-break:break-word}
@@ -4349,6 +4357,7 @@ function getRepoRaw() {
 let _scnRows    = [];
 let _scnSortCol = 'dwr';
 let _scnSortDir = 1;
+let _scnViewMode = 'normal'; // 'normal' | 'top5' — Top 5 has a fixed rank order, header clicks shouldn't override it
 
 async function _fetchCSV(url) {
   try {
@@ -4465,6 +4474,7 @@ async function runScanner() {
   }
 
   _scnRows = results;
+  _scnViewMode = 'normal';
   renderMWPanel(); // refresh Marketwatch table with latest LTP / W%R / DMA
   document.getElementById('scn-prog-wrap').style.display='none';
   btn.disabled=false; btn.textContent='▶ Run';
@@ -4483,6 +4493,7 @@ async function runScanner() {
 }
 
 function setScanSort(col) {
+  if (_scnViewMode === 'top5') return; // Top 5 has a fixed rank order — header clicks don't apply
   _scnSortDir = _scnSortCol===col ? -_scnSortDir : 1;
   _scnSortCol = col;
   ['dwr','wwr','dma','atv'].forEach(c => {
@@ -4496,6 +4507,7 @@ function setScanSort(col) {
 }
 
 function renderScanResults() {
+  document.getElementById('scn-tbl')?.classList.remove('scn-tbl-fixed-rank');
   const only20 = document.getElementById('scn-20dma').checked;
   const atvT   = parseFloat(document.getElementById('scn-atv-t')?.value || 0);
   const atvMin = (isNaN(atvT) ? 0 : atvT) * 1e7; // Cr → ₹
@@ -4591,17 +4603,20 @@ function _computeTop5() {
 }
 
 function _renderTop5Table() {
+  _scnViewMode = 'top5';
   const rows  = _computeTop5();
   const tbody = document.getElementById('scn-tbody');
   const resEl = document.getElementById('scn-results');
   const emEl  = document.getElementById('scn-empty');
+  const tbl   = document.getElementById('scn-tbl');
+  if (tbl) tbl.classList.add('scn-tbl-fixed-rank');
 
   document.getElementById('scn-c-both').textContent   = `🏆 ${rows.length} of top ${_scnRows.filter(r=>r.bothOk&&r.below20&&r.avgTradeValue>=TOP5_ATV_CR*1e7).length} qualifying`;
   document.getElementById('scn-c-daily').textContent  = '';
   document.getElementById('scn-c-weekly').textContent = '';
   document.getElementById('scn-c-nodata').textContent = '';
   document.getElementById('scn-scanned').textContent  =
-    `Daily≤${TOP5_DAILY_T} · Weekly≤${TOP5_WEEKLY_T} · Below 20DMA · ATV≥₹${TOP5_ATV_CR}Cr`;
+    `Daily≤${TOP5_DAILY_T} · Weekly≤${TOP5_WEEKLY_T} · Below 20DMA · ATV≥₹${TOP5_ATV_CR}Cr · ranked, not sortable`;
   document.getElementById('scn-summary').style.display = 'flex';
 
   if (!rows.length) {
@@ -4873,6 +4888,18 @@ function _stopLogsAutoRefresh() {
       <div id="scn-results" style="display:none">
         <div class="scn-tbl-wrap">
           <table class="scn-tbl" id="scn-tbl">
+            <colgroup>
+              <col style="width:14%">
+              <col style="width:7%">
+              <col style="width:9%">
+              <col style="width:12%">
+              <col style="width:12%">
+              <col style="width:11%">
+              <col style="width:12%">
+              <col style="width:10%">
+              <col style="width:6%">
+              <col style="width:7%">
+            </colgroup>
             <thead>
               <tr>
                 <th onclick="setScanSort('sym')">Symbol ↕</th>
