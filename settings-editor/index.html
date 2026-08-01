@@ -93,6 +93,7 @@ main{padding:18px 20px;max-width:960px;margin:0 auto}
   .pill{padding:3px 8px;font-size:10px}
   /* Shrink bot toggle button */
   #bot-toggle-btn{padding:4px 8px!important;font-size:10px!important;letter-spacing:0!important}
+  #suspend-toggle-btn{padding:4px 8px!important;font-size:10px!important;letter-spacing:0!important}
   .tabs{padding:0 10px}
   .tab{padding:9px 12px;font-size:11px}
   main{padding:12px 10px}
@@ -505,6 +506,11 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       background:var(--green-d);color:var(--green);font-size:11px;font-weight:600;
       cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s
     " title="Start the trading bot" data-bot-state="stopped">▶ START</button>
+    <button id="suspend-toggle-btn" onclick="handleSuspendBtn()" style="
+      padding:5px 14px;border-radius:6px;border:1px solid rgba(217,119,6,.35);
+      background:var(--amber-d);color:var(--amber);font-size:11px;font-weight:600;
+      cursor:pointer;letter-spacing:.4px;transition:background .2s,color .2s
+    " title="Suspend daily auto-run until resumed" data-suspend-state="active">⏸ SUSPEND</button>
     <button class="rbtn" onclick="lockDashboard()" style="background:var(--bg3);color:var(--muted);font-size:11px" title="Lock">&#128274;</button>
   </div>
 </header>
@@ -2557,6 +2563,10 @@ async function handleBotBtn() {
     alert("Please configure GitHub owner / repo / token first (Setup).");
     return;
   }
+  if (document.getElementById("suspend-toggle-btn")?.dataset.suspendState === "suspended") {
+    alert("Bot is suspended. Click ▶ RESUME first to re-enable scheduled/manual runs.");
+    return;
+  }
 
   const state = _botBtnState();
   _setBotBtn(state, true);
@@ -2605,6 +2615,118 @@ async function syncBotButtonState() {
 // Legacy alias kept so existing render() / syncLiveBotStatus() calls still compile
 function syncPauseButton() { syncBotButtonState(); }
 
+// ── Suspend / Resume ─────────────────────────────────────────────────────────
+// Start/Stop above only affects *today's* run — it dispatches or cancels a
+// single workflow run, and tomorrow's scheduled cron fires the bots again
+// regardless. Suspend instead writes a flag file into the repo
+// (settings-editor/bot_control.json). A "check-suspend" job at the top of
+// trading-bot.yml reads that file on every trigger (scheduled or manual) and
+// skips RD1858/PS5673 entirely while it's set — so this actually survives
+// as many days as you like, until you hit Resume.
+const SUSPEND_FILE_PATH = "settings-editor/bot_control.json";
+let _suspendSha = null;
+
+function _setSuspendBtn(suspended, busy) {
+  const btn = document.getElementById("suspend-toggle-btn");
+  if (!btn) return;
+  btn.dataset.suspendState = suspended ? "suspended" : "active";
+  btn.disabled = !!busy;
+  if (busy) {
+    btn.textContent       = "…";
+    btn.style.background  = "var(--bg3)";
+    btn.style.color       = "var(--muted)";
+    btn.style.borderColor = "var(--border)";
+    return;
+  }
+  if (suspended) {
+    btn.textContent       = "▶ RESUME";
+    btn.style.background  = "var(--green-d)";
+    btn.style.color       = "var(--green)";
+    btn.style.borderColor = "rgba(22,163,74,.35)";
+    btn.title = "Resume daily scheduled runs";
+  } else {
+    btn.textContent       = "⏸ SUSPEND";
+    btn.style.background  = "var(--amber-d)";
+    btn.style.color       = "var(--amber)";
+    btn.style.borderColor = "rgba(217,119,6,.35)";
+    btn.title = "Suspend daily auto-run until you hit Resume (survives the next scheduled cron)";
+  }
+}
+
+// Fetch current suspend state from the repo (called once on unlock).
+async function loadSuspendState() {
+  const cfg = getCfg();
+  if (!cfg.owner || !cfg.repo || !cfg.token) return;
+  try {
+    const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${SUSPEND_FILE_PATH}`;
+    const r   = await fetch(url, { headers: apiHeaders() });
+    if (r.status === 404) {              // file not pushed to repo yet
+      _suspendSha = null;
+      _setSuspendBtn(false, false);
+      return;
+    }
+    if (!r.ok) throw new Error(`GitHub API ${r.status}`);
+    const data = await r.json();
+    _suspendSha = data.sha;
+    const json  = JSON.parse(atob(data.content.replace(/\n/g, '')));
+    _setSuspendBtn(json.suspended === true, false);
+  } catch (e) {
+    console.error("loadSuspendState:", e);
+  }
+}
+
+async function handleSuspendBtn() {
+  const cfg = getCfg();
+  if (!cfg.owner || !cfg.repo || !cfg.token) {
+    alert("Please configure GitHub owner / repo / token first (Setup).");
+    return;
+  }
+
+  const btn = document.getElementById("suspend-toggle-btn");
+  const currentlySuspended = btn?.dataset.suspendState === "suspended";
+  const nextSuspended = !currentlySuspended;
+
+  if (nextSuspended && !confirm(
+    "This suspends the daily scheduled runs (RD1858 + PS5673) until you hit ▶ RESUME " +
+    "— it will stay off for as many days as you like, not just today.\n\n" +
+    "Any run currently in progress will also be stopped.\n\nSuspend now?"
+  )) return;
+
+  _setSuspendBtn(currentlySuspended, true);
+
+  try {
+    if (nextSuspended) {
+      // Stop whatever's running right now too, so Suspend acts immediately.
+      try {
+        const runId = await _cancelWorkflow(cfg);
+        if (runId) await _pollUntilStopped(cfg, runId);
+      } catch (_) {}
+      _setBotBtn("stopped", false);
+    }
+
+    const payload = {
+      suspended:   nextSuspended,
+      updated_at:  new Date().toISOString(),
+      updated_via: "settings-editor",
+    };
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+    const url     = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${SUSPEND_FILE_PATH}`;
+    const body    = {
+      message: `bot: ${nextSuspended ? "suspend" : "resume"} scheduled runs via dashboard`,
+      content: content,
+      ...(_suspendSha ? { sha: _suspendSha } : {}),
+    };
+    const r = await fetch(url, { method: "PUT", headers: apiHeaders(), body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+    const resp  = await r.json();
+    _suspendSha = resp.content.sha;
+    _setSuspendBtn(nextSuspended, false);
+  } catch (e) {
+    alert("Suspend/Resume error: " + e.message);
+    _setSuspendBtn(currentlySuspended, false);
+  }
+}
+
 function lockDashboard() {
   sessionStorage.removeItem(PW_SESSION);
   document.getElementById('pw-input').value = '';
@@ -2615,6 +2737,7 @@ function lockDashboard() {
 
 function onUnlocked() {
   refreshAll();
+  loadSuspendState();
   if(hasCfg()){
     const c=getCfg();
     document.getElementById('cfg-owner').value=c.owner||'';
