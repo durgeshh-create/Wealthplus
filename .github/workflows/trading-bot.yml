@@ -29,6 +29,36 @@ env:
 jobs:
 
   # ────────────────────────────────────────────────────────────────────────────
+  # check-suspend — reads settings-editor/bot_control.json from the repo.
+  # This is what makes the dashboard's Suspend button actually stick across
+  # days: the old Start/Stop button only cancels *today's* in-progress run,
+  # so the next scheduled cron trigger fires the bots again tomorrow
+  # regardless. This flag lives in the repo instead of in a single run, so
+  # every scheduled (or manual) trigger reads it fresh and RD1858/PS5673
+  # skip themselves entirely while suspended — until Resume flips it back.
+  # ────────────────────────────────────────────────────────────────────────────
+  check-suspend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      suspended: ${{ steps.check.outputs.suspended }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read suspend flag
+        id: check
+        run: |
+          FILE="settings-editor/bot_control.json"
+          if [ -f "$FILE" ] && grep -Eq '"suspended"[[:space:]]*:[[:space:]]*true' "$FILE"; then
+            echo "suspended=true" >> "$GITHUB_OUTPUT"
+            echo "⏸ Bot is suspended via $FILE — RD1858 and PS5673 will be skipped this run."
+          else
+            echo "suspended=false" >> "$GITHUB_OUTPUT"
+            echo "✅ Not suspended — proceeding normally."
+          fi
+
+  # ────────────────────────────────────────────────────────────────────────────
   # bootstrap-ghpages — runs first, ensures index.html is always on gh-pages
   # ────────────────────────────────────────────────────────────────────────────
   bootstrap-ghpages:
@@ -177,7 +207,8 @@ jobs:
   # RD1858 — runs in parallel with PS5673, after bootstrap
   # ────────────────────────────────────────────────────────────────────────────
   RD1858:
-    needs: bootstrap-ghpages
+    needs: [bootstrap-ghpages, check-suspend]
+    if: needs.check-suspend.outputs.suspended != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 210
     # ✅ FIX: own concurrency group per run — won't block Session 2 from starting
@@ -364,7 +395,8 @@ jobs:
   # PS5673 — runs in parallel with RD1858, after bootstrap
   # ────────────────────────────────────────────────────────────────────────────
   PS5673:
-    needs: bootstrap-ghpages
+    needs: [bootstrap-ghpages, check-suspend]
+    if: needs.check-suspend.outputs.suspended != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 210
     # ✅ FIX: own concurrency group per run — won't block Session 2 from starting
