@@ -64,6 +64,12 @@ def fetch_instrument_tokens(session):
             if r.status_code == 200 and r.text.strip():
                 df = pd.read_csv(StringIO(r.text), low_memory=False)
                 df.columns = [c.lower() for c in df.columns]
+                # Precompute a normalized (stripped + uppercased) tradingsymbol
+                # column once — avoids re-normalizing the whole ~90k-row frame
+                # on every single resolve_token() call below, and makes the
+                # match resilient to case/whitespace differences between the
+                # dashboard's hardcoded symbol list and Kite's dump.
+                df['_sym_norm'] = df['tradingsymbol'].astype(str).str.strip().str.upper()
                 print(f'[seed] Got {len(df)} instruments from {url}')
                 return df
         except Exception as e:
@@ -72,11 +78,25 @@ def fetch_instrument_tokens(session):
     sys.exit(1)
 
 def resolve_token(df_inst, sym):
-    for seg in ['NSE-EQ', 'NSE', 'BSE-EQ', 'BSE']:
-        m = df_inst[(df_inst['tradingsymbol'] == sym) & (df_inst['segment'] == seg)]
+    sym_n = str(sym).strip().upper()
+    # Prefer NSE, then BSE — using the "exchange" column (falls back to
+    # "segment" on older dump formats where "exchange" isn't present).
+    # ✅ FIX: previously this only checked segment == 'NSE-EQ' / 'NSE' / etc,
+    # but Kite's public instrument dump has used different segment labels
+    # across versions ("NSE" vs "NSE-EQ"), which silently dropped valid,
+    # actively-traded symbols (e.g. AXISGOLD, AXSENSEX, AXISBNKETF and a
+    # handful of other Axis AMC ETFs) whose segment string just didn't match
+    # any of the hardcoded options — even though they exist in the dump.
+    exch_col = '_exch_norm'
+    if exch_col not in df_inst.columns:
+        src = df_inst['exchange'] if 'exchange' in df_inst.columns else df_inst['segment']
+        df_inst[exch_col] = src.astype(str).str.strip().str.upper()
+    for exch in ['NSE', 'BSE']:
+        m = df_inst[(df_inst['_sym_norm'] == sym_n) & (df_inst[exch_col] == exch)]
         if not m.empty:
             return str(int(m.iloc[0]['instrument_token']))
-    m = df_inst[df_inst['tradingsymbol'] == sym]
+    # Absolute fallback: exact tradingsymbol match on ANY exchange/segment.
+    m = df_inst[df_inst['_sym_norm'] == sym_n]
     if not m.empty:
         return str(int(m.iloc[0]['instrument_token']))
     return None
