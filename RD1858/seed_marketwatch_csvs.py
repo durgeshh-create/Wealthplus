@@ -109,6 +109,7 @@ def fetch_instrument_tokens(session):
             if r.status_code == 200 and r.text.strip():
                 df = pd.read_csv(StringIO(r.text), low_memory=False)
                 df.columns = [c.lower() for c in df.columns]
+                df['_sym_norm'] = df['tradingsymbol'].astype(str).str.strip().str.upper()
                 print(f'[mw-seed] Got {len(df)} instruments from {url}')
                 return df
         except Exception as e:
@@ -118,11 +119,19 @@ def fetch_instrument_tokens(session):
 
 
 def resolve_token(df_inst, sym):
-    for seg in ['NSE-EQ', 'NSE', 'BSE-EQ', 'BSE']:
-        m = df_inst[(df_inst['tradingsymbol'] == sym) & (df_inst['segment'] == seg)]
+    sym_n = str(sym).strip().upper()
+    # See RD1858/seed_csvs.py resolve_token() for the full explanation —
+    # matching by segment string alone missed valid symbols whose segment
+    # label didn't match the hardcoded list (e.g. several Axis AMC ETFs).
+    exch_col = '_exch_norm'
+    if exch_col not in df_inst.columns:
+        src = df_inst['exchange'] if 'exchange' in df_inst.columns else df_inst['segment']
+        df_inst[exch_col] = src.astype(str).str.strip().str.upper()
+    for exch in ['NSE', 'BSE']:
+        m = df_inst[(df_inst['_sym_norm'] == sym_n) & (df_inst[exch_col] == exch)]
         if not m.empty:
             return str(int(m.iloc[0]['instrument_token']))
-    m = df_inst[df_inst['tradingsymbol'] == sym]
+    m = df_inst[df_inst['_sym_norm'] == sym_n]
     if not m.empty:
         return str(int(m.iloc[0]['instrument_token']))
     return None
