@@ -31,11 +31,11 @@
 body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;line-height:1.6}
 
 /* ── header ── */
-header{display:flex;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06);height:52px;gap:0}
+header{display:flex;align-items:center;flex-wrap:wrap;padding:8px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,0.97);backdrop-filter:blur(8px);z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06);min-height:52px;row-gap:8px;gap:0}
 .logo{display:flex;align-items:baseline;gap:10px}
 .logo h1{font-family:var(--head);font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--accent)}
 .logo .sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
-.hdr-right{display:flex;align-items:center;gap:10px;margin-left:auto;padding-left:24px;flex-wrap:nowrap}
+.hdr-right{display:flex;align-items:center;gap:10px;margin-left:auto;padding-left:24px;flex-wrap:wrap;row-gap:6px;justify-content:flex-end}
 .pill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted2);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
 .dot.live{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
@@ -281,14 +281,17 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .scn-chip-weekly{background:#f3e8ff;border-color:#d8b4fe;color:#7e22ce}
 .scn-chip-nodata{background:var(--bg3);border-color:var(--border2);color:var(--muted)}
 .scn-scanned{font-size:11px;color:var(--muted);align-self:center}
-.scn-tbl-wrap{overflow-x:visible;width:100%}
-.scn-tbl{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
-.scn-tbl th{padding:7px 6px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:2px solid var(--border);line-height:1.2;cursor:pointer;user-select:none;overflow:hidden;text-overflow:ellipsis}
+.scn-tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
+.scn-tbl{width:100%;min-width:880px;border-collapse:collapse;font-size:11px}
+.scn-tbl th{padding:7px 6px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:2px solid var(--border);line-height:1.2;cursor:pointer;user-select:none;white-space:nowrap}
 .scn-tbl th:hover{color:var(--text)}
 .scn-tbl th.sorted-col{color:var(--accent)}
-.scn-tbl td{padding:6px 6px;border-bottom:1px solid var(--border);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;word-break:break-word}
+.scn-tbl td{padding:6px 6px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
 .scn-tbl th:first-child,.scn-tbl td:first-child{padding-left:10px}
 .scn-tbl th:last-child,.scn-tbl td:last-child{padding-right:10px;text-align:center}
+.scn-tbl .scn-chart-cell{text-align:center}
+.scn-tbl .scn-chart-link{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;border:1px solid var(--border2);color:var(--muted);text-decoration:none;font-size:12px;transition:all .15s}
+.scn-tbl .scn-chart-link:hover{background:var(--accent);border-color:var(--accent);color:#fff}
 .scn-tbl tr:hover td{background:var(--bg3)}
 .scn-tbl tr.row-both td{background:rgba(22,163,74,0.04)}
 .badge-etf{background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd;border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700}
@@ -318,7 +321,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .mw-chip .mw-rm{cursor:pointer;color:var(--muted);font-size:10px;line-height:1;padding:0 1px}
 .mw-chip .mw-rm:hover{color:#dc2626}
 .mw-empty-note{font-size:11px;color:var(--muted);padding:2px 0;align-self:center}
-.mw-tbl-wrap{overflow-x:visible;width:100%}
+.mw-tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
 .mw-tbl{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
 .mw-tbl th{padding:6px 4px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:2px solid var(--border);line-height:1.2;overflow:hidden;text-overflow:ellipsis}
 .mw-tbl td{padding:6px 4px;border-bottom:1px solid var(--border);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;word-break:break-word}
@@ -4546,6 +4549,8 @@ function _scanRowHtml(r) {
     : '—';
   const inMW  = _marketwatch.includes(r.sym);
   const mwBtn = `<button class="mw-add-btn ${inMW?'in-mw':''}" onclick="addToMW('${r.sym}')" title="${inMW?'Remove from Marketwatch':'Add to Marketwatch'}">${inMW?'✓':'+'}</button>`;
+  const chartUrl  = `https://chartink.com/stocks/${encodeURIComponent(r.sym)}.html`;
+  const chartLink = `<a class="scn-chart-link" href="${chartUrl}" target="_blank" rel="noopener" title="View ${r.sym} chart on Chartink">📈</a>`;
   return `<tr class="${r.bothOk&&r.below20?'row-both':''}">
     <td style="font-weight:600">${r.sym}</td>
     <td>${badge}</td><td>${ltp}</td>
@@ -4554,6 +4559,7 @@ function _scanRowHtml(r) {
     <td>${dmaHtml}</td>
     <td>${atvHtml}</td>
     <td>${sig}</td>
+    <td class="scn-chart-cell">${chartLink}</td>
     <td>${mwBtn}</td>
   </tr>`;
 }
@@ -4867,17 +4873,6 @@ function _stopLogsAutoRefresh() {
       <div id="scn-results" style="display:none">
         <div class="scn-tbl-wrap">
           <table class="scn-tbl" id="scn-tbl">
-            <colgroup>
-              <col style="width:15%">
-              <col style="width:7%">
-              <col style="width:10%">
-              <col style="width:13%">
-              <col style="width:13%">
-              <col style="width:12%">
-              <col style="width:13%">
-              <col style="width:11%">
-              <col style="width:6%">
-            </colgroup>
             <thead>
               <tr>
                 <th onclick="setScanSort('sym')">Symbol ↕</th>
@@ -4888,6 +4883,7 @@ function _stopLogsAutoRefresh() {
                 <th id="scn-th-dma" onclick="setScanSort('dma')">vs 20<br>DMA ↕</th>
                 <th id="scn-th-atv" onclick="setScanSort('atv')" title="Average monthly volume (past ~21 trading days) × LTP">Avg Trade<br>Value ↕</th>
                 <th>Signal</th>
+                <th title="View chart on Chartink">Chart</th>
                 <th title="Add to Marketwatch">⭐</th>
               </tr>
             </thead>
