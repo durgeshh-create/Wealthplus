@@ -747,19 +747,44 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <label>Max Cash / Transaction (₹)</label>
         <input type="number" id="s-bnh_max_cash_per_transaction" min="0" step="1000">
       </div>
+      <div class="field" style="grid-column:1/-1">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div>
+            <label style="margin:0;font-weight:600">🌾 Harvest (Partial Profit-Taking)</label>
+            <div class="hint" style="margin-top:2px">Sells 50% of the position when unrealized P&amp;L clears the target below. Backtesting on a strong long-run compounder found this caps upside — off by default; turn on if you want to lock in gains along the way instead of letting the position ride.</div>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0">
+            <span id="bnhh-toggle-label" style="font-size:11px;color:var(--muted)">OFF</span>
+            <input type="checkbox" id="s-bnh_harvest_enabled"
+              onchange="document.getElementById('bnhh-toggle-label').textContent=this.checked?'ON':'OFF'"
+              style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
+          </label>
+        </div>
+      </div>
       <div class="field">
         <label>Harvest Target (%)</label>
         <input type="number" id="s-bnh_partial_profit_pct" min="0.1" max="50" step="0.1">
+        <span class="hint">Only used while Harvest is ON, above</span>
+      </div>
+      <div class="field">
+        <label>Min Drop for Add-On Buy (%)</label>
+        <input type="number" id="s-bnh_min_drop_pct" min="0" max="30" step="0.5">
+        <span class="hint">Required drop below avg buy price before adding more. Was fixed at 0.5% in code (barely a guard); backtested sweet spot is 5–7%.</span>
+      </div>
+      <div class="field">
+        <label>W%R Period (days)</label>
+        <input type="number" id="s-bnh_wr_period" min="2" max="60" step="1">
+        <span class="hint">BnH-specific lookback for the oversold signal — independent of Active Strategy's W%R Threshold/period. Backtested best around 7–10.</span>
       </div>
       <div class="field" style="grid-column:1/-1">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <div>
             <label style="margin:0;font-weight:600">📅 Weekday Systematic Buy</label>
-            <div class="hint" style="margin-top:2px">Supplementary fixed-day DCA tranche on top of the W%R tiers — small, capped, independent of oversold signal</div>
+            <div class="hint" style="margin-top:2px">Supplementary fixed-day DCA tranche on top of the W%R tiers — small, capped, independent of oversold signal. Backtesting found this untimed tranche drags on IRR for a strong compounder; off by default.</div>
           </div>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0">
-            <span id="wdb-toggle-label" style="font-size:11px;color:var(--muted)">ON</span>
-            <input type="checkbox" id="s-bnh_weekday_buy_enabled" checked
+            <span id="wdb-toggle-label" style="font-size:11px;color:var(--muted)">OFF</span>
+            <input type="checkbox" id="s-bnh_weekday_buy_enabled"
               onchange="document.getElementById('wdb-toggle-label').textContent=this.checked?'ON':'OFF'"
               style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
           </label>
@@ -2260,10 +2285,11 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         </div>
 
         <div class="strat-divider"></div>
-        <div class="strat-block-title">INDICATOR — Williams %R (14-period daily)</div>
+        <div class="strat-block-title">INDICATOR — Williams %R (daily)</div>
         <p style="font-size:12px;color:var(--muted2);line-height:1.7;margin-top:6px">
-          W%R = −100 × (Highest High<sub>14</sub> − Close) / (Highest High<sub>14</sub> − Lowest Low<sub>14</sub>).
+          W%R = −100 × (Highest High<sub>N</sub> − Close) / (Highest High<sub>N</sub> − Lowest Low<sub>N</sub>).
           Ranges from 0 (overbought) to −100 (oversold). Today's candle is formed live using intraday high/low/LTP so the signal updates in real time through the session. Historical period uses daily OHLCV; the live candle replaces the incomplete current bar.
+          Active Strategy uses <code>williams_r_period</code> (N=14). The Dip Accumulator (BnH) engine below uses its <em>own</em> independent lookback, <code>bnh_wr_period</code> (default N=10) — tuning one does not affect the other.
         </p>
       </div>
 
@@ -2317,8 +2343,8 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
           <div class="strat-col">
             <div class="strat-block-title">BUY ENTRY CONDITIONS</div>
             <table class="strat-tbl">
-              <tr><td class="strat-td-key">Signal</td><td>Daily W%R(14) ≤ −60 (oversold threshold, hardcoded for BnH).</td></tr>
-              <tr><td class="strat-td-key">Subsequent buys</td><td>Live price must be ≥ 0.5% below current avg buy price before adding. Prevents buying into a position that has recovered.</td></tr>
+              <tr><td class="strat-td-key">Signal</td><td>Daily W%R(<code>bnh_wr_period</code>, default 10) ≤ −60 (oversold threshold, still hardcoded — the depth tiers below are what actually vary the response).</td></tr>
+              <tr><td class="strat-td-key">Subsequent buys</td><td>Live price must be ≥ <code>bnh_min_drop_pct</code>% below current avg buy price before adding (default 6%, was a hardcoded 0.5%). Backtesting found the old 0.5% barely filtered anything — widening it concentrates capital into real drawdowns instead of every minor wobble.</td></tr>
               <tr><td class="strat-td-key">Execution time</td><td>Checks every 15 s. Fires at 3:15 PM IST by default, or anytime if <code>buy_execution_time = "anytime"</code>.</td></tr>
               <tr><td class="strat-td-key">Per-symbol cap</td><td>Cumulative deployed per symbol capped at <code>bnh_max_cash_per_etf</code> (₹10L). Per-transaction capped at <code>bnh_max_cash_per_transaction</code> (₹30K).</td></tr>
               <tr><td class="strat-td-key">One buy per day</td><td><code>buy_attempted_today</code> flag prevents multiple entries in the same session. Resets at midnight.</td></tr>
@@ -2328,11 +2354,12 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
           <div class="strat-col">
             <div class="strat-block-title">PARTIAL PROFIT HARVEST</div>
             <table class="strat-tbl">
-              <tr><td class="strat-td-key">Trigger</td><td>Live P&amp;L ≥ <code>bnh_partial_profit_pct</code>% (currently 7%) above blended avg buy price.</td></tr>
+              <tr><td class="strat-td-key">Master toggle</td><td><code>bnh_harvest_enabled</code> — <strong>off by default.</strong> Backtesting on a strong long-run compounder (MID150BEES) found repeated harvesting at a tight target caps upside; a pure accumulator with no selling outperformed it. Turn back on if you'd rather take profits along the way than let the position ride.</td></tr>
+              <tr><td class="strat-td-key">Trigger (when ON)</td><td>Live P&amp;L ≥ <code>bnh_partial_profit_pct</code>% (default 10%) above blended avg buy price.</td></tr>
               <tr><td class="strat-td-key">Quantity</td><td>50% of held position sold — core holding preserved for further accumulation.</td></tr>
               <tr><td class="strat-td-key">Cooldown</td><td>30-day lock after each harvest. Prevents churning the position in a volatile recovery.</td></tr>
               <tr><td class="strat-td-key">Order type</td><td>LIMIT at top-ask from market depth; falls back to LTP if depth unavailable.</td></tr>
-              <tr><td class="strat-td-key">No full sell</td><td>Unlike Active Strategy, BnH does not sell the full position at a fixed profit target. The position is held indefinitely and only partially trimmed.</td></tr>
+              <tr><td class="strat-td-key">No full sell</td><td>Unlike Active Strategy, BnH never sells the full position at a fixed profit target even when harvest is on — only ever trimmed, never closed out by this path.</td></tr>
             </table>
           </div>
         </div>
@@ -4183,6 +4210,14 @@ function populateForm(s) {
   setVal('s-bnh_max_cash_per_etf',      s.bnh_max_cash_per_etf);
   setVal('s-bnh_max_cash_per_transaction', s.bnh_max_cash_per_transaction);
   setVal('s-bnh_partial_profit_pct',    s.bnh_partial_profit_pct);
+  setVal('s-bnh_min_drop_pct',          s.bnh_min_drop_pct ?? 6.0);
+  setVal('s-bnh_wr_period',             s.bnh_wr_period ?? 10);
+  // Harvest (partial profit-taking) toggle
+  const bnhhEl = document.getElementById('s-bnh_harvest_enabled');
+  if (bnhhEl) {
+    bnhhEl.checked = s.bnh_harvest_enabled === true; // default OFF if key absent
+    document.getElementById('bnhh-toggle-label').textContent = bnhhEl.checked ? 'ON' : 'OFF';
+  }
   // Weekday systematic buy toggle
   const wdbEl = document.getElementById('s-bnh_weekday_buy_enabled');
   if (wdbEl) {
@@ -4233,6 +4268,9 @@ function collectForm() {
     bnh_max_cash_per_etf:          n('s-bnh_max_cash_per_etf'),
     bnh_max_cash_per_transaction:  n('s-bnh_max_cash_per_transaction'),
     bnh_partial_profit_pct:        n('s-bnh_partial_profit_pct'),
+    bnh_harvest_enabled:           document.getElementById('s-bnh_harvest_enabled')?.checked ?? false,
+    bnh_min_drop_pct:              n('s-bnh_min_drop_pct'),
+    bnh_wr_period:                 ni('s-bnh_wr_period'),
     bnh_weekday_buy_enabled:       document.getElementById('s-bnh_weekday_buy_enabled')?.checked ?? false,
     bnh_weekday_buy_day:           s('s-bnh_weekday_buy_day') || 'Monday',
     bnh_weekday_buy_frac:          n('s-bnh_weekday_buy_frac_pct') / 100,
