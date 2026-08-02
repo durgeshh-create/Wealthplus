@@ -767,14 +767,86 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <span class="hint">Only used while Harvest is ON, above</span>
       </div>
       <div class="field">
+        <label>Oversold Threshold (W%R)</label>
+        <input type="number" id="s-bnh_oversold_threshold" min="-100" max="0" step="1">
+        <span class="hint">Base trigger — any tier below only fires once W%R crosses this. Was hardcoded -60; default is now -75 for a "buy most dips" design (see Tier Ladder below) rather than saving the whole budget for one rare crash-sized drop.</span>
+      </div>
+      <div class="field" style="grid-column:1/-1">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div>
+            <label style="margin:0;font-weight:600">🛡️ Averaging-Down Guard</label>
+            <div class="hint" style="margin-top:2px"><strong>Off by default — recommend leaving off.</strong> This compares each new buy to your cumulative avg cost, which becomes an unreachable bar once a position is up several multiples from its early buys (no % setting fixes this, including 0%, since it's a reference-point problem not a magnitude one). Only turn on if you specifically want to stop adding once comfortably in profit — understand that in practice this can mean the strategy stops buying entirely for years once the position is up meaningfully.</div>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0">
+            <span id="bnhmd-toggle-label" style="font-size:11px;color:var(--muted)">OFF</span>
+            <input type="checkbox" id="s-bnh_min_drop_enabled"
+              onchange="document.getElementById('bnhmd-toggle-label').textContent=this.checked?'ON':'OFF'"
+              style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent)">
+          </label>
+        </div>
+      </div>
+      <div class="field">
         <label>Min Drop for Add-On Buy (%)</label>
         <input type="number" id="s-bnh_min_drop_pct" min="0" max="30" step="0.5">
-        <span class="hint">Required drop below avg buy price before adding more. Was fixed at 0.5% in code (barely a guard); backtested sweet spot is 5–7%.</span>
+        <span class="hint">Only used while the guard above is ON</span>
       </div>
       <div class="field">
         <label>W%R Period (days)</label>
         <input type="number" id="s-bnh_wr_period" min="2" max="60" step="1">
         <span class="hint">BnH-specific lookback for the oversold signal — independent of Active Strategy's W%R Threshold/period. Backtested best around 7–10.</span>
+      </div>
+      <div class="field" style="grid-column:1/-1">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <label style="font-weight:600;margin:0">📶 Tier Ladder</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span id="bnh-tiers-sum" style="font-size:11px;color:var(--muted)"></span>
+            <button type="button" onclick="bnhAddTierRow()" style="font-size:11px;padding:3px 8px;cursor:pointer">+ Add tier</button>
+          </div>
+        </div>
+        <div class="hint" style="margin-top:2px;margin-bottom:8px">Deepest applicable tier fires (fires at most once per dip cycle — cycle resets when W%R climbs back above -40). Each row's % is of Max Cash/ETF. Default is 15 tiers from -75 to -99 so ordinary dips get caught at fine granularity — spread across ~18-40 buys/year historically — instead of a coarse 5-tier ladder that lumps a -76 dip and a -84 dip into the same bucket. See Strategy Reference below for the backtested trade-off vs. a "wait for one crash" design.</div>
+        <table class="strat-tbl" style="width:100%">
+          <thead><tr><th style="text-align:left;font-size:11px;color:var(--muted)">W%R ≤</th><th style="text-align:left;font-size:11px;color:var(--muted)">% of Max Cash/ETF</th><th></th></tr></thead>
+          <tbody id="bnh-tiers-tbody"></tbody>
+        </table>
+      </div>
+      <div class="field" style="grid-column:1/-1">
+        <script>
+          const BNH_DEFAULT_TIERS = [
+            [-75, 0.188], [-77, 0.213], [-79, 0.242], [-81, 0.276], [-83, 0.313],
+            [-85, 0.356], [-87, 0.405], [-89, 0.460], [-91, 0.523], [-93, 0.594],
+            [-95, 0.675], [-96, 0.767], [-97, 0.872], [-98, 0.991], [-99, 1.126],
+          ]; // thresholds, and % (not fraction) — matches DEFAULT_BNH_TIERS in intraday_engine.py
+
+          function bnhRenderTierRow(thr, pct) {
+            const tbody = document.getElementById('bnh-tiers-tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><input type="number" class="bnh-tier-thr" min="-100" max="0" step="1" style="width:100%" value="${thr}"></td>
+              <td><input type="number" class="bnh-tier-pct" min="0" max="100" step="0.01" style="width:100%" value="${pct}"></td>
+              <td><button type="button" onclick="this.closest('tr').remove(); bnhUpdateTierSum()" style="font-size:11px;padding:2px 6px;cursor:pointer;color:var(--danger,#e55)">✕</button></td>`;
+            tbody.appendChild(tr);
+            tr.querySelectorAll('input').forEach(i => i.addEventListener('input', bnhUpdateTierSum));
+          }
+          function bnhAddTierRow() { bnhRenderTierRow(-80, 0.30); bnhUpdateTierSum(); }
+          function bnhSetTiers(tiers) {
+            document.getElementById('bnh-tiers-tbody').innerHTML = '';
+            tiers.forEach(([thr, pct]) => bnhRenderTierRow(thr, pct));
+            bnhUpdateTierSum();
+          }
+          function bnhGetTiers() {
+            const rows = [...document.querySelectorAll('#bnh-tiers-tbody tr')];
+            return rows.map(r => [
+              parseFloat(r.querySelector('.bnh-tier-thr').value),
+              parseFloat(r.querySelector('.bnh-tier-pct').value) / 100,
+            ]).filter(([t, f]) => !isNaN(t) && !isNaN(f))
+              .sort((a, b) => b[0] - a[0]); // descending threshold, shallowest first
+          }
+          function bnhUpdateTierSum() {
+            const sum = bnhGetTiers().reduce((s, [, f]) => s + f, 0) * 100;
+            document.getElementById('bnh-tiers-sum').textContent =
+              `${document.querySelectorAll('#bnh-tiers-tbody tr').length} tiers, sums to ${sum.toFixed(2)}% per full-depth cycle`;
+          }
+        </script>
       </div>
       <div class="field" style="grid-column:1/-1">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -804,7 +876,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       <div class="field">
         <label>Tranche Size (% of Max Cash/ETF)</label>
         <input type="number" id="s-bnh_weekday_buy_frac_pct" min="0" max="20" step="0.5">
-        <div class="hint" style="margin-top:2px">Per fire, e.g. 2% = ₹20,000 at a ₹10L cap. Deliberately smaller than Tier 1 (5%) since this is a scheduled buy, not an oversold signal.</div>
+        <div class="hint" style="margin-top:2px">Per fire, e.g. 2% = ₹20,000 at a ₹10L cap. Larger than any single tier in the current 15-tier ladder above (by design — this fires on schedule, not on an oversold signal, so it's sized for lower conviction per fire but fewer fires overall).</div>
       </div>
       <div class="field">
         <label>Lifetime Cap (% of Max Cash/ETF)</label>
@@ -2299,31 +2371,55 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       <div class="strat-section">
         <div class="strat-hd">
           <span class="strat-badge" style="background:var(--blue-d);color:var(--blue);border:1px solid rgba(59,130,246,.3)">Dip Accumulator (B&amp;H)</span>
-          <span class="strat-title">Long-Term Position Builder via Tiered Dip Buying</span>
+          <span class="strat-title">Long-Term Position Builder via Fine-Grained Tiered Dip Buying</span>
         </div>
 
         <div class="strat-cols">
           <div class="strat-col">
             <div class="strat-block-title">OBJECTIVE</div>
-            <p>Build a long-term accumulation position in broad-market index ETFs (e.g. MID150BEES) by buying in proportionally larger tranches the deeper the price falls, measured by Williams %R oversold depth. Partial profits are harvested periodically to recycle capital while maintaining the core holding.</p>
+            <p>Build a long-term accumulation position in broad-market index ETFs (e.g. MID150BEES) by buying in proportionally larger tranches the deeper the price falls, measured by Williams %R oversold depth. Currently configured for <strong>continuous participation</strong> — a wide 15-tier ladder (−75 to −99) fires small tranches on ordinary dips rather than saving the whole budget for one rare crash-sized drop, on the reasoning that crash-sized drops are too infrequent to plan around. No profit-harvesting or averaging-down guard by default — the position accumulates and is simply held; see toggles below if you want either behavior back.</p>
           </div>
           <div class="strat-col">
             <div class="strat-block-title">UNIVERSE</div>
-            <p>Symbols listed in <code>bnh_symbols</code> (currently: MID150BEES). Each symbol runs its own independent state, tier-firing set, and trade log. Multiple symbols supported simultaneously, each with separate caps and slot tracking.</p>
+            <p>Symbols listed in <code>bnh_symbols</code> (currently: MID150BEES). Each symbol runs its own independent state, tier-firing set, and trade log. Multiple symbols supported simultaneously, each with separate caps and slot tracking — note all symbols currently share one <code>bnh_tiers</code> ladder and <code>bnh_oversold_threshold</code>, so a second symbol with different volatility characteristics may need its own re-tuned settings rather than inheriting MID150BEES's.</p>
           </div>
         </div>
 
         <div class="strat-divider"></div>
 
-        <div class="strat-block-title">5-TIER EXPONENTIAL SIZING — buy bigger the deeper the dip</div>
-        <div class="strat-tier-grid">
-          <div class="strat-tier t1"><div class="strat-tier-wr">W%R ≤ −60</div><div class="strat-tier-pct">5% of max ETF cap</div><div class="strat-tier-lbl">Tier 1 — Probe</div></div>
-          <div class="strat-tier t2"><div class="strat-tier-wr">W%R ≤ −70</div><div class="strat-tier-pct">10% of max ETF cap</div><div class="strat-tier-lbl">Tier 2 — Build</div></div>
-          <div class="strat-tier t3"><div class="strat-tier-wr">W%R ≤ −80</div><div class="strat-tier-pct">20% of max ETF cap</div><div class="strat-tier-lbl">Tier 3 — Add</div></div>
-          <div class="strat-tier t4"><div class="strat-tier-wr">W%R ≤ −90</div><div class="strat-tier-pct">30% of max ETF cap</div><div class="strat-tier-lbl">Tier 4 — Load</div></div>
-          <div class="strat-tier t5"><div class="strat-tier-wr">W%R ≤ −95</div><div class="strat-tier-pct">35% of max ETF cap</div><div class="strat-tier-lbl">Tier 5 — Max Load</div></div>
+        <div class="strat-block-title">DESIGN PHILOSOPHY — two paths considered, this one chosen</div>
+        <div class="strat-cols">
+          <div class="strat-col">
+            <p style="font-size:12px;color:var(--muted2);line-height:1.7"><strong>Concentrated</strong> (not the default): a coarse 5-tier ladder, threshold −60, sized 5%-35% per tier. Waits for a rare deep drawdown and spends most of the budget there. Backtested IRR ~28-29% on MID150BEES — high, but the whole result hinges on catching one specific historical event (COVID, 13 months into the backtest); could otherwise sit mostly in cash for years waiting for a crash that may not come on schedule.</p>
+          </div>
+          <div class="strat-col">
+            <p style="font-size:12px;color:var(--muted2);line-height:1.7"><strong>Every-dip</strong> (current default): 15-tier ladder, threshold −75, sized 0.19%-1.13% per tier. Fires on ordinary pullbacks too — backtested at 240 buys, spread 18-42 per year across every calendar year in the sample, not clustered in one window. Backtested IRR ~21.7% — lower than the concentrated design, but that gap is largely the cost of not gambling on a lucky crash-timing entry. Chosen as the default on the reasoning that "wait for a crash" isn't a plan you can rely on.</p>
+          </div>
         </div>
-        <p style="font-size:11px;color:var(--muted);margin-top:8px">Each tier fires at most once per dip cycle. Tiers re-arm when W%R recovers above −40 (dip cycle reset). Total allocation across all five tiers = 100% of <code>bnh_max_cash_per_etf</code>.</p>
+
+        <div class="strat-divider"></div>
+
+        <div class="strat-block-title">TIER LADDER — buy bigger the deeper the dip, more granular than before</div>
+        <p style="margin-bottom:8px;font-size:12px;color:var(--muted2)">Two designs were backtested and traded off deliberately (MID150BEES, 2019–2026): a <strong>concentrated</strong> 5-tier ladder (thresholds -60 to -95, 5%-35% sizes) that waits for a rare crash-sized drawdown and deploys the whole budget there — backtested IRR ~28-29%, but relies on catching one lucky event and could otherwise sit mostly in cash for years; vs. this <strong>every-dip</strong> 15-tier ladder (thresholds -75 to -99, 0.19%-1.13% sizes) that fires on ordinary dips too — backtested at 240 buys spread 18-42/year across every calendar year in the sample, ~97% of a ₹10L budget deployed, IRR ~21.7%. Every-dip is the current default since crash-sized drops are rare by definition and shouldn't be the plan — the finer 15-tier granularity (vs. an earlier 5-tier every-dip attempt) captures ordinary dips more precisely without materially changing the IRR trade-off.</p>
+        <table class="strat-tbl">
+          <tr><th style="text-align:left;font-size:11px;color:var(--muted)">W%R ≤</th><th style="text-align:left;font-size:11px;color:var(--muted)">% of Max Cash/ETF</th></tr>
+          <tr><td>−75</td><td>0.19%</td></tr>
+          <tr><td>−77</td><td>0.21%</td></tr>
+          <tr><td>−79</td><td>0.24%</td></tr>
+          <tr><td>−81</td><td>0.28%</td></tr>
+          <tr><td>−83</td><td>0.31%</td></tr>
+          <tr><td>−85</td><td>0.36%</td></tr>
+          <tr><td>−87</td><td>0.41%</td></tr>
+          <tr><td>−89</td><td>0.46%</td></tr>
+          <tr><td>−91</td><td>0.52%</td></tr>
+          <tr><td>−93</td><td>0.59%</td></tr>
+          <tr><td>−95</td><td>0.68%</td></tr>
+          <tr><td>−96</td><td>0.77%</td></tr>
+          <tr><td>−97</td><td>0.87%</td></tr>
+          <tr><td>−98</td><td>0.99%</td></tr>
+          <tr><td>−99</td><td>1.13%</td></tr>
+        </table>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px">Each tier fires at most once per dip cycle. Tiers re-arm when W%R recovers above −40 (dip cycle reset). Sum across all 15 tiers ≈ 8% of <code>bnh_max_cash_per_etf</code> per uninterrupted crash-depth cycle — deliberately far under 100%, since the goal is many small bites across years, not one large one. Fully editable in the Tier Ladder table above (add/remove rows freely — the engine reads whatever's in <code>bnh_tiers</code>, any tier count works).</p>
 
         <div class="strat-divider"></div>
 
@@ -2331,7 +2427,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <p style="margin-bottom:8px">A small fixed-day DCA buy layered on top of the 5-tier system, independent of W%R. Historical analysis (2020–2026 daily data) found no statistically reliable "cheap day of the week" for these instruments — any old weekend effect has decayed to noise. This tranche is sized accordingly: small, capped, and fully toggleable rather than built around a presumed edge.</p>
         <table class="strat-tbl">
           <tr><td class="strat-td-key">Trigger</td><td>Fires once per ISO week on <code>bnh_weekday_buy_day</code> (default Monday), regardless of W%R. Always at the fixed <strong>3:15 PM IST</strong> window — independent of <code>buy_execution_time</code>, even when that's set to "anytime" for the tier system.</td></tr>
-          <tr><td class="strat-td-key">Size</td><td><code>bnh_weekday_buy_frac</code> of <code>bnh_max_cash_per_etf</code> per fire (default 2% — well below Tier 1's 5%, reflecting the weaker conviction).</td></tr>
+          <tr><td class="strat-td-key">Size</td><td><code>bnh_weekday_buy_frac</code> of <code>bnh_max_cash_per_etf</code> per fire (default 2% — larger than any single tier in the current 15-tier ladder below, by design, since this fires on a schedule with zero oversold conviction behind it).</td></tr>
           <tr><td class="strat-td-key">Lifetime cap</td><td><code>bnh_weekday_buy_max_share</code> of <code>bnh_max_cash_per_etf</code> (default 20%) — prevents this tranche from crowding out the oversold-tier system in a low-volatility year with few deep dips.</td></tr>
           <tr><td class="strat-td-key">Double-buy guard</td><td>Skipped if a W%R tier already bought the same symbol that same day.</td></tr>
           <tr><td class="strat-td-key">Toggle</td><td><code>bnh_weekday_buy_enabled</code> — off by default; can be disabled instantly if the edge fades further.</td></tr>
@@ -2343,8 +2439,8 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
           <div class="strat-col">
             <div class="strat-block-title">BUY ENTRY CONDITIONS</div>
             <table class="strat-tbl">
-              <tr><td class="strat-td-key">Signal</td><td>Daily W%R(<code>bnh_wr_period</code>, default 10) ≤ −60 (oversold threshold, still hardcoded — the depth tiers below are what actually vary the response).</td></tr>
-              <tr><td class="strat-td-key">Subsequent buys</td><td>Live price must be ≥ <code>bnh_min_drop_pct</code>% below current avg buy price before adding (default 6%, was a hardcoded 0.5%). Backtesting found the old 0.5% barely filtered anything — widening it concentrates capital into real drawdowns instead of every minor wobble.</td></tr>
+              <tr><td class="strat-td-key">Signal</td><td>Daily W%R(<code>bnh_wr_period</code>, default 10) ≤ <code>bnh_oversold_threshold</code> (default −75, was hardcoded −60 — the tier ladder below is what actually varies the response depth).</td></tr>
+              <tr><td class="strat-td-key">Subsequent buys</td><td>Averaging-down guard is <strong>off by default</strong> (<code>bnh_min_drop_enabled</code>). It compares each buy to your cumulative avg cost — once a position is up several multiples from early buys, no % setting (including 0%) makes that bar reachable again short of a crash back near original levels. Left on only if you deliberately want the strategy to stop adding once comfortably profitable.</td></tr>
               <tr><td class="strat-td-key">Execution time</td><td>Checks every 15 s. Fires at 3:15 PM IST by default, or anytime if <code>buy_execution_time = "anytime"</code>.</td></tr>
               <tr><td class="strat-td-key">Per-symbol cap</td><td>Cumulative deployed per symbol capped at <code>bnh_max_cash_per_etf</code> (₹10L). Per-transaction capped at <code>bnh_max_cash_per_transaction</code> (₹30K).</td></tr>
               <tr><td class="strat-td-key">One buy per day</td><td><code>buy_attempted_today</code> flag prevents multiple entries in the same session. Resets at midnight.</td></tr>
@@ -2379,9 +2475,9 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
             <div class="strat-block-title">KEY DIFFERENCES FROM ACTIVE STRATEGY</div>
             <table class="strat-tbl">
               <tr><td class="strat-td-key">Hold duration</td><td>Indefinite vs. Active's fixed profit-target exit.</td></tr>
-              <tr><td class="strat-td-key">Sell behaviour</td><td>Partial harvest (50%) only vs. Active's full position exit.</td></tr>
-              <tr><td class="strat-td-key">Position sizing</td><td>Exponential tier fractions vs. Active's flat per-transaction budget.</td></tr>
-              <tr><td class="strat-td-key">Oversold threshold</td><td>Fixed −60 (BnH) vs. configurable <code>williams_r_threshold</code> (Active).</td></tr>
+              <tr><td class="strat-td-key">Sell behaviour</td><td>Partial harvest (50%), off by default, vs. Active's full position exit at a fixed target.</td></tr>
+              <tr><td class="strat-td-key">Position sizing</td><td>Tiered fractions (15 tiers by default) vs. Active's flat per-transaction budget.</td></tr>
+              <tr><td class="strat-td-key">Oversold threshold</td><td>Configurable <code>bnh_oversold_threshold</code> (default −75) vs. Active's own <code>williams_r_threshold</code> — independently tunable, not shared.</td></tr>
               <tr><td class="strat-td-key">Symbol exclusivity</td><td>No symbol may be in both lists — enforced at settings save.</td></tr>
             </table>
           </div>
@@ -4212,6 +4308,20 @@ function populateForm(s) {
   setVal('s-bnh_partial_profit_pct',    s.bnh_partial_profit_pct);
   setVal('s-bnh_min_drop_pct',          s.bnh_min_drop_pct ?? 6.0);
   setVal('s-bnh_wr_period',             s.bnh_wr_period ?? 10);
+  setVal('s-bnh_oversold_threshold',    s.bnh_oversold_threshold ?? -75);
+  // Averaging-down guard toggle
+  const bnhmdEl = document.getElementById('s-bnh_min_drop_enabled');
+  if (bnhmdEl) {
+    bnhmdEl.checked = s.bnh_min_drop_enabled === true; // default OFF if key absent
+    document.getElementById('bnhmd-toggle-label').textContent = bnhmdEl.checked ? 'ON' : 'OFF';
+  }
+  // Tier ladder — dynamic N rows of [threshold, fraction]. Default matches DEFAULT_BNH_TIERS in intraday_engine.py
+  {
+    const tiers = (Array.isArray(s.bnh_tiers) && s.bnh_tiers.length > 0)
+      ? s.bnh_tiers.map(([t, f]) => [t, f * 100])   // stored as fraction, table shows %
+      : BNH_DEFAULT_TIERS;
+    bnhSetTiers(tiers);
+  }
   // Harvest (partial profit-taking) toggle
   const bnhhEl = document.getElementById('s-bnh_harvest_enabled');
   if (bnhhEl) {
@@ -4270,7 +4380,10 @@ function collectForm() {
     bnh_partial_profit_pct:        n('s-bnh_partial_profit_pct'),
     bnh_harvest_enabled:           document.getElementById('s-bnh_harvest_enabled')?.checked ?? false,
     bnh_min_drop_pct:              n('s-bnh_min_drop_pct'),
+    bnh_min_drop_enabled:          document.getElementById('s-bnh_min_drop_enabled')?.checked ?? false,
     bnh_wr_period:                 ni('s-bnh_wr_period'),
+    bnh_oversold_threshold:        n('s-bnh_oversold_threshold'),
+    bnh_tiers:                     bnhGetTiers(),
     bnh_weekday_buy_enabled:       document.getElementById('s-bnh_weekday_buy_enabled')?.checked ?? false,
     bnh_weekday_buy_day:           s('s-bnh_weekday_buy_day') || 'Monday',
     bnh_weekday_buy_frac:          n('s-bnh_weekday_buy_frac_pct') / 100,
