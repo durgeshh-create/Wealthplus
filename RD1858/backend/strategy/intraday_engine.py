@@ -29,20 +29,53 @@ logger = get_logger(__name__)
 
 # ── Constants ────────────────────────────────────────────────────────────────
 WILLIAMS_R_PERIOD  = 14            # fallback only — BnH engine uses self._wr_period() below
-OVERSOLD_THRESHOLD = -60.0
 BUY_HOUR, BUY_MIN  = 15, 15        # 3:15 PM IST
 BNH_SYMBOL         = 'MID150BEES'  # legacy alias kept for any external references
 
-# ── Backtested defaults (MID150BEES, 2019–2026, pure accumulator / no harvest) ──
-# min-drop guard 0.5% barely filters anything — the engine was re-buying on the
-# next trivial wobble instead of holding capital back for real drawdowns.
-# Widening it to 5-7% (with a shorter 10-day W%R lookback) raised backtested
-# IRR from ~22% to ~28-29% by concentrating buys into deeper, cheaper dips.
-# Both values held steady across a 5-9% / 7-14 day range in testing, not just
-# at one sharp peak — see chat history for the sweep. Re-validate before
-# trusting this on a different symbol or a shorter/out-of-sample window.
-DEFAULT_BNH_MIN_DROP_PCT = 6.0
-DEFAULT_BNH_WR_PERIOD    = 10
+# ── Backtested defaults (MID150BEES, 2019–2026) ──────────────────────────────
+# Two designs were tested and traded off deliberately:
+#   1. Concentrated: wait for a rare crash-sized drawdown, deploy the whole
+#      budget there. Backtested IRR ~28-29%, but relies on catching one
+#      lucky event (in this history: COVID, 13 months in) — could otherwise
+#      sit mostly in cash for years.
+#   2. Every-dip (THIS ONE, current default): smaller per-tier sizing,
+#      threshold moved from -60 to -75, fires on ~18 dips/year rather than
+#      waiting for a crash. Backtested IRR ~21.5%, but genuinely deploys
+#      every year rather than gambling on catching a rare event.
+# Every-dip was chosen as the default given crash-sized drops are rare by
+# definition and shouldn't be the plan. Re-validate on your own timeframe/
+# symbol before trusting this outside MID150BEES 2019-2026.
+DEFAULT_BNH_MIN_DROP_PCT   = 6.0
+DEFAULT_BNH_WR_PERIOD      = 10
+DEFAULT_OVERSOLD_THRESHOLD = -75.0
+DEFAULT_BNH_TIERS = [
+    # (wr_threshold, fraction_of_max_etf) — deepest applicable tier fires
+    # (fires at most once per dip cycle; cycle resets when W%R climbs back
+    # above -40). 15 tiers from -75 to -99 instead of 5, so ordinary dips get
+    # captured at fine granularity rather than lumping everything from -75
+    # to -85 into one bucket. Geometric ramp (~1.14x per step) so deeper,
+    # rarer dips still get proportionally more — deepest tier is ~6x the
+    # shallowest. Backtested on MID150BEES 2019-2026: 240 buys, 18-42/year in
+    # every calendar year (not clustered in one crash window), ~97% of a
+    # ₹10L budget deployed, IRR ~21.7%.
+    (-75.0, 0.00188),   # 0.19%  (₹1,877  at ₹10L budget)
+    (-77.0, 0.00213),   # 0.21%  (₹2,133)
+    (-79.0, 0.00242),   # 0.24%  (₹2,425)
+    (-81.0, 0.00276),   # 0.28%  (₹2,756)
+    (-83.0, 0.00313),   # 0.31%  (₹3,132)
+    (-85.0, 0.00356),   # 0.36%  (₹3,559)
+    (-87.0, 0.00405),   # 0.40%  (₹4,045)
+    (-89.0, 0.00460),   # 0.46%  (₹4,598)
+    (-91.0, 0.00523),   # 0.52%  (₹5,225)
+    (-93.0, 0.00594),   # 0.59%  (₹5,939)
+    (-95.0, 0.00675),   # 0.68%  (₹6,750)
+    (-96.0, 0.00767),   # 0.77%  (₹7,671)
+    (-97.0, 0.00872),   # 0.87%  (₹8,719)
+    (-98.0, 0.00991),   # 0.99%  (₹9,909)
+    (-99.0, 0.01126),   # 1.13%  (₹11,262)
+]
+
+
 
 SETTINGS_PATH = Path(__file__).parent.parent.parent / 'config' / 'settings.json'
 DATA_DIR      = SETTINGS_PATH.parent.parent / 'data'
@@ -177,6 +210,51 @@ class IntradayEngine:
         could eventually fire)."""
         return bool(self._s('bnh_harvest_enabled', True))
 
+    def _oversold_threshold(self) -> float:
+        """Base W%R level that gates any buy at all. Was a hardcoded -60
+        module constant. Backtesting a 'buy nearly every dip, not just crashes'
+        design (as opposed to a save-it-all-for-one-crash design) found -75
+        paired with much smaller per-tier sizing spread deployment across
+        ~18 dips/year instead of blowing the whole budget on the first big
+        drawdown. See DEFAULT_BNH_TIERS below — threshold and tier sizing
+        are a matched pair, don't change one without the other."""
+        try:    return float(self._s('bnh_oversold_threshold', DEFAULT_OVERSOLD_THRESHOLD))
+        except: return DEFAULT_OVERSOLD_THRESHOLD
+
+    def _tiers(self) -> list:
+        """Tier ladder as [[wr_threshold, fraction_of_max_etf], ...], deepest
+        applicable tier fires. Settings-driven (bnh_tiers) so it can be
+        re-tuned without a redeploy; falls back to DEFAULT_BNH_TIERS if the
+        setting is missing or malformed. Kept deliberately small per-tier
+        (0.25%-1.25% of budget) vs. the old 5%-35% ladder — that concentrated
+        design consumed the whole ₹10L budget on the first deep drawdown it
+        saw, which back-tested well (higher IRR) but meant multi-year stretches
+        fully in cash if no crash-sized dip showed up. This ladder trades some
+        IRR for genuinely continuous participation across ordinary dips."""
+        raw = self._s('bnh_tiers', None)
+        try:
+            if raw:
+                parsed = [(float(t), float(f)) for t, f in raw]
+                if parsed:
+                    return parsed
+        except Exception as e:
+            logger.warning(f"bnh_tiers malformed ({e}) — using DEFAULT_BNH_TIERS")
+        return DEFAULT_BNH_TIERS
+
+    def _min_drop_guard_enabled(self) -> bool:
+        """Master on/off for the averaging-down guard (min_drop_pct check).
+        Off by default — the guard compares each new buy to the CUMULATIVE
+        weighted average cost, which becomes an unreachable bar once a
+        position has appreciated well beyond that average (a stock up 4x from
+        your entry basically never trades 'below your average' again short of
+        a crash back near original levels). No value of bnh_min_drop_pct fixes
+        this — including 0% — because it's a reference-point problem, not a
+        magnitude problem. Leave off for a genuine 'buy every qualifying dip'
+        design; turn on only if you specifically want to skip re-adding near
+        an already-profitable average (accepting that it will effectively
+        stop buying entirely once the position is comfortably in profit)."""
+        return bool(self._s('bnh_min_drop_enabled', False))
+
     # ── Weekday systematic buy (supplementary DCA tranche) ────────────────────
     # Historical analysis (2020–2026 daily data, MID150BEES & MINDSPACE-RR):
     # Monday showed the most consistent (though modest, and partly decayed)
@@ -300,22 +378,15 @@ class IntradayEngine:
             logger.debug(f"[{symbol}] _calc_daily_wr error: {e}")
             return None
 
-    # ── Enhancement 2: 5-Tier Exponential Sizing ─────────────────────────────
-
-    TIERS = [
-        # (wr_threshold,  fraction_of_max_etf)
-        (-60,  0.05),
-        (-70,  0.10),
-        (-80,  0.20),
-        (-90,  0.30),
-        (-95,  0.35),
-    ]
+    # ── Enhancement 2: Tiered Sizing (settings-driven, see _tiers() / ────────
+    # ── DEFAULT_BNH_TIERS above for the current every-dip ladder) ────────────
 
     def _current_tier(self, wr: float):
-        """Return (tier_index, fraction) for the deepest applicable tier."""
+        """Return (tier_index, fraction) for the deepest applicable tier,
+        reading the ladder from self._tiers() (settings key bnh_tiers)."""
         tier_idx  = None
         tier_frac = 0.0
-        for idx, (threshold, frac) in enumerate(self.TIERS):
+        for idx, (threshold, frac) in enumerate(self._tiers()):
             if wr <= threshold:
                 tier_idx  = idx
                 tier_frac = frac
@@ -440,7 +511,7 @@ class IntradayEngine:
         except Exception:
             pass
 
-        if qty_held > 0 and avg_buy_price and avg_buy_price > 0:
+        if self._min_drop_guard_enabled() and qty_held > 0 and avg_buy_price and avg_buy_price > 0:
             min_drop = self._min_drop_pct()
             drop_from_avg = (avg_buy_price - ltp) / avg_buy_price * 100
             if drop_from_avg < min_drop:
@@ -499,7 +570,7 @@ class IntradayEngine:
 
         self._log_trade(st, action='BUY', price=exec_price, qty=qty, amount=cost,
                         wr=wr, funded_by=funded_by,
-                        reason=(f"Daily W%R {wr:.1f} ≤ {OVERSOLD_THRESHOLD}"
+                        reason=(f"Daily W%R {wr:.1f} ≤ {self._oversold_threshold()}"
                                 + (f" | {(avg_buy_price - ltp) / avg_buy_price * 100:.2f}% below avg ₹{avg_buy_price:.2f}"
                                    if qty_held > 0 and avg_buy_price else " | first entry")
                                 + f" | {order_type}"),
@@ -628,7 +699,7 @@ class IntradayEngine:
             if wr is None:
                 results.append({'symbol': sym, 'success': False, 'reason': 'W%R data not available'})
                 continue
-            if wr > OVERSOLD_THRESHOLD:
+            if wr > self._oversold_threshold():
                 results.append({'symbol': sym, 'success': False, 'reason': f'W%R {wr:.1f} not oversold'})
                 continue
             now = _now_ist()
@@ -680,7 +751,7 @@ class IntradayEngine:
                             if (not st.buy_attempted_today
                                     and not st.bought_today
                                     and wr is not None
-                                    and wr <= OVERSOLD_THRESHOLD):
+                                    and wr <= self._oversold_threshold()):
                                 st.buy_attempted_today = True
                                 st.buy_in_progress     = True
                                 trigger_label = 'anytime' if anytime else '3:15 PM'
@@ -876,18 +947,18 @@ class IntradayEngine:
         if wr is None:
             signal   = '⏳ Loading W%R data...'
             wr_state = 'LOADING'
-        elif wr <= OVERSOLD_THRESHOLD:
-            signal   = f'🟢 BUY SIGNAL — W%R {wr:.1f} ≤ {OVERSOLD_THRESHOLD} ({order_type})'
+        elif wr <= self._oversold_threshold():
+            signal   = f'🟢 BUY SIGNAL — W%R {wr:.1f} ≤ {self._oversold_threshold()} ({order_type})'
             wr_state = 'OVERSOLD'
         else:
-            signal   = f'😐 No signal — W%R {wr:.1f} (need ≤ {OVERSOLD_THRESHOLD})'
+            signal   = f'😐 No signal — W%R {wr:.1f} (need ≤ {self._oversold_threshold()})'
             wr_state = 'NEUTRAL'
 
         exec_val_r = self._s('buy_execution_time', '15:15')
         anytime_r  = (exec_val_r == 'anytime')
         time_label = 'anytime' if anytime_r else 'at 3:15 PM'
 
-        oversold_today = wr is not None and wr <= OVERSOLD_THRESHOLD
+        oversold_today = wr is not None and wr <= self._oversold_threshold()
         if oversold_today and not st.bought_today:
             next_buy = f'Today {time_label}'
         elif oversold_today and st.bought_today:
@@ -976,8 +1047,10 @@ class IntradayEngine:
             'max_cash_per_txn':   self._max_cash_per_txn(),
             'candle_minutes':     1440,
             'wr_period':          self._wr_period(),
-            'oversold':           OVERSOLD_THRESHOLD,
+            'oversold':           self._oversold_threshold(),
             'min_drop_pct':       self._min_drop_pct(),
+            'min_drop_enabled':   self._min_drop_guard_enabled(),
+            'tiers':              self._tiers(),
             'harvest_enabled':    self._harvest_enabled(),
             'max_attempts':       1,
             'cycles_today':       sum(1 for t in combined_log
