@@ -28,11 +28,21 @@ def _now_ist() -> datetime:
 logger = get_logger(__name__)
 
 # ── Constants ────────────────────────────────────────────────────────────────
-WILLIAMS_R_PERIOD  = 14
+WILLIAMS_R_PERIOD  = 14            # fallback only — BnH engine uses self._wr_period() below
 OVERSOLD_THRESHOLD = -60.0
 BUY_HOUR, BUY_MIN  = 15, 15        # 3:15 PM IST
-BNH_MIN_DROP_PCT   = 0.5           # min % below avg before adding to position
 BNH_SYMBOL         = 'MID150BEES'  # legacy alias kept for any external references
+
+# ── Backtested defaults (MID150BEES, 2019–2026, pure accumulator / no harvest) ──
+# min-drop guard 0.5% barely filters anything — the engine was re-buying on the
+# next trivial wobble instead of holding capital back for real drawdowns.
+# Widening it to 5-7% (with a shorter 10-day W%R lookback) raised backtested
+# IRR from ~22% to ~28-29% by concentrating buys into deeper, cheaper dips.
+# Both values held steady across a 5-9% / 7-14 day range in testing, not just
+# at one sharp peak — see chat history for the sweep. Re-validate before
+# trusting this on a different symbol or a shorter/out-of-sample window.
+DEFAULT_BNH_MIN_DROP_PCT = 6.0
+DEFAULT_BNH_WR_PERIOD    = 10
 
 SETTINGS_PATH = Path(__file__).parent.parent.parent / 'config' / 'settings.json'
 DATA_DIR      = SETTINGS_PATH.parent.parent / 'data'
@@ -142,6 +152,31 @@ class IntradayEngine:
     def _order_type(self) -> str:
         return self._s('default_order_type', 'LIMIT')
 
+    def _min_drop_pct(self) -> float:
+        """Min % the price must have fallen below avg buy price before adding
+        to an existing BnH position. Was a hardcoded 0.5% constant — now
+        settings-driven. Backtesting on MID150BEES found 5-7% materially
+        better (fewer, cheaper re-entries instead of buying every minor dip)."""
+        try:    return float(self._s('bnh_min_drop_pct', DEFAULT_BNH_MIN_DROP_PCT))
+        except: return DEFAULT_BNH_MIN_DROP_PCT
+
+    def _wr_period(self) -> int:
+        """W%R lookback period for the BnH engine specifically — deliberately
+        separate from Config.WILLIAMS_R_PERIOD (used by Active Strategy) so
+        tuning this doesn't change the oversold signal for active_etfs symbols."""
+        try:    return int(self._s('bnh_wr_period', DEFAULT_BNH_WR_PERIOD))
+        except: return DEFAULT_BNH_WR_PERIOD
+
+    def _harvest_enabled(self) -> bool:
+        """Master on/off for partial profit-taking. Backtesting found that for
+        a strong long-run compounder, repeatedly harvesting at a tight profit
+        target caps upside — disabling it and just letting tier buys
+        accumulate performed better. Explicit flag instead of setting
+        bnh_partial_profit_pct unreasonably high, which left an edge-case
+        foot-gun (e.g. an unattended profit_pct of 999 that still, technically,
+        could eventually fire)."""
+        return bool(self._s('bnh_harvest_enabled', True))
+
     # ── Weekday systematic buy (supplementary DCA tranche) ────────────────────
     # Historical analysis (2020–2026 daily data, MID150BEES & MINDSPACE-RR):
     # Monday showed the most consistent (though modest, and partly decayed)
@@ -235,8 +270,11 @@ class IntradayEngine:
             return None
 
     def _calc_daily_wr(self, symbol: str) -> Optional[float]:
-        """Compute daily W%R(14) for a symbol, appending live price as today's candle."""
+        """Compute daily W%R for a symbol using the BnH-specific lookback
+        period (self._wr_period(), default 10 — see DEFAULT_BNH_WR_PERIOD),
+        appending live price as today's candle."""
         try:
+            period = self._wr_period()
             # Try historical manager first
             if (self.historical and
                     hasattr(self.historical, 'cache') and
@@ -246,7 +284,7 @@ class IntradayEngine:
             else:
                 df = self._load_csv(symbol, 'daily')
 
-            if df is None or len(df) < WILLIAMS_R_PERIOD:
+            if df is None or len(df) < period:
                 return None
 
             live_price = self.realtime.get_ltp(symbol) if self.realtime else None
@@ -256,6 +294,7 @@ class IntradayEngine:
                 live_price=float(live_price) if live_price else None,
                 live_high=float(ohlc['high']) if ohlc and ohlc.get('high') else None,
                 live_low=float(ohlc['low'])  if ohlc and ohlc.get('low')  else None,
+                period=period,
             )
         except Exception as e:
             logger.debug(f"[{symbol}] _calc_daily_wr error: {e}")
@@ -402,9 +441,10 @@ class IntradayEngine:
             pass
 
         if qty_held > 0 and avg_buy_price and avg_buy_price > 0:
+            min_drop = self._min_drop_pct()
             drop_from_avg = (avg_buy_price - ltp) / avg_buy_price * 100
-            if drop_from_avg < BNH_MIN_DROP_PCT:
-                logger.info(f"[{symbol}] Skip — LTP ₹{ltp:.2f} only {drop_from_avg:.2f}% below avg ₹{avg_buy_price:.2f}")
+            if drop_from_avg < min_drop:
+                logger.info(f"[{symbol}] Skip — LTP ₹{ltp:.2f} only {drop_from_avg:.2f}% below avg ₹{avg_buy_price:.2f} (need ≥{min_drop:.1f}%)")
                 return
 
         qty = int(budget // float(ltp))
@@ -634,7 +674,7 @@ class IntradayEngine:
                         self._check_dip_cycle_reset(wr, st)
 
                         if at_trigger and not st.buy_in_progress:
-                            if not st.sold_today:
+                            if not st.sold_today and self._harvest_enabled():
                                 self._check_partial_sell(now, st)
 
                             if (not st.buy_attempted_today
@@ -935,8 +975,10 @@ class IntradayEngine:
             'max_cash_per_etf':   self._max_cash_per_etf(),
             'max_cash_per_txn':   self._max_cash_per_txn(),
             'candle_minutes':     1440,
-            'wr_period':          WILLIAMS_R_PERIOD,
+            'wr_period':          self._wr_period(),
             'oversold':           OVERSOLD_THRESHOLD,
+            'min_drop_pct':       self._min_drop_pct(),
+            'harvest_enabled':    self._harvest_enabled(),
             'max_attempts':       1,
             'cycles_today':       sum(1 for t in combined_log
                                       if t.get('action') == 'BUY' and t.get('date') == today_str),
