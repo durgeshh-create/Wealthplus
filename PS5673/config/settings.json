@@ -6,6 +6,7 @@
     "EMBASSY-RR",
     "BANKBEES",
     "HDFCSML250",
+    "GOLDBEES",
     "NIFTYBEES"
   ],
   "bnh_max_cash_per_etf": 1000000,
@@ -31,11 +32,13 @@
   "intraday_long_max_cycles": 0,
   "intraday_short_max_cycles": 0,
   "bnh_partial_profit_pct": 10,
+  "bnh_harvest_enabled": false,
+  "bnh_min_drop_pct": 6.0,
+  "bnh_wr_period": 10,
   "bnh_symbols": [
-    "MID150BEES",
-    "GOLDBEES"
+    "MID150BEES"
   ],
-  "bnh_weekday_buy_enabled": true,
+  "bnh_weekday_buy_enabled": false,
   "bnh_weekday_buy_day": "Thursday",
   "bnh_weekday_buy_frac": 0.02,
   "telegram_enabled": false,
