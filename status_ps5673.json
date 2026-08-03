@@ -1,15 +1,15 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-08-03 13:16:33 IST",
+  "timestamp": "2026-08-03 13:17:35 IST",
   "bot_running": true,
-  "total_value": 8635844.83,
-  "today_pnl": 20494.64,
+  "total_value": 8635356.14,
+  "today_pnl": 20491.91,
   "today_pnl_pct": 0.24,
   "liquidcase": {
     "quantity": 48596,
     "free_quantity": 0,
-    "price": 115.3,
-    "value": 5603118.8,
+    "price": 115.29,
+    "value": 5602632.84,
     "pct": 64.88
   },
   "slots": {
@@ -39,8 +39,8 @@
       "value": 155376.0,
       "pnl": 1388.4,
       "pnl_pct": 0.9,
-      "unrealised_pnl": 2777.62,
-      "unrealised_pnl_pct": 1.82,
+      "unrealised_pnl": 2790.62,
+      "unrealised_pnl_pct": 1.83,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 6
@@ -53,8 +53,8 @@
       "value": 78455.25,
       "pnl": 931.02,
       "pnl_pct": 1.2,
-      "unrealised_pnl": 645.26,
-      "unrealised_pnl_pct": 0.83,
+      "unrealised_pnl": 585.08,
+      "unrealised_pnl_pct": 0.75,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 6
@@ -77,10 +77,10 @@
       "symbol": "MID150BEES",
       "quantity": 3813,
       "avg": 232.72,
-      "ltp": 241.78,
-      "value": 921907.14,
-      "pnl": 8769.9,
-      "pnl_pct": 0.96,
+      "ltp": 241.81,
+      "value": 922021.53,
+      "pnl": 8884.29,
+      "pnl_pct": 0.97,
       "unrealised_pnl": 34590.42,
       "unrealised_pnl_pct": 3.9,
       "strategy": "bnh",
@@ -95,8 +95,8 @@
       "value": 999267.0,
       "pnl": 8322.76,
       "pnl_pct": 0.84,
-      "unrealised_pnl": -1552.8,
-      "unrealised_pnl_pct": -0.16,
+      "unrealised_pnl": -1338.48,
+      "unrealised_pnl_pct": -0.13,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 6
@@ -105,12 +105,12 @@
       "symbol": "SILVERBEES",
       "quantity": 1464,
       "avg": 224.97,
-      "ltp": 206.68,
-      "value": 302579.52,
-      "pnl": 248.88,
-      "pnl_pct": 0.08,
-      "unrealised_pnl": -26823.35,
-      "unrealised_pnl_pct": -8.14,
+      "ltp": 206.6,
+      "value": 302462.4,
+      "pnl": 131.76,
+      "pnl_pct": 0.04,
+      "unrealised_pnl": -26837.99,
+      "unrealised_pnl_pct": -8.15,
       "strategy": "active",
       "buys_today": 7,
       "max_slots": 6
@@ -169,18 +169,18 @@
   "williams_r": [
     {
       "symbol": "SILVERBEES",
-      "ltp": 206.68,
-      "change_pct": 0.08,
-      "williams_r": -69.64,
+      "ltp": 206.6,
+      "change_pct": 0.04,
+      "williams_r": -70.32,
       "is_held": true,
       "avg_price": 224.97,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 802.98,
+      "ltp": 803.0,
       "change_pct": 0.92,
-      "williams_r": -3.46,
+      "williams_r": -3.41,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -205,9 +205,9 @@
     },
     {
       "symbol": "HDFCSML250",
-      "ltp": 182.99,
+      "ltp": 182.98,
       "change_pct": 1.28,
-      "williams_r": -4.19,
+      "williams_r": -4.31,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -223,9 +223,9 @@
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 241.78,
-      "change_pct": 0.96,
-      "williams_r": -3.78,
+      "ltp": 241.81,
+      "change_pct": 0.97,
+      "williams_r": -3.49,
       "is_held": true,
       "avg_price": 232.72,
       "strategy": "bnh"
@@ -256,19 +256,19 @@
   ],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24583.15,
+      "ltp": 24584.5,
       "prev_close": 24383.6,
-      "change": 199.55,
+      "change": 200.9,
       "change_pct": 0.82,
       "open": 24572.7,
       "high": 24609.5,
       "low": 24515.15
     },
     "INDIA VIX": {
-      "ltp": 11.95,
+      "ltp": 11.92,
       "prev_close": 11.76,
-      "change": 0.19,
-      "change_pct": 1.62,
+      "change": 0.16,
+      "change_pct": 1.36,
       "open": 11.76,
       "high": 12.03,
       "low": 11.7
@@ -401,6 +401,6 @@
     }
   },
   "available_cash": 75533.92,
-  "available_margin": 768857.98,
+  "available_margin": 767876.48,
   "available_margin_note": null
 }
