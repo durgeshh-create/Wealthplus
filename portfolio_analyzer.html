@@ -2415,18 +2415,18 @@
 
         // =====================================================
         // Market ticker: Dow Jones Futures CFD & GIFT NIFTY, scraped from
-        // Moneycontrol's Global Indices page (moneycontrol doesn't expose a
-        // simple public JSON quote endpoint for these two, so we pull the
-        // rendered page HTML through the same CORS-proxy chain used above
-        // and pattern-match the numbers next to each index's name).
+        // groww.in's per-index pages. (Moneycontrol's global-indices page
+        // didn't yield usable numbers through the CORS-proxy chain - likely
+        // client-rendered after the initial HTML - so we pull from groww.in
+        // instead, which server-renders a clean "PRICE / CHANGE (CHANGE%) 1D"
+        // block for each index and even labels Dow futures as "CFD".)
         // =====================================================
 
-        const MC_GLOBAL_INDICES_URL = 'https://www.moneycontrol.com/markets/global-indices/';
-        const mcIndicesCacheKey = 'mc_global_indices_cache_v1';
+        const mcIndicesCacheKey = 'mc_global_indices_cache_v2';
 
         const mcIndices = [
-            { elId: 'ticker-dowfutures', decimals: 2, names: ['Dow Jones Futures CFD', 'Dow Jones Futures', 'Dow Futures'] },
-            { elId: 'ticker-giftnifty', decimals: 2, names: ['GIFT NIFTY', 'Gift Nifty', 'SGX Nifty'] }
+            { elId: 'ticker-dowfutures', decimals: 2, url: 'https://groww.in/indices/global-indices/dow-jones-futures' },
+            { elId: 'ticker-giftnifty', decimals: 2, url: 'https://groww.in/indices/global-indices/sgx-nifty' }
         ];
 
         function loadMcIndicesCache() {
@@ -2447,34 +2447,34 @@
             } catch (e) { console.error('MC indices cache save error:', e); }
         }
 
-        // Confirms the fetched HTML is really Moneycontrol's global indices
-        // page (rather than a proxy's block/rate-limit page) before trusting it.
-        function isValidGlobalIndicesPage(text) {
+        // Confirms the fetched HTML is really a groww.in index page (rather
+        // than a proxy's block/rate-limit page) before trusting it.
+        function isValidGrowwPage(text) {
             const lower = text.toLowerCase();
-            return lower.includes('gift nifty') || lower.includes('global indices');
+            return lower.includes('groww') && lower.includes('1d');
         }
 
-        async function fetchMcGlobalIndicesHTML() {
+        async function fetchGrowwHTML(url) {
             const attempts = corsProxies.map((proxy, i) =>
-                fetchViaSingleProxy(MC_GLOBAL_INDICES_URL, i, 8000, isValidGlobalIndicesPage).catch(err => {
-                    console.warn(`MC proxy ${proxy.name} failed:`, err.message);
+                fetchViaSingleProxy(url, i, 8000, isValidGrowwPage).catch(err => {
+                    console.warn(`Groww proxy ${proxy.name} failed for ${url}:`, err.message);
                     throw err;
                 })
             );
             try {
                 return await Promise.any(attempts);
             } catch (aggregateErr) {
-                throw new Error('All CORS proxies exhausted for moneycontrol global indices');
+                throw new Error(`All CORS proxies exhausted for ${url}`);
             }
         }
 
         // Strips tags down to plain text, inserting separators at block-level
-        // boundaries so a label and the next row's number don't run together.
+        // boundaries so numbers from adjacent rows don't run together.
         function htmlToFlatText(html) {
             return html
                 .replace(/<script[\s\S]*?<\/script>/gi, ' ')
                 .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-                .replace(/<(tr|td|th|li|div|p|br)\b[^>]*>/gi, ' | ')
+                .replace(/<(tr|td|th|li|div|p|br|h1|h2)\b[^>]*>/gi, ' | ')
                 .replace(/<[^>]+>/g, ' ')
                 .replace(/&nbsp;/gi, ' ')
                 .replace(/&amp;/gi, '&')
@@ -2482,52 +2482,35 @@
                 .trim();
         }
 
-        // Given flattened page text and acceptable label variants, finds the
-        // label and reads the price + %change that follow it. Moneycontrol
-        // typically renders each row as: NAME  PRICE  CHANGE  CHANGE%
-        function extractIndexFromText(flatText, nameVariants) {
-            const lowerText = flatText.toLowerCase();
-            for (const name of nameVariants) {
-                const idx = lowerText.indexOf(name.toLowerCase());
-                if (idx === -1) continue;
-                const windowText = flatText.slice(idx + name.length, idx + name.length + 200);
-                const numMatches = windowText.match(/-?\d[\d,]*\.?\d*\s*%?/g);
-                if (!numMatches || numMatches.length === 0) continue;
-                const nums = numMatches.map(s => s.trim()).filter(s => s.replace(/[^0-9]/g, '').length > 0);
-                if (nums.length === 0) continue;
-                const price = parseFloat(nums[0].replace(/,/g, '').replace('%', ''));
-                if (isNaN(price)) continue;
-                let changePct = null;
-                const pctToken = nums.find(n => n.includes('%'));
-                if (pctToken) {
-                    changePct = parseFloat(pctToken.replace(/,/g, '').replace('%', ''));
-                } else if (nums.length > 1) {
-                    changePct = parseFloat(nums[1].replace(/,/g, ''));
-                }
-                if (isNaN(changePct)) changePct = null;
-                return { price, changePct };
-            }
-            return null;
+        // groww.in renders each index's headline quote as:
+        //   PRICE  |  +/-CHANGE (CHANGE%) 1D
+        // e.g. "23,890.50 | -71.00 (0.30%) 1D" - the dollar/point change
+        // carries the sign; the percentage in parentheses does not, so we
+        // apply the change's sign to the percentage ourselves.
+        function extractGrowwPrice(html) {
+            const flatText = htmlToFlatText(html);
+            const match = flatText.match(/([\d,]+\.\d{2})\s*\|?\s*([+-]?)([\d,]+\.\d{2})\s*\(([\d.]+)%\)\s*1D/i);
+            if (!match) return null;
+            const price = parseFloat(match[1].replace(/,/g, ''));
+            const sign = match[2] === '-' ? -1 : 1;
+            const changePct = sign * parseFloat(match[4]);
+            if (isNaN(price) || isNaN(changePct)) return null;
+            return { price, changePct };
         }
 
         async function updateMcIndicesTicker() {
-            let html;
-            try {
-                html = await fetchMcGlobalIndicesHTML();
-            } catch (err) {
-                console.warn('Moneycontrol global indices fetch failed:', err.message);
-                return; // leave whatever is currently shown (cached/stale) as-is
-            }
-            const flatText = htmlToFlatText(html);
-            mcIndices.forEach(idx => {
-                const result = extractIndexFromText(flatText, idx.names);
-                if (result) {
+            await Promise.all(mcIndices.map(async idx => {
+                try {
+                    const html = await fetchGrowwHTML(idx.url);
+                    const result = extractGrowwPrice(html);
+                    if (!result) throw new Error('Could not parse price from groww.in page');
                     renderTickerItem(idx.elId, result.price, result.changePct, idx.decimals, false);
                     saveMcIndicesCache(idx.elId, result.price, result.changePct);
-                } else {
-                    console.warn(`Could not locate "${idx.names[0]}" on moneycontrol global-indices page`);
+                } catch (err) {
+                    console.warn(`Groww index fetch failed for ${idx.url}:`, err.message);
+                    // Leave whatever is currently shown (cached/stale value) as-is.
                 }
-            });
+            }));
         }
 
         // Initialize
