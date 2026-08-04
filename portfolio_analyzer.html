@@ -237,6 +237,7 @@
         .equity-th-chg { width: 8%; }
         .equity-th-ltp { width: 9%; }
         .equity-th-cagr { width: 6%; }
+        .equity-th-wr { width: 7%; }
         .equity-th-action { width: 6%; }
         .chg-pos { color: #64ffda; font-weight: 600; }
         .chg-neg { color: #ff6b6b; font-weight: 600; }
@@ -400,7 +401,7 @@
                             <button class="btn" id="equityRefreshBtn" onclick="refreshAllSection('equity')">Refresh</button>
                         </div>
                         <div class="line"></div>
-                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/7/10Y CAGR</span>
+                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/7/10Y CAGR · W%R(14D)</span>
                     </div>
 
                     <div class="status" id="equityStatus"></div>
@@ -421,6 +422,7 @@
                                     <th class="equity-th-cagr">5Y</th>
                                     <th class="equity-th-cagr">7Y</th>
                                     <th class="equity-th-cagr">10Y</th>
+                                    <th class="equity-th-wr" title="Daily Williams %R (14-day, close-based). 0 = overbought, -100 = oversold">W%R</th>
                                     <th class="equity-th-action">Go</th>
                                 </tr>
                             </thead>
@@ -428,7 +430,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="scroll-hint">← Swipe to see 5Y / 7Y / 10Y / Go →</div>
+                    <div class="scroll-hint">← Swipe to see 7Y / 10Y / W%R / Go →</div>
                 </div>
 
                 <div class="section-col">
@@ -1354,7 +1356,7 @@
                 mfQuery: "Quant Multi Asset Allocation Fund",
                 gfTicker: "MUTF_IN:QUAN_MULT_ASSE_1UEK35E",
                 url: "https://www.google.com/finance/quote/QUAN_MULT_ASSE_1UEK35E:MUTF_IN",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, williamsR: null, status: null
             },
             {
                 name: "MID150BEES",
@@ -1362,7 +1364,7 @@
                 symbol: "MID150BEES.NS",
                 gfTicker: "NSE:MID150BEES",
                 url: "https://www.google.com/finance/quote/MID150BEES:NSE",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, williamsR: null, status: null
             },
             {
                 name: "Invesco India Smallcap Fund",
@@ -1370,7 +1372,7 @@
                 mfQuery: "Invesco India Smallcap Fund",
                 gfTicker: "MUTF_IN:INVE_INDI_SMAL_Y23R9P",
                 url: "https://www.google.com/finance/beta/quote/INVE_INDI_SMAL_Y23R9P:MUTF_IN",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, williamsR: null, status: null
             }
         ];
 
@@ -1491,6 +1493,7 @@
                             f.cagr5y = c.cagr5y !== undefined ? c.cagr5y : null;
                             f.cagr7y = c.cagr7y !== undefined ? c.cagr7y : null;
                             f.cagr10y = c.cagr10y !== undefined ? c.cagr10y : null;
+                            f.williamsR = c.williamsR !== undefined ? c.williamsR : null;
                             f.status = 'ok';
                         }
                     });
@@ -1505,7 +1508,7 @@
             try {
                 const dataToCache = section.funds.map(f => ({
                     name: f.name, pct20dma: f.pct20dma, sparkSvg: f.sparkSvg, dayChange: f.dayChange, ltp: f.ltp,
-                    cagr3y: f.cagr3y, cagr5y: f.cagr5y, cagr7y: f.cagr7y, cagr10y: f.cagr10y
+                    cagr3y: f.cagr3y, cagr5y: f.cagr5y, cagr7y: f.cagr7y, cagr10y: f.cagr10y, williamsR: f.williamsR
                 }));
                 localStorage.setItem(section.cacheKey, JSON.stringify(dataToCache));
                 localStorage.setItem(section.cacheTimeKey, Date.now().toString());
@@ -1786,6 +1789,30 @@
             return ((latest - avg20) / avg20) * 100;
         }
 
+        // Daily Williams %R (standard 14-period lookback), close-only variant.
+        // True Williams %R uses each day's intraday High/Low, but neither the
+        // MFapi.in NAV history (mutual funds only ever have one NAV/day, no
+        // intraday range) nor the price arrays we keep for ETFs carry
+        // High/Low here - so we substitute the rolling highest/lowest CLOSE
+        // (or NAV) over the lookback window in place of highest-high/
+        // lowest-low. This is the standard adaptation of the indicator for
+        // instruments priced once a day, and keeps the value directly
+        // comparable across mutual funds and ETFs in this section.
+        // %R = ((highestClose - currentClose) / (highestClose - lowestClose)) * -100
+        // Range: 0 (overbought, at/near the period high) to -100 (oversold,
+        // at/near the period low).
+        function computeWilliamsR(data, period = 14) {
+            if (!data || data.length < period) return null;
+            const window = data.slice(-period);
+            const closes = window.map(d => d.price);
+            const highestClose = Math.max(...closes);
+            const lowestClose = Math.min(...closes);
+            const current = closes[closes.length - 1];
+            const range = highestClose - lowestClose;
+            if (!range) return 0; // flat over the window - neither overbought nor oversold
+            return ((highestClose - current) / range) * -100;
+        }
+
         // Latest available price in the history series
         function computeLTP(data) {
             if (!data || !data.length) return null;
@@ -1903,6 +1930,19 @@
             return `<span class="${cls}" style="font-size:0.78rem;">${sign}${val.toFixed(2)}%</span>`;
         }
 
+        // Williams %R runs 0 (overbought) to -100 (oversold). Colour the
+        // extremes so they pop the same way the up/down cells do elsewhere:
+        // <= -80 oversold (green, "cheap"), >= -20 overbought (red, "pricey"),
+        // otherwise neutral grey in the middle of the range.
+        function formatWilliamsRCell(val) {
+            if (val === null || val === undefined) return '<span class="ytm-na">N/A</span>';
+            let cls = 'dma-sub';
+            let label = '';
+            if (val <= -80) { cls = 'dma-pos'; label = '<div class="dma-sub">oversold</div>'; }
+            else if (val >= -20) { cls = 'dma-neg'; label = '<div class="dma-sub">overbought</div>'; }
+            return `<div><span class="${cls}" style="font-size:0.78rem;">${val.toFixed(1)}</span>${label}</div>`;
+        }
+
         function renderSectionTable(section) {
             const tbody = document.getElementById(section.tbodyId);
             tbody.innerHTML = '';
@@ -1910,7 +1950,8 @@
             section.funds.forEach((fund, index) => {
                 const row = document.createElement('tr');
 
-                let sparkCell, dmaCell, chgCell, ltpCell, cagr3Cell, cagr5Cell, cagr7Cell, cagr10Cell;
+                let sparkCell, dmaCell, chgCell, ltpCell, cagr3Cell, cagr5Cell, cagr7Cell, cagr10Cell, wrCell;
+                const showWilliamsR = section.key === 'equity';
 
                 if (fund.status === 'loading' || (fund.status === null && fund.pct20dma === null)) {
                     const loadingLabel = fund.errorMsg ? fund.errorMsg : 'Loading...';
@@ -1919,6 +1960,7 @@
                     chgCell = '<span class="ytm-loading">...</span>';
                     ltpCell = '<span class="ytm-loading">...</span>';
                     cagr3Cell = cagr5Cell = cagr7Cell = cagr10Cell = '<span class="ytm-loading">...</span>';
+                    wrCell = '<span class="ytm-loading">...</span>';
                 } else if (fund.status === 'error') {
                     const errText = fund.errorMsg ? `<div class="dma-sub" style="color:#ff6b6b;">${fund.errorMsg}</div>` : '';
                     sparkCell = `<span class="ytm-error">Failed</span>`;
@@ -1926,6 +1968,7 @@
                     chgCell = '<span class="ytm-na">-</span>';
                     ltpCell = '<span class="ytm-na">-</span>';
                     cagr3Cell = cagr5Cell = cagr7Cell = cagr10Cell = '<span class="ytm-na">-</span>';
+                    wrCell = '<span class="ytm-na">-</span>';
                 } else {
                     sparkCell = fund.sparkSvg
                         ? `<div class="sparkline-wrap">${fund.sparkSvg}</div>`
@@ -1958,6 +2001,7 @@
                     cagr5Cell = formatCagrCell(fund.cagr5y);
                     cagr7Cell = formatCagrCell(fund.cagr7y);
                     cagr10Cell = formatCagrCell(fund.cagr10y);
+                    wrCell = formatWilliamsRCell(fund.williamsR);
                 }
 
                 row.innerHTML = `
@@ -1973,6 +2017,7 @@
                     <td>${cagr5Cell}</td>
                     <td>${cagr7Cell}</td>
                     <td>${cagr10Cell}</td>
+                    ${showWilliamsR ? `<td>${wrCell}</td>` : ''}
                     <td>
                         <a href="${fund.url}" target="_blank" class="ticker-link">View</a>
                         ${fund.status === 'error' ? `<button class="retry-btn" onclick="refreshSingleSectionFund('${section.key}', ${index})">Retry</button>` : ''}
@@ -2030,6 +2075,7 @@
                     fund.cagr5y = computeReturnForFund(fund, history, 5);
                     fund.cagr7y = computeReturnForFund(fund, history, 7);
                     fund.cagr10y = computeReturnForFund(fund, history, 10);
+                    fund.williamsR = computeWilliamsR(history, 14);
 
                     // The 10-year daily chart above is fine for 20DMA/
                     // sparkline/CAGR, but has proven unreliable specifically
@@ -2074,6 +2120,7 @@
                 fund.cagr5y = computeReturnForFund(fund, bestSparse, 5);
                 fund.cagr7y = computeReturnForFund(fund, bestSparse, 7);
                 fund.cagr10y = computeReturnForFund(fund, bestSparse, 10);
+                fund.williamsR = computeWilliamsR(bestSparse, 14);
                 if (fund.assetType !== 'mf') {
                     try {
                         const liveQuote = await fetchLiveQuote([fund.symbol, ...(fund.fallbackSymbols || [])]);
