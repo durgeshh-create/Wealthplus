@@ -241,6 +241,18 @@
         .equity-th-action { width: 6%; }
         .chg-pos { color: #64ffda; font-weight: 600; }
         .chg-neg { color: #ff6b6b; font-weight: 600; }
+        /* Highlights a fund name when it's both technically oversold
+           (W%R <= -70) and still trending below its 20DMA - a literal
+           "highlighter pen" style flag, not a status color. */
+        .name-highlight {
+            background: #ffe066;
+            color: #1a1f3a;
+            padding: 1px 6px;
+            border-radius: 3px;
+            display: inline;
+            box-decoration-break: clone;
+            -webkit-box-decoration-break: clone;
+        }
         tr:hover {
             background: rgba(255, 255, 255, 0.02);
         }
@@ -1525,7 +1537,7 @@
         // with valid JSON. This bounds worst-case wait to ~1 timeout window
         // instead of summing every proxy's timeout sequentially (which is
         // what made failures take minutes instead of seconds).
-        async function fetchJSONWithProxies(url, timeoutMs = 6000) {
+        async function fetchJSONWithProxies(url, timeoutMs = 8000) {
             const attempts = corsProxies.map((proxy, i) =>
                 fetchViaSingleProxy(url, i, timeoutMs).then(text => {
                     try {
@@ -1646,10 +1658,20 @@
                     throw new Error(msg);
                 }
                 const timestamps = result.timestamp || [];
-                const closes = result.indicators?.quote?.[0]?.close || [];
+                const quote = result.indicators?.quote?.[0] || {};
+                const closes = quote.close || [];
+                const highs = quote.high || [];
+                const lows = quote.low || [];
                 const data = timestamps.map((t, i) => ({
                     date: new Date(t * 1000),
-                    price: closes[i]
+                    price: closes[i],
+                    // True intraday high/low for this candle, when Yahoo
+                    // provides them - used for a proper (non-approximated)
+                    // Williams %R below. Falls back to the close itself if
+                    // missing for a given candle so a stray null doesn't
+                    // break the high/low window calc.
+                    high: (highs[i] !== null && highs[i] !== undefined && !isNaN(highs[i])) ? highs[i] : closes[i],
+                    low: (lows[i] !== null && lows[i] !== undefined && !isNaN(lows[i])) ? lows[i] : closes[i]
                 })).filter(d => d.price !== null && d.price !== undefined && !isNaN(d.price));
                 if (!data.length) throw new Error('Empty price series');
                 data.sort((a, b) => a.date - b.date);
@@ -1791,32 +1813,33 @@
             return ((latest - avg20) / avg20) * 100;
         }
 
-        // Daily Williams %R (standard 14-period lookback), close-only variant.
-        // True Williams %R uses each day's intraday High/Low, but neither the
-        // MFapi.in NAV history (mutual funds only ever have one NAV/day, no
-        // intraday range) nor the price arrays we keep for ETFs carry
-        // High/Low here - so we substitute the rolling highest/lowest CLOSE
-        // (or NAV) over the lookback window in place of highest-high/
-        // lowest-low. This is the standard adaptation of the indicator for
-        // instruments priced once a day, and keeps the value directly
-        // comparable across mutual funds and ETFs in this section.
-        // %R = ((highestClose - currentClose) / (highestClose - lowestClose)) * -100
+        // Daily Williams %R (standard 14-period lookback).
+        // Uses TRUE intraday High/Low when available (ETFs/REITs/InvITs,
+        // sourced from Yahoo Finance's chart candles) for a textbook-accurate
+        // reading. Mutual funds only ever publish one NAV/day - no intraday
+        // range exists to use - so for those we fall back to the standard
+        // close-only adaptation: rolling highest/lowest CLOSE (NAV) stands in
+        // for highest-high/lowest-low. Both variants are directly comparable
+        // in the -100..0 scale, just with the MF version being a smoother
+        // approximation rather than measuring true daily swings.
+        // %R = ((highestHigh - currentClose) / (highestHigh - lowestLow)) * -100
         // Range: 0 (overbought, at/near the period high) to -100 (oversold,
         // at/near the period low).
         function computeWilliamsR(data, period = 14) {
             if (!data || data.length < period) return null;
             const window = data.slice(-period);
-            const closes = window.map(d => d.price);
-            const highestClose = Math.max(...closes);
-            const lowestClose = Math.min(...closes);
-            const current = closes[closes.length - 1];
-            const range = highestClose - lowestClose;
+            const highs = window.map(d => (d.high !== undefined && d.high !== null) ? d.high : d.price);
+            const lows = window.map(d => (d.low !== undefined && d.low !== null) ? d.low : d.price);
+            const highestHigh = Math.max(...highs);
+            const lowestLow = Math.min(...lows);
+            const current = window[window.length - 1].price;
+            const range = highestHigh - lowestLow;
             // Truly flat over the whole window (no price movement at all) -
             // %R is undefined/meaningless here rather than a real "at the
             // high" (0) or "at the low" (-100) reading, so surface it as
             // N/A instead of mislabeling a flat line as overbought.
             if (!range) return null;
-            return ((highestClose - current) / range) * -100;
+            return ((highestHigh - current) / range) * -100;
         }
 
         // Latest available price in the history series
@@ -2009,9 +2032,17 @@
                     wrCell = formatWilliamsRCell(fund.williamsR);
                 }
 
+                // Flag names in yellow when the fund is both technically
+                // oversold (W%R <= -70) AND still trending below its 20DMA
+                // (negative %20DMA) - the combination worth a second look,
+                // vs. either signal alone.
+                const isOversoldHighlight =
+                    fund.williamsR !== null && fund.williamsR !== undefined && fund.williamsR <= -70 &&
+                    fund.pct20dma !== null && fund.pct20dma !== undefined && fund.pct20dma < 0;
+
                 row.innerHTML = `
                     <td>
-                        <div class="fund-name">${fund.name}</div>
+                        <div class="fund-name${isOversoldHighlight ? ' name-highlight' : ''}">${fund.name}</div>
                         <div class="fund-type">${assetTypeLabels[fund.assetType] || fund.assetType}</div>
                     </td>
                     <td>${sparkCell}</td>
@@ -2032,11 +2063,14 @@
             });
         }
 
-        // On failure, auto-retry once with a short delay before giving up and
-        // showing the manual Retry button. Kept low (rather than many retries)
-        // since each attempt already races all proxies in parallel - more
-        // retries mainly add wait time without much added success chance.
-        const MAX_AUTO_RETRIES = 1;
+        // On failure, auto-retry with a backoff delay before giving up and
+        // showing the manual Retry button. All 4 public CORS proxies can
+        // occasionally get simultaneously rate-limited/blocked for a short
+        // window (seen as "0 OK, N failed" across a whole section) - a
+        // couple of spaced-out extra attempts meaningfully improves the odds
+        // of catching a proxy once it's recovered, at the cost of a few more
+        // seconds before falling back to the manual Retry button.
+        const MAX_AUTO_RETRIES = 3;
         // A "successful" fetch that returns only a couple of candles can't
         // support 20DMA/sparkline/3Y CAGR - treat it as a soft failure worth
         // retrying rather than silently showing permanent N/A cells.
@@ -2108,7 +2142,10 @@
                     if (attempt < MAX_AUTO_RETRIES) {
                         fund.errorMsg = `Retrying... (${attempt + 1}/${MAX_AUTO_RETRIES})`;
                         renderSectionTable(section);
-                        await new Promise(r => setTimeout(r, 1000));
+                        // Backoff increases with each attempt (1.2s, 2.4s, 3.6s...)
+                        // so a transient "all proxies rate-limited" window has
+                        // more time to clear before we hit it again.
+                        await new Promise(r => setTimeout(r, 1200 * (attempt + 1)));
                     }
                 }
             }
