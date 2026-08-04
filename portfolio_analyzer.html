@@ -230,14 +230,14 @@
             margin: 4px 0 6px;
             letter-spacing: 0.03em;
         }
-        /* Equity / REIT / Bullion column widths (9 cols: Name, Spark, %20DMA, %Chg, LTP, 3Y, 5Y, 10Y, Action) */
-        .equity-th-name { width: 30%; }
-        .equity-th-spark { width: 10%; }
-        .equity-th-dma { width: 11%; }
-        .equity-th-chg { width: 9%; }
-        .equity-th-ltp { width: 10%; }
-        .equity-th-cagr { width: 7%; }
-        .equity-th-action { width: 7%; }
+        /* Equity / REIT / Bullion column widths (10 cols: Name, Spark, %20DMA, %Chg, LTP, 3Y, 5Y, 7Y, 10Y, Action) */
+        .equity-th-name { width: 27%; }
+        .equity-th-spark { width: 9%; }
+        .equity-th-dma { width: 10%; }
+        .equity-th-chg { width: 8%; }
+        .equity-th-ltp { width: 9%; }
+        .equity-th-cagr { width: 6%; }
+        .equity-th-action { width: 6%; }
         .chg-pos { color: #64ffda; font-weight: 600; }
         .chg-neg { color: #ff6b6b; font-weight: 600; }
         tr:hover {
@@ -391,42 +391,7 @@
         </div>
 
         <div class="sections-grid">
-            <!-- ===== DEBT SECTION ===== -->
-            <div class="section-col">
-                <div class="section-title">
-                    <h2>Debt Funds</h2>
-                    <div class="title-controls">
-                        <button class="btn" id="refreshBtn" onclick="refreshAll()">Refresh All</button>
-                        <button class="btn" onclick="clearCache()" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.3);color:#ff6b6b;">Clear</button>
-                    </div>
-                    <div class="line"></div>
-                    <span class="badge">YTM · %Change · NAV · 3Y</span>
-                </div>
-
-                <div class="status" id="status"></div>
-                <div class="progress-bar" id="progressBar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th id="th-fund" onclick="sortByName()" data-label="Fund">Fund ↕</th>
-                                <th id="th-ytm" onclick="sortByYTM()" data-label="YTM">YTM ↕</th>
-                                <th id="th-chg" onclick="sortByChg()" data-label="%Change">%Change ↕</th>
-                                <th>NAV</th>
-                                <th id="th-3y" onclick="sortBy3Y()" data-label="3Y">3Y ↕</th>
-                                <th>GO</th>
-                            </tr>
-                        </thead>
-                        <tbody id="fundTable">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- ===== EQUITY + REIT/InvIT + BULLION (stacked in one column) ===== -->
+            <!-- ===== LEFT COLUMN: EQUITY (above) + DEBT (below) ===== -->
             <div class="stacked-pair">
                 <div class="section-col">
                     <div class="section-title">
@@ -435,7 +400,7 @@
                             <button class="btn" id="equityRefreshBtn" onclick="refreshAllSection('equity')">Refresh</button>
                         </div>
                         <div class="line"></div>
-                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/10Y CAGR</span>
+                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/7/10Y CAGR</span>
                     </div>
 
                     <div class="status" id="equityStatus"></div>
@@ -454,6 +419,7 @@
                                     <th class="equity-th-ltp">LTP</th>
                                     <th class="equity-th-cagr">3Y</th>
                                     <th class="equity-th-cagr">5Y</th>
+                                    <th class="equity-th-cagr">7Y</th>
                                     <th class="equity-th-cagr">10Y</th>
                                     <th class="equity-th-action">Go</th>
                                 </tr>
@@ -462,9 +428,46 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="scroll-hint">← Swipe to see 5Y / 10Y / Go →</div>
+                    <div class="scroll-hint">← Swipe to see 5Y / 7Y / 10Y / Go →</div>
                 </div>
 
+                <div class="section-col">
+                    <div class="section-title">
+                        <h2>Debt Funds</h2>
+                        <div class="title-controls">
+                            <button class="btn" id="refreshBtn" onclick="refreshAll()">Refresh All</button>
+                            <button class="btn" onclick="clearCache()" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.3);color:#ff6b6b;">Clear</button>
+                        </div>
+                        <div class="line"></div>
+                        <span class="badge">YTM · %Change · NAV · 3Y</span>
+                    </div>
+
+                    <div class="status" id="status"></div>
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th id="th-fund" onclick="sortByName()" data-label="Fund">Fund ↕</th>
+                                    <th id="th-ytm" onclick="sortByYTM()" data-label="YTM">YTM ↕</th>
+                                    <th id="th-chg" onclick="sortByChg()" data-label="%Change">%Change ↕</th>
+                                    <th>NAV</th>
+                                    <th id="th-3y" onclick="sortBy3Y()" data-label="3Y">3Y ↕</th>
+                                    <th>GO</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fundTable">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== RIGHT COLUMN: REIT/InvIT (above) + BULLION (below) ===== -->
+            <div class="stacked-pair">
                 <div class="section-col">
                     <div class="section-title">
                         <h2>REIT / InvIT</h2>
@@ -472,7 +475,7 @@
                             <button class="btn" id="reitRefreshBtn" onclick="refreshAllSection('reit')">Refresh</button>
                         </div>
                         <div class="line"></div>
-                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/10Y Total Return</span>
+                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/7/10Y Total Return</span>
                     </div>
 
                     <div class="status" id="reitStatus"></div>
@@ -491,6 +494,7 @@
                                     <th class="equity-th-ltp">LTP</th>
                                     <th class="equity-th-cagr" title="Total Return CAGR = price appreciation + distributions paid, annualized">3Y TR</th>
                                     <th class="equity-th-cagr" title="Total Return CAGR = price appreciation + distributions paid, annualized">5Y TR</th>
+                                    <th class="equity-th-cagr" title="Total Return CAGR = price appreciation + distributions paid, annualized">7Y TR</th>
                                     <th class="equity-th-cagr" title="Total Return CAGR = price appreciation + distributions paid, annualized">10Y TR</th>
                                     <th class="equity-th-action">Go</th>
                                 </tr>
@@ -499,7 +503,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="scroll-hint">← Swipe to see 5Y / 10Y / Go →</div>
+                    <div class="scroll-hint">← Swipe to see 5Y / 7Y / 10Y / Go →</div>
                 </div>
 
                 <div class="section-col">
@@ -509,7 +513,7 @@
                             <button class="btn" id="bullionRefreshBtn" onclick="refreshAllSection('bullion')">Refresh</button>
                         </div>
                         <div class="line"></div>
-                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/10Y CAGR</span>
+                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/7/10Y CAGR</span>
                     </div>
 
                     <div class="status" id="bullionStatus"></div>
@@ -528,6 +532,7 @@
                                     <th class="equity-th-ltp">LTP</th>
                                     <th class="equity-th-cagr">3Y</th>
                                     <th class="equity-th-cagr">5Y</th>
+                                    <th class="equity-th-cagr">7Y</th>
                                     <th class="equity-th-cagr">10Y</th>
                                     <th class="equity-th-action">Go</th>
                                 </tr>
@@ -536,7 +541,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="scroll-hint">← Swipe to see 5Y / 10Y / Go →</div>
+                    <div class="scroll-hint">← Swipe to see 5Y / 7Y / 10Y / Go →</div>
                 </div>
             </div>
         </div>
@@ -1357,7 +1362,7 @@
                 symbol: "MID150BEES.NS",
                 gfTicker: "NSE:MID150BEES",
                 url: "https://www.google.com/finance/quote/MID150BEES:NSE",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, status: null
             },
             {
                 name: "Invesco India Smallcap Fund",
@@ -1378,7 +1383,7 @@
                 fallbackSymbols: ["542602.BO"],
                 gfTicker: "BOM:542602",
                 url: "https://www.google.com/finance/beta/quote/542602:BOM",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, status: null
             },
             {
                 name: "MINDSPACE (Mindspace Business Parks REIT)",
@@ -1387,7 +1392,7 @@
                 fallbackSymbols: ["543217.BO"],
                 gfTicker: "BOM:543217",
                 url: "https://www.google.com/finance/beta/quote/543217:BOM",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, status: null
             },
             {
                 name: "INDIGRID (IndiGrid InvIT)",
@@ -1396,7 +1401,7 @@
                 fallbackSymbols: ["540565.BO"],
                 gfTicker: "BOM:540565",
                 url: "https://www.google.com/finance/beta/quote/540565:BOM",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, status: null
             },
             {
                 name: "NXST (Nexus Select Trust REIT)",
@@ -1405,7 +1410,7 @@
                 fallbackSymbols: ["543913.BO"],
                 gfTicker: "BOM:543913",
                 url: "https://www.google.com/finance/beta/quote/543913:BOM",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, status: null
             }
         ];
 
@@ -1417,7 +1422,7 @@
                 symbol: "GOLDBEES.NS",
                 gfTicker: "NSE:GOLDBEES",
                 url: "https://www.google.com/finance/quote/GOLDBEES:NSE",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, status: null
             },
             {
                 name: "SILVERBEES",
@@ -1425,7 +1430,7 @@
                 symbol: "SILVERBEES.NS",
                 gfTicker: "NSE:SILVERBEES",
                 url: "https://www.google.com/finance/quote/SILVERBEES:NSE",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, status: null
             }
         ];
 
@@ -1484,6 +1489,7 @@
                             f.ltp = c.ltp !== undefined ? c.ltp : null;
                             f.cagr3y = c.cagr3y !== undefined ? c.cagr3y : null;
                             f.cagr5y = c.cagr5y !== undefined ? c.cagr5y : null;
+                            f.cagr7y = c.cagr7y !== undefined ? c.cagr7y : null;
                             f.cagr10y = c.cagr10y !== undefined ? c.cagr10y : null;
                             f.status = 'ok';
                         }
@@ -1499,7 +1505,7 @@
             try {
                 const dataToCache = section.funds.map(f => ({
                     name: f.name, pct20dma: f.pct20dma, sparkSvg: f.sparkSvg, dayChange: f.dayChange, ltp: f.ltp,
-                    cagr3y: f.cagr3y, cagr5y: f.cagr5y, cagr10y: f.cagr10y
+                    cagr3y: f.cagr3y, cagr5y: f.cagr5y, cagr7y: f.cagr7y, cagr10y: f.cagr10y
                 }));
                 localStorage.setItem(section.cacheKey, JSON.stringify(dataToCache));
                 localStorage.setItem(section.cacheTimeKey, Date.now().toString());
@@ -1904,7 +1910,7 @@
             section.funds.forEach((fund, index) => {
                 const row = document.createElement('tr');
 
-                let sparkCell, dmaCell, chgCell, ltpCell, cagr3Cell, cagr5Cell, cagr10Cell;
+                let sparkCell, dmaCell, chgCell, ltpCell, cagr3Cell, cagr5Cell, cagr7Cell, cagr10Cell;
 
                 if (fund.status === 'loading' || (fund.status === null && fund.pct20dma === null)) {
                     const loadingLabel = fund.errorMsg ? fund.errorMsg : 'Loading...';
@@ -1912,14 +1918,14 @@
                     dmaCell = `<span class="ytm-loading">${loadingLabel}</span>`;
                     chgCell = '<span class="ytm-loading">...</span>';
                     ltpCell = '<span class="ytm-loading">...</span>';
-                    cagr3Cell = cagr5Cell = cagr10Cell = '<span class="ytm-loading">...</span>';
+                    cagr3Cell = cagr5Cell = cagr7Cell = cagr10Cell = '<span class="ytm-loading">...</span>';
                 } else if (fund.status === 'error') {
                     const errText = fund.errorMsg ? `<div class="dma-sub" style="color:#ff6b6b;">${fund.errorMsg}</div>` : '';
                     sparkCell = `<span class="ytm-error">Failed</span>`;
                     dmaCell = `<span class="ytm-error">Failed</span>${errText}`;
                     chgCell = '<span class="ytm-na">-</span>';
                     ltpCell = '<span class="ytm-na">-</span>';
-                    cagr3Cell = cagr5Cell = cagr10Cell = '<span class="ytm-na">-</span>';
+                    cagr3Cell = cagr5Cell = cagr7Cell = cagr10Cell = '<span class="ytm-na">-</span>';
                 } else {
                     sparkCell = fund.sparkSvg
                         ? `<div class="sparkline-wrap">${fund.sparkSvg}</div>`
@@ -1950,6 +1956,7 @@
 
                     cagr3Cell = formatCagrCell(fund.cagr3y);
                     cagr5Cell = formatCagrCell(fund.cagr5y);
+                    cagr7Cell = formatCagrCell(fund.cagr7y);
                     cagr10Cell = formatCagrCell(fund.cagr10y);
                 }
 
@@ -1964,6 +1971,7 @@
                     <td>${ltpCell}</td>
                     <td>${cagr3Cell}</td>
                     <td>${cagr5Cell}</td>
+                    <td>${cagr7Cell}</td>
                     <td>${cagr10Cell}</td>
                     <td>
                         <a href="${fund.url}" target="_blank" class="ticker-link">View</a>
@@ -2020,6 +2028,7 @@
                     fund.ltp = computeLTP(history);
                     fund.cagr3y = computeReturnForFund(fund, history, 3);
                     fund.cagr5y = computeReturnForFund(fund, history, 5);
+                    fund.cagr7y = computeReturnForFund(fund, history, 7);
                     fund.cagr10y = computeReturnForFund(fund, history, 10);
 
                     // The 10-year daily chart above is fine for 20DMA/
@@ -2063,6 +2072,7 @@
                 fund.ltp = computeLTP(bestSparse);
                 fund.cagr3y = computeReturnForFund(fund, bestSparse, 3);
                 fund.cagr5y = computeReturnForFund(fund, bestSparse, 5);
+                fund.cagr7y = computeReturnForFund(fund, bestSparse, 7);
                 fund.cagr10y = computeReturnForFund(fund, bestSparse, 10);
                 if (fund.assetType !== 'mf') {
                     try {
