@@ -1,25 +1,3 @@
-2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 48578 units (₹5601529.18)
-2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES
-2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | Held ETFs (4): EMBASSY-RR, BANKBEES, NIFTYBEES, SILVERBEES
-2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | Available slots: 2/6
-2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 209 free + 48369 pledged + 0 T1 = 48578 units @ ₹115.31
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -18 units @ ₹115.31
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 48578 units (Holdings updated | -18 sold today)
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 48578 units (free: 209) = ₹5601529.18
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 4 locked (EMBASSY-RR, BANKBEES, NIFTYBEES, SILVERBEES)
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 48578 units (₹5601529.18)
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | Held ETFs (4): EMBASSY-RR, BANKBEES, NIFTYBEES, SILVERBEES
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | Available slots: 2/6
-2026-08-04 13:07:08 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
-2026-08-04 13:08:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 209 free + 48369 pledged + 0 T1 = 48578 units @ ₹115.31
-2026-08-04 13:08:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -18 units @ ₹115.31
 2026-08-04 13:08:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 48578 units (Holdings updated | -18 sold today)
 2026-08-04 13:08:08 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 48578 units (free: 209) = ₹5601529.18
 2026-08-04 13:08:08 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES
@@ -498,3 +476,25 @@
 2026-08-04 13:39:22 IST | INFO     | backend.portfolio.tracker | Held ETFs (4): EMBASSY-RR, BANKBEES, NIFTYBEES, SILVERBEES
 2026-08-04 13:39:22 IST | INFO     | backend.portfolio.tracker | Available slots: 2/6
 2026-08-04 13:39:22 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-04 13:40:10 IST | ERROR    | kiteconnect.ticker   | Connection error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+2026-08-04 13:40:10 IST | ERROR    | backend.data.realtime | ❌ WebSocket error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+2026-08-04 13:40:10 IST | ERROR    | kiteconnect.ticker   | Connection closed: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+2026-08-04 13:40:10 IST | WARNING  | backend.data.realtime | 🔴 WebSocket closed: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+2026-08-04 13:40:10 IST | INFO     | backend.data.realtime | 🔄 WebSocket reconnect attempt 1(∞) in 10s...
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 209 free + 48369 pledged + 0 T1 = 48578 units @ ₹115.30
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -18 units @ ₹115.30
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 48578 units (Holdings updated | -18 sold today)
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 48578 units (free: 209) = ₹5601043.40
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 4 locked (EMBASSY-RR, BANKBEES, NIFTYBEES, SILVERBEES)
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 48578 units (₹5601043.40)
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | Held ETFs (4): EMBASSY-RR, BANKBEES, NIFTYBEES, SILVERBEES
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | Available slots: 2/6
+2026-08-04 13:40:22 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-04 13:40:30 IST | INFO     | backend.data.realtime | 🔄 WebSocket reconnect attempt 2(∞) in 20s...
+2026-08-04 13:41:00 IST | INFO     | backend.data.realtime | 🔄 WebSocket reconnect attempt 3(∞) in 30s...
