@@ -1,18 +1,3 @@
-2026-08-04 12:36:50 IST | INFO     | backend.data.historical | 📥 JUNIORBEES: bootstrapping historical data 2025-06-30 → 2026-08-03 (token=2800385)
-2026-08-04 12:36:50 IST | INFO     | backend.data.historical | ✅ JUNIORBEES: bootstrapped 271 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/JUNIORBEES.csv
-2026-08-04 12:36:50 IST | INFO     | backend.data.historical | 📥 EMBASSY-RR: bootstrapping historical data 2025-06-30 → 2026-08-03 (token=2402049)
-2026-08-04 12:36:50 IST | INFO     | backend.data.historical | ✅ EMBASSY-RR: bootstrapped 271 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/EMBASSY-RR.csv
-2026-08-04 12:36:50 IST | INFO     | backend.data.historical | 📥 BANKBEES: bootstrapping historical data 2025-06-30 → 2026-08-03 (token=2928385)
-2026-08-04 12:36:51 IST | INFO     | backend.data.historical | ✅ BANKBEES: bootstrapped 271 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/BANKBEES.csv
-2026-08-04 12:36:51 IST | INFO     | backend.data.historical | 📥 HDFCSML250: bootstrapping historical data 2025-06-30 → 2026-08-03 (token=3643649)
-2026-08-04 12:36:51 IST | INFO     | backend.data.historical | ✅ HDFCSML250: bootstrapped 271 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/HDFCSML250.csv
-2026-08-04 12:36:51 IST | INFO     | backend.data.historical | 📥 NIFTYBEES: bootstrapping historical data 2025-06-30 → 2026-08-03 (token=2707457)
-2026-08-04 12:36:51 IST | INFO     | backend.data.historical | ✅ NIFTYBEES: bootstrapped 271 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/NIFTYBEES.csv
-2026-08-04 12:36:51 IST | INFO     | backend.data.historical | 📥 MID150BEES: bootstrapping historical data 2025-06-30 → 2026-08-03 (token=2177537)
-2026-08-04 12:36:52 IST | INFO     | backend.data.historical | ✅ MID150BEES: bootstrapped 271 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/MID150BEES.csv
-2026-08-04 12:36:52 IST | INFO     | backend.data.historical | 📥 MINDSPACE-RR: bootstrapping historical data 2025-06-30 → 2026-08-03 (token=5710849)
-2026-08-04 12:36:53 IST | INFO     | backend.data.historical | ✅ MINDSPACE-RR: bootstrapped 271 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/MINDSPACE-RR.csv
-2026-08-04 12:36:53 IST | INFO     | backend.data.historical | ✓ Historical data loaded for 8 symbols (active + BnH)
 2026-08-04 12:36:53 IST | INFO     | backend.data.realtime | Initializing WebSocket connection...
 2026-08-04 12:36:54 IST | INFO     | backend.data.realtime | ✓ Instruments CSV from https://api.kite.trade/instruments (110964 rows)
 2026-08-04 12:36:54 IST | INFO     | backend.data.realtime | Looking up tokens for: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES, MID150BEES, MINDSPACE-RR, LIQUIDCASE
@@ -498,3 +483,18 @@
 2026-08-04 13:05:07 IST | INFO     | backend.portfolio.tracker | Held ETFs (4): EMBASSY-RR, BANKBEES, NIFTYBEES, SILVERBEES
 2026-08-04 13:05:07 IST | INFO     | backend.portfolio.tracker | Available slots: 2/6
 2026-08-04 13:05:07 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 209 free + 48369 pledged + 0 T1 = 48578 units @ ₹115.30
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -18 units @ ₹115.31
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 48578 units (Holdings updated | -18 sold today)
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 48578 units (free: 209) = ₹5601529.18
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 4 locked (EMBASSY-RR, BANKBEES, NIFTYBEES, SILVERBEES)
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 48578 units (₹5601529.18)
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | Held ETFs (4): EMBASSY-RR, BANKBEES, NIFTYBEES, SILVERBEES
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | Available slots: 2/6
+2026-08-04 13:06:07 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
