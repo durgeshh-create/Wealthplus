@@ -44,13 +44,6 @@ header{display:flex;align-items:center;flex-wrap:wrap;padding:8px 20px;border-bo
 .dot.stale{background:var(--amber)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 .ts{font-size:10px;color:var(--muted)}
-.idx-chips{display:flex;align-items:center;gap:8px;margin-right:4px}
-.idx-chip{display:flex;flex-direction:column;align-items:flex-end;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px 8px;min-width:72px;cursor:default;transition:border-color .15s}
-.idx-chip:hover{border-color:var(--accent)}
-.idx-chip .ic-name{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-family:var(--head);line-height:1.2}
-.idx-chip .ic-val{font-size:12px;font-weight:700;font-family:var(--head);color:var(--text);line-height:1.3}
-.idx-chip .ic-chg{font-size:9.5px;font-weight:600;line-height:1.2}
-.ic-chg.pos{color:var(--green)}.ic-chg.neg{color:var(--red)}.ic-chg.neu{color:var(--muted)}
 
 /* ── tabs ── */
 .tabs{display:flex;background:var(--bg2);border-bottom:2px solid var(--border);padding:0 20px}
@@ -85,12 +78,6 @@ main{padding:18px 20px;max-width:960px;margin:0 auto}
   .logo h1{font-size:15px}
   .logo .sub{display:none}
   .hdr-right{gap:6px;margin-left:0;flex-wrap:wrap;row-gap:4px;padding-left:0;width:100%}
-  /* Shrink NIFTY/VIX chips so they fit on mobile instead of hiding them */
-  .idx-chips{gap:4px;margin-right:0}
-  .idx-chip{min-width:58px;padding:2px 6px}
-  .idx-chip .ic-name{font-size:8px}
-  .idx-chip .ic-val{font-size:10.5px}
-  .idx-chip .ic-chg{font-size:8.5px}
   .pill{padding:3px 8px;font-size:10px}
   /* Shrink bot toggle button */
   #bot-toggle-btn{padding:4px 8px!important;font-size:10px!important;letter-spacing:0!important}
@@ -141,6 +128,12 @@ main{padding:18px 20px;max-width:960px;margin:0 auto}
 
 /* ── table ── */
 .tbl{width:100%;border-collapse:collapse}
+/* Guarantees any wide data table (Positions, Williams %R, Mutual Fund
+   Holdings) scrolls horizontally within its own panel instead of being
+   silently clipped by html/body's overflow-x:hidden — the actual cause of
+   "truncated" columns on narrow screens. Inert on desktop where content
+   already fits (no scrollbar appears unless it's actually needed). */
+.tbl-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tbl thead tr{border-bottom:1px solid var(--border2)}
 .tbl th{padding:7px 15px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:400}
 .tbl th:not(:first-child){text-align:right}
@@ -508,10 +501,6 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
   <div class="hdr-right">
 
     <div class="pill"><div class="dot" id="bot-dot"></div><span id="bot-txt">Loading&hellip;</span></div>
-    <div class="idx-chips">
-      <div class="idx-chip" id="chip-nifty50"><span class="ic-name">NIFTY 50</span><span class="ic-val">—</span><span class="ic-chg neu">—</span></div>
-      <div class="idx-chip" id="chip-indiavix"><span class="ic-name">INDIA VIX</span><span class="ic-val">—</span><span class="ic-chg neu">—</span></div>
-    </div>
     <button id="bot-toggle-btn" onclick="handleBotBtn()" style="
       padding:5px 14px;border-radius:6px;border:1px solid rgba(22,163,74,.35);
       background:var(--green-d);color:var(--green);font-size:11px;font-weight:600;
@@ -564,7 +553,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
             <span class="pb" id="pos-count">—</span>
           </div>
         </div>
-        <div>
+        <div class="tbl-wrap">
           <table class="tbl">
             <thead><tr><th>SYMBOL</th><th>QTY</th><th>AVG ₹</th><th>LTP ₹</th><th>UNREALISED</th><th>REALISED</th></tr></thead>
             <tbody id="pos-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
@@ -607,6 +596,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
   <!-- Williams %R -->
   <div class="panel" style="margin-bottom:14px">
     <div class="ph"><span class="pt">Williams %R &nbsp;<span style="font-size:10px;font-weight:400;color:var(--muted)">≤ −75 oversold → BUY zone</span></span></div>
+    <div class="tbl-wrap">
     <table class="tbl" id="wr-tbl" style="table-layout:fixed;width:100%">
       <thead><tr>
         <th style="text-align:left;padding-left:14px;width:38%">Symbol / Price</th>
@@ -617,6 +607,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       </tr></thead>
       <tbody id="wr-tbl-body"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
     </table>
+    </div>
   </div>
 
   <!-- Mutual Fund Holdings -->
@@ -625,6 +616,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       <span class="pt">Mutual Fund Holdings</span>
       <div id="mf-summary-chips" style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted2)"></div>
     </div>
+    <div class="tbl-wrap">
     <table class="tbl" id="mf-tbl" style="width:100%">
       <thead><tr>
         <th style="text-align:left;padding-left:14px">Instrument</th>
@@ -633,6 +625,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       </tr></thead>
       <tbody id="mf-tbl-body"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
     </table>
+    </div>
   </div>
   </div>
   </main>
@@ -3394,28 +3387,6 @@ function render(data) {
 }
 
 // ── Fetch + refresh ───────────────────────────────────────────────────────────
-function renderIndices(indices) {
-  if (!indices) return;
-  const fmt = v => v != null ? v.toLocaleString("en-IN", {maximumFractionDigits: 2}) : "—";
-  const setChip = (id, name) => {
-    const d = indices[name];
-    const el = document.getElementById(id);
-    if (!d || !el) return;
-    const ltp = d.ltp, chg = d.change, pct = d.change_pct;
-    el.querySelector(".ic-val").textContent = ltp != null ? fmt(ltp) : "—";
-    const chgEl = el.querySelector(".ic-chg");
-    if (chg != null && pct != null) {
-      const sign = chg >= 0 ? "+" : "";
-      chgEl.textContent = `${sign}${fmt(chg)} (${sign}${pct.toFixed(2)}%)`;
-      chgEl.className = "ic-chg " + (chg > 0 ? "pos" : chg < 0 ? "neg" : "neu");
-    } else {
-      chgEl.textContent = "—";
-      chgEl.className = "ic-chg neu";
-    }
-  };
-  setChip("chip-nifty50",   "NIFTY 50");
-  setChip("chip-indiavix",  "INDIA VIX");
-}
 
 // ── Live Kite direct-fetch (Option 2) ─────────────────────────────────────────
 // Instrument tokens for symbols tracked by the bot.
@@ -3431,15 +3402,9 @@ const KITE_QUOTE_SYMBOLS = {
     "NSE:MINDSPACE-RR","NSE:EMBASSY-RR","NSE:BANKBEES","NSE:MID150BEES","NSE:LIQUIDCASE",
   ],
 };
-// Index instrument tokens (integer tokens, fetched via /quote?i= endpoint)
-const INDEX_TOKENS = {
-  "NIFTY 50":  "256265",
-  "INDIA VIX": "264969",
-};
 
 // Holds the most recent live quote data keyed by symbol (e.g. "NSE:MON100")
 let _liveQuotes  = {};   // sym → { last_price, ohlc:{open,high,low,close}, change, change_percent }
-let _liveIndices = {};   // "NIFTY 50" / "INDIA VIX" → same shape
 // Last full snapshot data — needed so patchLive() can build the live holdings table
 let _lastSnapshot = null;
 
@@ -3473,27 +3438,6 @@ async function fetchLiveQuotes() {
       }
     }
   } catch (_) { /* not logged in to Kite or CORS blocked — skip silently */ }
-
-  // ── Index quotes ───────────────────────────────────────────────────────────
-  try {
-    const idxQs = Object.values(INDEX_TOKENS).map(t => "i=" + t).join("&");
-    const ir    = await fetch("https://api.kite.trade/quote?" + idxQs, {
-      credentials: "include",
-      signal: AbortSignal.timeout(8000),
-    });
-    if (ir.ok) {
-      const ijson = await ir.json();
-      const idata = ijson.data || {};
-      // Re-key by friendly name (token → name)
-      const tokenToName = Object.fromEntries(
-        Object.entries(INDEX_TOKENS).map(([name, tok]) => [tok, name])
-      );
-      for (const [tok, val] of Object.entries(idata)) {
-        const name = tokenToName[tok];
-        if (name) _liveIndices[name] = val;
-      }
-    }
-  } catch (_) {}
 }
 
 /**
@@ -3583,24 +3527,6 @@ function patchLive() {
     pnlEl.textContent = (liveTodayPnl >= 0 ? "+" : "") + fmtL(liveTodayPnl);
     pnlEl.className   = "sc-val " + (liveTodayPnl >= 0 ? "pos" : "neg");
   }
-
-  // ── Patch index chips with live data ──────────────────────────────────────
-  const fmt = v => v != null ? v.toLocaleString("en-IN", {maximumFractionDigits: 2}) : "—";
-  [["chip-nifty50", "NIFTY 50"], ["chip-indiavix", "INDIA VIX"]].forEach(([id, name]) => {
-    const d  = _liveIndices[name];
-    const el = document.getElementById(id);
-    if (!d || !el) return;
-    const ltp = d.last_price, prevClose = d.ohlc?.close;
-    const chg    = prevClose ? ltp - prevClose : null;
-    const chgPct = prevClose && prevClose > 0 ? (ltp - prevClose) / prevClose * 100 : null;
-    el.querySelector(".ic-val").textContent = ltp != null ? fmt(ltp) : "—";
-    const chgEl = el.querySelector(".ic-chg");
-    if (chg != null && chgPct != null) {
-      const sign = chg >= 0 ? "+" : "";
-      chgEl.textContent = `${sign}${fmt(chg)} (${sign}${chgPct.toFixed(2)}%)`;
-      chgEl.className   = "ic-chg " + (chg > 0 ? "pos" : chg < 0 ? "neg" : "neu");
-    }
-  });
 
   // ── Patch Marketwatch panel LTP ────────────────────────────────────────────
   // Marketwatch's own dwr/wwr/dma20 stay on their normal CSV-driven refresh
@@ -3698,7 +3624,6 @@ async function refreshAll() {
   }
 
   document.getElementById("cfg-note").style.display = "none";
-  renderIndices(data.indices);
 
   // ── Parse snapshot timestamp "2026-06-04 09:17:39 IST" ───────────────────
   const snapTs  = data.timestamp ?? "";
@@ -3834,7 +3759,6 @@ function switchAccount(acc) {
   liveTimer     = null;
   _lastSnapshot = null;
   _liveQuotes   = {};
-  _liveIndices  = {};
   // FIX: clear stale DMA cache so new account fetches its own CSVs
   Object.keys(_dma20Cache).forEach(k => delete _dma20Cache[k]);
   refreshAll();
