@@ -241,15 +241,33 @@
         .equity-th-action { width: 6%; }
         .chg-pos { color: #64ffda; font-weight: 600; }
         .chg-neg { color: #ff6b6b; font-weight: 600; }
-        /* Highlights a fund name when it's both technically oversold
-           (W%R <= -70) and still trending below its 20DMA - a literal
-           "highlighter pen" style flag, not a status color. */
+        /* Flags a row (negative %20DMA OR W%R <= -70) with a white background
+           so it pops hard against the dark theme, then marks the fund
+           name/symbol itself with a yellow highlighter-pen box on top for a
+           second, unmistakable visual cue. All text inside gets a dark color
+           override since the rest of the theme's text colors (light greys,
+           whites) would be unreadable on white. */
+        tr.row-highlight { background: #ffffff !important; }
+        tr.row-highlight:hover { background: #f5f5f5 !important; }
+        tr.row-highlight td { color: #1a1f3a; }
+        tr.row-highlight .fund-type { color: #5a6478; }
+        tr.row-highlight .dma-sub { color: #5a6478; }
+        tr.row-highlight .ytm-na { color: #8892b0; }
+        /* The theme's light cyan/red/gold accent colors are tuned for a dark
+           background and read poorly on white - swap in darker, higher
+           contrast variants inside a highlighted row. */
+        tr.row-highlight .dma-pos, tr.row-highlight .chg-pos { color: #0a8f6e; }
+        tr.row-highlight .dma-neg, tr.row-highlight .chg-neg { color: #c62828; }
+        tr.row-highlight .ytm-loading { color: #b8860b; }
+        tr.row-highlight .ytm-error { color: #c62828; }
         .name-highlight {
             background: #ffe066;
             color: #1a1f3a;
-            padding: 1px 6px;
+            padding: 1px 7px;
             border-radius: 3px;
             display: inline;
+            font-weight: 700;
+            box-shadow: 0 0 0 1px #d4a900;
             box-decoration-break: clone;
             -webkit-box-decoration-break: clone;
         }
@@ -1594,7 +1612,7 @@
                 throw new Error('No confident scheme match on MFapi');
             }
 
-            const histUrl = `https://api.mfapi.in/mf/${best.schemeCode}`;
+            const histUrl = `https://api.mfapi.in/mf/${best.schemeCode}?_=${Date.now()}`;
             const histJson = await fetchJSONWithProxies(histUrl);
             if (!histJson.data || !histJson.data.length) throw new Error('No NAV history');
 
@@ -1604,7 +1622,37 @@
             }).filter(d => !isNaN(d.price) && !isNaN(d.date.getTime()));
 
             data.sort((a, b) => a.date - b.date);
-            return data;
+
+            // Defensive de-dupe: if the underlying feed ever returns two rows
+            // for the same calendar date (has happened with some MFapi
+            // mirrors), keep only the last one so a trailing-window
+            // calculation like Williams %R can't be skewed by a duplicate.
+            const deduped = [];
+            for (const d of data) {
+                const dateKey = d.date.toDateString();
+                if (deduped.length && deduped[deduped.length - 1].date.toDateString() === dateKey) {
+                    deduped[deduped.length - 1] = d;
+                } else {
+                    deduped.push(d);
+                }
+            }
+
+            // Same class of bug we hit earlier with the market ticker and ETF
+            // history: a CORS proxy can serve a STALE cached copy of the
+            // MFapi response instead of today's data. fetchETFHistory already
+            // guards against this; this path didn't, so a fund could silently
+            // compute everything (including Williams %R) off a NAV history
+            // that's actually days or weeks old. NAVs publish once/day on
+            // business days, so allow a bit of slack for weekends/holidays
+            // but reject anything that looks meaningfully stale and let the
+            // caller retry (likely via a different, non-caching proxy).
+            const newest = deduped[deduped.length - 1];
+            const daysSinceNewest = (Date.now() - newest.date.getTime()) / 86400000;
+            if (daysSinceNewest > 6) {
+                throw new Error('MFapi data looks stale (possible cached proxy response)');
+            }
+
+            return deduped;
         }
 
         // Fetch daily close history for an NSE-listed ETF via Yahoo Finance chart API.
@@ -2032,13 +2080,14 @@
                     wrCell = formatWilliamsRCell(fund.williamsR);
                 }
 
-                // Flag names in yellow when the fund is both technically
-                // oversold (W%R <= -70) AND still trending below its 20DMA
-                // (negative %20DMA) - the combination worth a second look,
-                // vs. either signal alone.
+                // Flag names when the fund is trending below its 20DMA
+                // (negative %20DMA) OR is technically oversold (W%R <= -70) -
+                // either signal alone is worth a second look.
                 const isOversoldHighlight =
-                    fund.williamsR !== null && fund.williamsR !== undefined && fund.williamsR <= -70 &&
-                    fund.pct20dma !== null && fund.pct20dma !== undefined && fund.pct20dma < 0;
+                    (fund.pct20dma !== null && fund.pct20dma !== undefined && fund.pct20dma < 0) ||
+                    (fund.williamsR !== null && fund.williamsR !== undefined && fund.williamsR <= -70);
+
+                row.className = isOversoldHighlight ? 'row-highlight' : '';
 
                 row.innerHTML = `
                     <td>
