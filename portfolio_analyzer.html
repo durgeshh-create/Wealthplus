@@ -8,10 +8,10 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1538 100%);
+            background: #ffffff;
             min-height: 100vh;
             padding: 30px 15px;
-            color: #e0e0e0;
+            color: #1a1f3a;
         }
         .container { max-width: 1500px; margin: 0 auto; }
         .header-row {
@@ -33,19 +33,19 @@
             display: flex;
             align-items: baseline;
             gap: 6px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #f5f7fb;
+            border: 1px solid #dfe3ec;
             border-radius: 8px;
             padding: 6px 10px;
             font-size: 0.78rem;
             white-space: nowrap;
         }
-        .ticker-label { color: #8892b0; font-weight: 600; letter-spacing: 0.02em; }
-        .ticker-price { color: #e0e0e0; font-weight: 700; }
+        .ticker-label { color: #5a6478; font-weight: 600; letter-spacing: 0.02em; }
+        .ticker-price { color: #1a1f3a; font-weight: 700; }
         .ticker-change { font-weight: 600; }
-        .ticker-change.up { color: #64ffda; }
-        .ticker-change.down { color: #ff6b6b; }
-        .ticker-change.flat { color: #8892b0; }
+        .ticker-change.up { color: #0a8f6e; }
+        .ticker-change.down { color: #c62828; }
+        .ticker-change.flat { color: #5a6478; }
         .ticker-item.loading .ticker-price,
         .ticker-item.loading .ticker-change { opacity: 0.4; }
         @media (max-width: 700px) {
@@ -57,18 +57,17 @@
             text-align: center;
             font-size: 2.2rem;
             margin-bottom: 8px;
-            color: #00d4ff;
-            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            color: #0077b6;
         }
         .subtitle {
             text-align: center;
-            color: #8892b0;
+            color: #5a6478;
             margin-bottom: 10px;
             font-size: 0.95rem;
         }
         .last-updated {
             text-align: center;
-            color: #64ffda;
+            color: #0a8f6e;
             font-size: 0.85rem;
             margin-bottom: 20px;
         }
@@ -80,9 +79,9 @@
             flex-wrap: wrap;
         }
         .btn {
-            background: rgba(0, 212, 255, 0.15);
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            color: #00d4ff;
+            background: #e6f7fb;
+            border: 1px solid #b3e5fc;
+            color: #0077b6;
             padding: 10px 24px;
             border-radius: 8px;
             cursor: pointer;
@@ -91,7 +90,7 @@
             transition: all 0.3s ease;
         }
         .btn:hover {
-            background: rgba(0, 212, 255, 0.25);
+            background: #d3f0f9;
             transform: translateY(-1px);
         }
         .btn:disabled {
@@ -100,7 +99,7 @@
         }
         .status {
             text-align: center;
-            color: #ffd700;
+            color: #b8860b;
             font-size: 0.9rem;
             margin-bottom: 15px;
             min-height: 20px;
@@ -109,7 +108,7 @@
             width: 100%;
             max-width: 400px;
             height: 4px;
-            background: rgba(255,255,255,0.1);
+            background: #e5e7eb;
             border-radius: 2px;
             margin: 0 auto 20px;
             overflow: hidden;
@@ -118,15 +117,15 @@
         .progress-bar.active { display: block; }
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #00d4ff, #64ffda);
+            background: linear-gradient(90deg, #0077b6, #00b894);
             width: 0%;
             transition: width 0.3s ease;
         }
         .table-container {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
+            background: #f7f8fc;
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid #e2e5ec;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             overflow-x: auto;
             overflow-y: hidden;
             -webkit-overflow-scrolling: touch;
@@ -136,21 +135,21 @@
             border-collapse: collapse;
         }
         thead {
-            background: rgba(0, 212, 255, 0.1);
+            background: #eaf6fb;
         }
         th {
             padding: 16px 12px;
             text-align: left;
             font-weight: 600;
-            color: #00d4ff;
+            color: #0077b6;
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #dfe3ec;
             cursor: pointer;
             user-select: none;
         }
-        th:hover { background: rgba(0, 212, 255, 0.15); }
+        th:hover { background: #dcf0f7; }
         th:nth-child(1) { width: 30%; }
         th:nth-child(2) { width: 13%; }
         th:nth-child(3) { width: 15%; }
@@ -159,7 +158,7 @@
         th:nth-child(6) { width: 17%; }
         td {
             padding: 14px 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid #edf0f5;
             font-size: 0.9rem;
             vertical-align: middle;
         }
@@ -226,7 +225,7 @@
             display: none;
             text-align: center;
             font-size: 0.6rem;
-            color: #8892b0;
+            color: #5a6478;
             margin: 4px 0 6px;
             letter-spacing: 0.03em;
         }
@@ -239,101 +238,89 @@
         .equity-th-cagr { width: 6%; }
         .equity-th-wr { width: 7%; }
         .equity-th-action { width: 6%; }
-        .chg-pos { color: #64ffda; font-weight: 600; }
-        .chg-neg { color: #ff6b6b; font-weight: 600; }
-        /* Flags a row (negative %20DMA OR W%R <= -70) with a white background
-           so it pops hard against the dark theme, then marks the fund
-           name/symbol itself with a yellow highlighter-pen box on top for a
-           second, unmistakable visual cue. All text inside gets a dark color
-           override since the rest of the theme's text colors (light greys,
-           whites) would be unreadable on white. */
-        tr.row-highlight { background: #ffffff !important; }
-        tr.row-highlight:hover { background: #f5f5f5 !important; }
-        tr.row-highlight td { color: #1a1f3a; }
-        tr.row-highlight .fund-type { color: #5a6478; }
-        tr.row-highlight .dma-sub { color: #5a6478; }
-        tr.row-highlight .ytm-na { color: #8892b0; }
-        /* The theme's light cyan/red/gold accent colors are tuned for a dark
-           background and read poorly on white - swap in darker, higher
-           contrast variants inside a highlighted row. */
-        tr.row-highlight .dma-pos, tr.row-highlight .chg-pos { color: #0a8f6e; }
-        tr.row-highlight .dma-neg, tr.row-highlight .chg-neg { color: #c62828; }
-        tr.row-highlight .ytm-loading { color: #b8860b; }
-        tr.row-highlight .ytm-error { color: #c62828; }
+        .chg-pos { color: #0a8f6e; font-weight: 600; }
+        .chg-neg { color: #c62828; font-weight: 600; }
+        /* Flags a row (negative %20DMA OR W%R <= -70) with a pale-yellow
+           "highlighter" background - the page itself is now white, so this
+           needs its own distinct tint to still stand out - plus a bolder
+           solid-yellow chip on the fund name/symbol for a second,
+           unmistakable cue. */
+        tr.row-highlight { background: #fff6cf !important; }
+        tr.row-highlight:hover { background: #ffef9e !important; }
         .name-highlight {
-            background: #ffe066;
+            background: #ffd23f;
             color: #1a1f3a;
             padding: 1px 7px;
             border-radius: 3px;
             display: inline;
             font-weight: 700;
-            box-shadow: 0 0 0 1px #d4a900;
+            box-shadow: 0 0 0 1px #c99400;
             box-decoration-break: clone;
             -webkit-box-decoration-break: clone;
         }
         tr:hover {
-            background: rgba(255, 255, 255, 0.02);
+            background: #f7f9fc;
         }
         .fund-name {
             font-weight: 600;
-            color: #fff;
+            color: #1a1f3a;
         }
         .fund-type {
             font-size: 0.75rem;
-            color: #8892b0;
+            color: #5a6478;
             margin-top: 3px;
         }
         .ytm-value {
             font-size: 1.3rem;
             font-weight: 700;
-            color: #64ffda;
+            color: #0a8f6e;
         }
         .ytm-loading {
-            color: #ffd700;
+            color: #b8860b;
             font-size: 0.85rem;
             animation: pulse 1.5s infinite;
         }
         .ytm-error {
-            color: #ff6b6b;
+            color: #c62828;
             font-size: 0.85rem;
         }
         .ytm-na {
-            color: #8892b0;
+            color: #94a0b8;
             font-size: 0.85rem;
         }
         .expense-ratio {
-            color: #ffd700;
+            color: #b8860b;
             font-weight: 600;
         }
         .nav-value {
-            color: #a8b2d1;
+            color: #475569;
         }
         .ticker-link {
-            color: #00d4ff;
+            color: #0077b6;
             text-decoration: none;
             font-size: 0.8rem;
             padding: 4px 10px;
-            border: 1px solid rgba(0, 212, 255, 0.3);
+            border: 1px solid #b3e5fc;
             border-radius: 4px;
             transition: all 0.2s;
         }
         .ticker-link:hover {
-            background: rgba(0, 212, 255, 0.15);
+            background: #e6f7fb;
         }
         .retry-btn {
-            background: rgba(255, 107, 107, 0.2);
-            border: 1px solid rgba(255, 107, 107, 0.4);
-            color: #ff6b6b;
+            background: #fdeaea;
+            border: 1px solid #f3b8b8;
+            color: #c62828;
             padding: 4px 10px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.75rem;
             margin-left: 8px;
         }
-        .retry-btn:hover { background: rgba(255, 107, 107, 0.3); }
+        .retry-btn:hover { background: #fbdcdc; }
         .cached-badge {
             font-size: 0.7rem;
-            color: #8892b0;
+            color: #5a6478;
             margin-left: 6px;
         }
         @keyframes pulse {
@@ -343,11 +330,11 @@
         .footer {
             text-align: center;
             margin-top: 30px;
-            color: #8892b0;
+            color: #5a6478;
             font-size: 0.8rem;
             line-height: 1.6;
         }
-        .footer a { color: #00d4ff; text-decoration: none; }
+        .footer a { color: #0077b6; text-decoration: none; }
         .section-title {
             display: flex;
             align-items: center;
@@ -357,34 +344,34 @@
         .section-title:first-of-type { margin-top: 0; }
         .section-title h2 {
             font-size: 1.3rem;
-            color: #00d4ff;
+            color: #0077b6;
             white-space: nowrap;
         }
         .section-title .line {
             flex: 1;
             height: 1px;
-            background: linear-gradient(90deg, rgba(0,212,255,0.4), rgba(0,212,255,0));
+            background: linear-gradient(90deg, rgba(0,119,182,0.35), rgba(0,119,182,0));
         }
         .section-title .badge {
             font-size: 0.7rem;
-            color: #8892b0;
-            border: 1px solid rgba(255,255,255,0.15);
+            color: #5a6478;
+            border: 1px solid #dfe3ec;
             padding: 3px 10px;
             border-radius: 20px;
             white-space: nowrap;
         }
         .sparkline-wrap { display: flex; align-items: center; }
         .sparkline-wrap svg { display: block; }
-        .dma-pos { color: #64ffda; font-weight: 700; font-size: 1.05rem; }
-        .dma-neg { color: #ff6b6b; font-weight: 700; font-size: 1.05rem; }
-        .dma-sub { color: #8892b0; font-size: 0.72rem; margin-top: 2px; }
+        .dma-pos { color: #0a8f6e; font-weight: 700; font-size: 1.05rem; }
+        .dma-neg { color: #c62828; font-weight: 700; font-size: 1.05rem; }
+        .dma-sub { color: #5a6478; font-size: 0.72rem; margin-top: 2px; }
         .note-box {
-            background: rgba(255, 215, 0, 0.05);
-            border: 1px solid rgba(255, 215, 0, 0.2);
+            background: #fff9e6;
+            border: 1px solid #f0dfa0;
             border-radius: 8px;
             padding: 12px 16px;
             margin-bottom: 20px;
-            color: #ffd700;
+            color: #b8860b;
             font-size: 0.85rem;
             text-align: center;
         }
@@ -468,7 +455,7 @@
                         <h2>Debt Funds</h2>
                         <div class="title-controls">
                             <button class="btn" id="refreshBtn" onclick="refreshAll()">Refresh All</button>
-                            <button class="btn" onclick="clearCache()" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.3);color:#ff6b6b;">Clear</button>
+                            <button class="btn" onclick="clearCache()" style="background:#fdeaea;border-color:#f3b8b8;color:#c62828;">Clear</button>
                         </div>
                         <div class="line"></div>
                         <span class="badge">YTM · %Change · NAV · 3Y</span>
@@ -693,7 +680,7 @@
 
                 const ytmDisplay = getValueDisplay(fund.ytm, 'ytm');
                 const navDisplay = fund.nav ? `<span class="nav-value">₹${fund.nav}</span>` : '<span class="ytm-na">-</span>';
-                const retDisplay = fund.ret3y ? `<span style="color:#64ffda">${fund.ret3y}%</span>` : '<span class="ytm-na">-</span>';
+                const retDisplay = fund.ret3y ? `<span style="color:#0a8f6e">${fund.ret3y}%</span>` : '<span class="ytm-na">-</span>';
 
                 let chgDisplay = '<span class="ytm-na">-</span>';
                 if (fund.dayChangePct !== null && fund.dayChangePct !== undefined) {
@@ -1989,7 +1976,7 @@
             });
 
             const trendUp = prices[prices.length - 1] >= prices[0];
-            const color = trendUp ? '#64ffda' : '#ff6b6b';
+            const color = trendUp ? '#0a8f6e' : '#c62828';
             const pointsStr = coords.map(c => c.join(',')).join(' ');
             const [lastX, lastY] = coords[coords.length - 1];
 
@@ -2038,7 +2025,7 @@
                     cagr3Cell = cagr5Cell = cagr7Cell = cagr10Cell = '<span class="ytm-loading">...</span>';
                     wrCell = '<span class="ytm-loading">...</span>';
                 } else if (fund.status === 'error') {
-                    const errText = fund.errorMsg ? `<div class="dma-sub" style="color:#ff6b6b;">${fund.errorMsg}</div>` : '';
+                    const errText = fund.errorMsg ? `<div class="dma-sub" style="color:#c62828;">${fund.errorMsg}</div>` : '';
                     sparkCell = `<span class="ytm-error">Failed</span>`;
                     dmaCell = `<span class="ytm-error">Failed</span>${errText}`;
                     chgCell = '<span class="ytm-na">-</span>';
