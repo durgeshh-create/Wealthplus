@@ -400,16 +400,6 @@
                     <span class="ticker-price">—</span>
                     <span class="ticker-change flat">—</span>
                 </div>
-                <div class="ticker-item loading" id="ticker-dowfutures">
-                    <span class="ticker-label">DOW FUT (CFD)</span>
-                    <span class="ticker-price">—</span>
-                    <span class="ticker-change flat">—</span>
-                </div>
-                <div class="ticker-item loading" id="ticker-giftnifty">
-                    <span class="ticker-label">GIFT NIFTY</span>
-                    <span class="ticker-price">—</span>
-                    <span class="ticker-change flat">—</span>
-                </div>
             </div>
         </div>
         <p class="last-updated" id="lastUpdated">Last updated: Never</p>
@@ -2413,106 +2403,6 @@
             }));
         }
 
-        // =====================================================
-        // Market ticker: Dow Jones Futures CFD & GIFT NIFTY, scraped from
-        // groww.in's per-index pages. (Moneycontrol's global-indices page
-        // didn't yield usable numbers through the CORS-proxy chain - likely
-        // client-rendered after the initial HTML - so we pull from groww.in
-        // instead, which server-renders a clean "PRICE / CHANGE (CHANGE%) 1D"
-        // block for each index and even labels Dow futures as "CFD".)
-        // =====================================================
-
-        const mcIndicesCacheKey = 'mc_global_indices_cache_v2';
-
-        const mcIndices = [
-            { elId: 'ticker-dowfutures', decimals: 2, url: 'https://groww.in/indices/global-indices/dow-jones-futures' },
-            { elId: 'ticker-giftnifty', decimals: 2, url: 'https://groww.in/indices/global-indices/sgx-nifty' }
-        ];
-
-        function loadMcIndicesCache() {
-            try {
-                const cached = JSON.parse(localStorage.getItem(mcIndicesCacheKey) || '{}');
-                mcIndices.forEach(idx => {
-                    const c = cached[idx.elId];
-                    if (c) renderTickerItem(idx.elId, c.price, c.changePct, idx.decimals, true);
-                });
-            } catch (e) { console.error('MC indices cache load error:', e); }
-        }
-
-        function saveMcIndicesCache(elId, price, changePct) {
-            try {
-                const cached = JSON.parse(localStorage.getItem(mcIndicesCacheKey) || '{}');
-                cached[elId] = { price, changePct };
-                localStorage.setItem(mcIndicesCacheKey, JSON.stringify(cached));
-            } catch (e) { console.error('MC indices cache save error:', e); }
-        }
-
-        // Confirms the fetched HTML is really a groww.in index page (rather
-        // than a proxy's block/rate-limit page) before trusting it.
-        function isValidGrowwPage(text) {
-            const lower = text.toLowerCase();
-            return lower.includes('groww') && lower.includes('1d');
-        }
-
-        async function fetchGrowwHTML(url) {
-            const attempts = corsProxies.map((proxy, i) =>
-                fetchViaSingleProxy(url, i, 8000, isValidGrowwPage).catch(err => {
-                    console.warn(`Groww proxy ${proxy.name} failed for ${url}:`, err.message);
-                    throw err;
-                })
-            );
-            try {
-                return await Promise.any(attempts);
-            } catch (aggregateErr) {
-                throw new Error(`All CORS proxies exhausted for ${url}`);
-            }
-        }
-
-        // Strips tags down to plain text, inserting separators at block-level
-        // boundaries so numbers from adjacent rows don't run together.
-        function htmlToFlatText(html) {
-            return html
-                .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-                .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-                .replace(/<(tr|td|th|li|div|p|br|h1|h2)\b[^>]*>/gi, ' | ')
-                .replace(/<[^>]+>/g, ' ')
-                .replace(/&nbsp;/gi, ' ')
-                .replace(/&amp;/gi, '&')
-                .replace(/\s+/g, ' ')
-                .trim();
-        }
-
-        // groww.in renders each index's headline quote as:
-        //   PRICE  |  +/-CHANGE (CHANGE%) 1D
-        // e.g. "23,890.50 | -71.00 (0.30%) 1D" - the dollar/point change
-        // carries the sign; the percentage in parentheses does not, so we
-        // apply the change's sign to the percentage ourselves.
-        function extractGrowwPrice(html) {
-            const flatText = htmlToFlatText(html);
-            const match = flatText.match(/([\d,]+\.\d{2})\s*\|?\s*([+-]?)([\d,]+\.\d{2})\s*\(([\d.]+)%\)\s*1D/i);
-            if (!match) return null;
-            const price = parseFloat(match[1].replace(/,/g, ''));
-            const sign = match[2] === '-' ? -1 : 1;
-            const changePct = sign * parseFloat(match[4]);
-            if (isNaN(price) || isNaN(changePct)) return null;
-            return { price, changePct };
-        }
-
-        async function updateMcIndicesTicker() {
-            await Promise.all(mcIndices.map(async idx => {
-                try {
-                    const html = await fetchGrowwHTML(idx.url);
-                    const result = extractGrowwPrice(html);
-                    if (!result) throw new Error('Could not parse price from groww.in page');
-                    renderTickerItem(idx.elId, result.price, result.changePct, idx.decimals, false);
-                    saveMcIndicesCache(idx.elId, result.price, result.changePct);
-                } catch (err) {
-                    console.warn(`Groww index fetch failed for ${idx.url}:`, err.message);
-                    // Leave whatever is currently shown (cached/stale value) as-is.
-                }
-            }));
-        }
-
         // Initialize
         loadCache();
         loadSectionCache(sectionsMap.equity);
@@ -2523,10 +2413,6 @@
             loadMarketIndexCache();
             updateMarketTicker();
             setInterval(updateMarketTicker, MARKET_INDEX_REFRESH_MS);
-
-            loadMcIndicesCache();
-            updateMcIndicesTicker();
-            setInterval(updateMcIndicesTicker, MARKET_INDEX_REFRESH_MS);
 
             const hasCache = funds.some(f => f.ytm && f.ytm !== 'error');
             setTimeout(() => {
