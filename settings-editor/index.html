@@ -70,6 +70,12 @@ main{padding:18px 20px;max-width:960px;margin:0 auto}
 
 /* ── two-col ── */
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+/* Grid/flex items default to min-width:auto, so a wide child (like the
+   Positions table) forces the whole column — and with it the page — wider
+   than the viewport, which then gets silently clipped by overflow-x:hidden
+   above. min-width:0 lets the column actually shrink to the viewport so the
+   table's own overflow-x:auto scrolling can kick in instead. */
+.two-col > div{min-width:0}
 @media(max-width:860px){.two-col{grid-template-columns:1fr}}
 
 /* ── mobile ── */
@@ -121,7 +127,7 @@ main{padding:18px 20px;max-width:960px;margin:0 auto}
 }
 
 /* ── panel ── */
-.panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px}
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px;min-width:0}
 .ph{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-bottom:1px solid var(--border)}
 .pt{font-family:var(--head);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted2)}
 .pb{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);color:var(--muted2)}
