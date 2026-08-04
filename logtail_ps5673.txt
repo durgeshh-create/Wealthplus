@@ -274,3 +274,40 @@
 2026-08-04 09:14:51 IST | INFO     | backend.portfolio.tracker | Held ETFs (4): EMBASSY-RR, NIFTYBEES, BANKBEES, SILVERBEES
 2026-08-04 09:14:51 IST | INFO     | backend.portfolio.tracker | Available slots: 2/6
 2026-08-04 09:14:51 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-04 09:15:10 IST | INFO     | backend.strategy.intraday_engine | [GOLDBEES] ⏰ anytime — W%R=-76.3: executing buy
+2026-08-04 09:15:11 IST | INFO     | backend.orders.manager | Available cash: live=₹-26,977,151.04 net(cash)=₹75,533.80 opening=₹75,533.80 adhoc=₹0.00 → using ₹75,533.80
+2026-08-04 09:15:11 IST | INFO     | backend.orders.manager | smart_buy 16 × GOLDBEES @ ₹117.17 (cost ₹1,874.72) | Available cash: ₹75,533.80 (spendable after ₹5000 reserve: ₹70,533.80)
+2026-08-04 09:15:11 IST | INFO     | backend.orders.manager | ✅ Cash appears sufficient (₹70,533.80 >= ₹1,874.72) — attempting direct buy of 16 × GOLDBEES first
+2026-08-04 09:15:11 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 16 x GOLDBEES
+2026-08-04 09:15:11 IST | ERROR    | backend.orders.manager | ✗ Order placement HTTP error: Limit price should be greater than zero.
+2026-08-04 09:15:11 IST | WARNING  | backend.orders.manager | ⚠️ Direct buy of GOLDBEES failed despite cash appearing sufficient (₹70,533.80 >= ₹1,874.72): Limit price should be greater than zero.. Falling back to LIQUIDCASE-funded buy instead of giving up.
+2026-08-04 09:15:11 IST | INFO     | backend.orders.manager | 💡 No cash — selling 18 LIQUIDCASE (₹2,075.76) to fund full buy of ₹1,874.72
+2026-08-04 09:15:11 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.31 (top_bid from depth)
+2026-08-04 09:15:11 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 18 x LIQUIDCASE
+2026-08-04 09:15:11 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260804150058217
+2026-08-04 09:15:11 IST | INFO     | backend.orders.manager | Monitoring order 260804150058217...
+2026-08-04 09:15:13 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.31
+2026-08-04 09:15:13 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 18 units @ ₹115.32
+2026-08-04 09:15:15 IST | INFO     | backend.orders.manager | ✅ Margin updated after 2s: ₹75,533.80 ≥ ₹6,874.72 — proceeding to buy
+2026-08-04 09:15:15 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹None → ₹117.17 (top_ask from depth)
+2026-08-04 09:15:15 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 16 x GOLDBEES
+2026-08-04 09:15:15 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260804150059497
+2026-08-04 09:15:16 IST | INFO     | backend.orders.manager | Monitoring order 260804150059497...
+2026-08-04 09:15:16 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 65689359.44. Margin available: 38712409.26. Check orderbook for open orders.
+2026-08-04 09:15:16 IST | ERROR    | backend.orders.manager | 🚨 ORPHAN: GOLDBEES buy incomplete after LIQUIDCASE sell
+2026-08-04 09:15:16 IST | ERROR    | backend.strategy.intraday_engine | [GOLDBEES] smart_buy failed: Buy order did not complete after LIQUIDCASE sell: Insufficient funds. Margin required: 65689359.44. Margin available: 38712409.26. Check orderbook for open orders.
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 209 free + 48369 pledged + 0 T1 = 48578 units @ ₹115.32
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -18 units @ ₹115.32
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 48578 units (Holdings updated | -18 sold today)
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 48578 units (free: 209) = ₹5602014.96
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 4 locked (EMBASSY-RR, NIFTYBEES, BANKBEES, SILVERBEES)
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 48578 units (₹5602014.96)
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | Held ETFs (4): EMBASSY-RR, NIFTYBEES, BANKBEES, SILVERBEES
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | Available slots: 2/6
+2026-08-04 09:15:51 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
