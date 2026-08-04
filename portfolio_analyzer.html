@@ -400,6 +400,16 @@
                     <span class="ticker-price">—</span>
                     <span class="ticker-change flat">—</span>
                 </div>
+                <div class="ticker-item loading" id="ticker-dowfutures">
+                    <span class="ticker-label">DOW FUT (CFD)</span>
+                    <span class="ticker-price">—</span>
+                    <span class="ticker-change flat">—</span>
+                </div>
+                <div class="ticker-item loading" id="ticker-giftnifty">
+                    <span class="ticker-label">GIFT NIFTY</span>
+                    <span class="ticker-price">—</span>
+                    <span class="ticker-change flat">—</span>
+                </div>
             </div>
         </div>
         <p class="last-updated" id="lastUpdated">Last updated: Never</p>
@@ -596,6 +606,16 @@
             { url: "https://api.codetabs.com/v1/proxy?quest=", name: "codetabs" },
             { url: "https://thingproxy.freeboard.io/fetch/", name: "thingproxy" }
         ];
+
+        // Formats a Date as "DD/MMM/YYYY, hh:mm:ss AM/PM" e.g. "04/Aug/2026, 03:06:32 PM"
+        function formatLastUpdated(date) {
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const dd = String(date.getDate()).padStart(2, '0');
+            const mmm = months[date.getMonth()];
+            const yyyy = date.getFullYear();
+            const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            return `${dd}/${mmm}/${yyyy}, ${timeStr}`;
+        }
 
         let currentSort = 'ytm';
         let isRefreshing = false;
@@ -1265,7 +1285,7 @@
                     `${successCount} OK, ${naCount} N/A, ${failedCount} failed.`;
             }
 
-            document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleString();
+            document.getElementById('lastUpdated').textContent = 'Last updated: ' + formatLastUpdated(new Date());
             progressBar.classList.remove('active');
             refreshBtn.disabled = false;
             isRefreshing = false;
@@ -2393,6 +2413,123 @@
             }));
         }
 
+        // =====================================================
+        // Market ticker: Dow Jones Futures CFD & GIFT NIFTY, scraped from
+        // Moneycontrol's Global Indices page (moneycontrol doesn't expose a
+        // simple public JSON quote endpoint for these two, so we pull the
+        // rendered page HTML through the same CORS-proxy chain used above
+        // and pattern-match the numbers next to each index's name).
+        // =====================================================
+
+        const MC_GLOBAL_INDICES_URL = 'https://www.moneycontrol.com/markets/global-indices/';
+        const mcIndicesCacheKey = 'mc_global_indices_cache_v1';
+
+        const mcIndices = [
+            { elId: 'ticker-dowfutures', decimals: 2, names: ['Dow Jones Futures CFD', 'Dow Jones Futures', 'Dow Futures'] },
+            { elId: 'ticker-giftnifty', decimals: 2, names: ['GIFT NIFTY', 'Gift Nifty', 'SGX Nifty'] }
+        ];
+
+        function loadMcIndicesCache() {
+            try {
+                const cached = JSON.parse(localStorage.getItem(mcIndicesCacheKey) || '{}');
+                mcIndices.forEach(idx => {
+                    const c = cached[idx.elId];
+                    if (c) renderTickerItem(idx.elId, c.price, c.changePct, idx.decimals, true);
+                });
+            } catch (e) { console.error('MC indices cache load error:', e); }
+        }
+
+        function saveMcIndicesCache(elId, price, changePct) {
+            try {
+                const cached = JSON.parse(localStorage.getItem(mcIndicesCacheKey) || '{}');
+                cached[elId] = { price, changePct };
+                localStorage.setItem(mcIndicesCacheKey, JSON.stringify(cached));
+            } catch (e) { console.error('MC indices cache save error:', e); }
+        }
+
+        // Confirms the fetched HTML is really Moneycontrol's global indices
+        // page (rather than a proxy's block/rate-limit page) before trusting it.
+        function isValidGlobalIndicesPage(text) {
+            const lower = text.toLowerCase();
+            return lower.includes('gift nifty') || lower.includes('global indices');
+        }
+
+        async function fetchMcGlobalIndicesHTML() {
+            const attempts = corsProxies.map((proxy, i) =>
+                fetchViaSingleProxy(MC_GLOBAL_INDICES_URL, i, 8000, isValidGlobalIndicesPage).catch(err => {
+                    console.warn(`MC proxy ${proxy.name} failed:`, err.message);
+                    throw err;
+                })
+            );
+            try {
+                return await Promise.any(attempts);
+            } catch (aggregateErr) {
+                throw new Error('All CORS proxies exhausted for moneycontrol global indices');
+            }
+        }
+
+        // Strips tags down to plain text, inserting separators at block-level
+        // boundaries so a label and the next row's number don't run together.
+        function htmlToFlatText(html) {
+            return html
+                .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+                .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+                .replace(/<(tr|td|th|li|div|p|br)\b[^>]*>/gi, ' | ')
+                .replace(/<[^>]+>/g, ' ')
+                .replace(/&nbsp;/gi, ' ')
+                .replace(/&amp;/gi, '&')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        // Given flattened page text and acceptable label variants, finds the
+        // label and reads the price + %change that follow it. Moneycontrol
+        // typically renders each row as: NAME  PRICE  CHANGE  CHANGE%
+        function extractIndexFromText(flatText, nameVariants) {
+            const lowerText = flatText.toLowerCase();
+            for (const name of nameVariants) {
+                const idx = lowerText.indexOf(name.toLowerCase());
+                if (idx === -1) continue;
+                const windowText = flatText.slice(idx + name.length, idx + name.length + 200);
+                const numMatches = windowText.match(/-?\d[\d,]*\.?\d*\s*%?/g);
+                if (!numMatches || numMatches.length === 0) continue;
+                const nums = numMatches.map(s => s.trim()).filter(s => s.replace(/[^0-9]/g, '').length > 0);
+                if (nums.length === 0) continue;
+                const price = parseFloat(nums[0].replace(/,/g, '').replace('%', ''));
+                if (isNaN(price)) continue;
+                let changePct = null;
+                const pctToken = nums.find(n => n.includes('%'));
+                if (pctToken) {
+                    changePct = parseFloat(pctToken.replace(/,/g, '').replace('%', ''));
+                } else if (nums.length > 1) {
+                    changePct = parseFloat(nums[1].replace(/,/g, ''));
+                }
+                if (isNaN(changePct)) changePct = null;
+                return { price, changePct };
+            }
+            return null;
+        }
+
+        async function updateMcIndicesTicker() {
+            let html;
+            try {
+                html = await fetchMcGlobalIndicesHTML();
+            } catch (err) {
+                console.warn('Moneycontrol global indices fetch failed:', err.message);
+                return; // leave whatever is currently shown (cached/stale) as-is
+            }
+            const flatText = htmlToFlatText(html);
+            mcIndices.forEach(idx => {
+                const result = extractIndexFromText(flatText, idx.names);
+                if (result) {
+                    renderTickerItem(idx.elId, result.price, result.changePct, idx.decimals, false);
+                    saveMcIndicesCache(idx.elId, result.price, result.changePct);
+                } else {
+                    console.warn(`Could not locate "${idx.names[0]}" on moneycontrol global-indices page`);
+                }
+            });
+        }
+
         // Initialize
         loadCache();
         loadSectionCache(sectionsMap.equity);
@@ -2403,6 +2540,10 @@
             loadMarketIndexCache();
             updateMarketTicker();
             setInterval(updateMarketTicker, MARKET_INDEX_REFRESH_MS);
+
+            loadMcIndicesCache();
+            updateMcIndicesTicker();
+            setInterval(updateMcIndicesTicker, MARKET_INDEX_REFRESH_MS);
 
             const hasCache = funds.some(f => f.ytm && f.ytm !== 'error');
             setTimeout(() => {
