@@ -477,7 +477,7 @@
                             <button class="btn" id="reitRefreshBtn" onclick="refreshAllSection('reit')">Refresh</button>
                         </div>
                         <div class="line"></div>
-                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/7/10Y Total Return</span>
+                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/7/10Y Total Return · W%R(14D)</span>
                     </div>
 
                     <div class="status" id="reitStatus"></div>
@@ -498,6 +498,7 @@
                                     <th class="equity-th-cagr" title="Total Return CAGR = price appreciation + distributions paid, annualized">5Y TR</th>
                                     <th class="equity-th-cagr" title="Total Return CAGR = price appreciation + distributions paid, annualized">7Y TR</th>
                                     <th class="equity-th-cagr" title="Total Return CAGR = price appreciation + distributions paid, annualized">10Y TR</th>
+                                    <th class="equity-th-wr" title="Daily Williams %R (14-day, close-based). 0 = overbought, -100 = oversold">W%R</th>
                                     <th class="equity-th-action">Go</th>
                                 </tr>
                             </thead>
@@ -505,7 +506,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="scroll-hint">← Swipe to see 5Y / 7Y / 10Y / Go →</div>
+                    <div class="scroll-hint">← Swipe to see 7Y / 10Y / W%R / Go →</div>
                 </div>
 
                 <div class="section-col">
@@ -515,7 +516,7 @@
                             <button class="btn" id="bullionRefreshBtn" onclick="refreshAllSection('bullion')">Refresh</button>
                         </div>
                         <div class="line"></div>
-                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/7/10Y CAGR</span>
+                        <span class="badge">Spark · %20DMA · %Chg · LTP · 3/5/7/10Y CAGR · W%R(14D)</span>
                     </div>
 
                     <div class="status" id="bullionStatus"></div>
@@ -536,6 +537,7 @@
                                     <th class="equity-th-cagr">5Y</th>
                                     <th class="equity-th-cagr">7Y</th>
                                     <th class="equity-th-cagr">10Y</th>
+                                    <th class="equity-th-wr" title="Daily Williams %R (14-day, close-based). 0 = overbought, -100 = oversold">W%R</th>
                                     <th class="equity-th-action">Go</th>
                                 </tr>
                             </thead>
@@ -543,7 +545,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="scroll-hint">← Swipe to see 5Y / 7Y / 10Y / Go →</div>
+                    <div class="scroll-hint">← Swipe to see 7Y / 10Y / W%R / Go →</div>
                 </div>
             </div>
         </div>
@@ -1379,40 +1381,40 @@
         // ===== REIT / InvIT SECTION =====
         const reitFunds = [
             {
-                name: "EMBASSY (Embassy Office Parks REIT)",
+                name: "EMBASSY",
                 assetType: "reit",
                 symbol: "EMBASSY.BO",
                 fallbackSymbols: ["542602.BO"],
                 gfTicker: "BOM:542602",
                 url: "https://www.google.com/finance/beta/quote/542602:BOM",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, williamsR: null, status: null
             },
             {
-                name: "MINDSPACE (Mindspace Business Parks REIT)",
+                name: "MINDSPACE",
                 assetType: "reit",
                 symbol: "MINDSPACE.BO",
                 fallbackSymbols: ["543217.BO"],
                 gfTicker: "BOM:543217",
                 url: "https://www.google.com/finance/beta/quote/543217:BOM",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, williamsR: null, status: null
             },
             {
-                name: "INDIGRID (IndiGrid InvIT)",
+                name: "INDIGRID",
                 assetType: "invit",
                 symbol: "INDIGRID.BO",
                 fallbackSymbols: ["540565.BO"],
                 gfTicker: "BOM:540565",
                 url: "https://www.google.com/finance/beta/quote/540565:BOM",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, williamsR: null, status: null
             },
             {
-                name: "NXST (Nexus Select Trust REIT)",
+                name: "NXST",
                 assetType: "reit",
                 symbol: "NXST.BO",
                 fallbackSymbols: ["543913.BO"],
                 gfTicker: "BOM:543913",
                 url: "https://www.google.com/finance/beta/quote/543913:BOM",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, williamsR: null, status: null
             }
         ];
 
@@ -1424,7 +1426,7 @@
                 symbol: "GOLDBEES.NS",
                 gfTicker: "NSE:GOLDBEES",
                 url: "https://www.google.com/finance/quote/GOLDBEES:NSE",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, williamsR: null, status: null
             },
             {
                 name: "SILVERBEES",
@@ -1432,7 +1434,7 @@
                 symbol: "SILVERBEES.NS",
                 gfTicker: "NSE:SILVERBEES",
                 url: "https://www.google.com/finance/quote/SILVERBEES:NSE",
-                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, status: null
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, williamsR: null, status: null
             }
         ];
 
@@ -1809,7 +1811,11 @@
             const lowestClose = Math.min(...closes);
             const current = closes[closes.length - 1];
             const range = highestClose - lowestClose;
-            if (!range) return 0; // flat over the window - neither overbought nor oversold
+            // Truly flat over the whole window (no price movement at all) -
+            // %R is undefined/meaningless here rather than a real "at the
+            // high" (0) or "at the low" (-100) reading, so surface it as
+            // N/A instead of mislabeling a flat line as overbought.
+            if (!range) return null;
             return ((highestClose - current) / range) * -100;
         }
 
@@ -1951,7 +1957,6 @@
                 const row = document.createElement('tr');
 
                 let sparkCell, dmaCell, chgCell, ltpCell, cagr3Cell, cagr5Cell, cagr7Cell, cagr10Cell, wrCell;
-                const showWilliamsR = section.key === 'equity';
 
                 if (fund.status === 'loading' || (fund.status === null && fund.pct20dma === null)) {
                     const loadingLabel = fund.errorMsg ? fund.errorMsg : 'Loading...';
@@ -2017,7 +2022,7 @@
                     <td>${cagr5Cell}</td>
                     <td>${cagr7Cell}</td>
                     <td>${cagr10Cell}</td>
-                    ${showWilliamsR ? `<td>${wrCell}</td>` : ''}
+                    <td>${wrCell}</td>
                     <td>
                         <a href="${fund.url}" target="_blank" class="ticker-link">View</a>
                         ${fund.status === 'error' ? `<button class="retry-btn" onclick="refreshSingleSectionFund('${section.key}', ${index})">Retry</button>` : ''}
