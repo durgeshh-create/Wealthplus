@@ -720,9 +720,12 @@
             try {
                 const response = await fetch(proxyUrl, {
                     signal: controller.signal,
+                    cache: 'no-store',
                     headers: {
                         'Accept': 'text/html,application/xhtml+xml,application/json,text/plain,*/*',
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
                     }
                 });
 
@@ -1355,6 +1358,14 @@
                 gfTicker: "NSE:MID150BEES",
                 url: "https://www.google.com/finance/quote/MID150BEES:NSE",
                 history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr10y: null, status: null
+            },
+            {
+                name: "Invesco India Smallcap Fund",
+                assetType: "mf",
+                mfQuery: "Invesco India Smallcap Fund",
+                gfTicker: "MUTF_IN:INVE_INDI_SMAL_Y23R9P",
+                url: "https://www.google.com/finance/beta/quote/INVE_INDI_SMAL_Y23R9P:MUTF_IN",
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, status: null
             }
         ];
 
@@ -2195,8 +2206,12 @@
 
         async function fetchIndexQuote(symbol) {
             const hosts = ['https://query1.finance.yahoo.com', 'https://query2.finance.yahoo.com'];
+            // Cache-busting timestamp: without this, CDNs/CORS proxies serve a
+            // cached response for the same URL on every 60s poll, which is what
+            // made the ticker appear stuck on a stale (e.g. previous day's) price.
+            const cacheBuster = Date.now();
             const attempts = hosts.map(host => {
-                const url = `${host}/v8/finance/chart/${symbol}?range=1d&interval=5m`;
+                const url = `${host}/v8/finance/chart/${symbol}?range=1d&interval=1m&_=${cacheBuster}`;
                 return fetchJSONWithProxies(url).then(json => {
                     const meta = json?.chart?.result?.[0]?.meta;
                     if (!meta || meta.regularMarketPrice === undefined) {
