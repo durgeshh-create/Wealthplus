@@ -15,7 +15,7 @@
             width: 100vw; 
             overflow-x: hidden;
         }
-        
+
         /* Enforces strict presentation constraint ONLY on desktop screens */
         @media (min-width: 1024px) {
             body {
@@ -23,7 +23,7 @@
                 overflow: hidden;
             }
         }
-        
+
         .bg-pattern {
             background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
             background-size: 24px 24px;
@@ -40,6 +40,24 @@
             transform: scale(1.1) rotate(-5deg);
             opacity: 0.12;
         }
+
+        /* Ticker widget styling */
+        .ticker-iframe {
+            border: none;
+            width: 100%;
+            height: 75px;
+            display: block;
+        }
+
+        .live-pulse {
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
     </style>
 </head>
 <body class="relative flex flex-col items-center justify-start lg:justify-center p-4 sm:p-6 overflow-y-auto lg:overflow-y-hidden min-h-screen lg:min-h-0">
@@ -50,7 +68,7 @@
 
     <!-- Scalable mobile layout container -->
     <main class="relative z-10 w-full max-w-4xl mx-auto flex flex-col justify-center h-auto lg:h-full lg:max-h-[700px] min-h-0 py-6 lg:py-0">
-        
+
         <header class="text-center mb-6 shrink-0">
             <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white shadow-xl shadow-slate-900/20 mb-3 relative overflow-hidden">
                 <i class="fa-solid fa-layer-group text-2xl relative z-10"></i>
@@ -60,11 +78,11 @@
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-            
+
             <div class="group glass-card relative overflow-hidden rounded-3xl p-6 shadow-sm hover:shadow-xl hover:shadow-blue-500/20 md:col-span-2 lg:col-span-3 border border-white hover:border-blue-200 bg-gradient-to-br from-white to-blue-50/30 flex flex-col h-full">
                 <i class="fa-solid fa-network-wired absolute -bottom-4 -right-4 text-8xl text-blue-600 opacity-[0.02] transition-all duration-500 watermark-graphic"></i>
                 <div class="relative z-10 flex flex-col h-full justify-between">
-                    
+
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                         <div class="flex items-center gap-4">
                             <div class="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/30 group-hover:scale-105 transition-transform duration-300">
@@ -79,23 +97,22 @@
                             Automated trading engine and execution dashboard integrated with Zerodha Kite, alongside strategic enhancement models.
                         </p>
                     </div>
-                    
+
                     <div class="pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-                        
+
                         <div class="flex flex-col gap-1.5">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Models & Strategy</span>
-                            
+
                             <a href="https://docs.google.com/spreadsheets/d/1ArUcmJ-FT-Z3ssdN9J14M1YBl3TKbbEsVbcRpIrHEyI/edit#gid=1984306723" target="_blank" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-emerald-600 transition-colors py-1 px-2 rounded-lg hover:bg-emerald-50/50">
                                 <span class="flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-emerald-500"></i> Wealth++ Google sheet</span>
                                 <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
                             </a>
 
-                            <!-- Newly Added Link -->
                             <a href="https://docs.google.com/spreadsheets/d/17J96jSvslyyOp-3oVZIikjqWxj2oEl8DNzX9gVBS8ws/edit?usp=sharing" target="_blank" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-emerald-600 transition-colors py-1 px-2 rounded-lg hover:bg-emerald-50/50">
                                 <span class="flex items-center gap-2"><i class="fa-solid fa-folder-open text-emerald-500"></i> Portfolio Design template</span>
                                 <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
                             </a>
-                            
+
                             <a href="https://durgeshh-create.github.io/Wealthplus/portfolio_analyzer.html" target="_blank" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors py-1 px-2 rounded-lg hover:bg-blue-50/50">
                                 <span class="flex items-center gap-2"><i class="fa-solid fa-chart-line text-blue-500"></i> Portfolio Analyzer</span>
                                 <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
@@ -106,10 +123,10 @@
                                 <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
                             </a>
                         </div>
-                        
+
                         <div class="flex flex-col gap-1.5">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Automation on Cloud</span>
-                            
+
                             <div class="grid grid-cols-1 gap-0.5">
                                 <a href="https://durgeshh-create.github.io/Wealthplus/" target="_blank" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors py-1 px-2 rounded-lg hover:bg-blue-50/50">
                                     <span class="flex items-center gap-2"><i class="fa-solid fa-gauge-high text-slate-400"></i> Live Dashboard</span>
@@ -125,8 +142,59 @@
                                 </a>
                             </div>
                         </div>
-                        
+
                     </div>
+
+                    <!-- Live Market Tickers -->
+                    <div class="mt-4 pt-4 border-t border-slate-100">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Live Market Tickers</span>
+                            <span class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-pulse"></span>
+                                <span class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Auto-refresh</span>
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+
+                            <!-- Nifty 50 -->
+                            <div class="relative rounded-xl bg-white/60 border border-slate-100 overflow-hidden hover:border-blue-200 hover:shadow-md transition-all duration-300">
+                                <div class="absolute top-2 left-3 z-10 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-chart-area text-[10px] text-blue-500"></i>
+                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nifty 50</span>
+                                </div>
+                                <iframe class="ticker-iframe" src="https://s.tradingview.com/embed-widget/single-quote/?locale=en#%7B%22symbol%22%3A%22NSE%3ANIFTY%22%2C%22width%22%3A220%2C%22height%22%3A75%2C%22locale%22%3A%22en%22%2C%22colorTheme%22%3A%22light%22%2C%22isTransparent%22%3Atrue%7D" scrolling="no" allowtransparency="true" frameborder="0"></iframe>
+                            </div>
+
+                            <!-- India VIX -->
+                            <div class="relative rounded-xl bg-white/60 border border-slate-100 overflow-hidden hover:border-amber-200 hover:shadow-md transition-all duration-300">
+                                <div class="absolute top-2 left-3 z-10 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-bolt text-[10px] text-amber-500"></i>
+                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">India VIX</span>
+                                </div>
+                                <iframe class="ticker-iframe" src="https://s.tradingview.com/embed-widget/single-quote/?locale=en#%7B%22symbol%22%3A%22NSE%3AINDIAVIX%22%2C%22width%22%3A220%2C%22height%22%3A75%2C%22locale%22%3A%22en%22%2C%22colorTheme%22%3A%22light%22%2C%22isTransparent%22%3Atrue%7D" scrolling="no" allowtransparency="true" frameborder="0"></iframe>
+                            </div>
+
+                            <!-- Dow Jones -->
+                            <div class="relative rounded-xl bg-white/60 border border-slate-100 overflow-hidden hover:border-indigo-200 hover:shadow-md transition-all duration-300">
+                                <div class="absolute top-2 left-3 z-10 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-flag-usa text-[10px] text-indigo-500"></i>
+                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Dow Jones</span>
+                                </div>
+                                <iframe class="ticker-iframe" src="https://s.tradingview.com/embed-widget/single-quote/?locale=en#%7B%22symbol%22%3A%22TVC%3ADJI%22%2C%22width%22%3A220%2C%22height%22%3A75%2C%22locale%22%3A%22en%22%2C%22colorTheme%22%3A%22light%22%2C%22isTransparent%22%3Atrue%7D" scrolling="no" allowtransparency="true" frameborder="0"></iframe>
+                            </div>
+
+                            <!-- Gift Nifty 50 -->
+                            <div class="relative rounded-xl bg-white/60 border border-slate-100 overflow-hidden hover:border-rose-200 hover:shadow-md transition-all duration-300">
+                                <div class="absolute top-2 left-3 z-10 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-gift text-[10px] text-rose-500"></i>
+                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Gift Nifty 50</span>
+                                </div>
+                                <iframe class="ticker-iframe" src="https://s.tradingview.com/embed-widget/single-quote/?locale=en#%7B%22symbol%22%3A%22NSEIX%3ANIFTY1%21%22%2C%22width%22%3A220%2C%22height%22%3A75%2C%22locale%22%3A%22en%22%2C%22colorTheme%22%3A%22light%22%2C%22isTransparent%22%3Atrue%7D" scrolling="no" allowtransparency="true" frameborder="0"></iframe>
+                            </div>
+
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -168,7 +236,6 @@
                 </div>
             </a>
 
-            <!-- Completely Visible Mobile-Friendly Music Card -->
             <a href="https://durgeshh-create.github.io/Wealthplus/radio.html" target="_blank" class="group glass-card relative overflow-hidden rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-rose-500/20 border border-white hover:border-rose-200 bg-gradient-to-br from-white to-rose-50/50 flex flex-col h-full">
                 <i class="fa-solid fa-music absolute -bottom-4 -right-4 text-7xl text-rose-600 opacity-[0.03] transition-all duration-500 watermark-graphic"></i>
                 <div class="relative z-10 flex flex-col h-full">
