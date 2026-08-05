@@ -78,7 +78,7 @@ class PortfolioTracker:
             # Calculate locked symbols and available slots
             self._update_slot_availability()
             
-            logger.info("✓ Portfolio synced successfully")
+            logger.debug("✓ Portfolio synced successfully")  # downgraded — was flooding the logtail (see _log_portfolio_summary note below)
             self._log_portfolio_summary()
             
             self.last_synced_at = datetime.now()
@@ -249,8 +249,8 @@ class PortfolioTracker:
         total_slots = len(active_etfs)
         self.available_slots = total_slots - len(self.locked_symbols)
         
-        logger.info(f"Active ETFs: {', '.join(active_etfs)}")
-        logger.info(f"Slots: {self.available_slots} available, {len(self.locked_symbols)} locked ({', '.join(self.locked_symbols) if self.locked_symbols else 'None'})")
+        logger.debug(f"Active ETFs: {', '.join(active_etfs)}")
+        logger.debug(f"Slots: {self.available_slots} available, {len(self.locked_symbols)} locked ({', '.join(self.locked_symbols) if self.locked_symbols else 'None'})")
     
     def _log_portfolio_summary(self):
         """Log portfolio summary"""
@@ -270,14 +270,26 @@ class PortfolioTracker:
         
         total_slots = len(active_etfs)
         
-        logger.info("-" * 60)
-        logger.info("PORTFOLIO SUMMARY")
-        logger.info("-" * 60)
-        logger.info(f"LIQUIDCASE: {self.liquidcase_quantity} units (₹{self.liquidcase_value:.2f})")
-        logger.info(f"Active ETFs: {', '.join(active_etfs)}")
-        logger.info(f"Held ETFs ({len(self.locked_symbols)}): {', '.join(self.locked_symbols) if self.locked_symbols else 'None'}")
-        logger.info(f"Available slots: {self.available_slots}/{total_slots}")
-        logger.info("-" * 60)
+        # ✅ FIX: this whole block used to be logger.info() and fired on
+        # EVERY sync cycle (~every 60s) — ~11 lines/sync, ~4,100 lines/day.
+        # The settings-editor Logs tab only shows the last 500 lines of
+        # trading.log, refreshed every 60s (see .github/workflows/
+        # trading-bot.yml, which already greps out "| DEBUG " before
+        # pushing) — so this routine housekeeping was silently evicting
+        # actual trade executions and ERROR lines from the visible tail
+        # in well under an hour, even though they were still sitting
+        # further back in the real trading.log file the whole time.
+        # Downgraded to DEBUG so it's filtered out before push, same as
+        # the rest of this file's routine diagnostic logging, and no
+        # longer competes with trades/errors for tail space.
+        logger.debug("-" * 60)
+        logger.debug("PORTFOLIO SUMMARY")
+        logger.debug("-" * 60)
+        logger.debug(f"LIQUIDCASE: {self.liquidcase_quantity} units (₹{self.liquidcase_value:.2f})")
+        logger.debug(f"Active ETFs: {', '.join(active_etfs)}")
+        logger.debug(f"Held ETFs ({len(self.locked_symbols)}): {', '.join(self.locked_symbols) if self.locked_symbols else 'None'}")
+        logger.debug(f"Available slots: {self.available_slots}/{total_slots}")
+        logger.debug("-" * 60)
     
     def is_symbol_held(self, symbol: str) -> bool:
         """Check if a symbol is currently held"""
