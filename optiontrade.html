@@ -1473,6 +1473,14 @@
         // math, and per-lot quantities. Starts at the NSE default; the
         // shared value (if any) overwrites this once loadFreezeQty() runs.
         let NIFTY_FREEZE_QTY = 1755;
+        // NSE requires every F&O order quantity to be an exact multiple of
+        // the contract lot size (separate from the freeze limit above,
+        // which only caps quantity per single order). Inferred from your
+        // figures: 1755 = 27×65 and 15795 = 243×65 both divide cleanly by
+        // 65, so that's what's used below for Margin Release's partial-
+        // quantity rounding. Update this if the exchange revises the lot
+        // size again — it isn't fetched from anywhere live.
+        const NIFTY_LOT_SIZE = 65;
         const MAX_LOTS = 15;
 
         // The Kite Connect login/checkout popup is opened by Zerodha's own
@@ -1651,10 +1659,21 @@
         // access to your actual margin/ELM figures from Kite, so the %
         // is whatever you set — verify the resulting margin in Kite after
         // placing, don't treat the % as a guarantee of a specific outcome.
+        //
+        // The raw "% of quantity" number is very unlikely to land on a
+        // valid order quantity on its own — NSE requires F&O order qty to
+        // be an exact multiple of NIFTY_LOT_SIZE, so it's rounded to the
+        // nearest lot (never rounded UP past the position's own size).
+        function computeReleaseQty(quantity, pct) {
+            const rawQty = Math.abs(quantity) * (pct / 100);
+            const rounded = Math.round(rawQty / NIFTY_LOT_SIZE) * NIFTY_LOT_SIZE;
+            return Math.min(rounded, Math.abs(quantity));
+        }
+
         function buildPartialExitOrders(positions, pct) {
             const orders = [];
             positions.forEach(p => {
-                const releaseQty = Math.round(Math.abs(p.quantity) * (pct / 100));
+                const releaseQty = computeReleaseQty(p.quantity, pct);
                 if (releaseQty > 0) {
                     chunkQty(releaseQty).forEach(qty => orders.push(makeOrder(p.symbol, 'BUY', qty)));
                 }
@@ -1737,7 +1756,7 @@
             const pct = getMarginReleasePct();
             body.innerHTML = switchCandidates.length
                 ? switchCandidates.map((p, i) => {
-                    const exitQty = Math.round(Math.abs(p.quantity) * (pct / 100));
+                    const exitQty = computeReleaseQty(p.quantity, pct);
                     return `<tr><td><input type="checkbox" ${p.marginIncluded ? 'checked' : ''} onchange="toggleMarginCandidate(${i}, this.checked)"></td><td>${p.symbol}</td><td class="neg-qty">${p.quantity}</td><td>${exitQty}</td></tr>`;
                 }).join('')
                 : `<tr><td colspan="4" style="color:#64748b">No current-expiry NIFTY option sold positions found</td></tr>`;
@@ -2019,16 +2038,24 @@
             const lots = parseInt(lotSel.value, 10);
             // Exits the FULL quantity of every TICKED current-expiry NIFTY
             // short position (chunked to the freeze limit), then adds the
-            // ticked new sell legs — exits always come first. Exit and
-            // entry orders are chunked into ≤20-order Kite baskets
-            // SEPARATELY (never merged before chunking) so a basket
-            // boundary never splits an exit from an entry mid-batch.
+            // ticked new sell legs — exits always come first in the order
+            // list. Chunked as ONE combined list (same as Fresh DOTM) so a
+            // basket that fits under the batch cap becomes a single click,
+            // instead of always producing at least 2 baskets (previously
+            // exits and entries were chunked separately on purpose, so a
+            // batch could never mix BUY-exit and SELL-entry orders — that
+            // extra safety margin is now traded away for fewer baskets, at
+            // your request. If a batch straddles the exit/entry boundary
+            // and only partially executes, you could end up with some
+            // exits done but not the matching entries (or vice versa) —
+            // check your resulting position in Kite after placing rather
+            // than assuming it fully matches what you intended.
             const selectedCandidates = switchCandidates.filter(p => p.included);
             const exitOrders = buildExitOrders(selectedCandidates);
             const entryOrders = buildEntryOrders(symbols.putSym, symbols.callSym, lots);
             const orders = exitOrders.concat(entryOrders);
             renderBasketPreview('switchBasketPreview', orders);
-            const batches = chunkOrders(exitOrders).concat(chunkOrders(entryOrders));
+            const batches = chunkOrders(orders);
             renderKiteBatches('switchKiteBtns', batches);
             const sideNote = (!symbols.putSym || !symbols.callSym) ? ' (one-sided — only ' + (symbols.putSym ? 'PUT' : 'CALL') + ' entry)' : '';
             const batchNote = batches.length > 1
