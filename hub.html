@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Modern fluid responsive canvas layout */
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             background-color: #f8fafc; 
@@ -15,6 +16,7 @@
             overflow-x: hidden;
         }
 
+        /* Enforces strict presentation constraint ONLY on desktop screens */
         @media (min-width: 1024px) {
             body {
                 height: 100dvh;
@@ -38,53 +40,6 @@
             transform: scale(1.1) rotate(-5deg);
             opacity: 0.12;
         }
-
-        .ticker-card {
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            transition: all 0.3s ease;
-        }
-        .ticker-card:hover {
-            border-color: rgba(148, 163, 184, 0.5);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        .live-pulse {
-            animation: pulse-dot 2s infinite;
-        }
-        @keyframes pulse-dot {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-
-        .price-up { color: #059669; }
-        .price-down { color: #dc2626; }
-        .price-neutral { color: #64748b; }
-
-        .skeleton {
-            background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 4px;
-        }
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        .ticker-updating {
-            opacity: 0.6;
-            transition: opacity 0.2s;
-        }
-
-        .spin-slow {
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body class="relative flex flex-col items-center justify-start lg:justify-center p-4 sm:p-6 overflow-y-auto lg:overflow-y-hidden min-h-screen lg:min-h-0">
@@ -93,6 +48,7 @@
     <div class="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-blue-300/30 rounded-full mix-blend-multiply filter blur-[80px] opacity-60 pointer-events-none"></div>
     <div class="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-emerald-300/30 rounded-full mix-blend-multiply filter blur-[80px] opacity-60 pointer-events-none"></div>
 
+    <!-- Scalable mobile layout container -->
     <main class="relative z-10 w-full max-w-4xl mx-auto flex flex-col justify-center h-auto lg:h-full lg:max-h-[700px] min-h-0 py-6 lg:py-0">
 
         <header class="text-center mb-6 shrink-0">
@@ -148,6 +104,11 @@
                                 <span class="flex items-center gap-2"><i class="fa-solid fa-arrow-trend-up text-indigo-500"></i> Options DOTM</span>
                                 <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
                             </a>
+
+                            <a href="https://www.moneycontrol.com/markets/global-indices/" target="_blank" class="flex items-center justify-between text-xs font-semibold text-slate-600 hover:text-orange-600 transition-colors py-1 px-2 rounded-lg hover:bg-orange-50/50">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-globe text-orange-500"></i> Global Markets</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-60"></i>
+                            </a>
                         </div>
 
                         <div class="flex flex-col gap-1.5">
@@ -170,70 +131,6 @@
                         </div>
 
                     </div>
-
-                    <!-- Live Market Tickers -->
-                    <div class="mt-4 pt-4 border-t border-slate-100">
-                        <div class="flex items-center gap-2 mb-3">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Live Market Tickers</span>
-                            <span class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-pulse"></span>
-                                <span class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Auto-refresh</span>
-                            </span>
-                            <span id="ticker-last-updated" class="text-[9px] text-slate-400 ml-auto"></span>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="ticker-container">
-
-                            <!-- Nifty 50 -->
-                            <div class="ticker-card relative rounded-xl p-3 overflow-hidden" data-ticker-id="nifty50">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i class="fa-solid fa-chart-area text-[10px] text-blue-500"></i>
-                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nifty 50</span>
-                                </div>
-                                <div class="ticker-content">
-                                    <div class="skeleton h-6 w-24 mb-1"></div>
-                                    <div class="skeleton h-3 w-16"></div>
-                                </div>
-                            </div>
-
-                            <!-- India VIX -->
-                            <div class="ticker-card relative rounded-xl p-3 overflow-hidden" data-ticker-id="indiavix">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i class="fa-solid fa-bolt text-[10px] text-amber-500"></i>
-                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">India VIX</span>
-                                </div>
-                                <div class="ticker-content">
-                                    <div class="skeleton h-6 w-24 mb-1"></div>
-                                    <div class="skeleton h-3 w-16"></div>
-                                </div>
-                            </div>
-
-                            <!-- Dow Jones -->
-                            <div class="ticker-card relative rounded-xl p-3 overflow-hidden" data-ticker-id="dowjones">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i class="fa-solid fa-flag-usa text-[10px] text-indigo-500"></i>
-                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Dow Jones</span>
-                                </div>
-                                <div class="ticker-content">
-                                    <div class="skeleton h-6 w-24 mb-1"></div>
-                                    <div class="skeleton h-3 w-16"></div>
-                                </div>
-                            </div>
-
-                            <!-- Gift Nifty 50 -->
-                            <div class="ticker-card relative rounded-xl p-3 overflow-hidden" data-ticker-id="giftnifty">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <i class="fa-solid fa-gift text-[10px] text-rose-500"></i>
-                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Gift Nifty 50</span>
-                                </div>
-                                <div class="ticker-content">
-                                    <div class="skeleton h-6 w-24 mb-1"></div>
-                                    <div class="skeleton h-3 w-16"></div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
                 </div>
             </div>
 
@@ -275,6 +172,7 @@
                 </div>
             </a>
 
+            <!-- Completely Visible Mobile-Friendly Music Card -->
             <a href="https://durgeshh-create.github.io/Wealthplus/radio.html" target="_blank" class="group glass-card relative overflow-hidden rounded-3xl p-5 shadow-sm hover:shadow-xl hover:shadow-rose-500/20 border border-white hover:border-rose-200 bg-gradient-to-br from-white to-rose-50/50 flex flex-col h-full">
                 <i class="fa-solid fa-music absolute -bottom-4 -right-4 text-7xl text-rose-600 opacity-[0.03] transition-all duration-500 watermark-graphic"></i>
                 <div class="relative z-10 flex flex-col h-full">
@@ -296,303 +194,6 @@
 
         </div>
     </main>
-
-    <script>
-        // ─── Configuration ───
-        const REFRESH_INTERVAL = 15000; // 15 seconds
-        const STAGGER_DELAY = 800;      // ms between ticker fetches
-        const CACHE_KEY = 'hub_ticker_cache';
-        const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-        const tickers = [
-            { 
-                id: 'nifty50', 
-                symbols: ['^NSEI'],
-                name: 'Nifty 50', 
-                currency: 'INR'
-            },
-            { 
-                id: 'indiavix', 
-                symbols: ['^INDIAVIX'],
-                name: 'India VIX', 
-                currency: 'INR'
-            },
-            { 
-                id: 'dowjones', 
-                symbols: ['^DJI'],
-                name: 'Dow Jones', 
-                currency: 'USD'
-            },
-            { 
-                id: 'giftnifty', 
-                symbols: ['^SGXN', 'NIFTY1!', 'NIFTY=F'],
-                name: 'Gift Nifty 50', 
-                currency: 'INR',
-                fallbackTo: 'nifty50' // If all symbols fail, show Nifty 50 as proxy
-            }
-        ];
-
-        // CORS proxies — ordered by reliability/speed
-        const corsProxies = [
-            'https://corsproxy.io/?',
-            'https://api.allorigins.win/raw?url=',
-            'https://api.codetabs.com/v1/proxy?quest='
-        ];
-
-        // ─── Helpers ───
-        function getCache() {
-            try {
-                const raw = localStorage.getItem(CACHE_KEY);
-                if (!raw) return null;
-                const parsed = JSON.parse(raw);
-                if (Date.now() - parsed.timestamp > CACHE_TTL) return null;
-                return parsed.data;
-            } catch { return null; }
-        }
-
-        function setCache(data) {
-            try {
-                localStorage.setItem(CACHE_KEY, JSON.stringify({
-                    timestamp: Date.now(),
-                    data: data
-                }));
-            } catch {}
-        }
-
-        function formatPrice(price, currency) {
-            if (price === null || price === undefined) return '—';
-            if (price >= 1000) {
-                return price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            }
-            return price.toFixed(2);
-        }
-
-        function formatChange(change, changePercent) {
-            if (change === null || change === undefined) return '—';
-            const sign = change >= 0 ? '+' : '';
-            const pct = changePercent !== null && changePercent !== undefined 
-                ? ` (${sign}${changePercent.toFixed(2)}%)` 
-                : '';
-            return `${sign}${change.toFixed(2)}${pct}`;
-        }
-
-        function getChangeClass(change) {
-            if (change === null || change === undefined) return 'price-neutral';
-            if (change > 0) return 'price-up';
-            if (change < 0) return 'price-down';
-            return 'price-neutral';
-        }
-
-        function getChangeIcon(change) {
-            if (change === null || change === undefined) return 'fa-minus';
-            if (change > 0) return 'fa-arrow-trend-up';
-            if (change < 0) return 'fa-arrow-trend-down';
-            return 'fa-minus';
-        }
-
-        // ─── Yahoo Finance Fetch ───
-        async function fetchYahooDirect(symbol) {
-            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: { 'Accept': 'application/json' }
-            });
-            if (!response.ok) throw new Error('Direct fetch failed');
-            return await response.json();
-        }
-
-        async function fetchYahooProxy(symbol, proxy) {
-            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
-            const response = await fetch(proxy + encodeURIComponent(url), {
-                method: 'GET',
-                headers: { 'Accept': 'application/json' }
-            });
-            if (!response.ok) throw new Error('Proxy fetch failed');
-            return await response.json();
-        }
-
-        async function fetchYahooData(symbol) {
-            // Try direct first (fastest if it works)
-            try {
-                return await fetchYahooDirect(symbol);
-            } catch (e) {
-                // Direct failed, try proxies
-            }
-
-            // Try each proxy
-            for (const proxy of corsProxies) {
-                try {
-                    return await fetchYahooProxy(symbol, proxy);
-                } catch (e) {
-                    continue;
-                }
-            }
-
-            throw new Error('All fetch attempts failed for ' + symbol);
-        }
-
-        function parseYahooResponse(data) {
-            if (!data.chart || !data.chart.result || !data.chart.result[0]) {
-                throw new Error('Invalid Yahoo response');
-            }
-
-            const result = data.chart.result[0];
-            const meta = result.meta;
-            const closes = result.indicators.quote[0].close;
-
-            // Get latest valid close price
-            let latestPrice = meta.regularMarketPrice || meta.previousClose;
-            for (let j = closes.length - 1; j >= 0; j--) {
-                if (closes[j] !== null && closes[j] !== undefined) {
-                    latestPrice = closes[j];
-                    break;
-                }
-            }
-
-            const prevClose = meta.chartPreviousClose || meta.previousClose;
-            const change = latestPrice - prevClose;
-            const changePercent = prevClose ? (change / prevClose) * 100 : 0;
-
-            return {
-                price: latestPrice,
-                change: change,
-                changePercent: changePercent,
-                currency: meta.currency || 'INR',
-                timestamp: new Date()
-            };
-        }
-
-        // ─── Ticker Update ───
-        async function updateSingleTicker(ticker, allData) {
-            const card = document.querySelector(`[data-ticker-id="${ticker.id}"]`);
-            if (!card) return;
-
-            const contentDiv = card.querySelector('.ticker-content');
-
-            // Mark as updating (keep existing data visible but dimmed)
-            if (!contentDiv.querySelector('.skeleton')) {
-                contentDiv.classList.add('ticker-updating');
-            }
-
-            let data = null;
-            let usedSymbol = null;
-
-            // Try each symbol for this ticker
-            for (const symbol of ticker.symbols) {
-                try {
-                    const raw = await fetchYahooData(symbol);
-                    data = parseYahooResponse(raw);
-                    usedSymbol = symbol;
-                    break;
-                } catch (e) {
-                    console.log(`Failed ${ticker.name} with ${symbol}:`, e.message);
-                    continue;
-                }
-            }
-
-            // Fallback: use another ticker's data
-            if (!data && ticker.fallbackTo && allData[ticker.fallbackTo]) {
-                const fallback = allData[ticker.fallbackTo];
-                data = { ...fallback, _fallback: true };
-            }
-
-            contentDiv.classList.remove('ticker-updating');
-
-            if (data) {
-                const changeClass = getChangeClass(data.change);
-                const changeIcon = getChangeIcon(data.change);
-                const fallbackNote = data._fallback ? '<span class="text-[9px] text-slate-400 ml-1">(Nifty 50 proxy)</span>' : '';
-
-                contentDiv.innerHTML = `
-                    <div class="flex items-baseline gap-2">
-                        <span class="text-lg font-bold text-slate-800">${formatPrice(data.price, data.currency)}</span>
-                        <span class="text-[10px] text-slate-400">${data.currency}</span>
-                        ${fallbackNote}
-                    </div>
-                    <div class="flex items-center gap-1.5 mt-0.5">
-                        <i class="fa-solid ${changeIcon} text-[10px] ${changeClass}"></i>
-                        <span class="text-xs font-semibold ${changeClass}">${formatChange(data.change, data.changePercent)}</span>
-                    </div>
-                `;
-
-                // Store in shared data
-                allData[ticker.id] = data;
-            } else {
-                contentDiv.innerHTML = `
-                    <div class="text-xs text-slate-400 flex items-center gap-1.5">
-                        <i class="fa-solid fa-circle-exclamation text-[10px]"></i>
-                        <span>Unavailable</span>
-                    </div>
-                    <div class="text-[10px] text-slate-300 mt-0.5">Will retry shortly</div>
-                `;
-            }
-        }
-
-        async function updateAllTickers() {
-            const allData = {};
-
-            // Update timestamp
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-IN', { 
-                hour: '2-digit', minute: '2-digit', second: '2-digit',
-                timeZone: 'Asia/Kolkata'
-            });
-            document.getElementById('ticker-last-updated').textContent = `Updated: ${timeStr} IST`;
-
-            // Stagger updates so they don't all hammer the proxy at once
-            for (let i = 0; i < tickers.length; i++) {
-                setTimeout(() => {
-                    updateSingleTicker(tickers[i], allData);
-                }, i * STAGGER_DELAY);
-            }
-
-            // Save to cache after all updates
-            setTimeout(() => setCache(allData), tickers.length * STAGGER_DELAY + 1000);
-        }
-
-        // ─── Init ───
-        (function init() {
-            // Try to load cached data immediately
-            const cache = getCache();
-            if (cache) {
-                for (const ticker of tickers) {
-                    const card = document.querySelector(`[data-ticker-id="${ticker.id}"]`);
-                    if (!card) continue;
-                    const contentDiv = card.querySelector('.ticker-content');
-                    const data = cache[ticker.id];
-                    if (data) {
-                        const changeClass = getChangeClass(data.change);
-                        const changeIcon = getChangeIcon(data.change);
-                        const fallbackNote = data._fallback ? '<span class="text-[9px] text-slate-400 ml-1">(Nifty 50 proxy)</span>' : '';
-                        contentDiv.innerHTML = `
-                            <div class="flex items-baseline gap-2">
-                                <span class="text-lg font-bold text-slate-800">${formatPrice(data.price, data.currency)}</span>
-                                <span class="text-[10px] text-slate-400">${data.currency}</span>
-                                ${fallbackNote}
-                            </div>
-                            <div class="flex items-center gap-1.5 mt-0.5">
-                                <i class="fa-solid ${changeIcon} text-[10px] ${changeClass}"></i>
-                                <span class="text-xs font-semibold ${changeClass}">${formatChange(data.change, data.changePercent)}</span>
-                            </div>
-                        `;
-                    }
-                }
-                // Show cached timestamp
-                const cacheTime = new Date(JSON.parse(localStorage.getItem(CACHE_KEY)).timestamp);
-                const timeStr = cacheTime.toLocaleTimeString('en-IN', { 
-                    hour: '2-digit', minute: '2-digit', second: '2-digit',
-                    timeZone: 'Asia/Kolkata'
-                });
-                document.getElementById('ticker-last-updated').textContent = `Cached: ${timeStr} IST`;
-            }
-
-            // Fetch fresh data
-            updateAllTickers();
-
-            // Auto-refresh
-            setInterval(updateAllTickers, REFRESH_INTERVAL);
-        })();
-    </script>
 
 </body>
 </html>
