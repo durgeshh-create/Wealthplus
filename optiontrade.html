@@ -1732,8 +1732,17 @@
         // as a hard backstop, lowered well below the old "20" to a value
         // that comfortably fits under the length cap even in the
         // worst case (all orders being the longest symbol in the batch).
-        const KITE_BASKET_MAX = 8;
-        const KITE_BASKET_MAX_CHARS = 1200; // conservative — see comment above
+        // Raised to 20 orders / ~4500 chars per basket at the user's explicit
+        // request, after being warned this size range is where a PAST basket
+        // (18 orders) silently truncated to only 9 orders placed due to a
+        // kite.link() payload-length limit — not Kite's documented "20 order"
+        // cap. This has NOT been re-verified as safe at this size. After
+        // placing, always confirm in Kite that the order count you expected
+        // actually went through (equal PUT and CALL legs) before assuming
+        // the basket placed correctly — a truncated basket fails silently,
+        // with no error shown, and can leave unhedged naked positions.
+        const KITE_BASKET_MAX = 20;
+        const KITE_BASKET_MAX_CHARS = 4500;
 
         function estimatedOrderChars(o) {
             // Rough proxy for kite.add()'s encoded footprint. URL-encoding
