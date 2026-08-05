@@ -4888,7 +4888,10 @@ async function loadJobLogs(manual) {
     if (!r.ok) throw new Error(`${r.status} fetching log file`);
     const text = await r.text();
     const lines = text.split('\n');
-    const tail = lines.slice(-500);
+    const tail = lines.slice(-500); // pushed file is now whitelist-filtered
+                                     // (errors + trade actions only, see
+                                     // trading-bot.yml) so 500 lines is a lot
+                                     // of actual trade history, not noise.
     viewer.innerHTML = tail.map(_colorizeLogLine).join('\n');
     viewer.scrollTop = viewer.scrollHeight;
     statusEl.textContent = `Updated ${new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })} IST` +
