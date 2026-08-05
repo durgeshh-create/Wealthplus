@@ -1811,7 +1811,24 @@
                 allBtn.style.cssText = 'display:block;width:100%;margin-bottom:8px;font-weight:600';
                 allBtn.textContent = `⚡ Place All ${batches.length} Baskets (opens ${batches.length} Kite tabs)`;
                 allBtn.onclick = () => {
-                    btnIds.forEach(id => document.getElementById(id).click());
+                    // kite.link()'s internal click handler opens its checkout
+                    // page via window.open(url, someFixedName) — a FIXED
+                    // window name, so clicking 4 batch buttons back-to-back
+                    // was navigating the SAME tab 4 times instead of opening
+                    // 4 tabs (only the last batch's page survived visibly).
+                    // Fix: temporarily wrap window.open so every call during
+                    // this loop gets forced onto a unique window name,
+                    // regardless of what name Kite's script passes — this
+                    // guarantees 4 separate tabs without needing to know
+                    // Kite's internals. Restored immediately after.
+                    const realOpen = window.open;
+                    btnIds.forEach((id, i) => {
+                        window.open = function(url, name, specs) {
+                            return realOpen.call(window, url, `kiteBasketBatch_${i}_${Date.now()}`, specs);
+                        };
+                        document.getElementById(id).click();
+                    });
+                    window.open = realOpen;
                 };
                 container.insertBefore(allBtn, container.firstChild);
             }
