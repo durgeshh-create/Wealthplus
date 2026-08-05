@@ -1838,22 +1838,31 @@
                     // anchor, since we're not triggering its native click,
                     // just reusing the URL it computed.
                     const realOpen = window.open;
+                    console.log('[PlaceAll] starting, btnIds =', btnIds);
                     btnIds.forEach((id, i) => {
                         const el = document.getElementById(id);
                         const href = el.getAttribute('href') || el.href;
+                        const uniqueName = `kiteBasketBatch_${i}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+                        console.log(`[PlaceAll] batch ${i}: el=`, el, 'href=', href, 'uniqueName=', uniqueName);
                         if (href) {
-                            realOpen(href, `kiteBasketBatch_${i}_${Date.now()}`);
+                            const w = realOpen(href, uniqueName);
+                            console.log(`[PlaceAll] batch ${i}: realOpen returned`, w, w === null ? '⚠ BLOCKED BY BROWSER' : 'OK');
                         } else {
+                            console.log(`[PlaceAll] batch ${i}: no href found, using fallback click() path`);
                             // Fallback: no href found (kite.link() may bind
                             // differently than expected) — try the
                             // click+patch approach as a best effort.
                             window.open = function(url, name, specs) {
-                                return realOpen.call(window, url, `kiteBasketBatch_${i}_${Date.now()}`, specs);
+                                console.log(`[PlaceAll] batch ${i}: fallback window.open called with url=`, url, 'name=', name);
+                                const w2 = realOpen.call(window, url, uniqueName, specs);
+                                console.log(`[PlaceAll] batch ${i}: fallback realOpen returned`, w2, w2 === null ? '⚠ BLOCKED BY BROWSER' : 'OK');
+                                return w2;
                             };
                             el.click();
                             window.open = realOpen;
                         }
                     });
+                    console.log('[PlaceAll] done');
                 };
                 container.insertBefore(allBtn, container.firstChild);
             }
