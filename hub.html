@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Modern fluid responsive canvas layout */
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             background-color: #f8fafc; 
@@ -16,7 +15,6 @@
             overflow-x: hidden;
         }
 
-        /* Enforces strict presentation constraint ONLY on desktop screens */
         @media (min-width: 1024px) {
             body {
                 height: 100dvh;
@@ -41,22 +39,39 @@
             opacity: 0.12;
         }
 
-        /* Ticker widget styling */
-        .ticker-iframe {
-            border: none;
-            width: 100%;
-            height: 75px;
-            display: block;
+        /* Ticker styles */
+        .ticker-card {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s ease;
+        }
+        .ticker-card:hover {
+            border-color: rgba(148, 163, 184, 0.5);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
         .live-pulse {
             animation: pulse-dot 2s infinite;
         }
-
         @keyframes pulse-dot {
             0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
             70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .price-up { color: #059669; }
+        .price-down { color: #dc2626; }
+        .price-neutral { color: #64748b; }
+
+        .skeleton {
+            background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
     </style>
 </head>
@@ -66,7 +81,6 @@
     <div class="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-blue-300/30 rounded-full mix-blend-multiply filter blur-[80px] opacity-60 pointer-events-none"></div>
     <div class="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-emerald-300/30 rounded-full mix-blend-multiply filter blur-[80px] opacity-60 pointer-events-none"></div>
 
-    <!-- Scalable mobile layout container -->
     <main class="relative z-10 w-full max-w-4xl mx-auto flex flex-col justify-center h-auto lg:h-full lg:max-h-[700px] min-h-0 py-6 lg:py-0">
 
         <header class="text-center mb-6 shrink-0">
@@ -153,43 +167,56 @@
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 live-pulse"></span>
                                 <span class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Auto-refresh</span>
                             </span>
+                            <span id="ticker-last-updated" class="text-[9px] text-slate-400 ml-auto"></span>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="ticker-container">
 
                             <!-- Nifty 50 -->
-                            <div class="relative rounded-xl bg-white/60 border border-slate-100 overflow-hidden hover:border-blue-200 hover:shadow-md transition-all duration-300">
-                                <div class="absolute top-2 left-3 z-10 flex items-center gap-1.5">
+                            <div class="ticker-card relative rounded-xl p-3 overflow-hidden" data-symbol="^NSEI" data-name="Nifty 50" data-icon="fa-chart-area" data-color="blue">
+                                <div class="flex items-center gap-2 mb-2">
                                     <i class="fa-solid fa-chart-area text-[10px] text-blue-500"></i>
                                     <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nifty 50</span>
                                 </div>
-                                <iframe class="ticker-iframe" src="https://s.tradingview.com/embed-widget/single-quote/?locale=en#%7B%22symbol%22%3A%22NSE%3ANIFTY%22%2C%22width%22%3A220%2C%22height%22%3A75%2C%22locale%22%3A%22en%22%2C%22colorTheme%22%3A%22light%22%2C%22isTransparent%22%3Atrue%7D" scrolling="no" allowtransparency="true" frameborder="0"></iframe>
+                                <div class="ticker-content">
+                                    <div class="skeleton h-6 w-24 mb-1"></div>
+                                    <div class="skeleton h-3 w-16"></div>
+                                </div>
                             </div>
 
                             <!-- India VIX -->
-                            <div class="relative rounded-xl bg-white/60 border border-slate-100 overflow-hidden hover:border-amber-200 hover:shadow-md transition-all duration-300">
-                                <div class="absolute top-2 left-3 z-10 flex items-center gap-1.5">
+                            <div class="ticker-card relative rounded-xl p-3 overflow-hidden" data-symbol="^INDIAVIX" data-name="India VIX" data-icon="fa-bolt" data-color="amber">
+                                <div class="flex items-center gap-2 mb-2">
                                     <i class="fa-solid fa-bolt text-[10px] text-amber-500"></i>
                                     <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">India VIX</span>
                                 </div>
-                                <iframe class="ticker-iframe" src="https://s.tradingview.com/embed-widget/single-quote/?locale=en#%7B%22symbol%22%3A%22NSE%3AINDIAVIX%22%2C%22width%22%3A220%2C%22height%22%3A75%2C%22locale%22%3A%22en%22%2C%22colorTheme%22%3A%22light%22%2C%22isTransparent%22%3Atrue%7D" scrolling="no" allowtransparency="true" frameborder="0"></iframe>
+                                <div class="ticker-content">
+                                    <div class="skeleton h-6 w-24 mb-1"></div>
+                                    <div class="skeleton h-3 w-16"></div>
+                                </div>
                             </div>
 
                             <!-- Dow Jones -->
-                            <div class="relative rounded-xl bg-white/60 border border-slate-100 overflow-hidden hover:border-indigo-200 hover:shadow-md transition-all duration-300">
-                                <div class="absolute top-2 left-3 z-10 flex items-center gap-1.5">
+                            <div class="ticker-card relative rounded-xl p-3 overflow-hidden" data-symbol="^DJI" data-name="Dow Jones" data-icon="fa-flag-usa" data-color="indigo">
+                                <div class="flex items-center gap-2 mb-2">
                                     <i class="fa-solid fa-flag-usa text-[10px] text-indigo-500"></i>
                                     <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Dow Jones</span>
                                 </div>
-                                <iframe class="ticker-iframe" src="https://s.tradingview.com/embed-widget/single-quote/?locale=en#%7B%22symbol%22%3A%22TVC%3ADJI%22%2C%22width%22%3A220%2C%22height%22%3A75%2C%22locale%22%3A%22en%22%2C%22colorTheme%22%3A%22light%22%2C%22isTransparent%22%3Atrue%7D" scrolling="no" allowtransparency="true" frameborder="0"></iframe>
+                                <div class="ticker-content">
+                                    <div class="skeleton h-6 w-24 mb-1"></div>
+                                    <div class="skeleton h-3 w-16"></div>
+                                </div>
                             </div>
 
                             <!-- Gift Nifty 50 -->
-                            <div class="relative rounded-xl bg-white/60 border border-slate-100 overflow-hidden hover:border-rose-200 hover:shadow-md transition-all duration-300">
-                                <div class="absolute top-2 left-3 z-10 flex items-center gap-1.5">
+                            <div class="ticker-card relative rounded-xl p-3 overflow-hidden" data-symbol="^NSX" data-name="Gift Nifty 50" data-icon="fa-gift" data-color="rose">
+                                <div class="flex items-center gap-2 mb-2">
                                     <i class="fa-solid fa-gift text-[10px] text-rose-500"></i>
                                     <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Gift Nifty 50</span>
                                 </div>
-                                <iframe class="ticker-iframe" src="https://s.tradingview.com/embed-widget/single-quote/?locale=en#%7B%22symbol%22%3A%22NSEIX%3ANIFTY1%21%22%2C%22width%22%3A220%2C%22height%22%3A75%2C%22locale%22%3A%22en%22%2C%22colorTheme%22%3A%22light%22%2C%22isTransparent%22%3Atrue%7D" scrolling="no" allowtransparency="true" frameborder="0"></iframe>
+                                <div class="ticker-content">
+                                    <div class="skeleton h-6 w-24 mb-1"></div>
+                                    <div class="skeleton h-3 w-16"></div>
+                                </div>
                             </div>
 
                         </div>
@@ -257,6 +284,158 @@
 
         </div>
     </main>
+
+    <script>
+        // Yahoo Finance tickers configuration
+        const tickers = [
+            { symbol: '^NSEI', name: 'Nifty 50', icon: 'fa-chart-area', color: 'blue' },
+            { symbol: '^INDIAVIX', name: 'India VIX', icon: 'fa-bolt', color: 'amber' },
+            { symbol: '^DJI', name: 'Dow Jones', icon: 'fa-flag-usa', color: 'indigo' },
+            { symbol: '^NSX', name: 'Gift Nifty 50', icon: 'fa-gift', color: 'rose' }
+        ];
+
+        // CORS proxy options (rotated for reliability)
+        const corsProxies = [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?',
+            'https://api.codetabs.com/v1/proxy?quest='
+        ];
+
+        let proxyIndex = 0;
+        function getCorsProxy() {
+            return corsProxies[proxyIndex % corsProxies.length];
+        }
+
+        function rotateProxy() {
+            proxyIndex++;
+        }
+
+        async function fetchYahooData(symbol) {
+            const encodedSymbol = encodeURIComponent(symbol);
+            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?interval=1d&range=1d`;
+
+            // Try multiple proxies
+            for (let i = 0; i < corsProxies.length; i++) {
+                try {
+                    const proxy = getCorsProxy();
+                    rotateProxy();
+                    const response = await fetch(proxy + encodeURIComponent(yahooUrl), {
+                        method: 'GET',
+                        headers: { 'Accept': 'application/json' }
+                    });
+
+                    if (!response.ok) continue;
+
+                    const data = await response.json();
+
+                    if (data.chart && data.chart.result && data.chart.result[0]) {
+                        const result = data.chart.result[0];
+                        const meta = result.meta;
+                        const timestamps = result.timestamp;
+                        const closes = result.indicators.quote[0].close;
+
+                        // Get latest valid close price
+                        let latestPrice = meta.regularMarketPrice || meta.previousClose;
+                        for (let j = closes.length - 1; j >= 0; j--) {
+                            if (closes[j] !== null) {
+                                latestPrice = closes[j];
+                                break;
+                            }
+                        }
+
+                        const prevClose = meta.chartPreviousClose || meta.previousClose;
+                        const change = latestPrice - prevClose;
+                        const changePercent = prevClose ? (change / prevClose) * 100 : 0;
+
+                        return {
+                            price: latestPrice,
+                            change: change,
+                            changePercent: changePercent,
+                            currency: meta.currency || 'INR',
+                            timestamp: new Date()
+                        };
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+
+            throw new Error('Failed to fetch data for ' + symbol);
+        }
+
+        function formatPrice(price, currency) {
+            if (price >= 1000) {
+                return price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+            return price.toFixed(2);
+        }
+
+        function formatChange(change, changePercent) {
+            const sign = change >= 0 ? '+' : '';
+            return `${sign}${change.toFixed(2)} (${sign}${changePercent.toFixed(2)}%)`;
+        }
+
+        function getChangeClass(change) {
+            if (change > 0) return 'price-up';
+            if (change < 0) return 'price-down';
+            return 'price-neutral';
+        }
+
+        function getChangeIcon(change) {
+            if (change > 0) return 'fa-arrow-trend-up';
+            if (change < 0) return 'fa-arrow-trend-down';
+            return 'fa-minus';
+        }
+
+        async function updateTicker(ticker) {
+            const card = document.querySelector(`[data-symbol="${ticker.symbol}"]`);
+            if (!card) return;
+
+            const contentDiv = card.querySelector('.ticker-content');
+
+            try {
+                const data = await fetchYahooData(ticker.symbol);
+                const changeClass = getChangeClass(data.change);
+                const changeIcon = getChangeIcon(data.change);
+
+                contentDiv.innerHTML = `
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-lg font-bold text-slate-800">${formatPrice(data.price, data.currency)}</span>
+                        <span class="text-[10px] text-slate-400">${data.currency}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 mt-0.5">
+                        <i class="fa-solid ${changeIcon} text-[10px] ${changeClass}"></i>
+                        <span class="text-xs font-semibold ${changeClass}">${formatChange(data.change, data.changePercent)}</span>
+                    </div>
+                `;
+
+                // Update last updated time
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                document.getElementById('ticker-last-updated').textContent = `Updated: ${timeStr} IST`;
+
+            } catch (error) {
+                contentDiv.innerHTML = `
+                    <div class="text-xs text-slate-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-exclamation text-[10px]"></i>
+                        <span>Unavailable</span>
+                    </div>
+                    <div class="text-[10px] text-slate-300 mt-0.5">Retrying...</div>
+                `;
+            }
+        }
+
+        async function updateAllTickers() {
+            // Update all tickers in parallel
+            await Promise.all(tickers.map(ticker => updateTicker(ticker)));
+        }
+
+        // Initial load
+        updateAllTickers();
+
+        // Auto-refresh every 30 seconds
+        setInterval(updateAllTickers, 30000);
+    </script>
 
 </body>
 </html>
