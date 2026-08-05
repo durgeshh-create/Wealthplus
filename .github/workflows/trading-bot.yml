@@ -333,8 +333,23 @@ jobs:
               # something to read — the Actions API only serves job logs
               # after the job completes, so we can't rely on that while the
               # bot is running for hours during market hours.
+              #
+              # ✅ FIX: this used to push "everything except DEBUG", which
+              # meant routine per-cycle status logging (portfolio sync,
+              # slot/holdings summaries — dozens of lines every ~60s) could
+              # fill the entire displayed window on its own, burying actual
+              # trade executions and errors that happened hours earlier.
+              # Downgrading the noisiest source to DEBUG (see
+              # backend/portfolio/tracker.py) helped, but the real fix is
+              # to stop showing routine status at all: this is now a
+              # WHITELIST — only lines that are either (a) ERROR-level or
+              # (b) describe an actual buy/sell/order/swap action survive.
+              # Nothing else (slot counts, held-ETF lists, LIQUIDCASE unit
+              # totals, etc.) makes it into what gets pushed, regardless of
+              # log level.
               if [ -f RD1858/logs/trading.log ]; then
-                grep -v '| DEBUG ' RD1858/logs/trading.log | tail -n 500 > /tmp/logtail_rd1858.txt || true
+                grep -E '\| ERROR |🚨|\bBUY\b|\bSELL\b|\bSWAP\b|smart_buy|smart_sell|EXECUTING|order_id|Order (placed|COMPLETE|cancelled)|LIQUIDCASE (sell|buy)' \
+                  RD1858/logs/trading.log | tail -n 500 > /tmp/logtail_rd1858.txt || true
                 python3 push_snapshot.py /tmp/logtail_rd1858.txt logtail_rd1858.txt || true
               fi
               sleep 60
@@ -477,7 +492,8 @@ jobs:
             while true; do
               python3 push_snapshot.py /tmp/status_ps5673.json status_ps5673.json || true
               if [ -f PS5673/logs/trading.log ]; then
-                grep -v '| DEBUG ' PS5673/logs/trading.log | tail -n 500 > /tmp/logtail_ps5673.txt || true
+                grep -E '\| ERROR |🚨|\bBUY\b|\bSELL\b|\bSWAP\b|smart_buy|smart_sell|EXECUTING|order_id|Order (placed|COMPLETE|cancelled)|LIQUIDCASE (sell|buy)' \
+                  PS5673/logs/trading.log | tail -n 500 > /tmp/logtail_ps5673.txt || true
                 python3 push_snapshot.py /tmp/logtail_ps5673.txt logtail_ps5673.txt || true
               fi
               sleep 60
