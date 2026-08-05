@@ -1660,13 +1660,18 @@
         // is whatever you set — verify the resulting margin in Kite after
         // placing, don't treat the % as a guarantee of a specific outcome.
         //
-        // The raw "% of quantity" number is very unlikely to land on a
-        // valid order quantity on its own — NSE requires F&O order qty to
-        // be an exact multiple of NIFTY_LOT_SIZE, so it's rounded to the
-        // nearest lot (never rounded UP past the position's own size).
+        // The raw "% of quantity" number won't land on a clean order size
+        // on its own. Rounding only to NIFTY_LOT_SIZE (65) is technically
+        // valid but can leave an odd leftover chunk once split by the
+        // freeze limit (e.g. 7735 = 4×1755 + a trailing 715 order) — round
+        // to the nearest multiple of NIFTY_FREEZE_QTY instead, so every
+        // resulting order is a full, clean freeze-limit-sized chunk with
+        // nothing left over. (Any multiple of the freeze qty is
+        // automatically a multiple of the lot size too, since freeze qty
+        // itself is 27 lots.) Never rounds UP past the position's own size.
         function computeReleaseQty(quantity, pct) {
             const rawQty = Math.abs(quantity) * (pct / 100);
-            const rounded = Math.round(rawQty / NIFTY_LOT_SIZE) * NIFTY_LOT_SIZE;
+            const rounded = Math.round(rawQty / NIFTY_FREEZE_QTY) * NIFTY_FREEZE_QTY;
             return Math.min(rounded, Math.abs(quantity));
         }
 
