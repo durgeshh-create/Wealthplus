@@ -1463,9 +1463,18 @@
         // name on every call.
         (function enlargeKitePopups() {
             const nativeOpen = window.open;
+            let popupCounter = 0;
             window.open = function (url, name, specs) {
                 const forcedSpecs = 'width=560,height=850,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes';
-                const forcedName = 'kitePopup_' + Date.now();
+                // Honor a caller-supplied name if it looks unique (e.g. the
+                // per-batch "kiteBasketBatch_i_timestamp" names from the
+                // "Place All Baskets" handler) so multiple synchronous
+                // window.open() calls in the same millisecond don't collide
+                // and get collapsed into a single reused window. Only fall
+                // back to a generated name when none was given, and make
+                // that fallback unique even within the same millisecond by
+                // adding a monotonically increasing counter.
+                const forcedName = name || ('kitePopup_' + Date.now() + '_' + (popupCounter++));
                 return nativeOpen.call(window, url, forcedName, forcedSpecs);
             };
         })();
