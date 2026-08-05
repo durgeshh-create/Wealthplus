@@ -1760,15 +1760,39 @@
         }
 
         // Renders one "Place Basket in Kite" button per batch into
-        // `containerId`, each wired to its own KiteConnect basket. The
-        // container is rebuilt from scratch every call, so old click
+        // `containerId`, each wired to its own KiteConnect basket, PLUS
+        // (when there's more than one batch) a single "Place All" button
+        // above them that fires every batch button's click in one go.
+        //
+        // Why this works: each batch button's kite.link() binding opens a
+        // new tab via window.open() when clicked. Browsers only allow
+        // window.open() calls made synchronously inside a real user
+        // gesture (a click handler) without popup-blocking them — calling
+        // .click() on each batch button in a plain synchronous loop, all
+        // still inside the "Place All" button's own click handler, stays
+        // within that same trusted gesture, so (in most browsers) all the
+        // tabs open together instead of being blocked. Using setTimeout or
+        // any async delay between them would lose that trusted-gesture
+        // status and risk having later tabs silently blocked — so this
+        // loop is deliberately synchronous, no delays.
+        //
+        // This does NOT skip Kite's own confirmation step — each opened
+        // tab still needs you to review and place orders on Kite's side.
+        // It only removes the extra step of finding and clicking each
+        // batch button here first. If your browser still blocks some of
+        // the tabs, the individual per-batch buttons remain below as a
+        // fallback — allow popups for this site to get the one-click flow.
+        //
+        // The container is rebuilt from scratch every call, so old click
         // bindings from a previous Run are simply discarded along with
         // their buttons (no clone/replace trick needed).
         function renderKiteBatches(containerId, batches) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
+            const btnIds = [];
             batches.forEach((batch, i) => {
                 const btnId = containerId + 'Btn' + i;
+                btnIds.push(btnId);
                 const btn = document.createElement('button');
                 btn.className = 'kite-btn';
                 btn.id = btnId;
@@ -1781,6 +1805,16 @@
                 batch.forEach(o => kite.add(o));
                 kite.link('#' + btnId);
             });
+            if (batches.length > 1) {
+                const allBtn = document.createElement('button');
+                allBtn.className = 'kite-btn';
+                allBtn.style.cssText = 'display:block;width:100%;margin-bottom:8px;font-weight:600';
+                allBtn.textContent = `⚡ Place All ${batches.length} Baskets (opens ${batches.length} Kite tabs)`;
+                allBtn.onclick = () => {
+                    btnIds.forEach(id => document.getElementById(id).click());
+                };
+                container.insertBefore(allBtn, container.firstChild);
+            }
         }
 
         function renderBasketPreview(elId, orders) {
@@ -1852,7 +1886,7 @@
             renderKiteBatches('switchKiteBtns', batches);
             const sideNote = (!symbols.putSym || !symbols.callSym) ? ' (one-sided — only ' + (symbols.putSym ? 'PUT' : 'CALL') + ' entry)' : '';
             const batchNote = batches.length > 1
-                ? ` Split into ${batches.length} Kite baskets (Kite caps a basket at 20 orders) — place each button below in order.`
+                ? ` Split into ${batches.length} Kite baskets — click "Place All ${batches.length} Baskets" below, or place each one individually.`
                 : ' Click "Place Basket in Kite".';
             statusEl.textContent = `Basket ready — ${exitOrders.length} exit + ${entryOrders.length} entry = ${orders.length} orders${sideNote}.${batchNote}`;
             statusEl.style.color = batches.length > 1 ? '#b45309' : '#16a34a';
@@ -1873,7 +1907,7 @@
             renderKiteBatches('freshKiteBtns', batches);
             const sideNote = (!symbols.putSym || !symbols.callSym) ? ' (one-sided — only ' + (symbols.putSym ? 'PUT' : 'CALL') + ')' : '';
             const batchNote = batches.length > 1
-                ? ` Split into ${batches.length} Kite baskets (Kite caps a basket at 20 orders) — place each button below in order.`
+                ? ` Split into ${batches.length} Kite baskets — click "Place All ${batches.length} Baskets" below, or place each one individually.`
                 : ' Click "Place Basket in Kite".';
             statusEl.textContent = `Basket ready (${orders.length} orders${sideNote}).${batchNote}`;
             statusEl.style.color = batches.length > 1 ? '#b45309' : '#16a34a';
