@@ -647,9 +647,30 @@ class OrderManager:
         _fresh_ltp = realtime_manager.get_ltp(buy_symbol) if realtime_manager else None
         if _fresh_ltp and _fresh_ltp > 0 and _fresh_ltp != exec_price:
             _safe_cash = max(0.0, (_last_cash or total_cost) - cash_reserve)
-            _fresh_qty = max(1, int(_safe_cash / _fresh_ltp))
+            # ✅ FIX: _safe_cash alone is the WHOLE account's available cash
+            # after the LIQUIDCASE sell credited — not this transaction's
+            # budget. Dividing by that let a Rs25k-budgeted buy balloon to
+            # whatever the account's total free cash could afford at the
+            # new price (e.g. 19 shares / Rs66.7k when the original budget
+            # was Rs25k), because nothing capped it back down to what this
+            # specific transaction was ever supposed to spend.
+            # Fix: also cap by what the ORIGINAL total_cost (this
+            # transaction's intended spend) affords at the new price, and
+            # take whichever constraint is tighter. This lets qty correctly
+            # shrink when price rose (staying within the original budget)
+            # or grow when price fell (still capped at the original budget,
+            # not expanded to use leftover account cash for a bigger buy
+            # than was ever authorized).
+            _budget_capped_qty = max(1, int(total_cost / _fresh_ltp))
+            _cash_capped_qty   = max(1, int(_safe_cash / _fresh_ltp))
+            _fresh_qty = min(_budget_capped_qty, _cash_capped_qty)
             if _fresh_qty != buy_quantity:
-                logger.info(f"[smart_buy] Price moved ₹{exec_price:.2f}→₹{_fresh_ltp:.2f} — qty {buy_quantity}→{_fresh_qty}")
+                logger.info(
+                    f"[smart_buy] Price moved ₹{exec_price:.2f}→₹{_fresh_ltp:.2f} — "
+                    f"qty {buy_quantity}→{_fresh_qty} "
+                    f"(budget cap {_budget_capped_qty} @ orig. budget ₹{total_cost:,.2f}, "
+                    f"cash cap {_cash_capped_qty} @ avail ₹{_safe_cash:,.2f})"
+                )
                 buy_quantity = _fresh_qty
 
         # ✅ FIX: previously this forced order_type to MARKET unconditionally
