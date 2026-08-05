@@ -337,9 +337,11 @@
             </div>
             <div class="orders-body">
 
-                <!-- Switch: Tue (or Mon if Tue holiday) — exit sold current-expiry NIFTY options, re-enter DOTM -->
+                <!-- Expiry Day: Tue (or Mon if Tue holiday) — Switch and Margin Release subsections -->
                 <div class="order-section">
-                    <h3>🔁 Switch <span style="font-size:0.55rem;color:#64748b;font-weight:400">Tue Expiry (Mon if it's holiday)</span></h3>
+                    <h3>📅 Expiry Day <span style="font-size:0.55rem;color:#64748b;font-weight:400">Tue Expiry (Mon if it's holiday)</span></h3>
+
+                    <div class="section-divider" style="margin-top:2px"><span>🔁 Switch</span></div>
                     <div class="hint">Exits (BUY, market) all current-expiry NIFTY option sold positions pulled from Today's Positions, then sells fresh NIFTY DOTM PUT/CALL — put then call, repeated per lot.</div>
 
                     <table class="mini-tbl">
@@ -372,6 +374,28 @@
                         <span id="switchKiteBtns" class="kite-btn-group"></span>
                     </div>
                     <div class="order-status" id="switchStatus"></div>
+
+                    <div class="section-divider" style="margin-top:10px"><span>📉 Margin Release</span></div>
+                    <div class="hint">Exits (BUY, market) a % of quantity from selected current-expiry NIFTY sold positions — trims size to free up margin / manage ELM ahead of Tuesday expiry, without fully exiting. This tool can't read your actual margin or ELM figures from Kite — check those yourself and set the % accordingly. Default ~35% is a rough starting point for deep-OTM short strangle legs, not a precise calculation.</div>
+
+                    <table class="mini-tbl">
+                        <thead><tr><th></th><th>Existing sold position</th><th>Qty</th><th>Exit qty</th></tr></thead>
+                        <tbody id="marginPosBody"><tr><td colspan="4" style="color:#64748b">Loading Today's Positions…</td></tr></tbody>
+                    </table>
+                    <button class="refresh-mini-btn" onclick="refreshSwitchPositions()">🔄 Refresh positions</button>
+
+                    <div class="lot-row" style="margin-top:8px">
+                        <label>% of each position to release</label>
+                        <input type="number" id="marginReleasePct" min="1" max="100" step="1" value="35" oninput="onMarginPctChanged()" style="width:70px;padding:4px 6px;border:1px solid rgba(15,23,42,0.2);border-radius:4px;font-size:0.65rem;text-align:center;font-family:'Courier New',monospace">
+                    </div>
+
+                    <div class="basket-preview" id="marginBasketPreview">Basket preview appears here after Run.</div>
+
+                    <div class="order-btn-row">
+                        <button class="run-btn" onclick="runMarginRelease()">▶ Run</button>
+                        <span id="marginKiteBtns" class="kite-btn-group"></span>
+                    </div>
+                    <div class="order-status" id="marginStatus"></div>
                 </div>
 
                 <!-- Fresh DOTM: Wed (or Thu if Wed holiday) — take fresh DOTM sell positions -->
@@ -1620,6 +1644,24 @@
             return orders;
         }
 
+        // Margin Release: BUY orders for only a PERCENTAGE of each selected
+        // position's quantity (not a full exit) — used to trim size ahead
+        // of Tuesday expiry to free up margin / reduce ELM exposure while
+        // keeping the rest of the position running. This tool has no
+        // access to your actual margin/ELM figures from Kite, so the %
+        // is whatever you set — verify the resulting margin in Kite after
+        // placing, don't treat the % as a guarantee of a specific outcome.
+        function buildPartialExitOrders(positions, pct) {
+            const orders = [];
+            positions.forEach(p => {
+                const releaseQty = Math.round(Math.abs(p.quantity) * (pct / 100));
+                if (releaseQty > 0) {
+                    chunkQty(releaseQty).forEach(qty => orders.push(makeOrder(p.symbol, 'BUY', qty)));
+                }
+            });
+            return orders;
+        }
+
         // SELL orders for the fresh DOTM PUT/CALL, put-then-call per lot.
         // Either symbol may be null (box left blank) — that leg is simply
         // skipped, so a one-sided basket (put only, or call only) works too.
@@ -1678,6 +1720,41 @@
             invalidateBasket('switch');
         }
 
+        // ── Margin Release (subsection of Expiry Day) ───────────────────
+        // Reads the same current-expiry position list as Switch, but keeps
+        // its own independent selection flag (marginIncluded) — which
+        // positions you want to switch out and which you want to partially
+        // release margin from are usually different choices, so they don't
+        // share a checkbox state.
+        function getMarginReleasePct() {
+            const el = document.getElementById('marginReleasePct');
+            const v = parseInt(el.value, 10);
+            return (v > 0 && v <= 100) ? v : 35;
+        }
+
+        function renderMarginPositions() {
+            const body = document.getElementById('marginPosBody');
+            const pct = getMarginReleasePct();
+            body.innerHTML = switchCandidates.length
+                ? switchCandidates.map((p, i) => {
+                    const exitQty = Math.round(Math.abs(p.quantity) * (pct / 100));
+                    return `<tr><td><input type="checkbox" ${p.marginIncluded ? 'checked' : ''} onchange="toggleMarginCandidate(${i}, this.checked)"></td><td>${p.symbol}</td><td class="neg-qty">${p.quantity}</td><td>${exitQty}</td></tr>`;
+                }).join('')
+                : `<tr><td colspan="4" style="color:#64748b">No current-expiry NIFTY option sold positions found</td></tr>`;
+        }
+
+        function toggleMarginCandidate(idx, checked) {
+            switchCandidates[idx].marginIncluded = checked;
+            invalidateBasket('margin');
+        }
+
+        // Re-renders the live "Exit qty" preview column as the % input
+        // changes, and marks the basket stale since the numbers changed.
+        function onMarginPctChanged() {
+            renderMarginPositions();
+            invalidateBasket('margin');
+        }
+
         async function refreshSwitchPositions() {
             const statusEl = document.getElementById('switchStatus');
             statusEl.textContent = 'Loading Today\'s Positions…';
@@ -1695,16 +1772,20 @@
                 // flip back to included:true a few seconds later. Carry
                 // forward each symbol's previous ticked state; only
                 // symbols that are genuinely new to this refresh default
-                // to included:true.
+                // to included:true. Same treatment for marginIncluded,
+                // tracked independently from Switch's included flag.
                 const prevIncluded = new Map(switchCandidates.map(p => [p.symbol, p.included]));
+                const prevMarginIncluded = new Map(switchCandidates.map(p => [p.symbol, p.marginIncluded]));
                 switchCandidates = positions
                     .filter(p => p && typeof p.symbol === 'string' && (p.quantity ?? 0) < 0 && symRe.test(p.symbol))
                     .map(p => ({
                         symbol: p.symbol,
                         quantity: p.quantity,
-                        included: prevIncluded.has(p.symbol) ? prevIncluded.get(p.symbol) : true
+                        included: prevIncluded.has(p.symbol) ? prevIncluded.get(p.symbol) : true,
+                        marginIncluded: prevMarginIncluded.has(p.symbol) ? prevMarginIncluded.get(p.symbol) : true
                     }));
                 renderSwitchPositions();
+                renderMarginPositions();
                 statusEl.textContent = `Updated · ${switchCandidates.length} position(s) matched`;
                 statusEl.style.color = '#4ade80';
             } catch (e) {
@@ -1954,6 +2035,25 @@
                 ? ` Split into ${batches.length} Kite baskets — click "Place All ${batches.length} Baskets" below, or place each one individually.`
                 : ' Click "Place Basket in Kite".';
             statusEl.textContent = `Basket ready — ${exitOrders.length} exit + ${entryOrders.length} entry = ${orders.length} orders${sideNote}.${batchNote}`;
+            statusEl.style.color = batches.length > 1 ? '#b45309' : '#16a34a';
+        }
+
+        function runMarginRelease() {
+            const statusEl = document.getElementById('marginStatus');
+            if (!kitePublisherReady) { statusEl.textContent = '⚠ Kite Publisher still loading — try again in a second.'; statusEl.style.color = '#dc2626'; return; }
+            if (!switchCandidates.length) { statusEl.textContent = '⚠ No current-expiry NIFTY sold positions to release margin from.'; statusEl.style.color = '#dc2626'; return; }
+            const pct = getMarginReleasePct();
+            const selected = switchCandidates.filter(p => p.marginIncluded);
+            if (!selected.length) { statusEl.textContent = '⚠ No positions selected.'; statusEl.style.color = '#dc2626'; return; }
+            const orders = buildPartialExitOrders(selected, pct);
+            if (!orders.length) { statusEl.textContent = '⚠ Computed exit quantity is 0 at this % — raise it or check quantities.'; statusEl.style.color = '#dc2626'; return; }
+            renderBasketPreview('marginBasketPreview', orders);
+            const batches = chunkOrders(orders);
+            renderKiteBatches('marginKiteBtns', batches);
+            const batchNote = batches.length > 1
+                ? ` Split into ${batches.length} Kite baskets — click "Place All ${batches.length} Baskets" below, or place each one individually.`
+                : ' Click "Place Basket in Kite".';
+            statusEl.textContent = `Basket ready — BUY ${orders.length} order(s), releasing ~${pct}% quantity from ${selected.length} position(s).${batchNote} This trims size only — verify remaining margin/ELM in Kite after placing.`;
             statusEl.style.color = batches.length > 1 ? '#b45309' : '#16a34a';
         }
 
