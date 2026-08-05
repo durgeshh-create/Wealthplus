@@ -374,12 +374,18 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .pw-hint{font-size:10px;color:var(--muted);margin-top:14px;line-height:1.5}
 .pw-set-link{color:var(--accent);cursor:pointer;text-decoration:underline}
 /* Top-level nav tabs */
-.nav-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 16px}
-.nav-tab{padding:10px 18px;font-family:var(--head);font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;user-select:none}
+.nav-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 16px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{padding:10px 18px;font-family:var(--head);font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;user-select:none;flex-shrink:0}
 .nav-tab:hover{color:var(--text)}
 .nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .nav-tab-pane{display:none}
 .nav-tab-pane.active{display:block}
+@media (max-width:480px){
+  .nav-tabs{padding:0 8px}
+  .nav-tab{padding:10px 12px;font-size:11px}
+}
 /* Strategy pane overrides */
 #pane-strategy #strat-body{display:block!important}
 #pane-strategy .ph[onclick]{cursor:default;pointer-events:none}
@@ -2598,6 +2604,41 @@ async function _dispatchWorkflow(cfg) {
 
 const SEED_WORKFLOW_FILE = "seed-scanner.yml";
 
+// Waits `ms` OR resolves immediately if the tab becomes visible again first
+// — mobile browsers heavily throttle setTimeout/setInterval while a tab is
+// backgrounded (screen locked, app switched away), which can make a normal
+// 10s poll interval silently stretch to minutes. Reacting to visibilitychange
+// means returning to the tab re-checks status right away instead of waiting
+// out whatever the OS decided to delay the timer by.
+function _waitOrVisible(ms) {
+  return new Promise(resolve => {
+    let done = false;
+    const finish = () => { if (done) return; done = true; clearTimeout(timer); document.removeEventListener('visibilitychange', onVis); resolve(); };
+    const timer = setTimeout(finish, ms);
+    const onVis = () => { if (document.visibilityState === 'visible') finish(); };
+    document.addEventListener('visibilitychange', onVis);
+  });
+}
+
+// Looks up the most recent SUCCESSFUL completed run of seed-scanner.yml and
+// reports whether it finished today (IST) — used so "Top 5" can skip its
+// ~7-8 min CSV refresh when the data's already fresh for the day, instead
+// of unconditionally re-seeding on every click.
+async function _findLastSuccessfulSeedRun(cfg) {
+  const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${SEED_WORKFLOW_FILE}/runs?status=success&per_page=1`;
+  const r = await fetch(url, { headers: apiHeaders() });
+  if (!r.ok) return null;
+  const runs = (await r.json()).workflow_runs || [];
+  return runs[0] || null;
+}
+
+function _isTodayIST(isoTimestamp) {
+  const toIST = d => new Date(d.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+  const a = toIST(new Date(isoTimestamp));
+  const b = toIST(new Date());
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
 async function _findRecentRun(cfg, workflowFile, sinceISO) {
   const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${workflowFile}`;
   const r = await fetch(`${base}/runs?per_page=5`, { headers: apiHeaders() });
@@ -2636,8 +2677,11 @@ async function _seedScannerCore(cfg, onStatus) {
   onStatus('Running…', '', run.html_url);
 
   // Poll every 10s, up to ~25 min (seed-scanner.yml has a 30 min timeout).
+  // Uses _waitOrVisible instead of a plain timeout so returning to the tab
+  // after the phone screen locks / app is backgrounded re-checks status
+  // immediately rather than waiting out a throttled background timer.
   for (let i = 0; i < 150; i++) {
-    await new Promise(res => setTimeout(res, 10000));
+    await _waitOrVisible(10000);
     const chk = await fetch(
       `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/runs/${run.id}`,
       { headers: apiHeaders() }
@@ -4714,15 +4758,6 @@ async function runTop5() {
   const cfg = getCfg();
   if (!hasCfg()) { alert("Please configure GitHub owner / repo / token first (Setup)."); return; }
 
-  if (!confirm(
-    "This refreshes all ~575 ETF/NIFTY200/Midcap150 CSVs first (≈7–8 min via GitHub Actions), " +
-    "then scans the FULL universe (ETFs + NIFTY 200 + Midcap 150) for:\n\n" +
-    `• Daily W%R ≤ ${TOP5_DAILY_T}   • Weekly W%R ≤ ${TOP5_WEEKLY_T}\n` +
-    `• Below 20 DMA        • Avg Trade Value ≥ ₹${TOP5_ATV_CR} Cr\n\n` +
-    "…and shows the Top 5, ranked by Daily W%R (most oversold first), then Weekly W%R, " +
-    "then how far below the 20 DMA, then liquidity.\n\nRun it now?"
-  )) return;
-
   const top5Btn  = document.getElementById('scn-top5-btn');
   const runBtn   = document.getElementById('scn-run-btn');
   const seedBtn  = document.getElementById('scn-seed-btn');
@@ -4730,24 +4765,67 @@ async function runTop5() {
   const fill = document.getElementById('scn-prog-fill');
   const lbl  = document.getElementById('scn-prog-lbl');
 
+  // Check whether today's data is already seeded before asking the user
+  // anything — a fresh seed means we can skip the ~7-8 min refresh
+  // entirely and go straight to scanning.
+  top5Btn.disabled = true;
+  top5Btn.textContent = '⏳ Checking…';
+  let lastRun = null, seedIsFresh = false;
+  try {
+    lastRun = await _findLastSuccessfulSeedRun(cfg);
+    seedIsFresh = !!(lastRun && _isTodayIST(lastRun.updated_at));
+  } catch (e) {
+    console.warn('Could not check last seed run — will re-seed to be safe:', e);
+  }
+  top5Btn.disabled = false;
+  top5Btn.textContent = '🏆 Top 5';
+
+  const filterRulesText =
+    `• Daily W%R ≤ ${TOP5_DAILY_T}   • Weekly W%R ≤ ${TOP5_WEEKLY_T}\n` +
+    `• Below 20 DMA        • Avg Trade Value ≥ ₹${TOP5_ATV_CR} Cr\n\n` +
+    "…and shows the Top 5, ranked by Daily W%R (most oversold first), then Weekly W%R, " +
+    "then how far below the 20 DMA, then liquidity.";
+
+  if (seedIsFresh) {
+    const seededAt = new Date(lastRun.updated_at).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' });
+    if (!confirm(
+      `Scanner data was already refreshed today at ${seededAt} IST — skipping the ~7–8 min re-seed ` +
+      `and scanning the full universe with today's data.\n\n${filterRulesText}\n\n` +
+      `(Cancel here, then use "⬇ Seed Scanner Data" first if you specifically want a fresh intraday refresh.)\n\nRun it now?`
+    )) return;
+  } else {
+    if (!confirm(
+      "This refreshes all ~575 ETF/NIFTY200/Midcap150 CSVs first (≈7–8 min via GitHub Actions), " +
+      `then scans the FULL universe (ETFs + NIFTY 200 + Midcap 150) for:\n\n${filterRulesText}\n\nRun it now?`
+    )) return;
+  }
+
   [top5Btn, runBtn, seedBtn].forEach(b => b.disabled = true);
-  top5Btn.textContent = '⏳ Seeding…';
   ['scn-summary', 'scn-results', 'scn-empty', 'scn-idle'].forEach(id => document.getElementById(id).style.display = 'none');
   document.getElementById('scn-prog-wrap').style.display = 'flex';
   fill.style.width = '0%';
-  lbl.textContent = 'Refreshing scanner CSVs (≈7–8 min)…';
 
   try {
-    const setStat = (text, cls, url) => {
-      seedStat.className = 'mw-status' + (cls ? ' ' + cls : '');
-      seedStat.innerHTML = url ? `${text} — <a href="${url}" target="_blank" style="color:inherit">view log</a>` : text;
-      lbl.textContent = 'Refreshing scanner CSVs — ' + text;
-    };
-    const seedResult = await _seedScannerCore(cfg, setStat);
+    if (seedIsFresh) {
+      top5Btn.textContent = '⏳ Scanning…';
+      lbl.textContent = "Using today's already-refreshed data…";
+      fill.style.width = '50%';
+      seedStat.className = 'mw-status ok';
+      seedStat.textContent = `✓ Using today's seed (${new Date(lastRun.updated_at).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })} IST) — refresh skipped`;
+    } else {
+      top5Btn.textContent = '⏳ Seeding…';
+      lbl.textContent = 'Refreshing scanner CSVs (≈7–8 min)…';
+      const setStat = (text, cls, url) => {
+        seedStat.className = 'mw-status' + (cls ? ' ' + cls : '');
+        seedStat.innerHTML = url ? `${text} — <a href="${url}" target="_blank" style="color:inherit">view log</a>` : text;
+        lbl.textContent = 'Refreshing scanner CSVs — ' + text;
+      };
+      const seedResult = await _seedScannerCore(cfg, setStat);
 
-    if (seedResult.ok === false &&
-        !confirm('Seed finished with errors — some CSVs may be stale. Run the Top 5 scan anyway?')) {
-      return;
+      if (seedResult.ok === false &&
+          !confirm('Seed finished with errors — some CSVs may be stale. Run the Top 5 scan anyway?')) {
+        return;
+      }
     }
 
     // Full universe + the exact Top 5 filter rules.
