@@ -1837,29 +1837,34 @@
                     // ignores whatever `target` attribute is sitting on the
                     // anchor, since we're not triggering its native click,
                     // just reusing the URL it computed.
-                    const realOpen = window.open;
-                    console.log('[PlaceAll] starting, btnIds =', btnIds);
+                    // ROOT CAUSE (confirmed via console diagnostics): kite.link()
+                    // does NOT use a plain <a href> we can read. On click it
+                    // opens a placeholder popup via window.open('', 'Kite', ...)
+                    // — a LITERAL, HARDCODED window name "Kite" — then submits a
+                    // hidden form with target="Kite" to navigate that named
+                    // window to the real basket URL. Every batch button uses
+                    // that same fixed name, so all 4 clicks target the SAME
+                    // browser window; each later batch just overwrites the
+                    // previous one, leaving only the last batch's orders.
+                    //
+                    // Fix: after each batch's click() creates/uses the "Kite"-
+                    // named window, grab a reference to it and rename it
+                    // (window.name can be reassigned even across origins) so
+                    // the name "Kite" is free again. The next batch's click
+                    // then has no existing "Kite" window to reuse and gets a
+                    // brand new one — giving each batch its own tab.
                     btnIds.forEach((id, i) => {
                         const el = document.getElementById(id);
-                        const href = el.getAttribute('href') || el.href;
-                        const uniqueName = `kiteBasketBatch_${i}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-                        console.log(`[PlaceAll] batch ${i}: el=`, el, 'href=', href, 'uniqueName=', uniqueName);
-                        if (href) {
-                            const w = realOpen(href, uniqueName);
-                            console.log(`[PlaceAll] batch ${i}: realOpen returned`, w, w === null ? '⚠ BLOCKED BY BROWSER' : 'OK');
+                        console.log(`[PlaceAll] batch ${i}: clicking`, el);
+                        el.click();
+                        // Grab (or create, if the click hasn't opened it yet)
+                        // a handle to the "Kite"-named window and free the name.
+                        const kiteWin = window.open('', 'Kite');
+                        if (kiteWin) {
+                            kiteWin.name = `KiteBasketDone_${i}_${Date.now()}`;
+                            console.log(`[PlaceAll] batch ${i}: renamed shared window to`, kiteWin.name);
                         } else {
-                            console.log(`[PlaceAll] batch ${i}: no href found, using fallback click() path`);
-                            // Fallback: no href found (kite.link() may bind
-                            // differently than expected) — try the
-                            // click+patch approach as a best effort.
-                            window.open = function(url, name, specs) {
-                                console.log(`[PlaceAll] batch ${i}: fallback window.open called with url=`, url, 'name=', name);
-                                const w2 = realOpen.call(window, url, uniqueName, specs);
-                                console.log(`[PlaceAll] batch ${i}: fallback realOpen returned`, w2, w2 === null ? '⚠ BLOCKED BY BROWSER' : 'OK');
-                                return w2;
-                            };
-                            el.click();
-                            window.open = realOpen;
+                            console.log(`[PlaceAll] batch ${i}: ⚠ could not get a handle to the Kite window — likely popup-blocked`);
                         }
                     });
                     console.log('[PlaceAll] done');
