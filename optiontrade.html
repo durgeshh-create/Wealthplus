@@ -1811,24 +1811,40 @@
                 allBtn.style.cssText = 'display:block;width:100%;margin-bottom:8px;font-weight:600';
                 allBtn.textContent = `⚡ Place All ${batches.length} Baskets (opens ${batches.length} Kite tabs)`;
                 allBtn.onclick = () => {
-                    // kite.link()'s internal click handler opens its checkout
-                    // page via window.open(url, someFixedName) — a FIXED
-                    // window name, so clicking 4 batch buttons back-to-back
-                    // was navigating the SAME tab 4 times instead of opening
-                    // 4 tabs (only the last batch's page survived visibly).
-                    // Fix: temporarily wrap window.open so every call during
-                    // this loop gets forced onto a unique window name,
-                    // regardless of what name Kite's script passes — this
-                    // guarantees 4 separate tabs without needing to know
-                    // Kite's internals. Restored immediately after.
+                    // Previous attempt patched window.open() assuming
+                    // kite.link() called it as a JS function — it didn't
+                    // (confirmed: patching had zero effect). kite.link()
+                    // instead rewrites the target element into a real
+                    // <a href="..." target="someFixedName">, and clicking
+                    // it triggers the BROWSER's native link navigation,
+                    // which reuses any existing window already open under
+                    // that same target name — completely bypassing
+                    // window.open() as a function, so no JS-level patch on
+                    // window.open can intercept it.
+                    //
+                    // Fix: don't click the link at all. Read the href
+                    // kite.link() wrote onto each element and open it
+                    // ourselves via window.open(href, uniqueName) — this
+                    // ignores whatever `target` attribute is sitting on the
+                    // anchor, since we're not triggering its native click,
+                    // just reusing the URL it computed.
                     const realOpen = window.open;
                     btnIds.forEach((id, i) => {
-                        window.open = function(url, name, specs) {
-                            return realOpen.call(window, url, `kiteBasketBatch_${i}_${Date.now()}`, specs);
-                        };
-                        document.getElementById(id).click();
+                        const el = document.getElementById(id);
+                        const href = el.getAttribute('href') || el.href;
+                        if (href) {
+                            realOpen(href, `kiteBasketBatch_${i}_${Date.now()}`);
+                        } else {
+                            // Fallback: no href found (kite.link() may bind
+                            // differently than expected) — try the
+                            // click+patch approach as a best effort.
+                            window.open = function(url, name, specs) {
+                                return realOpen.call(window, url, `kiteBasketBatch_${i}_${Date.now()}`, specs);
+                            };
+                            el.click();
+                            window.open = realOpen;
+                        }
                     });
-                    window.open = realOpen;
                 };
                 container.insertBefore(allBtn, container.firstChild);
             }
