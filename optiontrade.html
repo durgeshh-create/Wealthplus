@@ -1597,7 +1597,7 @@
             return {
                 tradingsymbol: symbol, exchange: 'NFO', transaction_type: txn,
                 order_type: 'MARKET', product: 'NRML', quantity: qty,
-                variety: 'regular', readonly: true
+                variety: 'regular'
             };
         }
 
@@ -1705,21 +1705,57 @@
             }
         }
 
-        // Kite's basket-order checkout hard-caps every basket at 20 orders
-        // (support.zerodha.com — "A maximum of 20 orders can be added to
-        // the basket"). Orders added beyond that via kite.add() are not
-        // reliably executed — this is why a 28-order basket only traded
-        // ~11 legs. So baskets are always split into ≤20-order chunks.
-        const KITE_BASKET_MAX = 20;
+        // Kite's documented basket cap is 20 orders, but in practice that's
+        // NOT what's actually limiting us: a 28-order basket only traded
+        // ~11 legs, and later an 18-order basket (under the "20" cap) only
+        // traded 9. Neither lines up with a clean order-count cutoff — both
+        // land near 40-50% of the list, which is the signature of a
+        // kite.link() URL/payload-length limit being hit partway through
+        // encoding, not a fixed "stop after N orders" rule. Long NIFTY
+        // weekly symbols (e.g. NIFTY2681122800PE) make each order's
+        // encoded footprint bigger than it'd be for shorter/monthly
+        // symbols, so the safe order count is smaller than the documented
+        // "20" and isn't a fixed number — it depends on payload size.
+        //
+        // Fix: cap batches by estimated encoded length (chars of
+        // JSON.stringify per order, times a safety margin for URL-encoding
+        // overhead) rather than by raw order count. KITE_BASKET_MAX is kept
+        // as a hard backstop, lowered well below the old "20" to a value
+        // that comfortably fits under the length cap even in the
+        // worst case (all orders being the longest symbol in the batch).
+        const KITE_BASKET_MAX = 8;
+        const KITE_BASKET_MAX_CHARS = 1200; // conservative — see comment above
 
-        // Splits an order list into ≤20-order chunks. Called separately on
-        // exit orders and entry orders (never on the combined list) so a
-        // chunk boundary never lands mid-way between an exit and an entry.
+        function estimatedOrderChars(o) {
+            // Rough proxy for kite.add()'s encoded footprint. URL-encoding
+            // typically adds ~20-30% overhead over raw JSON for the
+            // characters used in these payloads (letters/digits/braces
+            // mostly, but ":" "," "{" "}" all get percent-encoded).
+            return Math.ceil(JSON.stringify(o).length * 1.3);
+        }
+
+        // Splits an order list into batches that respect BOTH the order-
+        // count backstop and the estimated payload-length limit — whichever
+        // is hit first ends the current batch. Called separately on exit
+        // orders and entry orders (never on the combined list) so a chunk
+        // boundary never lands mid-way between an exit and an entry.
         function chunkOrders(orders) {
             const batches = [];
-            for (let i = 0; i < orders.length; i += KITE_BASKET_MAX) {
-                batches.push(orders.slice(i, i + KITE_BASKET_MAX));
-            }
+            let current = [];
+            let currentChars = 0;
+            orders.forEach(o => {
+                const chars = estimatedOrderChars(o);
+                const wouldExceed = current.length >= KITE_BASKET_MAX ||
+                    (current.length > 0 && currentChars + chars > KITE_BASKET_MAX_CHARS);
+                if (wouldExceed) {
+                    batches.push(current);
+                    current = [];
+                    currentChars = 0;
+                }
+                current.push(o);
+                currentChars += chars;
+            });
+            if (current.length) batches.push(current);
             return batches;
         }
 
