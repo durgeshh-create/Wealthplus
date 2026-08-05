@@ -1,19 +1,3 @@
-2026-08-05 12:44:10 IST | WARNING  | backend.data.historical | SILVERBEES: HTTP 403 fetching historical data — re-authenticating and retrying once...
-2026-08-05 12:44:10 IST | WARNING  | backend.auth.manager | OMS 403 — token stale, extracting fresh token from browser via CDP...
-2026-08-05 12:44:20 IST | INFO     | backend.auth.manager | Performing fresh credentials login (no browser detected)...
-2026-08-05 12:44:20 IST | INFO     | backend.auth.token_store | ✓ Enctoken saved to /home/runner/work/Wealthplus/Wealthplus/RD1858/config/enctoken.json
-2026-08-05 12:44:20 IST | INFO     | backend.auth.manager | Fresh login successful for RD1858
-2026-08-05 12:44:20 IST | INFO     | backend.auth.manager | ✅ Re-auth via credentials (headless fallback)
-2026-08-05 12:44:21 IST | INFO     | backend.data.historical | ✅ SILVERBEES: historical data fetched after re-auth
-2026-08-05 12:44:21 IST | INFO     | backend.data.historical | ✅ SILVERBEES: added 2 new candles (CSV now has 342 bars)
-2026-08-05 12:44:21 IST | INFO     | backend.data.historical | 📥 JUNIORBEES: CSV data stale (last=2026-07-31). Fetching 2026-08-01 → 2026-08-04...
-2026-08-05 12:44:21 IST | INFO     | backend.data.historical | ✅ JUNIORBEES: added 2 new candles (CSV now has 331 bars)
-2026-08-05 12:44:21 IST | INFO     | backend.data.historical | 📥 NIFTYBEES: CSV data stale (last=2026-07-31). Fetching 2026-08-01 → 2026-08-04...
-2026-08-05 12:44:21 IST | INFO     | backend.data.historical | ✅ NIFTYBEES: added 2 new candles (CSV now has 381 bars)
-2026-08-05 12:44:21 IST | INFO     | backend.data.historical | 📥 MID150BEES: CSV data stale (last=2026-07-31). Fetching 2026-08-01 → 2026-08-04...
-2026-08-05 12:44:21 IST | INFO     | backend.data.historical | ✅ MID150BEES: added 2 new candles (CSV now has 381 bars)
-2026-08-05 12:44:21 IST | INFO     | backend.data.historical | 📥 MINDSPACE-RR: CSV data stale (last=2026-07-31). Fetching 2026-08-01 → 2026-08-04...
-2026-08-05 12:44:22 IST | INFO     | backend.data.historical | ✅ MINDSPACE-RR: added 2 new candles (CSV now has 342 bars)
 2026-08-05 12:44:22 IST | INFO     | backend.data.historical | ✓ Historical data loaded for 9 symbols (active + BnH)
 2026-08-05 12:44:22 IST | INFO     | backend.data.realtime | Initializing WebSocket connection...
 2026-08-05 12:44:22 IST | INFO     | backend.data.realtime | ✓ Instruments CSV from https://api.kite.trade/instruments (111184 rows)
@@ -498,3 +482,19 @@
 2026-08-05 13:09:28 IST | INFO     | backend.portfolio.tracker | Held ETFs (4): EMBASSY-RR, SILVERBEES, BANKBEES, NIFTYBEES
 2026-08-05 13:09:28 IST | INFO     | backend.portfolio.tracker | Available slots: 3/7
 2026-08-05 13:09:28 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 144 free + 49517 pledged + 0 T1 = 49661 units @ ₹115.32
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Positions): -72 units @ ₹115.33
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 49661 units (Holdings updated | -72 sold today)
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 49661 units (free: 144) = ₹5727403.13
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES, BSE
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | Slots: 3 available, 4 locked (EMBASSY-RR, SILVERBEES, BANKBEES, NIFTYBEES)
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 49661 units (₹5727403.13)
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES, BSE
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | Held ETFs (4): EMBASSY-RR, SILVERBEES, BANKBEES, NIFTYBEES
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | Available slots: 3/7
+2026-08-05 13:10:28 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-05 13:10:39 IST | INFO     | backend.strategy.signal_generator | ⏸ BSE: buy signal detected but blocked — already attempted today (a prior attempt this session failed or completed; won't retry until tomorrow)
