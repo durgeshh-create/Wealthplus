@@ -1,18 +1,3 @@
-2026-08-05 11:16:53 IST | INFO     | backend.data.historical | ✅ MID150BEES: bootstrapped 271 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/MID150BEES.csv
-2026-08-05 11:16:53 IST | INFO     | backend.data.historical | 📥 MINDSPACE-RR: bootstrapping historical data 2025-07-01 → 2026-08-04 (token=5710849)
-2026-08-05 11:16:53 IST | INFO     | backend.data.historical | ✅ MINDSPACE-RR: bootstrapped 271 candles, saved to /home/runner/work/Wealthplus/Wealthplus/PS5673/data/daily/MINDSPACE-RR.csv
-2026-08-05 11:16:53 IST | INFO     | backend.data.historical | ✓ Historical data loaded for 8 symbols (active + BnH)
-2026-08-05 11:16:53 IST | INFO     | backend.data.realtime | Initializing WebSocket connection...
-2026-08-05 11:16:54 IST | INFO     | backend.data.realtime | ✓ Instruments CSV from https://api.kite.trade/instruments (110970 rows)
-2026-08-05 11:16:54 IST | INFO     | backend.data.realtime | Looking up tokens for: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES, MID150BEES, MINDSPACE-RR, LIQUIDCASE
-2026-08-05 11:16:54 IST | INFO     | backend.data.realtime | ✓ SILVERBEES: token 2068481 (segment=NSE)
-2026-08-05 11:16:54 IST | INFO     | backend.data.realtime | ✓ JUNIORBEES: token 2800385 (segment=NSE)
-2026-08-05 11:16:54 IST | INFO     | backend.data.realtime | ✓ EMBASSY-RR: token 2402049 (segment=NSE)
-2026-08-05 11:16:54 IST | INFO     | backend.data.realtime | ✓ BANKBEES: token 2928385 (segment=NSE)
-2026-08-05 11:16:54 IST | INFO     | backend.data.realtime | ✓ HDFCSML250: token 3643649 (segment=NSE)
-2026-08-05 11:16:54 IST | INFO     | backend.data.realtime | ✓ NIFTYBEES: token 2707457 (segment=NSE)
-2026-08-05 11:16:54 IST | INFO     | backend.data.realtime | ✓ MID150BEES: token 2177537 (segment=NSE)
-2026-08-05 11:16:54 IST | INFO     | backend.data.realtime | ✓ MINDSPACE-RR: token 5710849 (segment=NSE)
 2026-08-05 11:16:54 IST | INFO     | backend.data.realtime | ✓ LIQUIDCASE: token 5568001 (segment=NSE)
 2026-08-05 11:16:54 IST | INFO     | backend.data.realtime | ✓ Index NIFTY 50: token 256265
 2026-08-05 11:16:54 IST | INFO     | backend.data.realtime | ✓ Index NIFTY MIDCAP 150: token 266249
@@ -498,3 +483,18 @@
 2026-08-05 11:51:02 IST | ERROR    | kiteconnect.ticker   | Connection closed: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
 2026-08-05 11:51:02 IST | WARNING  | backend.data.realtime | 🔴 WebSocket closed: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
 2026-08-05 11:51:02 IST | INFO     | backend.data.realtime | 🔄 WebSocket reconnect attempt 1(∞) in 10s...
+2026-08-05 11:51:09 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE (Holdings): 209 free + 48369 pledged + 0 T1 = 48578 units @ ₹115.31
+2026-08-05 11:51:09 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE Total: 48578 units (free: 209) = ₹5601529.18
+2026-08-05 11:51:09 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES
+2026-08-05 11:51:09 IST | INFO     | backend.portfolio.tracker | Slots: 2 available, 4 locked (NIFTYBEES, BANKBEES, SILVERBEES, EMBASSY-RR)
+2026-08-05 11:51:09 IST | INFO     | backend.portfolio.tracker | ✓ Portfolio synced successfully
+2026-08-05 11:51:09 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-05 11:51:09 IST | INFO     | backend.portfolio.tracker | PORTFOLIO SUMMARY
+2026-08-05 11:51:09 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-05 11:51:09 IST | INFO     | backend.portfolio.tracker | LIQUIDCASE: 48578 units (₹5601529.18)
+2026-08-05 11:51:09 IST | INFO     | backend.portfolio.tracker | Active ETFs: SILVERBEES, JUNIORBEES, EMBASSY-RR, BANKBEES, HDFCSML250, NIFTYBEES
+2026-08-05 11:51:09 IST | INFO     | backend.portfolio.tracker | Held ETFs (4): NIFTYBEES, BANKBEES, SILVERBEES, EMBASSY-RR
+2026-08-05 11:51:09 IST | INFO     | backend.portfolio.tracker | Available slots: 2/6
+2026-08-05 11:51:09 IST | INFO     | backend.portfolio.tracker | ------------------------------------------------------------
+2026-08-05 11:51:22 IST | INFO     | backend.data.realtime | 🔄 WebSocket reconnect attempt 2(∞) in 20s...
+2026-08-05 11:51:52 IST | INFO     | backend.data.realtime | 🔄 WebSocket reconnect attempt 3(∞) in 30s...
