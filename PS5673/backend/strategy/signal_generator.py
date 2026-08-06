@@ -371,9 +371,26 @@ class SignalGenerator:
             live_price = self.realtime.get_ltp(symbol)
             live_ohlc  = self.realtime.get_ohlc(symbol)
             if live_price is None:
-                live_price = float(daily_data.iloc[-1]['close'])
-                live_ohlc  = {'high': float(daily_data.iloc[-1]['high']),
-                              'low':  float(daily_data.iloc[-1]['low'])}
+                # ✅ FIX: this used to silently fall back to
+                # daily_data.iloc[-1]['close'] — during market hours,
+                # before today's bar has closed and been appended, that
+                # "last row" is YESTERDAY's close, not a live price. That
+                # fallback fired a false SELL SIGNAL (BSE, "profit" 3.19%
+                # against Aug 4's Rs3618 close, logged indistinguishably
+                # from a genuine live tick) while the real Aug 5 price was
+                # actually sitting below Rs3600 all afternoon. Buy/sell
+                # decisions should never be made against up-to-a-day-stale
+                # data with no indication it's stale — skip this symbol
+                # entirely this cycle instead; generate_signals() already
+                # treats a None/False result as "try again next cycle"
+                # (see the outside-trading-hours and stale-lock handling
+                # above), so this is a safe, already-established pattern,
+                # not a new failure mode.
+                logger.warning(
+                    f"⚠️ {symbol}: no live price available — skipping signal "
+                    f"generation this cycle (not using stale daily close as a substitute)"
+                )
+                return None
 
             williams_r = calculate_daily_williams_r(
                 daily_data,
