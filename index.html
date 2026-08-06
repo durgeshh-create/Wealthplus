@@ -4970,8 +4970,22 @@ async function loadJobLogs(manual) {
                                      // (errors + trade actions only, see
                                      // trading-bot.yml) so 500 lines is a lot
                                      // of actual trade history, not noise.
-    viewer.innerHTML = tail.map(_colorizeLogLine).join('\n');
-    viewer.scrollTop = viewer.scrollHeight;
+    const nonBlank = tail.filter(l => l.trim() !== '');
+    if (nonBlank.length === 0) {
+      // ✅ FIX: with the whitelist filter (ERROR + buy/sell/order lines
+      // only), a quiet bot with no trades or errors since the log started
+      // legitimately produces an empty pushed file. Previously this
+      // rendered as a blank black box — visually identical to "broken",
+      // even though the "Updated ... IST" status line above it proves the
+      // fetch succeeded. Make that distinction explicit instead of making
+      // people guess.
+      viewer.innerHTML = '<span style="color:#6b7280">No errors or trade activity in the pushed log yet — ' +
+        'this is expected if the bot hasn\'t had a buy/sell/order event or error since it last started. ' +
+        'This box updates automatically once something happens.</span>';
+    } else {
+      viewer.innerHTML = tail.map(_colorizeLogLine).join('\n');
+      viewer.scrollTop = viewer.scrollHeight;
+    }
     statusEl.textContent = `Updated ${new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' })} IST` +
       ' · refreshes every 20s (bot pushes every 60s)';
   } catch (e) {
