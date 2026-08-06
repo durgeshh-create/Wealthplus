@@ -4,3 +4,23 @@
 2026-08-06 14:03:12 IST | WARNING  | backend.strategy.signal_generator | ⚠️ EMBASSY-RR: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
 2026-08-06 14:03:14 IST | WARNING  | backend.data.realtime | REST LTP fallback for EMBASSY-RR (NSE:EMBASSY-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
 2026-08-06 14:03:14 IST | WARNING  | backend.strategy.signal_generator | ⚠️ EMBASSY-RR: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-08-06 15:06:05 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-98.8), B(W%R=-98.8+drop=2.28%), C(W%R=-98.8+drop=2.28%)]: BSE | Price=₹3454.10 | PrevClose=₹3534.60 | AvgBuy=₹3489.81 | Slot 1/6
+2026-08-06 15:06:05 IST | INFO     | __main__             |   🟢 BUY: BSE | W%R=-98.82 | ₹3454.10
+2026-08-06 15:06:05 IST | INFO     | backend.strategy.executor |                           EXECUTING AUTOMATED BUY: BSE                          
+2026-08-06 15:06:05 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹3454.10 for BSE (LTP was ₹3454.10, top_ask from depth)
+2026-08-06 15:06:05 IST | INFO     | backend.orders.manager | smart_buy 7 × BSE @ ₹3454.10 (cost ₹24,178.70) | Available cash: ₹44,027.80 (spendable after ₹5000 reserve: ₹39,027.80)
+2026-08-06 15:06:05 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 7 x BSE
+2026-08-06 15:06:06 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260806191330723
+2026-08-06 15:06:06 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 48477.80. Margin available: 44027.80. Check orderbook for open orders.
+2026-08-06 15:06:06 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.33 (top_bid from depth)
+2026-08-06 15:06:06 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 227 x LIQUIDCASE
+2026-08-06 15:06:07 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260806191330777
+2026-08-06 15:06:07 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.33
+2026-08-06 15:06:07 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 227 units @ ₹115.34
+2026-08-06 15:06:09 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 2/90s: live_balance=₹45,908.61 (need ≥ ₹29,178.70)
+2026-08-06 15:06:09 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹3454.1 → ₹3454.70 (top_ask from depth)
+2026-08-06 15:06:09 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 7 x BSE
+2026-08-06 15:06:10 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260806191330961
+2026-08-06 15:06:10 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: BSE @ ₹3454
+2026-08-06 15:06:10 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 7 × BSE @ ₹3454.10
+2026-08-06 15:06:11 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: BSE x7 @ ₹3454.10
