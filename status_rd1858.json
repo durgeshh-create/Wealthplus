@@ -1,16 +1,16 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-08-06 09:01:48 IST",
+  "timestamp": "2026-08-06 09:02:53 IST",
   "bot_running": true,
-  "total_value": 8519896.74,
+  "total_value": 2792990.22,
   "today_pnl": 0.0,
   "today_pnl_pct": 0.0,
   "liquidcase": {
     "quantity": 49661,
     "free_quantity": 144,
-    "price": 115.32,
-    "value": 5726906.52,
-    "pct": 67.22
+    "price": 0,
+    "value": 0,
+    "pct": 0.0
   },
   "slots": {
     "total": 6,
@@ -172,18 +172,18 @@
   "williams_r": [
     {
       "symbol": "SILVERBEES",
-      "ltp": 213.39,
-      "change_pct": 0.0,
-      "williams_r": -14.84,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -12.59,
       "is_held": true,
       "avg_price": 225.39,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 805.74,
-      "change_pct": 0.0,
-      "williams_r": -23.87,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -23.46,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -199,17 +199,17 @@
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 596.31,
-      "change_pct": 0.0,
-      "williams_r": -33.09,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -38.74,
       "is_held": true,
       "avg_price": 587.29,
       "strategy": "active"
     },
     {
       "symbol": "HDFCSML250",
-      "ltp": 185.1,
-      "change_pct": 0.0,
+      "ltp": null,
+      "change_pct": null,
       "williams_r": -1.49,
       "is_held": false,
       "avg_price": null,
@@ -217,8 +217,8 @@
     },
     {
       "symbol": "NIFTYBEES",
-      "ltp": 279.96,
-      "change_pct": 0.0,
+      "ltp": null,
+      "change_pct": null,
       "williams_r": -29.42,
       "is_held": true,
       "avg_price": 283.1,
@@ -235,8 +235,8 @@
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 242.1,
-      "change_pct": 0.0,
+      "ltp": null,
+      "change_pct": null,
       "williams_r": -22.52,
       "is_held": true,
       "avg_price": 230.36,
@@ -256,10 +256,10 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24732.55,
+      "ltp": 24701.35,
       "prev_close": 24624.65,
-      "change": 107.9,
-      "change_pct": 0.44,
+      "change": 76.7,
+      "change_pct": 0.31,
       "open": null,
       "high": null,
       "low": null
@@ -452,6 +452,6 @@
     }
   },
   "available_cash": 44027.8,
-  "available_margin": 1720050.73,
+  "available_margin": 1740290.17,
   "available_margin_note": null
 }
