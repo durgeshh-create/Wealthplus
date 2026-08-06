@@ -13,6 +13,7 @@ Started from cloud_launcher.py:
 import json
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as _FutureTimeoutError
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -20,6 +21,28 @@ IST           = timezone(timedelta(hours=5, minutes=30))
 SNAPSHOT_PATH = Path("/tmp/status_rd1858.json")
 ACCOUNT       = "RD1858"
 INTERVAL_SEC  = 60    # write every 60 s — pairs with Contents API pusher every 60 s
+
+# ✅ HANG SAFETY NET: write_snapshot() makes several Kite API calls, all with
+# explicit requests timeouts (orders, margins, MF holdings — checked, all
+# bounded). But if it ever blocks on something NOT covered by those (a lock,
+# a library internal, anything not yet identified), the old code had no way
+# to notice or recover — status_rd1858.json's timestamp would freeze at
+# whatever it was before the hang, while the separate git-push loop (which
+# just re-uploads whatever's currently on disk, unrelated to this thread)
+# keeps succeeding every 60s with that same stale content — looking, from
+# the dashboard's perspective, exactly like "workflow is running but data
+# is stale", with nothing in the logs explaining why.
+#
+# WRITE_TIMEOUT_SEC gives write_snapshot() real wall-clock budget (should
+# normally take a few seconds) while staying well under INTERVAL_SEC, so a
+# stuck call is caught and logged loudly (ERROR, so it survives the log
+# whitelist) instead of silently freezing forever. Python can't forcibly
+# kill a wedged thread, so the stuck call's own thread is abandoned in the
+# background (a bounded resource leak) rather than truly interrupted — but
+# the LOOP itself keeps making progress on subsequent cycles either way,
+# which is what actually keeps the dashboard fresh.
+WRITE_TIMEOUT_SEC = 45
+_snapshot_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="SnapshotWrite-RD1858")
 
 
 def _load_settings() -> dict:
@@ -670,7 +693,28 @@ def start_snapshot_thread(dashboard_state: dict):
         # Write immediately on start so dashboard has data right away
         while True:
             try:
-                write_snapshot(dashboard_state)
+                future = _snapshot_executor.submit(write_snapshot, dashboard_state)
+                try:
+                    future.result(timeout=WRITE_TIMEOUT_SEC)
+                except _FutureTimeoutError:
+                    import sys as _sys
+                    print(
+                        f"[snapshot] ERROR: write_snapshot did not return within "
+                        f"{WRITE_TIMEOUT_SEC}s — likely hung on something without a "
+                        f"timeout. Abandoning this call (it may still complete in the "
+                        f"background) and writing a fallback snapshot so the dashboard "
+                        f"timestamp still advances instead of freezing.",
+                        file=_sys.stderr,
+                    )
+                    try:
+                        SNAPSHOT_PATH.write_text(json.dumps({
+                            "account":     ACCOUNT,
+                            "timestamp":   datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S IST"),
+                            "bot_running": True,
+                            "error":       f"write_snapshot hung past {WRITE_TIMEOUT_SEC}s — see logs",
+                        }, indent=2))
+                    except Exception:
+                        pass
             except Exception as _loop_err:
                 import sys as _sys
                 print(f"[snapshot] write_snapshot crashed — will retry next cycle: {_loop_err}", file=_sys.stderr)
