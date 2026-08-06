@@ -3646,7 +3646,17 @@ async function refreshAll() {
   let fetchErr = null;
 
   try {
-    const res = await fetch(url, {signal: AbortSignal.timeout(12000)});
+    // ✅ FIX: ?t= query-busting alone proved insufficient — a real case
+    // showed the browser displaying a status.json response ~26 minutes
+    // older than what was actually on GitHub at that moment, while the
+    // backend was confirmed writing fresh data every ~60s the whole time.
+    // That's not a backend issue (verified: no hang, fresh timestamps,
+    // healthy write_snapshot() calls) — it's caching somewhere between the
+    // browser and GitHub's origin (could be a carrier/corporate proxy that
+    // caches by path and ignores query strings). cache:'no-store' is a
+    // second, more explicit layer against that, on top of the existing
+    // ?t= busting.
+    const res = await fetch(url, {signal: AbortSignal.timeout(12000), cache: 'no-store'});
     if (!res.ok) throw new Error("HTTP " + res.status);
     data = await res.json();
   } catch(e) {
