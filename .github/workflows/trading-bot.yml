@@ -348,7 +348,7 @@ jobs:
               # totals, etc.) makes it into what gets pushed, regardless of
               # log level.
               if [ -f RD1858/logs/trading.log ]; then
-                grep -E '\| ERROR |🚨|\bBUY\b|\bSELL\b|\bSWAP\b|smart_buy|smart_sell|EXECUTING|order_id|Order (placed|COMPLETE|cancelled)|LIQUIDCASE (sell|buy)' \
+                grep -E '\| ERROR |🚨|\bBUY\b|\bSELL\b|\bSWAP\b|smart_buy|smart_sell|EXECUTING|order_id|Order (placed|COMPLETE|cancelled)|LIQUIDCASE (sell|buy)|price unavailable|REST LTP fallback|valid price|no live price available' \
                   RD1858/logs/trading.log | tail -n 500 > /tmp/logtail_rd1858.txt || true
                 python3 push_snapshot.py /tmp/logtail_rd1858.txt logtail_rd1858.txt || true
               fi
@@ -492,7 +492,7 @@ jobs:
             while true; do
               python3 push_snapshot.py /tmp/status_ps5673.json status_ps5673.json || true
               if [ -f PS5673/logs/trading.log ]; then
-                grep -E '\| ERROR |🚨|\bBUY\b|\bSELL\b|\bSWAP\b|smart_buy|smart_sell|EXECUTING|order_id|Order (placed|COMPLETE|cancelled)|LIQUIDCASE (sell|buy)' \
+                grep -E '\| ERROR |🚨|\bBUY\b|\bSELL\b|\bSWAP\b|smart_buy|smart_sell|EXECUTING|order_id|Order (placed|COMPLETE|cancelled)|LIQUIDCASE (sell|buy)|price unavailable|REST LTP fallback|valid price|no live price available' \
                   PS5673/logs/trading.log | tail -n 500 > /tmp/logtail_ps5673.txt || true
                 python3 push_snapshot.py /tmp/logtail_ps5673.txt logtail_ps5673.txt || true
               fi
