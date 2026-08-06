@@ -660,6 +660,19 @@ class RealtimeDataManager:
                         return price
 
         # WebSocket tick not received yet — try REST quote as fallback
+        #
+        # ✅ FIX: this used to have NO logging at all for a non-200 response
+        # (e.g. a 403) — it just fell through to "return None" in total
+        # silence, and the exception-handling branch below only logged at
+        # DEBUG (filtered out of the pushed logtail entirely). The result:
+        # "BSE price unavailable" with zero clue whether it was a stale
+        # token, a bad instrument_key, a timeout, or something else — even
+        # though a 403 on THIS endpoint minutes after an OMS 403 was
+        # reported elsewhere is a very plausible explanation for a
+        # persistent (not transient) failure. Now both paths log at
+        # WARNING with the actual status/body or exception, so the real
+        # cause is visible in the dashboard's Logs tab next time, not just
+        # "price unavailable" with no further information.
         try:
             # Find exchange for this symbol from instrument_tokens
             exchange = 'NSE'
@@ -688,8 +701,17 @@ class RealtimeDataManager:
                             if prev.get('close'):
                                 self.live_data[symbol]['close'] = float(prev['close'])
                     return ltp
+                logger.warning(
+                    f"REST LTP fallback for {symbol} ({instrument_key}): "
+                    f"200 OK but no last_price in response — {qd}"
+                )
+            else:
+                logger.warning(
+                    f"REST LTP fallback for {symbol} ({instrument_key}): "
+                    f"HTTP {resp.status_code} — {resp.text[:200]}"
+                )
         except Exception as e:
-            logger.debug(f"REST LTP fallback for {symbol}: {e}")
+            logger.warning(f"REST LTP fallback for {symbol}: {type(e).__name__}: {e}")
 
         return None
     
