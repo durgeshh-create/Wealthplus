@@ -432,6 +432,7 @@
                                 <tr>
                                     <th class="equity-th-name">Name</th>
                                     <th class="equity-th-spark">10D</th>
+                                    <th class="equity-th-wr" title="Daily Williams %R (14-day, close-based). 0 = overbought, -100 = oversold">W%R</th>
                                     <th class="equity-th-dma">%20DMA</th>
                                     <th class="equity-th-chg">%Chg</th>
                                     <th class="equity-th-ltp">LTP</th>
@@ -439,7 +440,6 @@
                                     <th class="equity-th-cagr">5Y</th>
                                     <th class="equity-th-cagr">7Y</th>
                                     <th class="equity-th-cagr">10Y</th>
-                                    <th class="equity-th-wr" title="Daily Williams %R (14-day, close-based). 0 = overbought, -100 = oversold">W%R</th>
                                     <th class="equity-th-action">Go</th>
                                 </tr>
                             </thead>
@@ -447,7 +447,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="scroll-hint">← Swipe to see 7Y / 10Y / W%R / Go →</div>
+                    <div class="scroll-hint">← Swipe to see 7Y / 10Y / Go →</div>
                 </div>
 
                 <div class="section-col">
@@ -508,6 +508,7 @@
                                 <tr>
                                     <th class="equity-th-name">Name</th>
                                     <th class="equity-th-spark">10D</th>
+                                    <th class="equity-th-wr" title="Daily Williams %R (14-day, close-based). 0 = overbought, -100 = oversold">W%R</th>
                                     <th class="equity-th-dma">%20DMA</th>
                                     <th class="equity-th-chg">%Chg</th>
                                     <th class="equity-th-ltp">LTP</th>
@@ -515,7 +516,6 @@
                                     <th class="equity-th-cagr" title="Total Return CAGR = price appreciation + distributions paid, annualized">5Y TR</th>
                                     <th class="equity-th-cagr" title="Total Return CAGR = price appreciation + distributions paid, annualized">7Y TR</th>
                                     <th class="equity-th-cagr" title="Total Return CAGR = price appreciation + distributions paid, annualized">10Y TR</th>
-                                    <th class="equity-th-wr" title="Daily Williams %R (14-day, close-based). 0 = overbought, -100 = oversold">W%R</th>
                                     <th class="equity-th-action">Go</th>
                                 </tr>
                             </thead>
@@ -523,7 +523,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="scroll-hint">← Swipe to see 7Y / 10Y / W%R / Go →</div>
+                    <div class="scroll-hint">← Swipe to see 7Y / 10Y / Go →</div>
                 </div>
 
                 <div class="section-col">
@@ -547,6 +547,7 @@
                                 <tr>
                                     <th class="equity-th-name">Name</th>
                                     <th class="equity-th-spark">10D</th>
+                                    <th class="equity-th-wr" title="Daily Williams %R (14-day, close-based). 0 = overbought, -100 = oversold">W%R</th>
                                     <th class="equity-th-dma">%20DMA</th>
                                     <th class="equity-th-chg">%Chg</th>
                                     <th class="equity-th-ltp">LTP</th>
@@ -554,7 +555,6 @@
                                     <th class="equity-th-cagr">5Y</th>
                                     <th class="equity-th-cagr">7Y</th>
                                     <th class="equity-th-cagr">10Y</th>
-                                    <th class="equity-th-wr" title="Daily Williams %R (14-day, close-based). 0 = overbought, -100 = oversold">W%R</th>
                                     <th class="equity-th-action">Go</th>
                                 </tr>
                             </thead>
@@ -562,7 +562,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="scroll-hint">← Swipe to see 7Y / 10Y / W%R / Go →</div>
+                    <div class="scroll-hint">← Swipe to see 7Y / 10Y / Go →</div>
                 </div>
             </div>
         </div>
@@ -2077,12 +2077,11 @@
                     wrCell = formatWilliamsRCell(fund.williamsR);
                 }
 
-                // Flag names when the fund is trending below its 20DMA
-                // (negative %20DMA) OR is technically oversold (W%R <= -70) -
-                // either signal alone is worth a second look.
+                // Flag names when the fund is technically oversold (W%R <= -75) —
+                // this is now the only highlight condition (previously also fired
+                // on negative %20DMA OR W%R <= -70; narrowed to W%R <= -75 only).
                 const isOversoldHighlight =
-                    (fund.pct20dma !== null && fund.pct20dma !== undefined && fund.pct20dma < 0) ||
-                    (fund.williamsR !== null && fund.williamsR !== undefined && fund.williamsR <= -70);
+                    (fund.williamsR !== null && fund.williamsR !== undefined && fund.williamsR <= -75);
 
                 row.className = isOversoldHighlight ? 'row-highlight' : '';
 
@@ -2092,6 +2091,7 @@
                         <div class="fund-type">${assetTypeLabels[fund.assetType] || fund.assetType}</div>
                     </td>
                     <td>${sparkCell}</td>
+                    <td>${wrCell}</td>
                     <td>${dmaCell}</td>
                     <td>${chgCell}</td>
                     <td>${ltpCell}</td>
@@ -2099,7 +2099,6 @@
                     <td>${cagr5Cell}</td>
                     <td>${cagr7Cell}</td>
                     <td>${cagr10Cell}</td>
-                    <td>${wrCell}</td>
                     <td>
                         <a href="${fund.url}" target="_blank" class="ticker-link">View</a>
                         ${fund.status === 'error' ? `<button class="retry-btn" onclick="refreshSingleSectionFund('${section.key}', ${index})">Retry</button>` : ''}
