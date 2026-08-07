@@ -200,8 +200,24 @@ def write_snapshot(dashboard_state: dict):
             # LIQUIDCASE
             liq_qty   = getattr(portfolio, "liquidcase_quantity", 0)
             liq_free  = getattr(portfolio, "liquidcase_free_quantity", liq_qty)
-            liq_price = (realtime.get_ltp(LIQUIDCASE_SYMBOL) if realtime else None) or 0
-            liq_val   = liq_qty * liq_price
+            liq_ltp   = realtime.get_ltp(LIQUIDCASE_SYMBOL) if realtime else None
+            if liq_ltp:
+                liq_price = liq_ltp
+                liq_val   = liq_qty * liq_price
+            else:
+                # ✅ FIX: this used to fall back to `or 0`, silently zeroing
+                # LIQUIDCASE's contribution to total_value whenever
+                # get_ltp() failed (e.g. pre-market, or during a circuit-
+                # breaker cooldown after a systemic REST failure) — with
+                # LIQUIDCASE routinely holding ₹50L+, that's a large,
+                # silent understatement of Portfolio Value, not just a log
+                # noise issue. portfolio.liquidcase_value is already
+                # computed independently from Kite's holdings API
+                # last_price field (tracker.py), so use that instead —
+                # same pattern already used for regular holdings' fallback
+                # a few lines above (h.get("last_price", avg)).
+                liq_val   = getattr(portfolio, "liquidcase_value", 0) or 0
+                liq_price = (liq_val / liq_qty) if liq_qty else 0
             total_value += liq_val
 
             # Today's P&L — sum of per-holding today_move already computed above
