@@ -345,6 +345,28 @@ class SignalGenerator:
         self._reset_daily_if_needed()
         signals = {}
 
+        # ── Market-hours guard ────────────────────────────────────────────────
+        # ✅ FIX: previously only get_due_buys() (order execution) checked
+        # market hours — this loop, which calls get_ltp() for every
+        # monitored symbol every cycle, had no such gate and kept running
+        # indefinitely after close. Once the market closes, Kite's REST
+        # quote endpoint apparently stops serving quotes for the closed
+        # session — every symbol started failing with HTTP 400 "Bad
+        # Request" starting a few minutes after 15:30 IST, and with no gate
+        # here the loop just kept retrying every ~10-12s all evening,
+        # generating hundreds of failed requests and log lines for no
+        # benefit (there's nothing to trade once the market's shut, and no
+        # order can execute post-close anyway — get_due_buys() already
+        # blocks that). Skip signal generation entirely outside market
+        # hours instead of discovering that per-symbol via failed requests.
+        now = _now_ist()
+        _MARKET_OPEN  = dtime(Config.MARKET_OPEN_HOUR,  Config.MARKET_OPEN_MINUTE)
+        _MARKET_CLOSE = dtime(Config.MARKET_CLOSE_HOUR, Config.MARKET_CLOSE_MINUTE)
+        if not (_MARKET_OPEN <= now.time() <= _MARKET_CLOSE):
+            logger.debug(f"⏸ Outside market hours ({now.strftime('%H:%M IST')}) — skipping signal generation")
+            return {}
+        # ─────────────────────────────────────────────────────────────────────
+
         # Clean stale execution locks
         stale = [s for s, info in self.executing_symbols.items()
                  if _now_ist() - info['timestamp'] > timedelta(seconds=60)]
