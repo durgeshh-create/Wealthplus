@@ -55,3 +55,7 @@
 2026-08-07 09:51:51 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 88/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
 2026-08-07 09:51:54 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 90/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
 2026-08-07 09:51:54 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [BSE]: Margin not credited after 90s: live_balance ₹27,733.38 < required ₹29,089.10. LIQUIDCASE was sold (226 units) — cash should credit shortly.
+2026-08-07 11:08:24 IST | WARNING  | backend.data.realtime | REST LTP fallback for MINDSPACE-RR (NSE:MINDSPACE-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-08-07 11:08:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MINDSPACE-RR: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-08-07 11:08:26 IST | WARNING  | backend.data.realtime | REST LTP fallback for MINDSPACE-RR (NSE:MINDSPACE-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-08-07 11:08:26 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MINDSPACE-RR: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
