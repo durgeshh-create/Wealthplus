@@ -1,16 +1,16 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-08-07 09:14:04 IST",
+  "timestamp": "2026-08-07 09:15:05 IST",
   "bot_running": true,
-  "total_value": 9105286.91,
-  "today_pnl": -1878.5,
-  "today_pnl_pct": -0.02,
+  "total_value": 9106656.51,
+  "today_pnl": -508.9,
+  "today_pnl_pct": -0.01,
   "liquidcase": {
     "quantity": 49434,
     "free_quantity": 0,
     "price": 115.34,
     "value": 5701717.56,
-    "pct": 62.62
+    "pct": 62.61
   },
   "slots": {
     "total": 6,
@@ -51,10 +51,10 @@
       "symbol": "BSE",
       "quantity": 22,
       "avg": 3478.41,
-      "ltp": 3435.0,
-      "value": 75570.0,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
+      "ltp": 3424.5,
+      "value": 75339.0,
+      "pnl": -231.0,
+      "pnl_pct": -0.31,
       "unrealised_pnl": -955.1,
       "unrealised_pnl_pct": -1.25,
       "strategy": "active",
@@ -107,10 +107,10 @@
       "symbol": "MINDSPACE-RR",
       "quantity": 530,
       "avg": 461.34,
-      "ltp": 490.98,
-      "value": 260219.4,
-      "pnl": -2120.0,
-      "pnl_pct": -0.81,
+      "ltp": 494.0,
+      "value": 261820.0,
+      "pnl": -519.4,
+      "pnl_pct": -0.2,
       "unrealised_pnl": 15708.08,
       "unrealised_pnl_pct": 6.42,
       "strategy": "bnh",
@@ -205,9 +205,9 @@
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": null,
-      "change_pct": null,
-      "williams_r": -70.03,
+      "ltp": 442.0,
+      "change_pct": 0.24,
+      "williams_r": -51.05,
       "is_held": true,
       "avg_price": 439.36,
       "strategy": "active"
@@ -241,9 +241,9 @@
     },
     {
       "symbol": "BSE",
-      "ltp": null,
-      "change_pct": null,
-      "williams_r": -98.9,
+      "ltp": 3424.5,
+      "change_pct": -0.31,
+      "williams_r": -96.89,
       "is_held": true,
       "avg_price": 3478.41,
       "strategy": "active"
@@ -268,9 +268,9 @@
     },
     {
       "symbol": "MINDSPACE-RR",
-      "ltp": null,
-      "change_pct": null,
-      "williams_r": -38.66,
+      "ltp": 494.0,
+      "change_pct": -0.2,
+      "williams_r": -44.13,
       "is_held": true,
       "avg_price": 461.34,
       "strategy": "bnh"
@@ -280,22 +280,22 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24538.9,
+      "ltp": 24546.7,
       "prev_close": 24636.0,
-      "change": -97.1,
-      "change_pct": -0.39,
+      "change": -89.3,
+      "change_pct": -0.36,
       "open": 24538.9,
-      "high": 24538.9,
-      "low": 24538.9
+      "high": 24565.15,
+      "low": 24529.2
     },
     "INDIA VIX": {
-      "ltp": 12.16,
+      "ltp": 12.39,
       "prev_close": 12.16,
-      "change": 0.0,
-      "change_pct": 0.0,
-      "open": null,
-      "high": null,
-      "low": null
+      "change": 0.23,
+      "change_pct": 1.89,
+      "open": 12.16,
+      "high": 12.41,
+      "low": 11.3
     }
   },
   "mf_holdings": [
