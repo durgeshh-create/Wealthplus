@@ -1,0 +1,19 @@
+2026-08-07 12:37:40 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-91.0)]: BSE | Price=₹3441.60 | PrevClose=₹3435.00 | AvgBuy=₹3478.41 | Slot 1/6
+2026-08-07 12:37:40 IST | INFO     | __main__             |   🟢 BUY: BSE | W%R=-90.99 | ₹3441.60
+2026-08-07 12:37:40 IST | INFO     | backend.strategy.executor |                           EXECUTING AUTOMATED BUY: BSE                          
+2026-08-07 12:37:40 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹0.00 + sell 209 LIQUIDCASE × ₹115.39 = ₹24116.51 (shortfall) → Buy 7 BSE × ₹3441.60 = ₹24091.20
+2026-08-07 12:37:40 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹3442.00 for BSE (LTP was ₹3441.60, top_ask from depth)
+2026-08-07 12:37:40 IST | INFO     | backend.orders.manager | smart_buy 7 × BSE @ ₹3442.00 (cost ₹24,094.00) | Available cash: ₹1,657.50 (spendable after ₹5000 reserve: ₹0.00)
+2026-08-07 12:37:40 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.38 (top_bid from depth)
+2026-08-07 12:37:40 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 226 x LIQUIDCASE
+2026-08-07 12:37:40 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260807190721958
+2026-08-07 12:37:41 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.38
+2026-08-07 12:37:41 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 226 units @ ₹115.39
+2026-08-07 12:37:43 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 2/90s: live_balance=₹53,809.26 (need ≥ ₹29,094.00)
+2026-08-07 12:37:43 IST | INFO     | backend.orders.manager | [smart_buy] Price moved ₹3442.00→₹3442.50 — qty 7→6 (budget cap 6 @ orig. budget ₹24,094.00, cash cap 14 @ avail ₹48,809.26)
+2026-08-07 12:37:43 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹3442.0 → ₹3442.40 (top_ask from depth)
+2026-08-07 12:37:43 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 6 x BSE
+2026-08-07 12:37:43 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260807190722051
+2026-08-07 12:37:44 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: BSE @ ₹3442.4
+2026-08-07 12:37:44 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 6 × BSE @ ₹3442.00
+2026-08-07 12:37:44 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: BSE x7 @ ₹3441.60
