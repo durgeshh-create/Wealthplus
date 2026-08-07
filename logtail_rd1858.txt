@@ -1,0 +1,23 @@
+2026-08-07 09:50:12 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-91.1)]: BSE | Price=₹3441.30 | PrevClose=₹3435.00 | AvgBuy=₹3478.41 | Slot 1/6
+2026-08-07 09:50:12 IST | INFO     | __main__             |   🟢 BUY: BSE | W%R=-91.10 | ₹3441.30
+2026-08-07 09:50:12 IST | INFO     | backend.strategy.executor |                           EXECUTING AUTOMATED BUY: BSE                          
+2026-08-07 09:50:13 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹0.00 + sell 209 LIQUIDCASE × ₹115.38 = ₹24114.42 (shortfall) → Buy 7 BSE × ₹3441.30 = ₹24089.10
+2026-08-07 09:50:13 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹3441.30 for BSE (LTP was ₹3441.30, top_ask from depth)
+2026-08-07 09:50:13 IST | INFO     | backend.orders.manager | smart_buy 7 × BSE @ ₹3441.30 (cost ₹24,089.10) | Available cash: ₹1,657.50 (spendable after ₹5000 reserve: ₹0.00)
+2026-08-07 09:50:13 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.38 (top_bid from depth)
+2026-08-07 09:50:13 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 226 x LIQUIDCASE
+2026-08-07 09:50:13 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260807190268754
+2026-08-07 09:50:14 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.38
+2026-08-07 09:50:14 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 226 units @ ₹115.38
+2026-08-07 09:50:16 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 2/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:50:18 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 4/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:50:20 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 6/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:50:23 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 8/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:50:25 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 10/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:50:27 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 12/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:50:29 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 14/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:50:31 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 16/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:50:34 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 18/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:50:36 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 20/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:50:38 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 22/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:50:40 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 24/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
