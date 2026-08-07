@@ -756,12 +756,12 @@
                 }
 
                 const text = await response.text();
-                if (!text || text.length < 100) {
+                if (!text || text.length < 2) {
                     throw new Error('Empty response');
                 }
 
                 if (validate && !validate(text)) {
-                    throw new Error(`Non-target response via ${proxy.name} (likely blocked/rate-limited proxy)`);
+                    throw new Error(`Non-target response via ${proxy.name}`);
                 }
 
                 return text;
@@ -772,7 +772,7 @@
 
         function isValidTickertapePage(text) {
             const lower = text.toLowerCase();
-            return lower.includes('tickertape') && (text.includes('₹') || lower.includes('mmi') || lower.includes('market mood index'));
+            return lower.includes('tickertape') || lower.includes('mmi') || lower.includes('currentvalue') || text.includes('₹');
         }
 
         async function fetchWithProxy(url) {
@@ -2073,14 +2073,25 @@
             return { mood: "Extreme Greed", class: "up" };
         }
 
-        // Fetch Market Mood Index score from TickerTape
+        // Fetch MMI score from TickerTape API via proxies (with HTML scrape fallback)
         async function fetchMMI() {
-            const url = "https://www.tickertape.in/market-mood-index";
-            const html = await fetchWithProxy(url);
-            
+            const apiUrl = "https://api.tickertape.in/mmi/now";
+            try {
+                const apiData = await fetchJSONWithProxies(apiUrl, 5000);
+                const score = apiData?.data?.currentValue || apiData?.currentValue;
+                if (score !== null && score !== undefined && !isNaN(score)) {
+                    return parseFloat(score);
+                }
+            } catch (apiErr) {
+                console.warn('MMI API fetch failed, falling back to HTML scrape:', apiErr.message);
+            }
+
+            // Scrape Fallback
+            const htmlUrl = "https://www.tickertape.in/market-mood-index";
+            const html = await fetchWithProxy(htmlUrl);
             let score = null;
-            const nextDataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i);
             
+            const nextDataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i);
             if (nextDataMatch) {
                 try {
                     const data = JSON.parse(nextDataMatch[1]);
@@ -2090,6 +2101,7 @@
             
             if (score === null || isNaN(score)) {
                 const match = html.match(/class="[^"]*mmi-value[^"]*"[^>]*>([\d.]+)/i) || 
+                              html.match(/currentValue":\s*([\d.]+)/i) ||
                               html.match(/<span>([\d.]+)<\/span>/i);
                 if (match) score = parseFloat(match[1]);
             }
