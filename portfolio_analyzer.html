@@ -162,7 +162,6 @@
             font-size: 0.9rem;
             vertical-align: middle;
         }
-        /* ===== 2-column side-by-side section layout ===== */
         .sections-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -204,12 +203,6 @@
         .section-col .dma-pos, .section-col .dma-neg { font-size: 0.8rem; }
         .section-col .chg-pos, .section-col .chg-neg { font-size: 0.72rem; }
         .section-col .dma-sub { font-size: 0.6rem; }
-        /* Narrow phones: the 9-column equity/REIT/Bullion tables (Name, Spark,
-           %20DMA, %Chg, LTP, 3Y, 5Y, 10Y, Go) still need more room than a
-           ~360-400px screen has even after the .section-col tightening above,
-           so table-container's horizontal scroll (see .table-container rule)
-           is the guaranteed fallback — this just shrinks things further to
-           minimize how far anyone actually has to swipe to see it all. */
         @media (max-width: 480px) {
             .section-col table th, .section-col table td { padding: 6px 4px; font-size: 0.62rem; }
             .section-col .sparkline-wrap svg { width: 34px; height: 16px; }
@@ -229,7 +222,6 @@
             margin: 4px 0 6px;
             letter-spacing: 0.03em;
         }
-        /* Equity / REIT / Bullion column widths (10 cols: Name, Spark, %20DMA, %Chg, LTP, 3Y, 5Y, 7Y, 10Y, Action) */
         .equity-th-name { width: 27%; }
         .equity-th-spark { width: 9%; }
         .equity-th-dma { width: 10%; }
@@ -240,11 +232,6 @@
         .equity-th-action { width: 6%; }
         .chg-pos { color: #0a8f6e; font-weight: 600; }
         .chg-neg { color: #c62828; font-weight: 600; }
-        /* Flags a row (negative %20DMA OR W%R <= -70) with a pale-yellow
-           "highlighter" background - the page itself is now white, so this
-           needs its own distinct tint to still stand out - plus a bolder
-           solid-yellow chip on the fund name/symbol for a second,
-           unmistakable cue. */
         tr.row-highlight { background: #fff6cf !important; }
         tr.row-highlight:hover { background: #ffef9e !important; }
         .name-highlight {
@@ -389,6 +376,12 @@
         <div class="header-row">
             <h1>Portfolio Analyzer</h1>
             <div class="market-ticker" id="marketTicker">
+                <!-- INDIA MMI (Inserted directly before NIFTY 50) -->
+                <div class="ticker-item loading" id="ticker-mmi">
+                    <span class="ticker-label">INDIA MMI</span>
+                    <span class="ticker-price">—</span>
+                    <span class="ticker-change flat">—</span>
+                </div>
                 <div class="ticker-item loading" id="ticker-nifty">
                     <span class="ticker-label">NIFTY 50</span>
                     <span class="ticker-price">—</span>
@@ -596,7 +589,6 @@
             { url: "https://thingproxy.freeboard.io/fetch/", name: "thingproxy" }
         ];
 
-        // Formats a Date as "DD/MMM/YYYY, hh:mm:ss AM/PM" e.g. "04/Aug/2026, 03:06:32 PM"
         function formatLastUpdated(date) {
             const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
             const dd = String(date.getDate()).padStart(2, '0');
@@ -671,7 +663,6 @@
         function clearCache() {
             localStorage.removeItem(CACHE_KEY);
             localStorage.removeItem(CACHE_TIME_KEY);
-            // Also clear old cache keys
             localStorage.removeItem('mf_ytm_cache');
             localStorage.removeItem('mf_ytm_cache_time');
             funds.forEach(f => { f.ytm = null; f.exp = null; f.nav = null; f.ret3y = null; f.dayChangePct = null; f.dayChangeAbs = null; });
@@ -695,10 +686,6 @@
                 if (fund.dayChangePct !== null && fund.dayChangePct !== undefined) {
                     const cval = parseFloat(fund.dayChangePct);
                     const absVal = (fund.dayChangeAbs !== null && fund.dayChangeAbs !== undefined) ? parseFloat(fund.dayChangeAbs) : null;
-                    // Determine direction from the absolute change when available —
-                    // the rounded percentage can display as "-0.00" for very small
-                    // moves, and JS treats -0 as >= 0, which previously caused a
-                    // "+-0.22" double-sign glitch when the two disagreed.
                     const isNeg = absVal !== null ? absVal < 0 : cval < 0;
                     const ccls = isNeg ? 'chg-neg' : 'chg-pos';
                     const sign = isNeg ? '-' : '+';
@@ -773,15 +760,6 @@
                     throw new Error('Empty response');
                 }
 
-                // Public CORS proxies (esp. corsproxy.io / thingproxy) frequently
-                // get rate-limited or blocked and return their OWN error/warning
-                // page instead of the target page - but still with HTTP 200 and
-                // well over 100 chars, so the checks above don't catch it. That
-                // garbage page then gets scraped as if it were real fund data,
-                // producing either a wrong day-change % (if it happens to contain
-                // some unrelated ₹/% text) or a blank cell (if it doesn't match
-                // at all). Reject it here so Promise.any falls through to a
-                // proxy that actually returned the real page.
                 if (validate && !validate(text)) {
                     throw new Error(`Non-target response via ${proxy.name} (likely blocked/rate-limited proxy)`);
                 }
@@ -792,12 +770,9 @@
             }
         }
 
-        // Confirms the fetched HTML is really a TickerTape mutual-fund page
-        // (rather than a proxy's block/rate-limit/captcha page masquerading as
-        // a 200 OK response) before we trust it for scraping.
         function isValidTickertapePage(text) {
             const lower = text.toLowerCase();
-            return lower.includes('tickertape') && text.includes('₹');
+            return lower.includes('tickertape') && (text.includes('₹') || lower.includes('mmi') || lower.includes('market mood index'));
         }
 
         async function fetchWithProxy(url) {
@@ -818,7 +793,6 @@
             const result = { ytm: 'na', exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null };
 
             try {
-                // === METHOD 1: Parse __NEXT_DATA__ JSON ===
                 const nextDataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i);
                 if (nextDataMatch) {
                     try {
@@ -844,7 +818,6 @@
                             if (summary.nav !== undefined) result.nav = parseFloat(summary.nav);
                             if (summary.latestNav !== undefined) result.nav = parseFloat(summary.latestNav);
 
-                            // Extract 3Y returns from JSON
                             if (summary.returns?.threeYear !== undefined) result.ret3y = parseFloat(summary.returns.threeYear);
                             if (summary.returns?.threeY !== undefined) result.ret3y = parseFloat(summary.returns.threeY);
                             if (summary.return3Y !== undefined) result.ret3y = parseFloat(summary.return3Y);
@@ -854,7 +827,6 @@
                     } catch (e) {}
                 }
 
-                // === METHOD 2: Parse Performance & Key Metrics table ===
                 if (result.ytm === 'na' || isNaN(result.ytm)) {
                     const tableRegex = /<table[^>]*>([\s\S]*?)<\/table>/gi;
                     const tables = [];
@@ -912,7 +884,6 @@
                     }
                 }
 
-                // === METHOD 3: Markdown-style tables ===
                 if (result.ytm === 'na' || isNaN(result.ytm)) {
                     const lines = html.split('\n');
 
@@ -946,21 +917,13 @@
                     }
                 }
 
-                // === METHOD 4: Extract 3Y CAGR from Peers & Comparison table ===
-                // The XPath is: /html/body/div[1]/div[3]/div/div/div[2]/section[2]/div[2]/div[2]/div/table/tbody/tr[1]/td[3]
-                // This is in the "Peers & Comparison" section, first data row, 3rd column
                 if (!result.ret3y) {
-                    // Look for "Peers & Comparison" or "Comparison" section
                     const comparisonMatch = html.match(/Peers\s*&\s*Comparison([\s\S]{0,3000})/i);
                     if (comparisonMatch) {
                         const section = comparisonMatch[1];
-
-                        // Find the first table in this section
                         const tableMatch = section.match(/<table[^>]*>([\s\S]*?)<\/table>/i);
                         if (tableMatch) {
                             const tableHtml = tableMatch[1];
-
-                            // Find the first data row (skip header rows)
                             const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
                             const rows = [];
                             let rm;
@@ -968,11 +931,9 @@
                                 rows.push(rm[1]);
                             }
 
-                            // Skip header rows (rows containing th or "Mutual Fund" or "1Y Returns")
                             let dataRow = null;
                             for (const row of rows) {
                                 if (!row.includes('<th') && !row.includes('Mutual Fund') && !row.includes('1Y Returns') && !row.includes('3Y CAGR')) {
-                                    // Check if this row has the fund name
                                     if (row.includes(fundName.split(' ')[0]) || row.includes('Fund')) {
                                         dataRow = row;
                                         break;
@@ -980,7 +941,6 @@
                                 }
                             }
 
-                            // If no specific match, take the first non-header row
                             if (!dataRow) {
                                 for (const row of rows) {
                                     if (!row.includes('<th') && !row.includes('Mutual Fund') && !row.includes('1Y Returns') && !row.includes('3Y CAGR')) {
@@ -998,7 +958,6 @@
                                     cells.push(cm[1].replace(/<[^>]+>/g, '').trim());
                                 }
 
-                                // Column 3 should be 3Y CAGR (index 2)
                                 if (cells.length >= 3) {
                                     try {
                                         const val3y = parseFloat(cells[2]);
@@ -1012,7 +971,6 @@
                     }
                 }
 
-                // === METHOD 5: Extract 3Y CAGR from HTML text patterns ===
                 if (!result.ret3y) {
                     const patterns3y = [
                         /3\s*Year\s*Returns:\s*([\d.]+)%/i,
@@ -1031,30 +989,11 @@
                     }
                 }
 
-                // === Extract NAV ===
                 if (!result.nav) {
                     const navMatch = html.match(/₹([\d,]+\.\d{2})/);
                     if (navMatch) result.nav = parseFloat(navMatch[1].replace(',', ''));
                 }
 
-                // === METHOD 6: Extract day change (%) and absolute change ===
-                // TickerTape's price header renders as adjacent inline spans,
-                // e.g. "₹593.940.04% (+0.26)" = NAV 593.94, day change
-                // +0.04% (+0.26 absolute). The % text itself carries no sign
-                // (colour/arrow icon conveys direction), so the sign is taken
-                // from the parenthesised absolute change instead.
-                // NOTE: TickerTape sometimes injects a stray glyph (arrow
-                // icon fallback text, aria-label leakage, middot, etc.)
-                // between the NAV and the percent figure, e.g.
-                // "₹596.62▲0.06% (+0.37)". The filler below tolerates that
-                // without requiring strict adjacency.
-                //
-                // IMPORTANT: this match is intentionally anchored to a ₹NAV
-                // prefix and does NOT fall back to an unanchored "X% (Y)"
-                // scan of the page. An unanchored scan can match unrelated
-                // numbers elsewhere on the page (returns tables, peer
-                // comparisons, etc.) and silently produce a wrong value,
-                // which is worse than showing "-" for this fund.
                 if (result.dayChangePct === null) {
                     try {
                         const headerChunk = html.slice(0, 20000)
@@ -1081,11 +1020,6 @@
             return result;
         }
 
-        // Day change via MFapi.in (AMFI-sourced NAV history) - same reliable
-        // JSON-API approach already used for the equity/REIT/bullion mutual
-        // funds below, instead of scraping TickerTape's/Google Finance's
-        // client-rendered price header (which breaks on markup changes and,
-        // for Google Finance, isn't even present in a non-JS page fetch).
         async function fetchDebtDayChangeViaMFApi(fund) {
             if (!fund.mfQuery) return null;
             for (let attempt = 0; attempt < 2; attempt++) {
@@ -1108,31 +1042,13 @@
             return null;
         }
 
-        // MFapi.in is matched by fuzzy text search against fund.mfQuery, which
-        // occasionally locks onto the wrong scheme entirely (a different fund,
-        // not just a different plan variant) and returns a plausible-looking
-        // but unrelated day change. Since the NAV scraped directly from the
-        // fund's own TickerTape page (result.nav) is reliable, we only trust
-        // the MFapi-derived change if its latest NAV is close to that scraped
-        // NAV — otherwise we discard it and fall back to the scrape-based
-        // change (or "-" if that's unavailable too, which is safer than a
-        // silently wrong number).
         function isMfChangeTrustworthy(mfChange, scrapedNav) {
             if (!mfChange || mfChange.latestNav === undefined || mfChange.latestNav === null) return false;
-            if (!scrapedNav || isNaN(scrapedNav)) return true; // nothing to cross-check against
+            if (!scrapedNav || isNaN(scrapedNav)) return true;
             const diff = Math.abs(mfChange.latestNav - scrapedNav) / scrapedNav;
-            return diff < 0.01; // within 1%
+            return diff < 0.01;
         }
 
-        // Last-resort day-change source: when both the TickerTape scrape and
-        // the MFapi cross-check come up empty for a fund (e.g. one round of
-        // proxy flakiness affected both legs), fall back to comparing the
-        // freshly-scraped NAV against the NAV we last had cached for this
-        // fund. This has no dependency on any proxy succeeding for the change
-        // figure itself, so it degrades gracefully to "no data yet" only on a
-        // fund's very first-ever successful fetch, rather than going blank
-        // indefinitely whenever the two network-based methods both have a bad
-        // round at the same time.
         function applyLocalNavFallback(fund, oldNavStr, newNavStr) {
             if (fund.dayChangePct !== null && fund.dayChangePct !== undefined) return;
             const oldNav = oldNavStr ? parseFloat(oldNavStr) : null;
@@ -1143,7 +1059,7 @@
             const pct = (abs / oldNav) * 100;
             fund.dayChangePct = pct.toFixed(2);
             fund.dayChangeAbs = abs.toFixed(2);
-            console.warn(`Using local NAV-diff fallback for ${fund.name} day-change (scrape + MFapi both unavailable this round)`);
+            console.warn(`Using local NAV-diff fallback for ${fund.name} day-change`);
         }
 
         async function refreshSingle(index) {
@@ -1170,8 +1086,6 @@
                 if (isMfChangeTrustworthy(mfChange, result.nav)) {
                     fund.dayChangePct = mfChange.pct.toFixed(2);
                     fund.dayChangeAbs = mfChange.abs.toFixed(2);
-                } else if (mfChange) {
-                    console.warn(`Discarding mismatched MFapi day-change for ${fund.name}: MFapi NAV ${mfChange.latestNav} vs scraped NAV ${result.nav}`);
                 }
 
                 applyLocalNavFallback(fund, oldNav, fund.nav);
@@ -1212,8 +1126,6 @@
                 if (isMfChangeTrustworthy(mfChange, result.nav)) {
                     fund.dayChangePct = mfChange.pct.toFixed(2);
                     fund.dayChangeAbs = mfChange.abs.toFixed(2);
-                } else if (mfChange) {
-                    console.warn(`Discarding mismatched MFapi day-change for ${fund.name}: MFapi NAV ${mfChange.latestNav} vs scraped NAV ${result.nav}`);
                 }
 
                 applyLocalNavFallback(fund, oldNav, fund.nav);
@@ -1247,11 +1159,6 @@
             });
             renderTable();
 
-            // Process funds in small concurrent batches rather than fully
-            // sequentially with fixed gaps - cuts wall-clock time roughly by
-            // the batch size while still bounding how many proxy requests
-            // land at once (helps avoid tripping per-IP rate limits on the
-            // free CORS proxies).
             const BATCH_SIZE = 3;
             for (let i = 0; i < funds.length; i += BATCH_SIZE) {
                 const batch = funds.slice(i, i + BATCH_SIZE);
@@ -1282,9 +1189,6 @@
             if (currentSort) applySort();
         }
 
-        // Sortable columns: 'name' (default asc), 'ytm' and 'chg' (default desc).
-        // Clicking the same header again flips direction; clicking a different
-        // header switches column and resets to that column's default direction.
         let currentSortDir = 'desc';
 
         function applySort() {
@@ -1373,8 +1277,6 @@
 
         // =====================================================
         // EQUITY SECTION — sparkline (10D) & % vs 20DMA
-        // Mutual funds: NAV history via MFapi.in
-        // ETFs: daily close history via Yahoo Finance chart API
         // =====================================================
 
         const equityFunds = [
@@ -1464,7 +1366,6 @@
             }
         ];
 
-        // Section registry driving the generic render/fetch/cache logic below
         const sectionsMap = {
             equity: {
                 key: 'equity',
@@ -1543,14 +1444,6 @@
             } catch (e) { console.error('Section cache save error:', e); }
         }
 
-        // Fetches a URL through the proxy chain, validating that the response is
-        // actually parseable JSON (a proxy can return HTTP 200 with a blocked/HTML
-        // page, which is not a real failure from fetchWithProxy's point of view).
-        // Tries every proxy in turn until one yields valid JSON.
-        // Try all CORS proxies concurrently and use whichever responds first
-        // with valid JSON. This bounds worst-case wait to ~1 timeout window
-        // instead of summing every proxy's timeout sequentially (which is
-        // what made failures take minutes instead of seconds).
         async function fetchJSONWithProxies(url, timeoutMs = 8000) {
             const attempts = corsProxies.map((proxy, i) =>
                 fetchViaSingleProxy(url, i, timeoutMs).then(text => {
@@ -1572,17 +1465,11 @@
             }
         }
 
-        // Fetch NAV history for a mutual fund via MFapi.in (search then history)
         async function fetchMFHistory(query) {
             const searchUrl = `https://api.mfapi.in/mf/search?q=${encodeURIComponent(query)}`;
             const results = await fetchJSONWithProxies(searchUrl);
             if (!results || !results.length) throw new Error('Scheme not found');
 
-            // MFapi's search is a loose text match and can return schemes that
-            // merely share generic words ("Fund"/"Direct"/"Growth") with the
-            // query while being a completely different fund. Score candidates
-            // by how many of the query's distinctive words they actually
-            // contain, rather than just grabbing the first Direct+Growth hit.
             const stopWords = new Set(['fund', 'direct', 'growth', 'plan', 'regular', 'the', 'of', 'and', 'sun', 'life']);
             const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
 
@@ -1601,9 +1488,6 @@
                 if (s > bestScore) { bestScore = s; best = r; }
             }
 
-            // If even the best candidate barely overlaps with the query's
-            // distinctive words, this likely isn't the right scheme at all —
-            // fail loudly rather than silently returning unrelated data.
             if (queryWords.length > 0 && bestScore < queryWords.length * 0.6) {
                 throw new Error('No confident scheme match on MFapi');
             }
@@ -1619,10 +1503,6 @@
 
             data.sort((a, b) => a.date - b.date);
 
-            // Defensive de-dupe: if the underlying feed ever returns two rows
-            // for the same calendar date (has happened with some MFapi
-            // mirrors), keep only the last one so a trailing-window
-            // calculation like Williams %R can't be skewed by a duplicate.
             const deduped = [];
             for (const d of data) {
                 const dateKey = d.date.toDateString();
@@ -1633,38 +1513,17 @@
                 }
             }
 
-            // Same class of bug we hit earlier with the market ticker and ETF
-            // history: a CORS proxy can serve a STALE cached copy of the
-            // MFapi response instead of today's data. fetchETFHistory already
-            // guards against this; this path didn't, so a fund could silently
-            // compute everything (including Williams %R) off a NAV history
-            // that's actually days or weeks old. NAVs publish once/day on
-            // business days, so allow a bit of slack for weekends/holidays
-            // but reject anything that looks meaningfully stale and let the
-            // caller retry (likely via a different, non-caching proxy).
             const newest = deduped[deduped.length - 1];
             const daysSinceNewest = (Date.now() - newest.date.getTime()) / 86400000;
             if (daysSinceNewest > 6) {
-                throw new Error('MFapi data looks stale (possible cached proxy response)');
+                throw new Error('MFapi data looks stale');
             }
 
             return deduped;
         }
 
-        // Fetch daily close history for an NSE-listed ETF via Yahoo Finance chart API.
-        // Tries query1 then query2 hosts (Yahoo load-balances across both), each
-        // cycled through the full proxy chain with JSON validation.
-        // Minimum data points considered "good enough" to stop trying further
-        // symbol variants (roughly a year of daily candles - high enough that
-        // we prefer a symbol variant with real multi-year depth, needed for
-        // 5Y/10Y CAGR, over one that only returns a thin recent slice).
         const MIN_HISTORY_POINTS = 200;
 
-        // Some illiquid/renamed NSE tickers (esp. REITs/InvITs) return only a
-        // handful of candles - or none at all - from the Yahoo chart API under
-        // their primary symbol. Try each candidate symbol in turn (e.g. NSE
-        // dash-suffixed, plain NSE, BSE) and keep whichever yields the richest
-        // history, so 20DMA/sparkline/3Y CAGR can still be computed.
         async function fetchHistoryWithFallback(symbols) {
             let best = null, bestLen = -1, lastErr = null;
             for (let idx = 0; idx < symbols.length; idx++) {
@@ -1677,19 +1536,17 @@
                     lastErr = err;
                     console.warn(`History fetch failed for symbol ${sym}:`, err.message);
                 }
-                // Small gap before trying the next symbol variant so we don't
-                // immediately re-hammer a proxy that just rate-limited us.
                 if (idx < symbols.length - 1) {
                     await new Promise(r => setTimeout(r, 350));
                 }
             }
-            if (best) return best; // best-effort: return sparsest-but-nonempty series
+            if (best) return best;
             throw lastErr || new Error('All symbol variants failed');
         }
 
         async function fetchETFHistory(symbol) {
             const now = Math.floor(Date.now() / 1000);
-            const period1 = now - (10 * 365 + 40) * 24 * 60 * 60; // ~10y + buffer, covers 10Y/5Y/3Y CAGR + 30D + 10D windows
+            const period1 = now - (10 * 365 + 40) * 24 * 60 * 60;
             const hosts = [
                 'https://query1.finance.yahoo.com',
                 'https://query2.finance.yahoo.com'
@@ -1709,56 +1566,28 @@
                 const data = timestamps.map((t, i) => ({
                     date: new Date(t * 1000),
                     price: closes[i],
-                    // True intraday high/low for this candle, when Yahoo
-                    // provides them - used for a proper (non-approximated)
-                    // Williams %R below. Falls back to the close itself if
-                    // missing for a given candle so a stray null doesn't
-                    // break the high/low window calc.
                     high: (highs[i] !== null && highs[i] !== undefined && !isNaN(highs[i])) ? highs[i] : closes[i],
                     low: (lows[i] !== null && lows[i] !== undefined && !isNaN(lows[i])) ? lows[i] : closes[i]
                 })).filter(d => d.price !== null && d.price !== undefined && !isNaN(d.price));
                 if (!data.length) throw new Error('Empty price series');
                 data.sort((a, b) => a.date - b.date);
 
-                // Distribution/dividend events (Yahoo returns these when
-                // events=div is requested). Attached as a property on the
-                // array itself so existing callers that treat the return
-                // value as a plain price array keep working unmodified.
                 const divMap = result.events?.dividends || {};
                 data.dividends = Object.values(divMap)
                     .map(d => ({ date: new Date(d.date * 1000), amount: d.amount }))
                     .filter(d => d.amount && !isNaN(d.amount))
                     .sort((a, b) => a.date - b.date);
 
-                // Free CORS proxies (thingproxy/allorigins/corsproxy.io etc.)
-                // often sit behind their own edge cache and can serve back an
-                // old cached copy of this same URL - still valid, parseable
-                // JSON, so it would otherwise sail through as a "successful"
-                // fetch and silently freeze the row's %Chg/LTP at whatever
-                // that cached snapshot happened to contain. Since we race
-                // every proxy/host combo and take the FIRST to resolve, a
-                // cached response (near-instant) will beat a live one almost
-                // every time. Guard against that: if the newest candle in
-                // this response is implausibly old for a live-traded
-                // instrument, treat it as a bad/stale response so Promise.any
-                // falls through to another attempt instead of accepting it.
                 const newest = data[data.length - 1].date;
                 const staleMs = Date.now() - newest.getTime();
-                const maxStaleDays = 6; // covers weekends + a holiday, generous on purpose
+                const maxStaleDays = 6;
                 if (staleMs > maxStaleDays * 24 * 60 * 60 * 1000) {
-                    throw new Error(`Stale chart data (newest point ${newest.toISOString().slice(0, 10)}) - likely a cached proxy response`);
+                    throw new Error(`Stale chart data - likely a cached proxy response`);
                 }
 
                 return data;
             };
 
-            // Race every (host x proxy) combo concurrently - first valid
-            // response wins, bounding wall-clock time to ~1 timeout window.
-            // A random cache-buster is appended so proxies that key their own
-            // cache off the full request URL can't keep serving the same
-            // stored response call after call (period1/period2 already
-            // change every second, but this guards against proxies that
-            // normalize/ignore parts of the query string when caching).
             const cacheBuster = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
             const attempts = hosts.map(host => {
                 const url = `${host}/v8/finance/chart/${symbol}?period1=${period1}&period2=${now}&interval=1d&includePrePost=false&events=div,splits&_cb=${cacheBuster}`;
@@ -1773,16 +1602,6 @@
             }
         }
 
-        // Live LTP/%Chg via Yahoo's intraday-quote chart response (same
-        // request shape as the market ticker's fetchIndexQuote, which has
-        // NOT shown this staleness problem). Deriving LTP/%Chg from the tail
-        // of the big 10-year daily chart (fetchETFHistory) turned out to be
-        // fragile: a CORS proxy serving a several-day-old cached copy of
-        // that request is still perfectly valid JSON, just old, and easily
-        // slips past a loose staleness check. This endpoint instead exposes
-        // meta.regularMarketTime directly, so we can validate freshness on
-        // an hours-scale rather than a days-scale - a stale/cached response
-        // here is far more obviously wrong and easy to reject outright.
         async function fetchLiveQuoteSingle(symbol) {
             const hosts = ['https://query1.finance.yahoo.com', 'https://query2.finance.yahoo.com'];
             const cacheBuster = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -1797,18 +1616,12 @@
                     const prevClose = meta.previousClose ?? meta.chartPreviousClose;
                     if (!prevClose) throw new Error('No previous close in meta');
 
-                    // Freshness gate: regularMarketTime should be at most a
-                    // few hours old during/just after market hours, and at
-                    // most ~18h old first thing the next morning. Anything
-                    // older than that is almost certainly a cached proxy
-                    // response, not a real live quote - reject it so
-                    // Promise.any moves on to another attempt.
                     const marketTimeMs = (meta.regularMarketTime || 0) * 1000;
                     const ageMs = Date.now() - marketTimeMs;
-                    const maxAgeMs = 18 * 60 * 60 * 1000; // 18 hours
+                    const maxAgeMs = 18 * 60 * 60 * 1000;
                     if (!marketTimeMs || ageMs > maxAgeMs) {
                         const ageDesc = marketTimeMs ? `${(ageMs / 3600000).toFixed(1)}h old` : 'missing timestamp';
-                        throw new Error(`Stale live quote (${ageDesc}) - likely a cached proxy response`);
+                        throw new Error(`Stale live quote (${ageDesc})`);
                     }
 
                     return { price, changePct: ((price - prevClose) / prevClose) * 100, marketTimeMs };
@@ -1820,8 +1633,6 @@
             });
         }
 
-        // Tries each candidate symbol (primary + fallbacks) in turn until
-        // one yields a fresh live quote.
         async function fetchLiveQuote(symbols) {
             let lastErr;
             for (const sym of symbols) {
@@ -1841,14 +1652,13 @@
             return data.filter(d => d.date >= cutoff);
         }
 
-        // Mirrors: (latest - AVERAGE(QUERY(...,"select Col2 limit 20 offset 1"))) / AVERAGE(...)
         function computePct20DMA(data) {
             const window30 = filterByDaysBack(data, 30);
             if (window30.length < 3) return null;
 
             const latest = window30[window30.length - 1].price;
-            const rest = window30.slice(1);           // offset 1 (skip oldest row)
-            const window20 = rest.slice(0, 20);        // limit 20
+            const rest = window30.slice(1);
+            const window20 = rest.slice(0, 20);
             if (!window20.length) return null;
 
             const avg20 = window20.reduce((s, d) => s + d.price, 0) / window20.length;
@@ -1857,18 +1667,6 @@
             return ((latest - avg20) / avg20) * 100;
         }
 
-        // Daily Williams %R (standard 14-period lookback).
-        // Uses TRUE intraday High/Low when available (ETFs/REITs/InvITs,
-        // sourced from Yahoo Finance's chart candles) for a textbook-accurate
-        // reading. Mutual funds only ever publish one NAV/day - no intraday
-        // range exists to use - so for those we fall back to the standard
-        // close-only adaptation: rolling highest/lowest CLOSE (NAV) stands in
-        // for highest-high/lowest-low. Both variants are directly comparable
-        // in the -100..0 scale, just with the MF version being a smoother
-        // approximation rather than measuring true daily swings.
-        // %R = ((highestHigh - currentClose) / (highestHigh - lowestLow)) * -100
-        // Range: 0 (overbought, at/near the period high) to -100 (oversold,
-        // at/near the period low).
         function computeWilliamsR(data, period = 14) {
             if (!data || data.length < period) return null;
             const window = data.slice(-period);
@@ -1878,22 +1676,15 @@
             const lowestLow = Math.min(...lows);
             const current = window[window.length - 1].price;
             const range = highestHigh - lowestLow;
-            // Truly flat over the whole window (no price movement at all) -
-            // %R is undefined/meaningless here rather than a real "at the
-            // high" (0) or "at the low" (-100) reading, so surface it as
-            // N/A instead of mislabeling a flat line as overbought.
             if (!range) return null;
             return ((highestHigh - current) / range) * -100;
         }
 
-        // Latest available price in the history series
         function computeLTP(data) {
             if (!data || !data.length) return null;
             return data[data.length - 1].price;
         }
 
-        // Day-over-day % change: latest price vs. the immediately preceding
-        // data point in the series (previous trading day's close/NAV).
         function computeDayChange(data) {
             if (!data || data.length < 2) return null;
             const latest = data[data.length - 1].price;
@@ -1902,10 +1693,6 @@
             return ((latest - prev) / prev) * 100;
         }
 
-        // N-Year CAGR: latest price vs. price closest to (latest date - N years).
-        // Returns null if the history doesn't reach back far enough (no data
-        // point within ~20 days of the target date) - i.e. "not available"
-        // for funds/tickers younger than the requested window.
         function computeCAGR(data, years) {
             if (!data || data.length < 2) return null;
             const latestPoint = data[data.length - 1];
@@ -1913,11 +1700,6 @@
             targetDate.setFullYear(targetDate.getFullYear() - years);
 
             const toleranceMs = 20 * 24 * 60 * 60 * 1000;
-
-            // Bail out early if the series doesn't even span back that far,
-            // using the same tolerance as the match below (a fund whose data
-            // starts a few days after the exact target date - e.g. because
-            // that date fell on a holiday/weekend - should still count).
             if (data[0].date - targetDate > toleranceMs) return null;
 
             let closest = null, closestDiff = Infinity;
@@ -1935,14 +1717,6 @@
             return computeCAGR(data, 3);
         }
 
-        // N-Year Total Return CAGR: like computeCAGR, but adds every
-        // distribution/dividend paid during the window to the end value
-        // before annualizing. This is the "simple" (non-reinvested) total
-        // return convention - distributions are summed in cash rather than
-        // compounded back into units - which is the right approximation for
-        // REITs/InvITs since their payouts are typically taken as income
-        // rather than auto-reinvested. Falls back to plain price CAGR if no
-        // distribution data is available (e.g. that fetch failed).
         function computeTotalReturnCAGR(data, dividends, years) {
             if (!data || data.length < 2) return null;
             const latestPoint = data[data.length - 1];
@@ -1966,7 +1740,6 @@
             return (Math.pow((latestPoint.price + distSum) / closest.price, 1 / years) - 1) * 100;
         }
 
-        // Mirrors: sparkline(query(googlefinance(...,today()-10,today()),"select Col2",1))
         function buildSparklineSVG(data) {
             let points = filterByDaysBack(data, 10);
             if (points.length < 2) points = data.slice(-8);
@@ -2003,10 +1776,6 @@
             return `<span class="${cls}" style="font-size:0.78rem;">${sign}${val.toFixed(2)}%</span>`;
         }
 
-        // Williams %R runs 0 (overbought) to -100 (oversold). Colour the
-        // extremes so they pop the same way the up/down cells do elsewhere:
-        // <= -80 oversold (green, "cheap"), >= -20 overbought (red, "pricey"),
-        // otherwise neutral grey in the middle of the range.
         function formatWilliamsRCell(val) {
             if (val === null || val === undefined) return '<span class="ytm-na">N/A</span>';
             let cls = 'dma-sub';
@@ -2076,9 +1845,6 @@
                     wrCell = formatWilliamsRCell(fund.williamsR);
                 }
 
-                // Flag names when the fund is technically oversold (W%R <= -75) —
-                // this is now the only highlight condition (previously also fired
-                // on negative %20DMA OR W%R <= -70; narrowed to W%R <= -75 only).
                 const isOversoldHighlight =
                     (fund.williamsR !== null && fund.williamsR !== undefined && fund.williamsR <= -75);
 
@@ -2107,22 +1873,9 @@
             });
         }
 
-        // On failure, auto-retry with a backoff delay before giving up and
-        // showing the manual Retry button. All 4 public CORS proxies can
-        // occasionally get simultaneously rate-limited/blocked for a short
-        // window (seen as "0 OK, N failed" across a whole section) - a
-        // couple of spaced-out extra attempts meaningfully improves the odds
-        // of catching a proxy once it's recovered, at the cost of a few more
-        // seconds before falling back to the manual Retry button.
         const MAX_AUTO_RETRIES = 3;
-        // A "successful" fetch that returns only a couple of candles can't
-        // support 20DMA/sparkline/3Y CAGR - treat it as a soft failure worth
-        // retrying rather than silently showing permanent N/A cells.
         const MIN_USABLE_POINTS = 5;
 
-        // REIT/InvIT distributions are a large, mandated part of their return,
-        // so those two asset types get total-return CAGR (price + payouts);
-        // everything else keeps plain point-to-point price CAGR.
         function computeReturnForFund(fund, history, years) {
             if (fund.assetType === 'reit' || fund.assetType === 'invit') {
                 return computeTotalReturnCAGR(history, history.dividends, years);
@@ -2136,7 +1889,7 @@
             renderSectionTable(section);
 
             let lastErr;
-            let bestSparse = null; // best-effort thin history if we never reach MIN_USABLE_POINTS
+            let bestSparse = null;
 
             for (let attempt = 0; attempt <= MAX_AUTO_RETRIES; attempt++) {
                 try {
@@ -2160,12 +1913,6 @@
                     fund.cagr10y = computeReturnForFund(fund, history, 10);
                     fund.williamsR = computeWilliamsR(history, 14);
 
-                    // The 10-year daily chart above is fine for 20DMA/
-                    // sparkline/CAGR, but has proven unreliable specifically
-                    // for "what's the price *right now*" - prefer the
-                    // tightly freshness-checked live quote for LTP/%Chg
-                    // when it's available, and only fall back to the
-                    // chart-derived values (already set above) if it fails.
                     if (fund.assetType !== 'mf') {
                         try {
                             const liveQuote = await fetchLiveQuote([fund.symbol, ...(fund.fallbackSymbols || [])]);
@@ -2186,17 +1933,12 @@
                     if (attempt < MAX_AUTO_RETRIES) {
                         fund.errorMsg = `Retrying... (${attempt + 1}/${MAX_AUTO_RETRIES})`;
                         renderSectionTable(section);
-                        // Backoff increases with each attempt (1.2s, 2.4s, 3.6s...)
-                        // so a transient "all proxies rate-limited" window has
-                        // more time to clear before we hit it again.
                         await new Promise(r => setTimeout(r, 1200 * (attempt + 1)));
                     }
                 }
             }
 
             if (bestSparse && bestSparse.length > 0) {
-                // Never got a full history after retries, but at least show
-                // the latest price rather than a hard failure with nothing.
                 fund.history = bestSparse;
                 fund.pct20dma = computePct20DMA(bestSparse);
                 fund.sparkSvg = buildSparklineSVG(bestSparse);
@@ -2269,13 +2011,7 @@
             section.isRefreshing = false;
         }
 
-        // ===== Periodic auto-refresh: stocks/ETFs/REITs/InvITs only =====
-        // Mutual funds (Debt section, and the MF entries inside Equity) only
-        // ever refresh once, on page load - their NAV doesn't change
-        // intraday, so there's no benefit to polling them repeatedly.
-        // Listed instruments (stocks/ETFs/REITs/InvITs) trade live, so those
-        // get refreshed on a recurring timer.
-        const AUTO_REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+        const AUTO_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
         async function autoRefreshListedAssets() {
             for (const key of ['equity', 'reit', 'bullion']) {
@@ -2318,16 +2054,70 @@
         }
 
         // =====================================================
-        // Market ticker: NIFTY 50 & INDIA VIX (top-right of header)
+        // Market ticker: MMI, NIFTY 50 & INDIA VIX
         // =====================================================
 
-        const MARKET_INDEX_REFRESH_MS = 60 * 1000; // 60 seconds
+        const MARKET_INDEX_REFRESH_MS = 60 * 1000;
         const marketIndexCacheKey = 'market_index_cache_v1';
 
         const marketIndices = [
             { symbol: '%5ENSEI', elId: 'ticker-nifty', decimals: 2 },
             { symbol: '%5EINDIAVIX', elId: 'ticker-vix', decimals: 2 }
         ];
+
+        // MMI Mood Helper (matching IFS rule: <30 Extreme Fear, 30-50 Fear, 50-70 Greed, >70 Extreme Greed)
+        function getMMIMood(score) {
+            if (score < 30) return { mood: "Extreme Fear", class: "down" };
+            if (score >= 30 && score < 50) return { mood: "Fear", class: "down" };
+            if (score >= 50 && score < 70) return { mood: "Greed", class: "up" };
+            return { mood: "Extreme Greed", class: "up" };
+        }
+
+        // Fetch Market Mood Index score from TickerTape
+        async function fetchMMI() {
+            const url = "https://www.tickertape.in/market-mood-index";
+            const html = await fetchWithProxy(url);
+            
+            let score = null;
+            const nextDataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i);
+            
+            if (nextDataMatch) {
+                try {
+                    const data = JSON.parse(nextDataMatch[1]);
+                    score = data?.props?.pageProps?.mmiData?.currentValue || data?.props?.pageProps?.currentValue;
+                } catch (e) {}
+            }
+            
+            if (score === null || isNaN(score)) {
+                const match = html.match(/class="[^"]*mmi-value[^"]*"[^>]*>([\d.]+)/i) || 
+                              html.match(/<span>([\d.]+)<\/span>/i);
+                if (match) score = parseFloat(match[1]);
+            }
+            
+            if (score === null || isNaN(score)) throw new Error("Could not parse MMI score");
+            return parseFloat(score);
+        }
+
+        function renderMMITicker(score, stale = false) {
+            const el = document.getElementById('ticker-mmi');
+            if (!el) return;
+            
+            const priceEl = el.querySelector('.ticker-price');
+            const changeEl = el.querySelector('.ticker-change');
+            
+            if (score !== null && !isNaN(score)) {
+                const moodInfo = getMMIMood(score);
+                priceEl.textContent = score.toFixed(2);
+                changeEl.textContent = moodInfo.mood;
+                changeEl.className = `ticker-change ${moodInfo.class}`;
+            } else {
+                priceEl.textContent = '—';
+                changeEl.textContent = '—';
+                changeEl.className = 'ticker-change flat';
+            }
+            
+            el.classList.toggle('loading', !!stale);
+        }
 
         function loadMarketIndexCache() {
             try {
@@ -2336,6 +2126,11 @@
                     const c = cached[idx.elId];
                     if (c) renderTickerItem(idx.elId, c.price, c.changePct, idx.decimals, true);
                 });
+                
+                const cachedMMI = localStorage.getItem('mmi_cache_val');
+                if (cachedMMI) {
+                    renderMMITicker(parseFloat(cachedMMI), true);
+                }
             } catch (e) { console.error('Market index cache load error:', e); }
         }
 
@@ -2349,9 +2144,6 @@
 
         async function fetchIndexQuote(symbol) {
             const hosts = ['https://query1.finance.yahoo.com', 'https://query2.finance.yahoo.com'];
-            // Cache-busting timestamp: without this, CDNs/CORS proxies serve a
-            // cached response for the same URL on every 60s poll, which is what
-            // made the ticker appear stuck on a stale (e.g. previous day's) price.
             const cacheBuster = Date.now();
             const attempts = hosts.map(host => {
                 const url = `${host}/v8/finance/chart/${symbol}?range=1d&interval=1m&_=${cacheBuster}`;
@@ -2389,6 +2181,15 @@
         }
 
         async function updateMarketTicker() {
+            // Update MMI
+            fetchMMI().then(score => {
+                renderMMITicker(score, false);
+                try { localStorage.setItem('mmi_cache_val', score); } catch(e) {}
+            }).catch(err => {
+                console.warn('MMI fetch failed:', err.message);
+            });
+
+            // Update Indices
             await Promise.all(marketIndices.map(async idx => {
                 try {
                     const { price, changePct } = await fetchIndexQuote(idx.symbol);
@@ -2396,7 +2197,6 @@
                     saveMarketIndexCache(idx.elId, price, changePct);
                 } catch (err) {
                     console.warn(`Market index fetch failed for ${idx.symbol}:`, err.message);
-                    // Leave whatever is currently shown (cached/stale value) as-is.
                 }
             }));
         }
@@ -2432,8 +2232,6 @@
                 refreshAllSection('bullion');
             }, hasBullionCache ? 5000 : 1800);
 
-            // Start recurring background refresh for listed instruments only
-            // (mutual funds are intentionally excluded - see comment above).
             setInterval(autoRefreshListedAssets, AUTO_REFRESH_INTERVAL_MS);
         });
     </script>
