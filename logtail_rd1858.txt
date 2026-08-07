@@ -49,3 +49,9 @@
 2026-08-07 09:51:38 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 76/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
 2026-08-07 09:51:40 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 78/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
 2026-08-07 09:51:43 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 80/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:51:45 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 82/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:51:47 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 84/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:51:49 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 86/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:51:51 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 88/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:51:54 IST | DEBUG    | backend.orders.manager | [smart_buy] Margin poll 90/90s: live_balance=₹27,733.38 (need ≥ ₹29,089.10)
+2026-08-07 09:51:54 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [BSE]: Margin not credited after 90s: live_balance ₹27,733.38 < required ₹29,089.10. LIQUIDCASE was sold (226 units) — cash should credit shortly.
