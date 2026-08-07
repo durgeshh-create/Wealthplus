@@ -565,7 +565,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
             <span class="pb" id="pos-count">—</span>
           </div>
         </div>
-        <div class="tbl-wrap">
+        <div class="tbl-wrap scroll">
           <table class="tbl">
             <thead><tr><th>SYMBOL</th><th>QTY</th><th>AVG ₹</th><th>LTP ₹</th><th>UNREALISED</th><th>REALISED</th></tr></thead>
             <tbody id="pos-body"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
@@ -577,7 +577,13 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
     <!-- Signals + Today's Orders + Funds stacked -->
     <div style="display:flex;flex-direction:column;gap:14px">
       <div class="panel">
-        <div class="ph"><span class="pt">Active Signals</span><span class="pb" id="sig-count">—</span></div>
+        <div class="ph">
+          <span class="pt">Today's Signals/Orders</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="pb" id="sig-count">—</span>
+            <span class="pb" id="tr-count">—</span>
+          </div>
+        </div>
         <div class="scroll" id="sig-body"><div class="empty">Loading…</div></div>
       </div>
 
@@ -3182,9 +3188,9 @@ function render(data) {
   const _cn=document.getElementById("cash-note"); if(_cn) _cn.textContent=Math.round(depPct)+"% deployed";
 
   // Signals
-  document.getElementById("sig-count").textContent = sigs.length + " signals";
+  document.getElementById("sig-count").textContent = sigs.length + " signal" + (sigs.length===1?"":"s");
   const sb = document.getElementById("sig-body");
-  sb.innerHTML = sigs.length ? sigs.map(s => `
+  const sigHtml = sigs.length ? sigs.map(s => `
     <div class="sig-row">
       <span class="badge ${s.type==='BUY'?'b-buy':'b-sell'}">${s.type}</span>
       <div style="flex:1">
@@ -3197,6 +3203,11 @@ function render(data) {
         ${s.profit_pct != null ? `<br><span style="font-size:10px;color:var(--green)">+${s.profit_pct}%</span>` : ""}
       </div>
     </div>`).join("") : `<div class="empty">No active signals</div>`;
+  // ord-list is populated further below, once today's orders have been
+  // filtered — kept as a separate sub-container so this signals render
+  // and the orders render (which runs later in this same function) don't
+  // clobber each other regardless of execution order.
+  sb.innerHTML = `<div id="sig-list">${sigHtml}</div><div id="ord-list"></div>`;
 
   // Williams %R
   const wr = (data.williams_r ?? []).slice().sort((a,b) => (a.williams_r??0) - (b.williams_r??0));
@@ -3412,8 +3423,10 @@ function render(data) {
     pnlInline.textContent = pnlDisplay;
     pnlInline.className   = pnl > 0 ? "pos" : pnl < 0 ? "neg" : "";
   }
-  const trb = document.getElementById("tr-body");
-  if(trb) trb.innerHTML = trades.length ? trades.map(t => {
+  const trb = document.getElementById("ord-list");
+  if(trb) trb.innerHTML = trades.length ? (
+    `<div style="padding:8px 15px 4px;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;border-top:1px solid var(--border);margin-top:2px">Today's Orders</div>` +
+    trades.map(t => {
     const ok  = t.status === "COMPLETE";
     const rej = t.status === "REJECTED";
     const sym = t.tradingsymbol || t.symbol || "—";
@@ -3433,7 +3446,8 @@ function render(data) {
       </div>
       <div style="font-size:10px;color:var(--muted);white-space:nowrap;margin-left:6px">${tStr(t.order_timestamp||t.time)}</div>
     </div>`;
-  }).join("") : `<div class="empty">No orders executed today<br><span style="font-size:11px;color:var(--muted)">Orders appear once the bot pushes a snapshot</span></div>`;
+  }).join("")
+  ) : `<div class="empty">No orders executed today<br><span style="font-size:11px;color:var(--muted)">Orders appear once the bot pushes a snapshot</span></div>`;
 }
 
 // ── Fetch + refresh ───────────────────────────────────────────────────────────
