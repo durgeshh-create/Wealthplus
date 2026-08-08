@@ -3202,7 +3202,7 @@ function render(data) {
         ${s.williams_r != null ? `<br><span style="font-size:10px;color:var(--green)">W%R ${s.williams_r}</span>` : ""}
         ${s.profit_pct != null ? `<br><span style="font-size:10px;color:var(--green)">+${s.profit_pct}%</span>` : ""}
       </div>
-    </div>`).join("") : `<div class="empty">No active signals</div>`;
+    </div>`).join("") : `<div style="padding:10px 15px;color:var(--muted);font-size:12px">No active signals right now</div>`;
   // ord-list is populated further below, once today's orders have been
   // filtered — kept as a separate sub-container so this signals render
   // and the orders render (which runs later in this same function) don't
