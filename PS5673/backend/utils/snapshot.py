@@ -11,11 +11,22 @@ Started from cloud_launcher.py:
 """
 
 import json
+import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as _FutureTimeoutError
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+
+from backend.utils.logger import get_logger
+logger = get_logger(__name__)
+
+# Matches NIFTY index option trading symbols, e.g. "NIFTY2681122800PE" —
+# SYMBOL + expiry-encoded digits + strike + CE/PE. Deliberately requires
+# digits between "NIFTY" and the CE/PE suffix so real holdings like
+# "NIFTYBEES" (no digits before the letters) never match. Used to exclude
+# these from the "Today's Signals/Orders" orders list — see write_snapshot().
+_NIFTY_OPTION_RE = re.compile(r'^NIFTY\d+(CE|PE)$')
 
 IST           = timezone(timedelta(hours=5, minutes=30))
 SNAPSHOT_PATH = Path("/tmp/status_ps5673.json")
@@ -326,7 +337,23 @@ def write_snapshot(dashboard_state: dict):
                         if today_str not in ts_str:
                             continue
                         sym = o.get("tradingsymbol", "")
-                        if sym not in active_etfs and sym not in bnh_symbols and sym != LIQUIDCASE_SYMBOL:
+                        # ✅ FIX: previously excluded any order whose symbol wasn't
+                        # in the bot's tracked universe (active_etfs/bnh_symbols/
+                        # LIQUIDCASE) — this silently dropped manually-placed
+                        # orders (any symbol, any status, including still-OPEN
+                        # ones) from the dashboard entirely. The dashboard's
+                        # "Today's Signals/Orders" panel is meant to show ALL of
+                        # today's orders from Kite, not just bot-originated ones
+                        # for monitored symbols — so no broad symbol filter here.
+                        #
+                        # Narrow exception: NIFTY index options specifically
+                        # (e.g. NIFTY2681122800PE) are excluded by request —
+                        # these clutter the panel and aren't relevant to the
+                        # ETF/BNH strategies this dashboard tracks. Matches only
+                        # the option-symbol pattern (SYMBOL + expiry digits +
+                        # strike + CE/PE), so real holdings like NIFTYBEES are
+                        # unaffected — "NIFTYBEES" doesn't end in digits+CE/PE.
+                        if _NIFTY_OPTION_RE.match(sym):
                             continue
                         orders.append({
                             "order_id":         o.get("order_id"),
@@ -339,8 +366,10 @@ def write_snapshot(dashboard_state: dict):
                             "status":            o.get("status"),
                             "order_timestamp":   ts_str,
                         })
-        except Exception:
-            pass
+                else:
+                    logger.warning(f"Orders fetch: HTTP {resp.status_code} from /oms/orders — {resp.text[:200]}")
+        except Exception as e:
+            logger.warning(f"Orders fetch failed: {type(e).__name__}: {e}")
 
         # ── Available Cash + Margin ───────────────────────────────────────────
         # ✅ FIX: three bugs fixed here:
