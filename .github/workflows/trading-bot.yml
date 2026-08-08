@@ -345,11 +345,20 @@ jobs:
               # WHITELIST — only lines that are either (a) ERROR-level or
               # (b) describe an actual buy/sell/order/swap action survive.
               # Nothing else (slot counts, held-ETF lists, LIQUIDCASE unit
-              # totals, etc.) makes it into what gets pushed, regardless of
-              # log level.
+              # totals, etc.) makes it into what gets pushed — UNLESS it's
+              # been explicitly downgraded to DEBUG in the Python code (e.g.
+              # realtime.py's REST-fallback failures, downgraded to DEBUG
+              # outside market hours since Kite's quote endpoint reliably
+              # 400s then and it's expected, not actionable). The whitelist
+              # above matches by TEXT CONTENT only, so a DEBUG-tagged line
+              # containing "REST LTP fallback" would still match and still
+              # get pushed on level alone — the second grep here strips any
+              # DEBUG-tagged line regardless of what it matched, so a
+              # Python-side level downgrade actually keeps the dashboard
+              # quiet, not just the terminal.
               if [ -f RD1858/logs/trading.log ]; then
                 grep -E '\| ERROR |🚨|\bBUY\b|\bSELL\b|\bSWAP\b|smart_buy|smart_sell|EXECUTING|order_id|Order (placed|COMPLETE|cancelled)|LIQUIDCASE (sell|buy)|price unavailable|REST LTP fallback|valid price|no live price available' \
-                  RD1858/logs/trading.log | tail -n 500 > /tmp/logtail_rd1858.txt || true
+                  RD1858/logs/trading.log | grep -v '| DEBUG ' | tail -n 500 > /tmp/logtail_rd1858.txt || true
                 python3 push_snapshot.py /tmp/logtail_rd1858.txt logtail_rd1858.txt || true
               fi
               sleep 60
@@ -493,7 +502,7 @@ jobs:
               python3 push_snapshot.py /tmp/status_ps5673.json status_ps5673.json || true
               if [ -f PS5673/logs/trading.log ]; then
                 grep -E '\| ERROR |🚨|\bBUY\b|\bSELL\b|\bSWAP\b|smart_buy|smart_sell|EXECUTING|order_id|Order (placed|COMPLETE|cancelled)|LIQUIDCASE (sell|buy)|price unavailable|REST LTP fallback|valid price|no live price available' \
-                  PS5673/logs/trading.log | tail -n 500 > /tmp/logtail_ps5673.txt || true
+                  PS5673/logs/trading.log | grep -v '| DEBUG ' | tail -n 500 > /tmp/logtail_ps5673.txt || true
                 python3 push_snapshot.py /tmp/logtail_ps5673.txt logtail_ps5673.txt || true
               fi
               sleep 60
