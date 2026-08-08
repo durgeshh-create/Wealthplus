@@ -6,7 +6,7 @@ import urllib.parse
 import time
 import threading
 from typing import Dict, Optional, Callable
-from datetime import datetime
+from datetime import datetime, timezone, timedelta, time as _dtime
 
 _RECONNECT_DELAY_SECONDS = 10
 # On Render, container evictions can happen at any time during market hours.
@@ -21,6 +21,25 @@ _LTP_STALE_AFTER_SEC = 45  # cached tick older than this is untrusted; falls thr
 # within seconds to a real systemic outage (all symbols failing back-to-back).
 _REST_BREAKER_THRESHOLD    = 5
 _REST_BREAKER_COOLDOWN_SEC = 30
+
+# ✅ FIX: Kite's REST quote endpoint reliably returns HTTP 400 for every
+# symbol outside market hours (confirmed via repeated real logs, both
+# post-close and pre-open) — this is expected, not actionable, and not a
+# real error. It was being logged at WARNING regardless, which — combined
+# with write_snapshot() calling get_ltp() every ~60s even outside market
+# hours (correctly, since portfolio value should still display) — meant
+# the Logs tab filled with a "real error" every cycle for a fully expected
+# condition, crowding out genuine issues. Downgraded to DEBUG (filtered
+# out of the pushed logtail) whenever it's clearly outside market hours;
+# stays at WARNING during market hours, when this genuinely would be
+# unexpected and worth seeing.
+_IST = timezone(timedelta(hours=5, minutes=30))
+
+def _is_market_hours() -> bool:
+    now = datetime.now(_IST).time()
+    open_t  = _dtime(Config.MARKET_OPEN_HOUR,  Config.MARKET_OPEN_MINUTE)
+    close_t = _dtime(Config.MARKET_CLOSE_HOUR, Config.MARKET_CLOSE_MINUTE)
+    return open_t <= now <= close_t
 
 from kiteconnect import KiteTicker
 import pandas as pd
@@ -730,18 +749,20 @@ class RealtimeDataManager:
                                 self.live_data[symbol]['close'] = float(prev['close'])
                         self._rest_fail_count = 0  # reset breaker on any success
                     return ltp
-                logger.warning(
+                (logger.warning if _is_market_hours() else logger.debug)(
                     f"REST LTP fallback for {symbol} ({instrument_key}): "
                     f"200 OK but no last_price in response — {qd}"
                 )
             else:
-                logger.warning(
+                (logger.warning if _is_market_hours() else logger.debug)(
                     f"REST LTP fallback for {symbol} ({instrument_key}): "
                     f"HTTP {resp.status_code} — {resp.text[:200]}"
                 )
                 self._note_rest_failure()
         except Exception as e:
-            logger.warning(f"REST LTP fallback for {symbol}: {type(e).__name__}: {e}")
+            (logger.warning if _is_market_hours() else logger.debug)(
+                f"REST LTP fallback for {symbol}: {type(e).__name__}: {e}"
+            )
             self._note_rest_failure()
 
         return None
@@ -757,7 +778,7 @@ class RealtimeDataManager:
                 self._rest_circuit_open_until and time.time() < self._rest_circuit_open_until
             ):
                 self._rest_circuit_open_until = time.time() + _REST_BREAKER_COOLDOWN_SEC
-                logger.warning(
+                (logger.warning if _is_market_hours() else logger.debug)(
                     f"🔌 REST LTP fallback circuit breaker OPEN — "
                     f"{self._rest_fail_count} consecutive failures, "
                     f"pausing REST quote calls for {_REST_BREAKER_COOLDOWN_SEC}s"
