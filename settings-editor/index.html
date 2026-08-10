@@ -628,6 +628,24 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
     </div>
   </div>
 
+  <!-- Equity Holdings (all Kite holdings — stocks, ETFs, bonds etc) -->
+  <div class="panel" style="margin-bottom:14px" id="eq-panel">
+    <div class="ph" style="flex-wrap:wrap;gap:8px">
+      <span class="pt">Equity Holdings</span>
+      <div id="eq-summary-chips" style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted2)"></div>
+    </div>
+    <div class="tbl-wrap">
+    <table class="tbl" id="eq-tbl" style="width:100%">
+      <thead><tr>
+        <th style="text-align:left;padding-left:14px">Instrument</th>
+        <th style="text-align:right;padding-right:14px">Cur. Val</th>
+        <th style="text-align:right;padding-right:14px">P&amp;L</th>
+      </tr></thead>
+      <tbody id="eq-tbl-body"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+    </table>
+    </div>
+  </div>
+
   <!-- Mutual Fund Holdings -->
   <div class="panel" style="margin-bottom:14px" id="mf-panel">
     <div class="ph" style="flex-wrap:wrap;gap:8px">
@@ -3264,14 +3282,55 @@ function render(data) {
   })();
 
 
+  // fmtRupee: full Indian-locale value for title tooltips (no "₹₹" — fmtL already adds ₹)
+  const fmtRupee = v => '₹' + Number(v ?? 0).toLocaleString('en-IN', {maximumFractionDigits: 2});
+
+  // ── Equity Holdings — ALL Kite holdings (stocks, ETFs, bonds etc), not
+  // just the bot-tracked active_etfs/bnh_symbols shown in the Slot Matrix ──
+  const eqHoldings = data.equity_holdings ?? [];
+  const eqSummary  = data.equity_summary  ?? {};
+  const eqPanel    = document.getElementById("eq-panel");
+  const eqBody     = document.getElementById("eq-tbl-body");
+  const eqChips    = document.getElementById("eq-summary-chips");
+  if (eqPanel) eqPanel.style.display = ""; // always visible — shows placeholder when empty
+  if (eqChips && eqSummary.total_invested) {
+    const etpnl = eqSummary.total_pnl ?? 0;
+    const etpct = eqSummary.total_pnl_pct ?? 0;
+    const edpnl = eqSummary.day_pnl ?? 0;
+    eqChips.innerHTML =
+      `<span>${eqSummary.count ?? eqHoldings.length} holdings</span>` +
+      `<span>Invested <strong style="color:var(--text)" title="${fmtRupee(eqSummary.total_invested)}">${fmtL(eqSummary.total_invested)}</strong></span>` +
+      `<span>Current <strong style="color:var(--text)" title="${fmtRupee(eqSummary.total_cur_val)}">${fmtL(eqSummary.total_cur_val)}</strong></span>` +
+      `<span>Today <strong class="${edpnl>=0?'pos':'neg'}" title="${fmtRupee(edpnl)}">${edpnl>=0?'+':''}${fmtL(edpnl)}</strong></span>` +
+      `<span>Total P&L <strong class="${etpnl>=0?'pos':'neg'}" title="${fmtRupee(etpnl)}">${etpnl>=0?'+':''}${fmtL(etpnl)}</strong> ` +
+        `<span class="badge" style="background:${etpnl>=0?'var(--green-d)':'var(--red-d)'};color:${etpnl>=0?'var(--green)':'var(--red)'}">${etpct>=0?'+':''}${etpct.toFixed(2)}%</span></span>`;
+  }
+  if (eqBody) {
+    eqBody.innerHTML = eqHoldings.length ? eqHoldings.map(h => {
+      const pc = (h.pnl ?? 0) >= 0 ? "pos" : "neg";
+      const dpc = (h.day_pnl ?? 0) >= 0 ? "pos" : "neg";
+      const trackedTag = h.tracked ? `<span class="tag tag-a" style="margin-left:4px" title="Managed by the bot — also in Slot Matrix">BOT</span>` : "";
+      const exTag = h.exchange ? `<span style="font-size:9px;color:var(--muted)">${h.exchange}</span>` : "";
+      return `<tr>
+        <td style="padding-left:14px">
+          <div class="sym" style="font-size:12px;white-space:normal;max-width:none">${h.symbol}${trackedTag}</div>
+          <div style="font-size:10px;color:var(--muted)">${h.quantity} qty @ ₹${h.avg} &nbsp;${exTag}${h.pledged > 0 ? ` &nbsp;<span title="Pledged as collateral">(P: ${h.pledged})</span>` : ''}</div>
+        </td>
+        <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.value)}">
+          ${fmtL(h.value)}
+          <div class="${dpc}" style="font-size:10px">${(h.day_pnl??0)>=0?'+':''}${fmtL(h.day_pnl)} today</div>
+        </td>
+        <td style="text-align:right;padding-right:14px;font-size:12px" class="${pc}" title="${fmtRupee(h.pnl)}">${h.pnl>=0?'+':''}${fmtL(h.pnl)}<div style="font-size:10px">${(h.pnl_pct??0)>=0?'+':''}${(h.pnl_pct??0).toFixed(2)}%</div></td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="3" class="empty" style="padding:18px">Equity holdings not yet available — will populate on next bot snapshot</td></tr>`;
+  }
+
   // ── Mutual Fund Holdings ─────────────────────────────────────────────────
   const mfHoldings = data.mf_holdings ?? [];
   const mfSummary  = data.mf_summary  ?? {};
   const mfPanel    = document.getElementById("mf-panel");
   const mfBody     = document.getElementById("mf-tbl-body");
   const mfChips    = document.getElementById("mf-summary-chips");
-  // fmtRupee: full Indian-locale value for title tooltips (no "₹₹" — fmtL already adds ₹)
-  const fmtRupee = v => '₹' + Number(v ?? 0).toLocaleString('en-IN', {maximumFractionDigits: 2});
   if (mfPanel) mfPanel.style.display = ""; // always visible — shows placeholder when empty
   if (mfChips && mfSummary.total_invested) {
     const tpnl = mfSummary.total_pnl ?? 0;
