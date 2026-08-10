@@ -198,3 +198,27 @@
 2026-08-10 11:39:57 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN — 101 consecutive failures, pausing REST quote calls for 30s
 2026-08-10 11:40:58 IST | WARNING  | backend.data.realtime | REST LTP fallback for INDIGRID-IV (NSE:INDIGRID-IV): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
 2026-08-10 11:40:58 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN — 102 consecutive failures, pausing REST quote calls for 30s
+2026-08-10 11:41:59 IST | INFO     | backend.strategy.signal_generator | ✅ SELL SIGNAL: BSE | LTP=₹3575.00 Avg=₹3470.70 Profit=3.01% (Target=3.0%)
+2026-08-10 11:41:59 IST | INFO     | __main__             |   🔴 SELL: BSE | ₹3575.00
+2026-08-10 11:41:59 IST | INFO     | backend.strategy.executor |                          EXECUTING AUTOMATED SELL: BSE                          
+2026-08-10 11:41:59 IST | INFO     | backend.strategy.executor | LIQUIDCASE buy limit price: ₹115.40 (top ask (offer) from depth)
+2026-08-10 11:41:59 IST | INFO     | backend.strategy.executor | SWAP: Sell 28 BSE @ ₹3575.00 = ₹100100.00 → Buy 867 LIQUIDCASE LIMIT @ ₹115.40
+2026-08-10 11:41:59 IST | INFO     | backend.strategy.executor | LIMIT SELL: using top_bid ₹3574.00 for BSE (LTP was ₹3575.00, top_bid from depth)
+2026-08-10 11:41:59 IST | INFO     | backend.orders.manager | Executing SWAP: Sell 28 BSE -> Buy 867 LIQUIDCASE
+2026-08-10 11:41:59 IST | INFO     | backend.orders.manager | [SWAP PRE-FLIGHT] ETF→LIQUIDCASE swap detected
+2026-08-10 11:41:59 IST | INFO     | backend.orders.manager | [SWAP STEP 1/4] Placing LIMIT SELL order: 28 BSE
+2026-08-10 11:41:59 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 28 x BSE
+2026-08-10 11:42:00 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260810190696703
+2026-08-10 11:42:00 IST | INFO     | backend.orders.manager | [SWAP STEP 2/4] SELL order placed, ID: 260810190696703. Monitoring...
+2026-08-10 11:42:03 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: BSE @ ₹3574
+2026-08-10 11:42:03 IST | INFO     | backend.orders.manager | ✓ [SWAP STEP 2/4] Sell leg completed: 260810190696703
+2026-08-10 11:42:03 IST | INFO     | backend.orders.manager | [SWAP STEP 3/4] Placing LIMIT BUY order: 867 LIQUIDCASE
+2026-08-10 11:42:03 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 867 x LIQUIDCASE
+2026-08-10 11:42:03 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260810190696839
+2026-08-10 11:42:03 IST | INFO     | backend.orders.manager | [SWAP STEP 4/4] BUY order placed, ID: 260810190696839. Monitoring...
+2026-08-10 11:42:04 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.4
+2026-08-10 11:42:04 IST | INFO     | backend.orders.manager | ✓ [SWAP STEP 4/4] Buy leg completed: 260810190696839
+2026-08-10 11:42:04 IST | INFO     | backend.orders.manager | ✓ SWAP COMPLETE: BSE -> LIQUIDCASE
+2026-08-10 11:42:04 IST | INFO     | backend.strategy.executor | ✓ SELL SUCCESS: BSE
+2026-08-10 11:42:04 IST | WARNING  | backend.data.realtime | REST LTP fallback for INDIGRID-IV: ReadTimeout: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=5)
+2026-08-10 11:42:04 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN — 103 consecutive failures, pausing REST quote calls for 30s
