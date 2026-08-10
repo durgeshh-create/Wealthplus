@@ -222,3 +222,5 @@
 2026-08-10 11:42:04 IST | INFO     | backend.strategy.executor | ✓ SELL SUCCESS: BSE
 2026-08-10 11:42:04 IST | WARNING  | backend.data.realtime | REST LTP fallback for INDIGRID-IV: ReadTimeout: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=5)
 2026-08-10 11:42:04 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN — 103 consecutive failures, pausing REST quote calls for 30s
+2026-08-10 11:43:06 IST | WARNING  | backend.data.realtime | REST LTP fallback for INDIGRID-IV (NSE:INDIGRID-IV): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-08-10 11:43:06 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN — 104 consecutive failures, pausing REST quote calls for 30s
