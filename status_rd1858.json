@@ -1,16 +1,16 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-08-10 09:07:41 IST",
+  "timestamp": "2026-08-10 09:08:42 IST",
   "bot_running": true,
-  "total_value": 8422388.18,
-  "today_pnl": 0.0,
-  "today_pnl_pct": 0.0,
+  "total_value": 8423644.28,
+  "today_pnl": 1256.1,
+  "today_pnl_pct": 0.01,
   "liquidcase": {
     "quantity": 48982,
     "free_quantity": 0,
     "price": 115.38,
     "value": 5651543.16,
-    "pct": 67.1
+    "pct": 67.09
   },
   "slots": {
     "total": 6,
@@ -77,12 +77,12 @@
       "symbol": "MINDSPACE-RR",
       "quantity": 530,
       "avg": 461.34,
-      "ltp": 495.12,
-      "value": 262413.6,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
-      "unrealised_pnl": 17902.28,
-      "unrealised_pnl_pct": 7.32,
+      "ltp": 497.49,
+      "value": 263669.7,
+      "pnl": 1256.1,
+      "pnl_pct": 0.48,
+      "unrealised_pnl": 19158.38,
+      "unrealised_pnl_pct": 7.84,
       "strategy": "bnh",
       "buys_today": 0,
       "max_slots": 6
@@ -140,13 +140,13 @@
       "quantity": 5841,
       "pledged": 0,
       "avg": 177.28,
-      "ltp": 178.23,
+      "ltp": 179.3,
       "invested": 1035473.7,
-      "value": 1041041.43,
-      "pnl": 5567.73,
-      "pnl_pct": 0.54,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "value": 1047291.3,
+      "pnl": 11817.6,
+      "pnl_pct": 1.14,
+      "day_pnl": 6249.87,
+      "day_pnl_pct": 0.6,
       "tracked": false
     },
     {
@@ -188,13 +188,13 @@
       "quantity": 3138,
       "pledged": 0,
       "avg": 167.92,
-      "ltp": 168.11,
+      "ltp": 168.98,
       "invested": 526943.31,
-      "value": 527529.18,
-      "pnl": 585.87,
-      "pnl_pct": 0.11,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "value": 530259.24,
+      "pnl": 3315.93,
+      "pnl_pct": 0.63,
+      "day_pnl": 2730.06,
+      "day_pnl_pct": 0.52,
       "tracked": false
     },
     {
@@ -220,13 +220,13 @@
       "quantity": 530,
       "pledged": 0,
       "avg": 461.34,
-      "ltp": 495.12,
+      "ltp": 497.49,
       "invested": 244511.32,
-      "value": 262413.6,
-      "pnl": 17902.28,
-      "pnl_pct": 7.32,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "value": 263669.7,
+      "pnl": 19158.38,
+      "pnl_pct": 7.84,
+      "day_pnl": 1256.1,
+      "day_pnl_pct": 0.48,
       "tracked": true
     },
     {
@@ -236,13 +236,13 @@
       "quantity": 230,
       "pledged": 0,
       "avg": 439.36,
-      "ltp": 441.28,
+      "ltp": 441.85,
       "invested": 101052.0,
-      "value": 101494.4,
-      "pnl": 442.4,
-      "pnl_pct": 0.44,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "value": 101625.5,
+      "pnl": 573.5,
+      "pnl_pct": 0.57,
+      "day_pnl": 131.1,
+      "day_pnl_pct": 0.13,
       "tracked": false
     },
     {
@@ -280,11 +280,11 @@
   ],
   "equity_summary": {
     "total_invested": 4952217.06,
-    "total_cur_val": 5004724.63,
-    "total_pnl": 52507.57,
-    "total_pnl_pct": 1.06,
-    "day_pnl": 0.0,
-    "day_pnl_pct": 0.0,
+    "total_cur_val": 5015091.76,
+    "total_pnl": 62874.7,
+    "total_pnl_pct": 1.27,
+    "day_pnl": 10367.13,
+    "day_pnl_pct": 0.21,
     "count": 10
   },
   "positions": [
@@ -391,9 +391,9 @@
     },
     {
       "symbol": "MINDSPACE-RR",
-      "ltp": 495.12,
-      "change_pct": 0.0,
-      "williams_r": -37.88,
+      "ltp": 497.49,
+      "change_pct": 0.48,
+      "williams_r": -24.64,
       "is_held": true,
       "avg_price": 461.34,
       "strategy": "bnh"
@@ -403,13 +403,13 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24579.0,
+      "ltp": 24581.25,
       "prev_close": 24570.65,
-      "change": 8.35,
-      "change_pct": 0.03,
-      "open": null,
-      "high": null,
-      "low": null
+      "change": 10.6,
+      "change_pct": 0.04,
+      "open": 24581.25,
+      "high": 24581.25,
+      "low": 24581.25
     },
     "INDIA VIX": {
       "ltp": 12.16,
@@ -599,6 +599,6 @@
     }
   },
   "available_cash": 33112.7,
-  "available_margin": 1999344.07,
+  "available_margin": 1997884.5,
   "available_margin_note": null
 }
