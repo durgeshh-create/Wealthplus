@@ -264,3 +264,6 @@
 2026-08-10 12:14:03 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN — 134 consecutive failures, pausing REST quote calls for 30s
 2026-08-10 12:15:04 IST | WARNING  | backend.data.realtime | REST LTP fallback for INDIGRID-IV (NSE:INDIGRID-IV): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
 2026-08-10 12:15:04 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN — 135 consecutive failures, pausing REST quote calls for 30s
+2026-08-10 12:15:14 IST | ERROR    | backend.portfolio.tracker | Error fetching holdings: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
+2026-08-10 12:16:06 IST | WARNING  | backend.data.realtime | REST LTP fallback for INDIGRID-IV (NSE:INDIGRID-IV): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-08-10 12:16:06 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN — 136 consecutive failures, pausing REST quote calls for 30s
