@@ -237,6 +237,75 @@ def write_snapshot(dashboard_state: dict):
         else:
             liq_qty = liq_price = liq_val = 0
 
+        # ── Equity Holdings (ALL Kite holdings) ─────────────────────────────────
+        # `holdings` above is deliberately filtered down to only active_etfs /
+        # bnh_symbols so the Slot Matrix has a clean bot-tracked list. This
+        # block instead surfaces EVERY instrument sitting in the demat account
+        # exactly as Zerodha's /oms/portfolio/holdings response has it — plain
+        # stocks, ETFs, Sovereign Gold/Silver Bonds, anything bought manually
+        # outside the bot — since that data is already being pulled for the
+        # filtered list above and was just being thrown away for everything
+        # not in active_etfs/bnh_symbols. LIQUIDCASE is skipped here too since
+        # it already has its own "Liquid Funds" card elsewhere on the page.
+        equity_holdings = []
+        equity_summary  = {}
+        if portfolio:
+            for h in (portfolio.holdings or []):
+                sym = h.get("tradingsymbol", "")
+                qty = int(h.get("quantity", 0)) + int(h.get("t1_quantity", 0))
+                if qty <= 0 or sym == LIQUIDCASE_SYMBOL:
+                    continue
+                avg = float(h.get("average_price", 0))
+                ltp = (realtime.get_ltp(sym) if realtime else None) or float(h.get("last_price", avg))
+                val = qty * ltp
+                invested = avg * qty
+
+                # Prefer Zerodha's own unrealised pnl field (matches Kite exactly)
+                _eq_pnl = h.get("pnl")
+                if _eq_pnl is not None:
+                    unrealised_pnl     = round(float(_eq_pnl), 2)
+                    unrealised_pnl_pct = round(unrealised_pnl / invested * 100, 2) if invested > 0 else 0.0
+                else:
+                    unrealised_pnl     = round((ltp - avg) * qty, 2) if avg > 0 else 0.0
+                    unrealised_pnl_pct = round((ltp - avg) / avg * 100, 2) if avg > 0 else 0.0
+
+                day_chg_abs = float(h.get("day_change", 0) or 0)
+                day_chg_pct = float(h.get("day_change_percentage", 0) or 0)
+
+                equity_holdings.append({
+                    "symbol":      sym,
+                    "exchange":    h.get("exchange", ""),
+                    "isin":        h.get("isin", ""),
+                    "quantity":    qty,
+                    "pledged":     int(h.get("collateral_quantity", 0) or 0),
+                    "avg":         round(avg, 2),
+                    "ltp":         round(ltp, 2),
+                    "invested":    round(invested, 2),
+                    "value":       round(val, 2),
+                    "pnl":         unrealised_pnl,
+                    "pnl_pct":     unrealised_pnl_pct,
+                    "day_pnl":     round(day_chg_abs * qty, 2),
+                    "day_pnl_pct": round(day_chg_pct, 2),
+                    # Flag so the frontend can badge symbols the bot is
+                    # actively managing (also shown in the Slot Matrix above)
+                    "tracked":     sym in active_etfs or sym in bnh_symbols,
+                })
+
+            equity_holdings.sort(key=lambda x: x["value"], reverse=True)
+            eq_invested = sum(x["invested"] for x in equity_holdings)
+            eq_cur_val  = sum(x["value"]    for x in equity_holdings)
+            eq_pnl      = round(eq_cur_val - eq_invested, 2)
+            eq_day_pnl  = sum(x["day_pnl"] for x in equity_holdings)
+            equity_summary = {
+                "total_invested": round(eq_invested, 2),
+                "total_cur_val":  round(eq_cur_val, 2),
+                "total_pnl":      eq_pnl,
+                "total_pnl_pct":  round(eq_pnl / eq_invested * 100, 2) if eq_invested else 0,
+                "day_pnl":        round(eq_day_pnl, 2),
+                "day_pnl_pct":    round(eq_day_pnl / eq_invested * 100, 2) if eq_invested else 0,
+                "count":          len(equity_holdings),
+            }
+
         # ── Williams %R + market data ─────────────────────────────────────────
         # FIX: include both active_etfs AND bnh_symbols in WR loop
         wr_data = []
@@ -702,6 +771,8 @@ def write_snapshot(dashboard_state: dict):
                 "bnh_held":    bnh_held,
             },
             "holdings":         holdings,
+            "equity_holdings":  equity_holdings,
+            "equity_summary":   equity_summary,
             "positions":        positions_data,
             "williams_r":       wr_data,
             "signals":          signals,
