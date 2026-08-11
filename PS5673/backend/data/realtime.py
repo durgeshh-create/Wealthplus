@@ -15,12 +15,18 @@ import os as _os
 _MAX_RECONNECT_ATTEMPTS = int(_os.environ.get("WS_MAX_RECONNECT", "0"))  # 0 = unlimited
 _LTP_STALE_AFTER_SEC = 45  # cached tick older than this is untrusted; falls through to REST quote
 
-# Circuit breaker for get_ltp()'s REST fallback — see _note_rest_failure().
-# Threshold of 5 chosen to tolerate a couple of one-off blips (a genuine
-# transient timeout on one symbol) without tripping, while still reacting
-# within seconds to a real systemic outage (all symbols failing back-to-back).
-_REST_BREAKER_THRESHOLD    = 5
-_REST_BREAKER_COOLDOWN_SEC = 30
+# Per-symbol circuit breaker for get_ltp()'s REST fallback — see
+# _note_rest_failure(). Threshold of 5 chosen to tolerate a couple of
+# one-off blips (a genuine transient timeout) without tripping, while
+# still reacting within seconds to a real per-symbol outage. Cooldown
+# starts at 30s and doubles on each repeated trip for the SAME symbol
+# (capped at 10 min) — a symbol that keeps failing is increasingly likely
+# to be permanently broken (e.g. a symbol variant Kite's quote endpoint
+# doesn't recognize) rather than transient, so retrying every 30s forever
+# isn't worth it.
+_REST_BREAKER_THRESHOLD        = 5
+_REST_BREAKER_COOLDOWN_SEC     = 30
+_REST_BREAKER_MAX_COOLDOWN_SEC = 600
 
 # ✅ FIX: Kite's REST quote endpoint reliably returns HTTP 400 for every
 # symbol outside market hours (confirmed via repeated real logs, both
@@ -104,9 +110,10 @@ class RealtimeDataManager:
         self._reconnect_attempts = 0
         self._reconnect_thread: Optional[threading.Thread] = None
         self._last_close_reason: str = ''
-        # Circuit breaker for get_ltp()'s REST fallback (see _note_rest_failure)
-        self._rest_fail_count = 0
-        self._rest_circuit_open_until: Optional[float] = None
+        # Per-symbol circuit breaker for get_ltp()'s REST fallback (see _note_rest_failure)
+        self._rest_fail_count: Dict[str, int] = {}
+        self._rest_circuit_open_until: Dict[str, float] = {}
+        self._rest_trip_count: Dict[str, int] = {}
     
     def initialize(self) -> bool:
         """Initialize WebSocket connection"""
@@ -702,22 +709,23 @@ class RealtimeDataManager:
         # WARNING with the actual status/body or exception, so the real
         # cause is visible in the dashboard's Logs tab next time, not just
         # "price unavailable" with no further information.
-        # ✅ CIRCUIT BREAKER: real incident — once Kite's quote endpoint
-        # started rejecting every symbol with HTTP 400 (this happened after
-        # market close, now separately gated in generate_signals(), but
-        # this endpoint could fail systemically for other reasons too —
-        # a genuine outage, network issue, etc.), the old code retried
-        # every symbol every ~10-12s cycle with zero backoff: hundreds of
-        # failed requests within about a minute, all logged, none of them
-        # useful. If several consecutive REST fallback calls fail (across
-        # ANY symbols — this is a shared, not per-symbol, counter, since a
-        # systemic failure hits everything at once), stop attempting REST
-        # calls entirely for a cooldown window and just return None
-        # immediately. This self-heals: the very next call after the
-        # cooldown expires tries again for real, and a single success
-        # resets the breaker.
+        # ✅ CIRCUIT BREAKER (per-symbol): real incident — a small number of
+        # symbols (e.g. EMBASSY-RR, and what appears to be a REIT/InvIT
+        # holding reported by Kite under a symbol variant like
+        # "INDIGRID-IV" that the quote endpoint doesn't recognize) can fail
+        # PERMANENTLY while every other symbol is fine. The old breaker was
+        # a single shared counter/cooldown across ALL symbols — a handful
+        # of permanently-broken symbols kept tripping it every cycle,
+        # which blocked REST quote calls for every OTHER, perfectly
+        # healthy symbol too. Tracking failures per-symbol means a bad
+        # symbol only ever blocks itself. A genuine systemic outage (every
+        # symbol failing at once) still gets throttled just as
+        # effectively — each symbol independently trips its own breaker
+        # within a few failures, so the aggregate request volume during a
+        # real outage is no worse than before.
         with self._lock:
-            if self._rest_circuit_open_until and time.time() < self._rest_circuit_open_until:
+            open_until = self._rest_circuit_open_until.get(symbol)
+            if open_until and time.time() < open_until:
                 return None
 
         try:
@@ -747,7 +755,9 @@ class RealtimeDataManager:
                             prev = qd.get('ohlc', {})
                             if prev.get('close'):
                                 self.live_data[symbol]['close'] = float(prev['close'])
-                        self._rest_fail_count = 0  # reset breaker on any success
+                        self._rest_fail_count.pop(symbol, None)
+                        self._rest_circuit_open_until.pop(symbol, None)
+                        self._rest_trip_count.pop(symbol, None)
                     return ltp
                 (logger.warning if _is_market_hours() else logger.debug)(
                     f"REST LTP fallback for {symbol} ({instrument_key}): "
@@ -758,30 +768,43 @@ class RealtimeDataManager:
                     f"REST LTP fallback for {symbol} ({instrument_key}): "
                     f"HTTP {resp.status_code} — {resp.text[:200]}"
                 )
-                self._note_rest_failure()
+                self._note_rest_failure(symbol)
         except Exception as e:
             (logger.warning if _is_market_hours() else logger.debug)(
                 f"REST LTP fallback for {symbol}: {type(e).__name__}: {e}"
             )
-            self._note_rest_failure()
+            self._note_rest_failure(symbol)
 
         return None
 
-    def _note_rest_failure(self):
-        """Shared circuit-breaker bookkeeping for get_ltp()'s REST fallback.
-        After _REST_BREAKER_THRESHOLD consecutive failures (across any
-        symbols), stop attempting REST calls for _REST_BREAKER_COOLDOWN_SEC
-        so a systemic outage doesn't turn into an unthrottled retry storm."""
+    def _note_rest_failure(self, symbol: str):
+        """Per-symbol circuit-breaker bookkeeping for get_ltp()'s REST
+        fallback. After _REST_BREAKER_THRESHOLD consecutive failures for
+        THIS symbol, stop attempting REST calls for it for a cooldown —
+        so a permanently-broken symbol (e.g. a REIT/InvIT holding Kite
+        reports under a symbol variant its own quote endpoint doesn't
+        recognize) can't turn into an unthrottled retry storm, and can't
+        block price lookups for any OTHER symbol either, since this state
+        is tracked per-symbol, not shared.
+        Cooldown escalates (doubles) on each repeated trip for the same
+        symbol, capped at _REST_BREAKER_MAX_COOLDOWN_SEC — a symbol that
+        keeps failing over and over is increasingly likely to be
+        permanently broken (an external data issue) rather than a
+        transient blip, so it's not worth retrying every 30s forever."""
         with self._lock:
-            self._rest_fail_count += 1
-            if self._rest_fail_count >= _REST_BREAKER_THRESHOLD and not (
-                self._rest_circuit_open_until and time.time() < self._rest_circuit_open_until
-            ):
-                self._rest_circuit_open_until = time.time() + _REST_BREAKER_COOLDOWN_SEC
+            self._rest_fail_count[symbol] = self._rest_fail_count.get(symbol, 0) + 1
+            open_until = self._rest_circuit_open_until.get(symbol)
+            already_open = open_until and time.time() < open_until
+            if self._rest_fail_count[symbol] >= _REST_BREAKER_THRESHOLD and not already_open:
+                trip_n = self._rest_trip_count.get(symbol, 0)
+                cooldown = min(_REST_BREAKER_COOLDOWN_SEC * (2 ** trip_n), _REST_BREAKER_MAX_COOLDOWN_SEC)
+                self._rest_circuit_open_until[symbol] = time.time() + cooldown
+                self._rest_trip_count[symbol] = trip_n + 1
+                self._rest_fail_count[symbol] = 0
                 (logger.warning if _is_market_hours() else logger.debug)(
-                    f"🔌 REST LTP fallback circuit breaker OPEN — "
-                    f"{self._rest_fail_count} consecutive failures, "
-                    f"pausing REST quote calls for {_REST_BREAKER_COOLDOWN_SEC}s"
+                    f"🔌 REST LTP fallback circuit breaker OPEN for {symbol} — "
+                    f"pausing REST quote calls for this symbol for {cooldown:.0f}s "
+                    f"(trip #{trip_n + 1} for this symbol)"
                 )
 
     def get_depth(self, symbol: str) -> Optional[Dict]:
