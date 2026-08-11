@@ -349,6 +349,9 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
 .mw-live .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:3px;vertical-align:middle}
 .mw-live.on .dot{animation:mw-pulse 1.6s ease-in-out infinite}
 @keyframes mw-pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.mw-sortable{cursor:pointer;user-select:none}
+.mw-sortable:hover{color:var(--text)}
+.mw-sort-arrow{display:inline-block;margin-left:2px;color:var(--accent);font-size:8px}
 /* ── Scanner + Marketwatch side-by-side layout ── */
 .scn-layout{display:flex;gap:16px;align-items:flex-start}
 .scn-layout-main{flex:1 1 0;min-width:0}
@@ -624,24 +627,6 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
         <th style="text-align:right;padding-right:14px;width:22%"><span class="hide-mobile">vs </span>20DMA</th>
       </tr></thead>
       <tbody id="wr-tbl-body"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
-    </table>
-    </div>
-  </div>
-
-  <!-- Equity Holdings (all Kite holdings — stocks, ETFs, bonds etc) -->
-  <div class="panel" style="margin-bottom:14px" id="eq-panel">
-    <div class="ph" style="flex-wrap:wrap;gap:8px">
-      <span class="pt">Equity Holdings</span>
-      <div id="eq-summary-chips" style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted2)"></div>
-    </div>
-    <div class="tbl-wrap">
-    <table class="tbl" id="eq-tbl" style="width:100%">
-      <thead><tr>
-        <th style="text-align:left;padding-left:14px">Instrument</th>
-        <th style="text-align:right;padding-right:14px">Cur. Val</th>
-        <th style="text-align:right;padding-right:14px">P&amp;L</th>
-      </tr></thead>
-      <tbody id="eq-tbl-body"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
     </table>
     </div>
   </div>
@@ -3282,55 +3267,14 @@ function render(data) {
   })();
 
 
-  // fmtRupee: full Indian-locale value for title tooltips (no "₹₹" — fmtL already adds ₹)
-  const fmtRupee = v => '₹' + Number(v ?? 0).toLocaleString('en-IN', {maximumFractionDigits: 2});
-
-  // ── Equity Holdings — ALL Kite holdings (stocks, ETFs, bonds etc), not
-  // just the bot-tracked active_etfs/bnh_symbols shown in the Slot Matrix ──
-  const eqHoldings = data.equity_holdings ?? [];
-  const eqSummary  = data.equity_summary  ?? {};
-  const eqPanel    = document.getElementById("eq-panel");
-  const eqBody     = document.getElementById("eq-tbl-body");
-  const eqChips    = document.getElementById("eq-summary-chips");
-  if (eqPanel) eqPanel.style.display = ""; // always visible — shows placeholder when empty
-  if (eqChips && eqSummary.total_invested) {
-    const etpnl = eqSummary.total_pnl ?? 0;
-    const etpct = eqSummary.total_pnl_pct ?? 0;
-    const edpnl = eqSummary.day_pnl ?? 0;
-    eqChips.innerHTML =
-      `<span>${eqSummary.count ?? eqHoldings.length} holdings</span>` +
-      `<span>Invested <strong style="color:var(--text)" title="${fmtRupee(eqSummary.total_invested)}">${fmtL(eqSummary.total_invested)}</strong></span>` +
-      `<span>Current <strong style="color:var(--text)" title="${fmtRupee(eqSummary.total_cur_val)}">${fmtL(eqSummary.total_cur_val)}</strong></span>` +
-      `<span>Today <strong class="${edpnl>=0?'pos':'neg'}" title="${fmtRupee(edpnl)}">${edpnl>=0?'+':''}${fmtL(edpnl)}</strong></span>` +
-      `<span>Total P&L <strong class="${etpnl>=0?'pos':'neg'}" title="${fmtRupee(etpnl)}">${etpnl>=0?'+':''}${fmtL(etpnl)}</strong> ` +
-        `<span class="badge" style="background:${etpnl>=0?'var(--green-d)':'var(--red-d)'};color:${etpnl>=0?'var(--green)':'var(--red)'}">${etpct>=0?'+':''}${etpct.toFixed(2)}%</span></span>`;
-  }
-  if (eqBody) {
-    eqBody.innerHTML = eqHoldings.length ? eqHoldings.map(h => {
-      const pc = (h.pnl ?? 0) >= 0 ? "pos" : "neg";
-      const dpc = (h.day_pnl ?? 0) >= 0 ? "pos" : "neg";
-      const trackedTag = h.tracked ? `<span class="tag tag-a" style="margin-left:4px" title="Managed by the bot — also in Slot Matrix">BOT</span>` : "";
-      const exTag = h.exchange ? `<span style="font-size:9px;color:var(--muted)">${h.exchange}</span>` : "";
-      return `<tr>
-        <td style="padding-left:14px">
-          <div class="sym" style="font-size:12px;white-space:normal;max-width:none">${h.symbol}${trackedTag}</div>
-          <div style="font-size:10px;color:var(--muted)">${h.quantity} qty @ ₹${h.avg} &nbsp;${exTag}${h.pledged > 0 ? ` &nbsp;<span title="Pledged as collateral">(P: ${h.pledged})</span>` : ''}</div>
-        </td>
-        <td style="text-align:right;padding-right:14px;font-size:12px" title="${fmtRupee(h.value)}">
-          ${fmtL(h.value)}
-          <div class="${dpc}" style="font-size:10px">${(h.day_pnl??0)>=0?'+':''}${fmtL(h.day_pnl)} today</div>
-        </td>
-        <td style="text-align:right;padding-right:14px;font-size:12px" class="${pc}" title="${fmtRupee(h.pnl)}">${h.pnl>=0?'+':''}${fmtL(h.pnl)}<div style="font-size:10px">${(h.pnl_pct??0)>=0?'+':''}${(h.pnl_pct??0).toFixed(2)}%</div></td>
-      </tr>`;
-    }).join("") : `<tr><td colspan="3" class="empty" style="padding:18px">Equity holdings not yet available — will populate on next bot snapshot</td></tr>`;
-  }
-
   // ── Mutual Fund Holdings ─────────────────────────────────────────────────
   const mfHoldings = data.mf_holdings ?? [];
   const mfSummary  = data.mf_summary  ?? {};
   const mfPanel    = document.getElementById("mf-panel");
   const mfBody     = document.getElementById("mf-tbl-body");
   const mfChips    = document.getElementById("mf-summary-chips");
+  // fmtRupee: full Indian-locale value for title tooltips (no "₹₹" — fmtL already adds ₹)
+  const fmtRupee = v => '₹' + Number(v ?? 0).toLocaleString('en-IN', {maximumFractionDigits: 2});
   if (mfPanel) mfPanel.style.display = ""; // always visible — shows placeholder when empty
   if (mfChips && mfSummary.total_invested) {
     const tpnl = mfSummary.total_pnl ?? 0;
@@ -4074,6 +4018,35 @@ function clearMW() {
 let _mwDataCache = {};   // sym -> scanned row {sym, ltp, dwr, wwr, dma20, below20, ...}
 let _mwDataLoading = new Set();
 
+let _mwSortKey = null;   // active sort column key, or null = insertion order
+let _mwSortDir = 1;      // 1 = ascending, -1 = descending
+
+// % change vs previous close — computed from whatever ltp is currently
+// showing (EOD close or a live-overlaid quote), so it never goes stale
+// relative to a live LTP the way a value baked in at scan-time would.
+function _mwChangePct(r) {
+  if (!r || r.ltp == null || r.prevClose == null || r.prevClose === 0) return null;
+  return (r.ltp - r.prevClose) / r.prevClose * 100;
+}
+
+function sortMW(key) {
+  if (_mwSortKey === key) {
+    _mwSortDir = -_mwSortDir;
+  } else {
+    _mwSortKey = key;
+    // Symbol defaults to A→Z; every numeric column defaults to
+    // highest-first, since that's usually the more useful first look
+    // (biggest movers, deepest oversold, largest values).
+    _mwSortDir = key === 'sym' ? 1 : -1;
+  }
+  renderMWPanel();
+}
+
+function _mwSortIndicator(key) {
+  if (_mwSortKey !== key) return '';
+  return _mwSortDir === 1 ? ' ▲' : ' ▼';
+}
+
 function renderMWPanel() {
   const chips   = document.getElementById('mw-chips');
   const tblWrap = document.getElementById('mw-tbl-wrap');
@@ -4100,27 +4073,69 @@ function renderMWPanel() {
   chips.style.display = 'none';
   tblWrap.style.display = 'block';
 
-  tbody.innerHTML = _marketwatch.map(sym => {
+  // Update sort-arrow indicators on every header (only the active sort
+  // column shows one; the rest get cleared).
+  ['sym','ltp','chg','dwr','wwr','dmaPct','atv'].forEach(k => {
+    const el = document.getElementById('mw-sort-arrow-' + k);
+    if (el) el.textContent = _mwSortIndicator(k);
+  });
+
+  // Build full row data first (not just HTML strings) so it can be sorted
+  // by any column before rendering — sort state persists across re-renders
+  // (including background data refreshes) via the module-level _mwSortKey.
+  const rows = _marketwatch.map(sym => {
     const r = bySym[sym] || _mwDataCache[sym];
     const loading = _mwDataLoading.has(sym);
+    const chg = _mwChangePct(r);
+    const dmaPct = (r && r.dma20 != null && r.ltp != null) ? ((r.ltp - r.dma20) / r.dma20 * 100) : null;
+    return {
+      sym, r, loading, chg, dmaPct,
+      ltp: r && r.ltp != null ? r.ltp : null,
+      dwr: r && r.dwr != null ? r.dwr : null,
+      wwr: r && r.wwr != null ? r.wwr : null,
+      atv: r && r.avgTradeValue != null ? r.avgTradeValue : null,
+    };
+  });
+
+  if (_mwSortKey) {
+    const dir = _mwSortDir;
+    rows.sort((a, b) => {
+      if (_mwSortKey === 'sym') return dir * a.sym.localeCompare(b.sym);
+      const av = a[_mwSortKey], bv = b[_mwSortKey];
+      // Nulls/missing data always sort to the bottom regardless of
+      // direction — an unknown value isn't meaningfully "highest" or
+      // "lowest", and burying it at the top on a descending sort would
+      // be confusing (looks like it's the biggest mover when it's really
+      // just missing data).
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      return dir * (av - bv);
+    });
+  }
+
+  tbody.innerHTML = rows.map(({sym, r, loading, chg, dmaPct, atv}) => {
     const ltp = r && r.ltp != null ? '₹' + r.ltp.toFixed(2) : (loading ? '…' : '—');
     const dwr = r && r.dwr != null ? r.dwr.toFixed(1) : (loading ? '…' : '—');
     const wwr = r && r.wwr != null ? r.wwr.toFixed(1) : (loading ? '…' : '—');
     const dCls = r && r.dwr != null && r.dwr <= -80 ? 'wr-os' : r && r.dwr != null && r.dwr <= -50 ? 'wr-warn' : 'wr-ok';
     const wCls = r && r.wwr != null && r.wwr <= -80 ? 'wr-os' : r && r.wwr != null && r.wwr <= -50 ? 'wr-warn' : 'wr-ok';
+    const chgHtml = chg != null
+      ? `<span class="${chg >= 0 ? 'dma-above' : 'dma-below'}">${(chg >= 0 ? '+' : '') + chg.toFixed(2)}%</span>`
+      : (loading ? '…' : '—');
     let dmaHtml = loading ? '…' : '—';
     if (r && r.dma20 != null && r.ltp != null) {
-      const pct = ((r.ltp - r.dma20) / r.dma20 * 100);
-      dmaHtml = `<span class="${r.below20 ? 'dma-below' : 'dma-above'}">${(pct >= 0 ? '+' : '') + pct.toFixed(2)}%</span>`;
+      dmaHtml = `<span class="${r.below20 ? 'dma-below' : 'dma-above'}">${(dmaPct >= 0 ? '+' : '') + dmaPct.toFixed(2)}%</span>`;
     } else if (r && !loading) {
       dmaHtml = '<span title="No CSV data found for this symbol in the repo">n/a</span>';
     }
-    const atvHtml = r && r.avgTradeValue != null
-      ? `<span title="Avg monthly volume ${Math.round(r.avgVol).toLocaleString('en-IN')} × LTP">${_fmtINRCompact(r.avgTradeValue)}</span>`
+    const atvHtml = atv != null
+      ? `<span title="Avg monthly volume ${Math.round(r.avgVol).toLocaleString('en-IN')} × LTP">${_fmtINRCompact(atv)}</span>`
       : (loading ? '…' : '—');
     return `<tr>
       <td style="font-weight:600">${sym}</td>
       <td>${ltp}</td>
+      <td>${chgHtml}</td>
       <td class="wr-val ${dCls}">${dwr}</td>
       <td class="wr-val ${wCls}">${wwr}</td>
       <td>${dmaHtml}</td>
@@ -4635,6 +4650,7 @@ async function _scanOne(sym, dailyT, weeklyT) {
   const daily = await _fetchCSV(`${getRepoRaw()}/daily/${sym}.csv`);
   if (!daily || daily.length < 20) return null;
   const ltp   = daily[daily.length-1].close;
+  const prevClose = daily.length >= 2 ? daily[daily.length-2].close : null;
   const dwr   = _calcWR(daily, 14);
   const dma20 = _calcDMA20(daily);
   const wkly  = _toWeekly(daily);
@@ -4643,7 +4659,7 @@ async function _scanOne(sym, dailyT, weeklyT) {
   const wOk   = wwr  != null && wwr  <= weeklyT;
   const avgVol   = _calcAvgVolume(daily, 21);
   const avgTradeValue = (avgVol != null && ltp != null) ? avgVol * ltp : null;
-  return { sym, ltp, dwr, wwr, dma20, below20: dma20!=null && ltp<dma20, dOk, wOk, bothOk:dOk&&wOk, avgVol, avgTradeValue };
+  return { sym, ltp, prevClose, dwr, wwr, dma20, below20: dma20!=null && ltp<dma20, dOk, wOk, bothOk:dOk&&wOk, avgVol, avgTradeValue };
 }
 
 async function runScanner() {
@@ -5194,22 +5210,24 @@ function _stopLogsAutoRefresh() {
         <div class="mw-tbl-wrap" id="mw-tbl-wrap" style="display:none">
           <table class="mw-tbl" id="mw-tbl">
             <colgroup>
-              <col style="width:22%">
-              <col style="width:16%">
-              <col style="width:15%">
-              <col style="width:15%">
-              <col style="width:11%">
-              <col style="width:16%">
+              <col style="width:19%">
+              <col style="width:13%">
+              <col style="width:10%">
+              <col style="width:13%">
+              <col style="width:13%">
+              <col style="width:10%">
+              <col style="width:17%">
               <col style="width:5%">
             </colgroup>
             <thead>
               <tr>
-                <th>Symbol</th>
-                <th>LTP ₹</th>
-                <th>Daily<br>W%R</th>
-                <th>Weekly<br>W%R</th>
-                <th>vs 20<br>DMA</th>
-                <th title="Average monthly volume (past ~21 trading days) × LTP">Avg Trade<br>Value</th>
+                <th class="mw-sortable" onclick="sortMW('sym')">Symbol<span class="mw-sort-arrow" id="mw-sort-arrow-sym"></span></th>
+                <th class="mw-sortable" onclick="sortMW('ltp')">LTP ₹<span class="mw-sort-arrow" id="mw-sort-arrow-ltp"></span></th>
+                <th class="mw-sortable" onclick="sortMW('chg')">% Chg<span class="mw-sort-arrow" id="mw-sort-arrow-chg"></span></th>
+                <th class="mw-sortable" onclick="sortMW('dwr')">Daily<br>W%R<span class="mw-sort-arrow" id="mw-sort-arrow-dwr"></span></th>
+                <th class="mw-sortable" onclick="sortMW('wwr')">Weekly<br>W%R<span class="mw-sort-arrow" id="mw-sort-arrow-wwr"></span></th>
+                <th class="mw-sortable" onclick="sortMW('dmaPct')">vs 20<br>DMA<span class="mw-sort-arrow" id="mw-sort-arrow-dmaPct"></span></th>
+                <th class="mw-sortable" onclick="sortMW('atv')" title="Average monthly volume (past ~21 trading days) × LTP">Avg Trade<br>Value<span class="mw-sort-arrow" id="mw-sort-arrow-atv"></span></th>
                 <th></th>
               </tr>
             </thead>
