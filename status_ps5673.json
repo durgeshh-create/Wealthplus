@@ -1,15 +1,15 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-08-11 12:37:59 IST",
+  "timestamp": "2026-08-11 12:39:01 IST",
   "bot_running": true,
-  "total_value": 5600384.01,
-  "today_pnl": 646.15,
+  "total_value": 5600023.02,
+  "today_pnl": 718.95,
   "today_pnl_pct": 0.01,
   "liquidcase": {
     "quantity": 43379,
     "free_quantity": 0,
-    "price": 115.41,
-    "value": 5006370.39,
+    "price": 115.4,
+    "value": 5005936.6,
     "pct": 89.39
   },
   "slots": {
@@ -35,12 +35,12 @@
       "symbol": "BANKBEES",
       "quantity": 260,
       "avg": 586.87,
-      "ltp": 593.91,
-      "value": 154416.6,
-      "pnl": -743.6,
-      "pnl_pct": -0.48,
-      "unrealised_pnl": 1831.22,
-      "unrealised_pnl_pct": 1.2,
+      "ltp": 594.19,
+      "value": 154489.4,
+      "pnl": -670.8,
+      "pnl_pct": -0.43,
+      "unrealised_pnl": 1901.42,
+      "unrealised_pnl_pct": 1.25,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 6
@@ -114,9 +114,9 @@
       "quantity": 1464,
       "pledged": 0,
       "avg": 224.97,
-      "ltp": 221.5,
+      "ltp": 221.45,
       "invested": 329358.95,
-      "value": 324276.0,
+      "value": 324202.8,
       "pnl": -5082.95,
       "pnl_pct": -1.54,
       "day_pnl": 1522.56,
@@ -130,13 +130,13 @@
       "quantity": 260,
       "pledged": 0,
       "avg": 586.87,
-      "ltp": 593.91,
+      "ltp": 594.19,
       "invested": 152585.38,
-      "value": 154416.6,
-      "pnl": 1831.22,
-      "pnl_pct": 1.2,
-      "day_pnl": -743.6,
-      "day_pnl_pct": -0.48,
+      "value": 154489.4,
+      "pnl": 1901.42,
+      "pnl_pct": 1.25,
+      "day_pnl": -673.4,
+      "day_pnl_pct": -0.43,
       "tracked": true
     },
     {
@@ -174,10 +174,10 @@
   ],
   "equity_summary": {
     "total_invested": 2998854.08,
-    "total_cur_val": 3012320.17,
-    "total_pnl": 13466.09,
+    "total_cur_val": 3012319.77,
+    "total_pnl": 13465.69,
     "total_pnl_pct": 0.45,
-    "day_pnl": -3611.06,
+    "day_pnl": -3540.86,
     "day_pnl_pct": -0.12,
     "count": 6
   },
@@ -258,27 +258,27 @@
   "williams_r": [
     {
       "symbol": "SILVERBEES",
-      "ltp": 221.5,
-      "change_pct": 0.47,
-      "williams_r": -19.77,
+      "ltp": 221.45,
+      "change_pct": 0.45,
+      "williams_r": -20.01,
       "is_held": true,
       "avg_price": 224.97,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 807.56,
-      "change_pct": -0.18,
-      "williams_r": -20.34,
+      "ltp": 807.77,
+      "change_pct": -0.15,
+      "williams_r": -19.93,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 593.91,
-      "change_pct": -0.48,
-      "williams_r": -36.22,
+      "ltp": 594.19,
+      "change_pct": -0.43,
+      "williams_r": -34.83,
       "is_held": true,
       "avg_price": 586.87,
       "strategy": "active"
@@ -294,9 +294,9 @@
     },
     {
       "symbol": "NIFTYBEES",
-      "ltp": 278.8,
-      "change_pct": -0.59,
-      "williams_r": -37.16,
+      "ltp": 278.78,
+      "change_pct": -0.6,
+      "williams_r": -37.29,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -312,9 +312,9 @@
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 242.24,
+      "ltp": 242.25,
       "change_pct": -0.25,
-      "williams_r": -21.43,
+      "williams_r": -21.35,
       "is_held": false,
       "avg_price": null,
       "strategy": "bnh"
@@ -345,19 +345,19 @@
   ],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24443.75,
+      "ltp": 24441.1,
       "prev_close": 24583.8,
-      "change": -140.05,
-      "change_pct": -0.57,
+      "change": -142.7,
+      "change_pct": -0.58,
       "open": 24575.1,
       "high": 24576.85,
       "low": 24429.25
     },
     "INDIA VIX": {
-      "ltp": 12.25,
+      "ltp": 12.24,
       "prev_close": 12.25,
-      "change": 0.0,
-      "change_pct": 0.0,
+      "change": -0.01,
+      "change_pct": -0.08,
       "open": 12.25,
       "high": 12.46,
       "low": 11.19
