@@ -134,7 +134,7 @@ def write_snapshot(dashboard_state: dict):
         settings    = _load_settings()
         active_etfs = settings.get("active_etfs", [
             "GOLDBEES", "SILVERBEES", "JUNIORBEES",
-            "MINDSPACE-RR", "EMBASSY-RR", "BANKBEES",
+            "MINDSPACE-RR", "BANKBEES",
         ])
         bnh_symbols    = settings.get("bnh_symbols", ["MID150BEES"])
         profit_target  = float(settings.get("profit_target_pct", 3))
