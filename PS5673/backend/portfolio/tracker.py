@@ -4,18 +4,13 @@ Manages portfolio state by syncing with Zerodha
 Source of truth: Zerodha Holdings and Positions
 """
 from typing import Dict, List, Optional
-from datetime import datetime, timezone, timedelta, time as dtime
+from datetime import datetime
 
 from backend.core.config import Config
 from backend.core.constants import LIQUIDCASE_SYMBOL
 from backend.utils.logger import get_logger
 
 logger = get_logger(__name__)
-
-_IST = timezone(timedelta(hours=5, minutes=30))
-# Allow sync from 9:00 (15 min before market open for warm-up) to 15:35
-_SYNC_START = dtime(9, 0)
-_SYNC_END   = dtime(15, 35)
 
 
 class PortfolioTracker:
@@ -30,13 +25,18 @@ class PortfolioTracker:
         self.liquidcase_value = 0.0
         self.available_slots = Config.SLOTS_COUNT
         self.locked_symbols: set = set()
-        # ✅ FIX: the snapshot writer runs on its own timer and just reads
-        # whatever is in self.positions/self.holdings — it never itself
-        # triggers a fresh Kite fetch. If sync() stops succeeding, the
-        # snapshot writer keeps stamping a fresh "timestamp" every cycle
-        # regardless, wrapped around silently frozen data. Tracking the
-        # real last-successful-sync time here lets the snapshot carry a
-        # separate, honest "data last confirmed fresh" timestamp.
+        # ✅ FIX: the snapshot writer (backend/utils/snapshot.py) runs on its
+        # own independent timer and just reads whatever is currently in
+        # self.positions/self.holdings — it never itself triggers a fresh
+        # Kite fetch. If sync() below stops succeeding (e.g. the main
+        # trading loop that normally calls it dies or stalls), the snapshot
+        # writer keeps stamping a fresh "timestamp" every cycle regardless,
+        # wrapped around silently frozen position/holdings data — the
+        # dashboard then shows "Live ✓" with data that's actually hours old.
+        # Tracking the real last-successful-sync time here lets the
+        # snapshot carry a SEPARATE, honest "data last confirmed fresh"
+        # timestamp the frontend can check, instead of only trusting
+        # "when did the snapshot file get written."
         self.last_synced_at: Optional[datetime] = None
         self.last_sync_error: Optional[str] = None
     
@@ -215,7 +215,7 @@ class PortfolioTracker:
         
         # Get active ETFs from settings.json
         settings_path = Path(__file__).parent.parent.parent / 'config' / 'settings.json'
-        active_etfs = ['MID150BEES', 'MON100', 'GOLDBEES', 'SILVERBEES', 'MINDSPACE-RR', 'EMBASSY-RR']  # Default
+        active_etfs = ['MID150BEES', 'MON100', 'GOLDBEES', 'SILVERBEES', 'MINDSPACE-RR']  # Default
         
         if settings_path.exists():
             try:
@@ -259,7 +259,7 @@ class PortfolioTracker:
         
         # Get active ETFs count
         settings_path = Path(__file__).parent.parent.parent / 'config' / 'settings.json'
-        active_etfs = ['MID150BEES', 'MON100', 'GOLDBEES', 'SILVERBEES', 'MINDSPACE-RR', 'EMBASSY-RR']
+        active_etfs = ['MID150BEES', 'MON100', 'GOLDBEES', 'SILVERBEES', 'MINDSPACE-RR']
         if settings_path.exists():
             try:
                 with open(settings_path, 'r') as f:
@@ -414,6 +414,7 @@ class PortfolioTracker:
           (NOT 500 + (-513) = -13, because holdings already reflects the sale)
         """
         qty_from_holdings = 0
+        free_qty_holdings = 0   # unpledged qty from holdings
         qty_from_positions = 0
         
         # Check holdings (current quantity, updates intraday)
