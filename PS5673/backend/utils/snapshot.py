@@ -150,7 +150,17 @@ def write_snapshot(dashboard_state: dict):
         if portfolio:
             for h in (portfolio.holdings or []):
                 sym = h.get("tradingsymbol", "")
-                qty = int(h.get("quantity", 0)) + int(h.get("t1_quantity", 0))
+                # ✅ FIX: was `quantity + t1_quantity` only. Kite's `quantity`
+                # field on /oms/portfolio/holdings reports just the UNPLEDGED
+                # portion — any shares pledged as margin collateral sit
+                # separately in `collateral_quantity` (see the LIQUIDCASE
+                # handling in tracker.py, which already accounts for this:
+                # "free_qty + pledged_qty + t1_qty"). A fully-pledged holding
+                # therefore computed qty=0 here and got silently dropped by
+                # the check below — a real demat position just vanishing
+                # from the dashboard with no error.
+                qty = (int(h.get("quantity", 0)) + int(h.get("t1_quantity", 0))
+                       + int(h.get("collateral_quantity", 0)))
                 if qty <= 0 or sym == LIQUIDCASE_SYMBOL:
                     continue
                 if sym not in active_etfs and sym not in bnh_symbols:
@@ -237,23 +247,31 @@ def write_snapshot(dashboard_state: dict):
         else:
             liq_qty = liq_price = liq_val = 0
 
-        # ── Equity Holdings (ALL Kite holdings) ─────────────────────────────────
+        # ── Equity Holdings (ALL Kite holdings, including LIQUIDCASE) ────────────
         # `holdings` above is deliberately filtered down to only active_etfs /
         # bnh_symbols so the Slot Matrix has a clean bot-tracked list. This
         # block instead surfaces EVERY instrument sitting in the demat account
         # exactly as Zerodha's /oms/portfolio/holdings response has it — plain
         # stocks, ETFs, Sovereign Gold/Silver Bonds, anything bought manually
-        # outside the bot — since that data is already being pulled for the
-        # filtered list above and was just being thrown away for everything
-        # not in active_etfs/bnh_symbols. LIQUIDCASE is skipped here too since
-        # it already has its own "Liquid Funds" card elsewhere on the page.
+        # outside the bot, and LIQUIDCASE too (it always has an instrument
+        # token via symbols_to_track in realtime.py, so get_ltp() for it is
+        # reliable here same as any other row).
         equity_holdings = []
         equity_summary  = {}
         if portfolio:
             for h in (portfolio.holdings or []):
                 sym = h.get("tradingsymbol", "")
-                qty = int(h.get("quantity", 0)) + int(h.get("t1_quantity", 0))
-                if qty <= 0 or sym == LIQUIDCASE_SYMBOL:
+                # ✅ FIX: same pledged-quantity gap as the primary holdings
+                # loop above — `quantity` alone excludes anything pledged as
+                # margin collateral, so a fully-pledged position (e.g. an
+                # ETF pledged for margin) computed qty=0 and was silently
+                # dropped from "All Holdings" even though it's a real demat
+                # position. Include collateral_quantity in the total; the
+                # already-separate "pledged" field below still shows how
+                # much of that total is pledged vs free.
+                qty = (int(h.get("quantity", 0)) + int(h.get("t1_quantity", 0))
+                       + int(h.get("collateral_quantity", 0)))
+                if qty <= 0:
                     continue
                 avg = float(h.get("average_price", 0))
                 ltp = (realtime.get_ltp(sym) if realtime else None) or float(h.get("last_price", avg))
