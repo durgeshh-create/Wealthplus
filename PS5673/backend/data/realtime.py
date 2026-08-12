@@ -114,6 +114,7 @@ class RealtimeDataManager:
         self._rest_fail_count: Dict[str, int] = {}
         self._rest_circuit_open_until: Dict[str, float] = {}
         self._rest_trip_count: Dict[str, int] = {}
+        self._token_revalidation_stop = threading.Event()
     
     def initialize(self) -> bool:
         """Initialize WebSocket connection"""
@@ -301,6 +302,7 @@ class RealtimeDataManager:
             
             if self.is_connected:
                 logger.info("✓ WebSocket connected and subscribed")
+                self.start_token_revalidation()
                 return True
             else:
                 logger.error("WebSocket connection timeout")
@@ -312,12 +314,141 @@ class RealtimeDataManager:
     
     def stop(self):
         """Stop WebSocket connection"""
+        self._token_revalidation_stop.set()
         if self.kws:
             try:
                 self.kws.close()
                 logger.info("WebSocket connection closed")
             except Exception as e:
                 logger.error(f"Error closing WebSocket: {e}")
+
+    def start_token_revalidation(self):
+        """
+        Start a daemon thread that re-checks every tracked symbol's
+        instrument_token against a fresh instruments dump once a day
+        (shortly before market open) for as long as this process runs.
+
+        Why this exists: _fetch_instrument_tokens() already re-resolves
+        tokens from scratch on every process restart, but on a
+        long-running deploy that never restarts, a token that changes
+        server-side (NSE occasionally re-lists an instrument, e.g. after a
+        corporate action) would otherwise go undetected until the next
+        restart — and until then, get_ltp()'s REST fallback would keep
+        querying a token that no longer resolves to the intended symbol,
+        the same class of "permanently failing, never self-heals" problem
+        the -RR/-IV REST fallback fix addressed. This closes that gap
+        without requiring a restart.
+        """
+        self._token_revalidation_stop = threading.Event()
+        t = threading.Thread(target=self._token_revalidation_loop, daemon=True)
+        t.start()
+
+    def _token_revalidation_loop(self):
+        _CHECK_INTERVAL_SEC = 3600  # poll hourly, only *act* once per day
+        last_run_date = None
+        while not self._token_revalidation_stop.is_set():
+            try:
+                now_ist = datetime.now(_IST)
+                # Run once per calendar day, ~30min before typical market open,
+                # so any token fix lands before it would otherwise matter.
+                target_time = _dtime(Config.MARKET_OPEN_HOUR, max(Config.MARKET_OPEN_MINUTE - 30, 0))
+                if now_ist.date() != last_run_date and now_ist.time() >= target_time:
+                    self._revalidate_instrument_tokens()
+                    last_run_date = now_ist.date()
+            except Exception as e:
+                logger.error(f"Token revalidation loop error: {e}")
+            self._token_revalidation_stop.wait(_CHECK_INTERVAL_SEC)
+
+    def _revalidate_instrument_tokens(self):
+        """
+        Re-resolve every currently tracked symbol's instrument_token
+        against a fresh instruments dump. Logs and self-heals any drift:
+        updates instrument_tokens/live_data, re-subscribes the new token
+        (and unsubscribes the old one) on the live WebSocket if connected,
+        and rewrites the token cache file.
+        """
+        import requests as _req
+        logger.info("🔄 Daily instrument token revalidation starting...")
+
+        df_all = None
+        for url, use_auth in [
+            ("https://api.kite.trade/instruments", False),
+            (f"{Config.ZERODHA_API_BASE}/oms/instruments/NSE", True),
+        ]:
+            try:
+                session = self.auth.session if use_auth else _req.Session()
+                if not use_auth:
+                    session.headers.update({'Accept': 'text/csv,*/*'})
+                resp = session.get(url, timeout=12)
+                if resp.status_code == 200 and resp.text.strip():
+                    df_all = pd.read_csv(StringIO(resp.text), low_memory=False)
+                    break
+            except Exception as e:
+                logger.debug(f"Token revalidation fetch {url}: {e}")
+
+        if df_all is None:
+            logger.warning("Token revalidation: could not fetch instruments dump — skipping this cycle")
+            return
+
+        SEGMENT_PRIORITY = ['NSE-EQ', 'NSE', 'NSE-INDICES', 'BSE-EQ', 'BSE']
+
+        def _find(symbol):
+            for seg in SEGMENT_PRIORITY:
+                m = df_all[(df_all['tradingsymbol'] == symbol) & (df_all['segment'] == seg)]
+                if not m.empty:
+                    return m.iloc[0]
+            m = df_all[df_all['tradingsymbol'] == symbol]
+            return m.iloc[0] if not m.empty else None
+
+        drifted, unresolved = [], []
+
+        with self._lock:
+            current = list(self.instrument_tokens.items())  # [(token, info), ...]
+
+        for old_token, info in current:
+            symbol = info.get('symbol')
+            row = _find(symbol)
+            if row is None:
+                unresolved.append(symbol)
+                continue
+
+            new_token = str(row['instrument_token'])
+            if new_token == old_token:
+                continue  # unchanged — nothing to do
+
+            drifted.append((symbol, old_token, new_token))
+            logger.warning(
+                f"⚠️ Instrument token drift detected for {symbol}: "
+                f"{old_token} → {new_token} — updating and re-subscribing"
+            )
+
+            with self._lock:
+                self.instrument_tokens.pop(old_token, None)
+                self.instrument_tokens[new_token] = {
+                    'symbol': symbol,
+                    'name': str(row.get('name', symbol)),
+                    'exchange': str(row.get('exchange', 'NSE')),
+                }
+                if symbol in self.live_data:
+                    self.live_data[symbol]['token'] = new_token
+
+            if self.kws and self.is_connected:
+                try:
+                    self.kws.unsubscribe([int(old_token)])
+                    self.kws.subscribe([int(new_token)])
+                    self.kws.set_mode(self.kws.MODE_FULL, [int(new_token)])
+                except Exception as e:
+                    logger.warning(f"Token revalidation: re-subscribe failed for {symbol}: {e}")
+
+        if unresolved:
+            logger.warning(f"Token revalidation: could not resolve current instruments for: {unresolved}")
+
+        if drifted:
+            with self._lock:
+                _save_token_cache(self.instrument_tokens, list(self.live_data.keys()))
+            logger.info(f"✓ Token revalidation complete — {len(drifted)} symbol(s) updated: {[d[0] for d in drifted]}")
+        else:
+            logger.info("✓ Token revalidation complete — no drift detected")
     
     def _on_connect(self, ws, response):
         """WebSocket connection callback"""
@@ -729,15 +860,27 @@ class RealtimeDataManager:
                 return None
 
         try:
-            # Find exchange for this symbol from instrument_tokens
-            exchange = 'NSE'
+            # ✅ FIX: query by instrument_token, not "EXCHANGE:symbol".
+            # A handful of holdings (EMBASSY-RR, MINDSPACE-RR, NXST-RR,
+            # INDIGRID-IV, ...) have a locally-stored 'symbol' string that
+            # doesn't match the real NSE tradingsymbol Kite's quote endpoint
+            # expects (the actual symbols are EMBASSY, MINDSPACE, NXST,
+            # INDIGRID — no "-RR"/"-IV" suffix). Building "NSE:EMBASSY-RR"
+            # therefore 400s on every single call, permanently, not just
+            # transiently. The instrument_token is already known correctly
+            # for every tracked symbol (that's how WebSocket ticks work),
+            # so query by token directly and skip the symbol-string
+            # round-trip entirely — this fixes the mismatch for these four
+            # and prevents the same class of bug for any future holding
+            # whose stored symbol string doesn't exactly match Kite's.
+            token = None
             with self._lock:
-                for info in self.instrument_tokens.values():
+                for tok, info in self.instrument_tokens.items():
                     if info.get('symbol') == symbol:
-                        exchange = info.get('exchange', 'NSE')
+                        token = tok
                         break
 
-            instrument_key = f'{exchange}:{symbol}'
+            instrument_key = token if token else f'NSE:{symbol}'
             resp = self.auth.session.get(
                 f"{Config.ZERODHA_API_BASE}/oms/quote",
                 params={'i': instrument_key},
@@ -755,6 +898,7 @@ class RealtimeDataManager:
                             prev = qd.get('ohlc', {})
                             if prev.get('close'):
                                 self.live_data[symbol]['close'] = float(prev['close'])
+                        # Reset this symbol's breaker state on any success
                         self._rest_fail_count.pop(symbol, None)
                         self._rest_circuit_open_until.pop(symbol, None)
                         self._rest_trip_count.pop(symbol, None)
@@ -800,7 +944,7 @@ class RealtimeDataManager:
                 cooldown = min(_REST_BREAKER_COOLDOWN_SEC * (2 ** trip_n), _REST_BREAKER_MAX_COOLDOWN_SEC)
                 self._rest_circuit_open_until[symbol] = time.time() + cooldown
                 self._rest_trip_count[symbol] = trip_n + 1
-                self._rest_fail_count[symbol] = 0
+                self._rest_fail_count[symbol] = 0  # reset the consecutive-failure counter for next cycle
                 (logger.warning if _is_market_hours() else logger.debug)(
                     f"🔌 REST LTP fallback circuit breaker OPEN for {symbol} — "
                     f"pausing REST quote calls for this symbol for {cooldown:.0f}s "
