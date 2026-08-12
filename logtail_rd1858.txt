@@ -28,3 +28,26 @@
 2026-08-12 11:39:39 IST | WARNING  | backend.data.realtime | REST LTP fallback for EMBASSY-RR (NSE:EMBASSY-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
 2026-08-12 11:39:40 IST | WARNING  | backend.data.realtime | REST LTP fallback for INDIGRID-IV (NSE:INDIGRID-IV): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
 2026-08-12 11:39:40 IST | WARNING  | backend.data.realtime | REST LTP fallback for NXST-RR (NSE:NXST-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-08-12 11:40:22 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [B(W%R=-60.6+drop=2.46%)]: BSE | Price=₹3516.20 | PrevClose=₹3605.00 | AvgBuy=None | Slot 1/6
+2026-08-12 11:40:22 IST | INFO     | __main__             |   🟢 BUY: BSE | W%R=-60.65 | ₹3516.20
+2026-08-12 11:40:22 IST | INFO     | backend.strategy.executor |                           EXECUTING AUTOMATED BUY: BSE                          
+2026-08-12 11:40:22 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹2591.60 + sell 191 LIQUIDCASE × ₹115.43 = ₹22047.13 (shortfall) → Buy 7 BSE × ₹3516.20 = ₹24613.40
+2026-08-12 11:40:22 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹3516.70 for BSE (LTP was ₹3516.20, top_ask from depth)
+2026-08-12 11:40:22 IST | INFO     | backend.orders.manager | smart_buy 7 × BSE @ ₹3516.70 (cost ₹24,616.90) | Available cash: ₹17,591.60 (spendable after ₹15000 reserve: ₹2,591.60)
+2026-08-12 11:40:23 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.42 (top_bid from depth)
+2026-08-12 11:40:23 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 207 x LIQUIDCASE
+2026-08-12 11:40:23 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260812190668883
+2026-08-12 11:40:23 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.42
+2026-08-12 11:40:23 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 207 units @ ₹115.43
+2026-08-12 11:40:26 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹3516.7 → ₹3515.10 (top_ask from depth)
+2026-08-12 11:40:26 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 7 x BSE
+2026-08-12 11:40:26 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260812190669093
+2026-08-12 11:40:26 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: BSE @ ₹3514.5
+2026-08-12 11:40:26 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 7 × BSE @ ₹3516.70
+2026-08-12 11:40:27 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: BSE x7 @ ₹3516.20
+2026-08-12 11:40:41 IST | WARNING  | backend.data.realtime | REST LTP fallback for EMBASSY-RR (NSE:EMBASSY-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-08-12 11:40:41 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for EMBASSY-RR — pausing REST quote calls for this symbol for 60s (trip #2 for this symbol)
+2026-08-12 11:40:41 IST | WARNING  | backend.data.realtime | REST LTP fallback for INDIGRID-IV (NSE:INDIGRID-IV): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-08-12 11:40:41 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for INDIGRID-IV — pausing REST quote calls for this symbol for 60s (trip #2 for this symbol)
+2026-08-12 11:40:42 IST | WARNING  | backend.data.realtime | REST LTP fallback for NXST-RR (NSE:NXST-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-08-12 11:40:42 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for NXST-RR — pausing REST quote calls for this symbol for 60s (trip #2 for this symbol)
