@@ -559,6 +559,20 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
     <!-- Positions stacked in left column -->
     <div style="display:flex;flex-direction:column;gap:14px">
 
+      <!-- Holdings panel -->
+      <div class="panel">
+        <div class="ph">
+          <span class="pt">Holdings</span>
+          <span class="pb" id="h-count">—</span>
+        </div>
+        <div class="tbl-wrap scroll">
+          <table class="tbl">
+            <thead><tr><th>SYMBOL</th><th>QTY</th><th>AVG ₹</th><th>LTP ₹</th><th>VALUE</th><th>SLOTS</th><th>P&amp;L</th></tr></thead>
+            <tbody id="h-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Positions panel -->
       <div class="panel">
         <div class="ph">
@@ -612,6 +626,23 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
       </div>
     </div>
     <div class="slots-wrap" id="slots-wrap"><div class="empty">Loading…</div></div>
+  </div>
+
+  <!-- All Holdings (every real Kite holding, not just bot-managed) -->
+  <div class="panel" style="margin-bottom:14px">
+    <div class="ph">
+      <span class="pt">All Holdings</span>
+      <div style="display:flex;align-items:center;gap:16px">
+        <span style="font-size:10px;color:var(--muted)">Full demat account — includes positions outside the bot's managed lists</span>
+        <span class="pb" id="eq-count">—</span>
+      </div>
+    </div>
+    <div class="tbl-wrap scroll">
+      <table class="tbl">
+        <thead><tr><th>SYMBOL</th><th>QTY</th><th>AVG ₹</th><th>LTP ₹</th><th>VALUE</th><th>DAY P&amp;L</th><th>UNREALISED P&amp;L</th></tr></thead>
+        <tbody id="eq-body"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Williams %R -->
@@ -3148,6 +3179,27 @@ function render(data) {
       <td style="color:var(--muted2)">${curVal != null ? fmtL(curVal) : "—"}</td>
       <td style="text-align:center">${slotsCell}</td>
       <td class="${h.pnl>=0?'pos':'neg'}">${(h.pnl>=0?"+":"")}${fmtL(h.pnl)}<br><span style="font-size:10px;opacity:.7">${fmtPct(h.pnl_pct)}</span></td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="7" class="empty">No holdings</td></tr>`; }
+
+  // All Holdings (every real Kite holding — data.equity_holdings, already
+  // computed server-side in snapshot.py but previously never rendered here).
+  const equityHoldings = data.equity_holdings ?? [];
+  const eqCount = document.getElementById("eq-count");
+  if (eqCount) eqCount.textContent = equityHoldings.length + " positions";
+  const eqBody = document.getElementById("eq-body");
+  if (eqBody) { eqBody.innerHTML = equityHoldings.length ? equityHoldings.map(h => {
+    const dayPnl = h.day_pnl ?? 0;
+    const pnl    = h.pnl ?? 0;
+    return `
+    <tr>
+      <td><span class="sym">${h.symbol}</span>${h.tracked ? `<span class="tag tag-a" title="Also managed by the bot — see Holdings above">tracked</span>` : ""}</td>
+      <td>${h.quantity}</td>
+      <td style="color:var(--muted2)">${fmtR(h.avg)}</td>
+      <td>${fmtR(h.ltp)}</td>
+      <td style="color:var(--muted2)">${h.value != null ? fmtL(h.value) : "—"}</td>
+      <td class="${dayPnl>=0?'pos':'neg'}">${(dayPnl>=0?"+":"")}${fmtL(dayPnl)}<br><span style="font-size:10px;opacity:.7">${fmtPct(h.day_pnl_pct)}</span></td>
+      <td class="${pnl>=0?'pos':'neg'}">${(pnl>=0?"+":"")}${fmtL(pnl)}<br><span style="font-size:10px;opacity:.7">${fmtPct(h.pnl_pct)}</span></td>
     </tr>`;
   }).join("") : `<tr><td colspan="7" class="empty">No holdings</td></tr>`; }
 
