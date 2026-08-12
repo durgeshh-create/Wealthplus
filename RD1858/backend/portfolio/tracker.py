@@ -215,7 +215,7 @@ class PortfolioTracker:
         
         # Get active ETFs from settings.json
         settings_path = Path(__file__).parent.parent.parent / 'config' / 'settings.json'
-        active_etfs = ['MID150BEES', 'MON100', 'GOLDBEES', 'SILVERBEES', 'MINDSPACE-RR', 'EMBASSY-RR']  # Default
+        active_etfs = ['MID150BEES', 'MON100', 'GOLDBEES', 'SILVERBEES', 'MINDSPACE-RR']  # Default
         
         if settings_path.exists():
             try:
@@ -259,7 +259,7 @@ class PortfolioTracker:
         
         # Get active ETFs count
         settings_path = Path(__file__).parent.parent.parent / 'config' / 'settings.json'
-        active_etfs = ['MID150BEES', 'MON100', 'GOLDBEES', 'SILVERBEES', 'MINDSPACE-RR', 'EMBASSY-RR']
+        active_etfs = ['MID150BEES', 'MON100', 'GOLDBEES', 'SILVERBEES', 'MINDSPACE-RR']
         if settings_path.exists():
             try:
                 with open(settings_path, 'r') as f:
