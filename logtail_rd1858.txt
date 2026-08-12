@@ -142,3 +142,6 @@
 2026-08-12 13:46:20 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for INDIGRID-IV — pausing REST quote calls for this symbol for 600s (trip #8 for this symbol)
 2026-08-12 13:46:20 IST | WARNING  | backend.data.realtime | REST LTP fallback for NXST-RR (NSE:NXST-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
 2026-08-12 13:46:20 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for NXST-RR — pausing REST quote calls for this symbol for 600s (trip #8 for this symbol)
+2026-08-12 13:50:52 IST | ERROR    | kiteconnect.ticker   | Connection error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+2026-08-12 13:50:52 IST | ERROR    | backend.data.realtime | ❌ WebSocket error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+2026-08-12 13:50:52 IST | ERROR    | kiteconnect.ticker   | Connection closed: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
