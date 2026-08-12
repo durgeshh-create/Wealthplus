@@ -202,16 +202,39 @@ class RealtimeDataManager:
             # Live fetch failed — try cache
             cached_tokens, cached_keys = _load_token_cache()
             if cached_tokens:
-                self.instrument_tokens = cached_tokens
+                # ✅ FIX: previously loaded the cache file verbatim, including
+                # any symbol that was ever tracked in the past (e.g. added via
+                # add_symbols() while it was in active_etfs/bnh_symbols) but
+                # has since been removed from settings.json. Nothing else ever
+                # prunes those — so a removed symbol like EMBASSY-RR or
+                # NXST-RR just keeps sitting in instrument_tokens/live_data
+                # forever, and every get_ltp() call on it permanently 400s
+                # (see the -RR/-IV REST-fallback fix above) with nothing to
+                # ever stop it. Prune to the currently-configured symbol set
+                # (+ market indices) here too, not just on the live-fetch path.
+                wanted = set(
+                    Config.get_active_etfs() + Config.get_bnh_symbols()
+                    + [LIQUIDCASE_SYMBOL] + list(MARKET_INDICES.keys())
+                )
+                pruned = [info['symbol'] for info in cached_tokens.values() if info.get('symbol') not in wanted]
+                self.instrument_tokens = {
+                    tok: info for tok, info in cached_tokens.items() if info.get('symbol') in wanted
+                }
+                if pruned:
+                    logger.info(f"Token cache: dropped no-longer-configured symbol(s): {pruned}")
                 for sym in (cached_keys or []):
+                    if sym not in wanted:
+                        continue
                     if sym not in self.live_data:
                         self.live_data[sym] = {
-                            'token': cached_tokens.get(next(
-                                (t for t,i in cached_tokens.items() if i.get('symbol')==sym), None
-                            ), {}).get('symbol'),
+                            'token': next(
+                                (t for t, i in self.instrument_tokens.items() if i.get('symbol') == sym), None
+                            ),
                             'last_price': None, 'open': None, 'high': None,
                             'low': None, 'close': None, 'volume': None, 'timestamp': None
                         }
+                if pruned:
+                    _save_token_cache(self.instrument_tokens, list(self.live_data.keys()))
                 return True
             logger.error("Failed to fetch instrument tokens and no cache available")
             return False
