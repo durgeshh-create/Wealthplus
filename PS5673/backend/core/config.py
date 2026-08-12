@@ -113,7 +113,7 @@ class Config:
         if not cls.SETTINGS_FILE.exists():
             # Return default settings
             return {
-                'active_etfs': ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR', 'EMBASSY-RR'],
+                'active_etfs': ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR'],
                 'slots_count': cls.SLOTS_COUNT,
                 'profit_target_pct': cls.PROFIT_TARGET_PCT,
                 'williams_r_threshold': cls.WILLIAMS_R_THRESHOLD,
@@ -128,7 +128,7 @@ class Config:
         except Exception as e:
             print(f"Error loading settings: {e}")
             return {
-                'active_etfs': ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR', 'EMBASSY-RR'],
+                'active_etfs': ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR'],
                 'slots_count': cls.SLOTS_COUNT,
                 'profit_target_pct': cls.PROFIT_TARGET_PCT,
                 'williams_r_threshold': cls.WILLIAMS_R_THRESHOLD,
@@ -150,7 +150,7 @@ class Config:
     def get_active_etfs(cls) -> List[str]:
         """Get list of active ETFs from settings"""
         settings = cls.load_settings()
-        return settings.get('active_etfs', ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR', 'EMBASSY-RR'])
+        return settings.get('active_etfs', ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR'])
 
     @classmethod
     def get_bnh_symbols(cls) -> List[str]:
@@ -162,7 +162,7 @@ class Config:
     def get_all_monitored_symbols(cls) -> List[str]:
         """All symbols needing historical data: active_etfs + bnh_symbols, deduplicated."""
         settings = cls.load_settings()
-        active = settings.get('active_etfs', ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR', 'EMBASSY-RR'])
+        active = settings.get('active_etfs', ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR'])
         bnh    = settings.get('bnh_symbols', ['MID150BEES'])
         seen, combined = set(), []
         for s in active + bnh:
