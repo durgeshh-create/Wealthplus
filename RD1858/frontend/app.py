@@ -126,7 +126,7 @@ def get_config():
                 settings = json.load(f)
         else:
             settings = {
-                'active_etfs': ['MID150BEES', 'MON100', 'GOLDBEES', 'SILVERBEES', 'MINDSPACE-RR', 'EMBASSY-RR'],
+                'active_etfs': ['MID150BEES', 'MON100', 'GOLDBEES', 'SILVERBEES', 'MINDSPACE-RR'],
                 'slots_count': Config.SLOTS_COUNT,
                 'profit_target_pct': Config.PROFIT_TARGET_PCT,
                 'williams_r_threshold': Config.WILLIAMS_R_THRESHOLD,

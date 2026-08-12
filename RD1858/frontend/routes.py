@@ -68,7 +68,7 @@ def register_routes(app, dashboard_state):
 
             active_etfs = _settings.get('active_etfs',
                 ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES',
-                 'PSUBNKBEES', 'MINDSPACE-RR', 'EMBASSY-RR'])
+                 'PSUBNKBEES', 'MINDSPACE-RR'])
             bnh_symbols = _settings.get('bnh_symbols', ['MID150BEES'])
 
             # Holdings filter = LIQUIDCASE + Active Strategy + Dip Accumulator
@@ -298,7 +298,7 @@ def register_routes(app, dashboard_state):
                 with open(settings_path, 'r') as f:
                     _settings = json.load(f)
             
-            active_etfs = _settings.get('active_etfs', ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR', 'EMBASSY-RR'])
+            active_etfs = _settings.get('active_etfs', ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR'])
             profit_target = float(_settings.get('profit_target_pct', Config.PROFIT_TARGET_PCT))
             
             realtime = dashboard_state['realtime_manager']
@@ -452,9 +452,9 @@ def register_routes(app, dashboard_state):
             if settings_path.exists():
                 with open(settings_path, 'r') as f:
                     settings = json.load(f)
-                    active_etfs = settings.get('active_etfs', ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR', 'EMBASSY-RR'])
+                    active_etfs = settings.get('active_etfs', ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR'])
             else:
-                active_etfs = ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR', 'EMBASSY-RR']
+                active_etfs = ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR']
             
             portfolio = dashboard_state.get('portfolio_tracker')
             realtime = dashboard_state.get('realtime_manager')
@@ -1811,7 +1811,7 @@ def register_routes(app, dashboard_state):
                 'success': True,
                 'active_etfs': settings.get('active_etfs', [
                     'MON100','GOLDBEES','SILVERBEES','JUNIORBEES',
-                    'PSUBNKBEES','MINDSPACE-RR','EMBASSY-RR'
+                    'PSUBNKBEES','MINDSPACE-RR'
                 ]),
                 'bnh_symbols': settings.get('bnh_symbols', ['MID150BEES']),
             })
@@ -1924,7 +1924,7 @@ def register_routes(app, dashboard_state):
                     settings = json.load(f)
             else:
                 settings = {
-                    'active_etfs': ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR', 'EMBASSY-RR'],
+                    'active_etfs': ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR'],
                     'slots_count': 2,
                     'profit_target_pct': 3.0,
                     'williams_r_threshold': -80,
@@ -2365,9 +2365,9 @@ def register_routes(app, dashboard_state):
             if settings_path.exists():
                 with open(settings_path, 'r') as f:
                     settings = json.load(f)
-                    active_etfs = settings.get('active_etfs', ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR', 'EMBASSY-RR'])
+                    active_etfs = settings.get('active_etfs', ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR'])
             else:
-                active_etfs = ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR', 'EMBASSY-RR']
+                active_etfs = ['MON100', 'GOLDBEES', 'SILVERBEES', 'JUNIORBEES', 'PSUBNKBEES', 'MINDSPACE-RR']
             
             # Add LIQUIDCASE to monitored symbols
             monitored_symbols = active_etfs + [LIQUIDCASE_SYMBOL]
