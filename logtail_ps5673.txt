@@ -97,3 +97,9 @@
 2026-08-12 12:10:20 IST | WARNING  | backend.data.realtime | REST LTP fallback for EMBASSY-RR (NSE:EMBASSY-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
 2026-08-12 12:10:20 IST | WARNING  | backend.data.realtime | REST LTP fallback for INDIGRID-IV (NSE:INDIGRID-IV): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
 2026-08-12 12:10:21 IST | WARNING  | backend.data.realtime | REST LTP fallback for NXST-RR (NSE:NXST-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-08-12 12:11:22 IST | WARNING  | backend.data.realtime | REST LTP fallback for EMBASSY-RR (NSE:EMBASSY-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-08-12 12:11:22 IST | WARNING  | backend.data.realtime | REST LTP fallback for INDIGRID-IV (NSE:INDIGRID-IV): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-08-12 12:11:22 IST | WARNING  | backend.data.realtime | REST LTP fallback for NXST-RR (NSE:NXST-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-08-12 12:11:34 IST | ERROR    | kiteconnect.ticker   | Connection error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+2026-08-12 12:11:34 IST | ERROR    | backend.data.realtime | ❌ WebSocket error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+2026-08-12 12:11:34 IST | ERROR    | kiteconnect.ticker   | Connection closed: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
