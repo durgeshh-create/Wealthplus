@@ -5,7 +5,6 @@ Manages WebSocket connection to Zerodha for live market data
 import urllib.parse
 import time
 import threading
-import traceback
 from typing import Dict, Optional, Callable
 from datetime import datetime, timezone, timedelta, time as _dtime
 
@@ -116,7 +115,6 @@ class RealtimeDataManager:
         self._rest_circuit_open_until: Dict[str, float] = {}
         self._rest_trip_count: Dict[str, int] = {}
         self._token_revalidation_stop = threading.Event()
-        self._diag_logged_symbols = set()  # see get_ltp() diagnostic — safe to remove once caller found
     
     def initialize(self) -> bool:
         """Initialize WebSocket connection"""
@@ -835,25 +833,6 @@ class RealtimeDataManager:
         Primary: WebSocket live_data cache.
         Fallback: REST /oms/quote when WebSocket tick hasn't arrived yet.
         """
-        # One-time-per-symbol stack trace log, to find whatever is still
-        # calling get_ltp() for symbols that were deliberately pruned from
-        # active_etfs/bnh_symbols/instrument_tokens (EMBASSY-RR, NXST-RR,
-        # INDIGRID-IV). Every config-driven periodic loop in this codebase
-        # was checked and filters to active_etfs∪bnh_symbols before calling
-        # get_ltp() — none of them should reach here for these symbols — so
-        # whatever's still calling it is coming from somewhere else
-        # entirely (a leftover in-memory subscription, an open browser tab
-        # hitting /api/depth, or a code path not yet found). This logs the
-        # full call stack exactly once per symbol per process lifetime so
-        # the *next* occurrence in the logs shows the actual caller instead
-        # of just the symptom. Safe to remove once the caller is found.
-        _DIAG_WATCH = {'EMBASSY-RR', 'NXST-RR', 'INDIGRID-IV'}
-        if symbol in _DIAG_WATCH and symbol not in self._diag_logged_symbols:
-            self._diag_logged_symbols.add(symbol)
-            stack = ''.join(traceback.format_stack()[:-1])
-            logger.warning(f"🔎 DIAGNOSTIC: get_ltp('{symbol}') called — this symbol is not in "
-                            f"active_etfs/bnh_symbols and should have no caller. Call stack:\n{stack}")
-
         with self._lock:
             if symbol in self.live_data:
                 price = self.live_data[symbol].get('last_price')
@@ -924,7 +903,24 @@ class RealtimeDataManager:
                         token = tok
                         break
 
-            instrument_key = token if token else f'NSE:{symbol}'
+            # ✅ FIX: if there's genuinely no token for this symbol (it was
+            # deliberately excluded from instrument_tokens — e.g.
+            # EMBASSY-RR/NXST-RR/INDIGRID-IV, kept out on purpose so they're
+            # not live-tracked), don't fall back to the broken
+            # "NSE:{symbol}" string query at all. That path is guaranteed
+            # to 400 every time for exactly the symbols that end up here
+            # (see the fix above), so retrying it every ~60s just wastes a
+            # network round-trip, spams the logs, and trips the circuit
+            # breaker for no benefit — callers of get_ltp() (e.g.
+            # snapshot.py's "All Holdings", which calls this for every real
+            # demat holding regardless of whether the bot tracks it) already
+            # fall back to Zerodha's own last_price for the holding when
+            # get_ltp() returns None, so returning None immediately here is
+            # both correct and silent.
+            if token is None:
+                return None
+
+            instrument_key = token
             resp = self.auth.session.get(
                 f"{Config.ZERODHA_API_BASE}/oms/quote",
                 params={'i': instrument_key},
