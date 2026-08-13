@@ -217,9 +217,10 @@ main{padding:18px 20px;max-width:960px;margin:0 auto}
 .cash-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
 
 /* ── scroll ── */
-.scroll{max-height:300px;overflow-y:auto}
-.scroll::-webkit-scrollbar{width:3px}
-.scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.scroll{max-height:300px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.scroll::-webkit-scrollbar{width:8px}
+.scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.scroll::-webkit-scrollbar-track{background:transparent}
 
 /* ── empty / stale ── */
 .empty{padding:28px 15px;text-align:center;color:var(--muted);font-size:12px}
@@ -616,7 +617,7 @@ code{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px sol
   <!-- All Holdings (every real Kite holding, not just bot-managed) -->
   <div class="panel" style="margin-bottom:14px">
     <div class="ph">
-      <span class="pt">All Holdings</span>
+      <span class="pt">Demat Holdings</span>
       <div style="display:flex;align-items:center;gap:16px">
         <span style="font-size:10px;color:var(--muted)">Full demat account — includes positions outside the bot's managed lists</span>
         <span class="pb" id="eq-count">—</span>
