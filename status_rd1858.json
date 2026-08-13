@@ -1,7 +1,7 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-08-13 08:33:23 IST",
-  "bot_running": false,
+  "timestamp": "2026-08-13 09:01:58 IST",
+  "bot_running": true,
   "total_value": 7833042.62,
   "today_pnl": 0.0,
   "today_pnl_pct": 0.0,
@@ -155,7 +155,7 @@
       "exchange": "NSE",
       "isin": "INE0NDH25011",
       "quantity": 6705,
-      "pledged": 0,
+      "pledged": 6705,
       "avg": 168.05,
       "ltp": 166.93,
       "invested": 1126769.6,
@@ -317,8 +317,8 @@
   "williams_r": [
     {
       "symbol": "SILVERBEES",
-      "ltp": null,
-      "change_pct": null,
+      "ltp": 225.76,
+      "change_pct": 0.0,
       "williams_r": -1.88,
       "is_held": true,
       "avg_price": 225.39,
@@ -326,36 +326,36 @@
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": null,
-      "change_pct": null,
-      "williams_r": -22.77,
+      "ltp": 806.31,
+      "change_pct": 0.0,
+      "williams_r": -28.81,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "BANKBEES",
-      "ltp": null,
-      "change_pct": null,
-      "williams_r": -11.02,
+      "ltp": 599.01,
+      "change_pct": 0.0,
+      "williams_r": -15.56,
       "is_held": true,
       "avg_price": 587.29,
       "strategy": "active"
     },
     {
       "symbol": "HDFCSML250",
-      "ltp": null,
-      "change_pct": null,
-      "williams_r": -35.45,
+      "ltp": 184.44,
+      "change_pct": 0.0,
+      "williams_r": -44.28,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "NIFTYBEES",
-      "ltp": null,
-      "change_pct": null,
-      "williams_r": -40.36,
+      "ltp": 278.32,
+      "change_pct": 0.0,
+      "williams_r": -40.88,
       "is_held": true,
       "avg_price": 283.1,
       "strategy": "active"
@@ -371,8 +371,8 @@
     },
     {
       "symbol": "GOLDBEES",
-      "ltp": null,
-      "change_pct": null,
+      "ltp": 126.45,
+      "change_pct": 0.0,
       "williams_r": -2.69,
       "is_held": false,
       "avg_price": null,
@@ -380,18 +380,18 @@
     },
     {
       "symbol": "MID150BEES",
-      "ltp": null,
-      "change_pct": null,
-      "williams_r": -17.31,
+      "ltp": 242.77,
+      "change_pct": 0.0,
+      "williams_r": -21.95,
       "is_held": true,
       "avg_price": 230.36,
       "strategy": "bnh"
     },
     {
       "symbol": "MINDSPACE-RR",
-      "ltp": null,
-      "change_pct": null,
-      "williams_r": -27.84,
+      "ltp": 494.68,
+      "change_pct": 0.0,
+      "williams_r": -29.86,
       "is_held": true,
       "avg_price": 461.34,
       "strategy": "bnh"
@@ -401,10 +401,10 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24435.95,
+      "ltp": 24467.9,
       "prev_close": 24435.95,
-      "change": 0.0,
-      "change_pct": 0.0,
+      "change": 31.95,
+      "change_pct": 0.13,
       "open": null,
       "high": null,
       "low": null
@@ -597,6 +597,6 @@
     }
   },
   "available_cash": 55600.3,
-  "available_margin": 2070031.15,
+  "available_margin": 3066133.99,
   "available_margin_note": null
 }
