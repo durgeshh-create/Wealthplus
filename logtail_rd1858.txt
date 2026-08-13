@@ -88,3 +88,11 @@
 2026-08-13 13:05:49 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for INDIGRID-IV — pausing REST quote calls for this symbol for 480s (trip #5 for this symbol)
 2026-08-13 13:05:50 IST | WARNING  | backend.data.realtime | REST LTP fallback for NXST-RR (NSE:NXST-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
 2026-08-13 13:05:50 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for NXST-RR — pausing REST quote calls for this symbol for 480s (trip #5 for this symbol)
+2026-08-13 13:13:44 IST | INFO     | backend.orders.manager | smart_buy 4 × MINDSPACE-RR @ ₹488.00 (cost ₹1,952.00) | Available cash: ₹55,600.30 (spendable after ₹15000 reserve: ₹40,600.30)
+2026-08-13 13:13:44 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 4 x MINDSPACE-RR
+2026-08-13 13:13:44 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260813190920218
+2026-08-13 13:13:45 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MINDSPACE-RR @ ₹488
+2026-08-13 13:13:45 IST | INFO     | backend.strategy.intraday_engine | [MINDSPACE-RR] ✅ BUY 4 × ₹488.00 = ₹1952 | LIMIT | Available Cash
+2026-08-13 13:13:58 IST | WARNING  | backend.data.realtime | REST LTP fallback for EMBASSY-RR (NSE:EMBASSY-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-08-13 13:13:59 IST | WARNING  | backend.data.realtime | REST LTP fallback for INDIGRID-IV (NSE:INDIGRID-IV): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-08-13 13:13:59 IST | WARNING  | backend.data.realtime | REST LTP fallback for NXST-RR (NSE:NXST-RR): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
