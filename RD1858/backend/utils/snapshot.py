@@ -104,6 +104,30 @@ def _safe_position_slots_used(signal_gen, sym, bnh_symbols):
     except Exception:
         return None
 
+
+def _safe_qty_field(value, default=0):
+    """Robustly coerce a Kite holdings numeric field (quantity,
+    t1_quantity, collateral_quantity, ...) to int — never raises.
+
+    Kite's holdings response isn't always a clean int: a field can be
+    missing, explicitly null, an int, a float, or (occasionally) a
+    numeric string. `int(h.get("collateral_quantity", 0))` looks safe but
+    isn't — if the key is PRESENT with value None, `.get(..., 0)` returns
+    None (not the default), and `int(None)` raises TypeError; a
+    float-looking string like "12.0" also raises via a bare int(). Either
+    one, uncaught, kills the entire holdings loop for every symbol
+    processed after it — not just the one bad row — which is exactly the
+    kind of silent, hard-to-diagnose failure that makes a real holding
+    (or several after it in iteration order) just vanish from the
+    dashboard with no error anywhere.
+    """
+    if value is None:
+        return default
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return default
+
 def write_snapshot(dashboard_state: dict):
     """Build and write the full status snapshot. Never raises."""
     try:
@@ -150,73 +174,82 @@ def write_snapshot(dashboard_state: dict):
         if portfolio:
             for h in (portfolio.holdings or []):
                 sym = h.get("tradingsymbol", "")
-                # ✅ FIX: was `quantity + t1_quantity` only. Kite's `quantity`
-                # field on /oms/portfolio/holdings reports just the UNPLEDGED
-                # portion — any shares pledged as margin collateral sit
-                # separately in `collateral_quantity` (see the LIQUIDCASE
-                # handling in tracker.py, which already accounts for this:
-                # "free_qty + pledged_qty + t1_qty"). A fully-pledged holding
-                # therefore computed qty=0 here and got silently dropped by
-                # the check below — a real demat position just vanishing
-                # from the dashboard with no error.
-                qty = (int(h.get("quantity", 0)) + int(h.get("t1_quantity", 0))
-                       + int(h.get("collateral_quantity", 0)))
-                if qty <= 0 or sym == LIQUIDCASE_SYMBOL:
+              # ✅ FIX: was `quantity + t1_quantity` only, and both used a
+              # bare int() with no None/string guard. Kite's `quantity`
+              # field on /oms/portfolio/holdings reports just the UNPLEDGED
+              # portion — pledged shares sit separately in
+              # `collateral_quantity` (see LIQUIDCASE handling in
+              # tracker.py: "free_qty + pledged_qty + t1_qty"). A
+              # fully-pledged holding computed qty=0 and silently vanished
+              # from the dashboard. Now uses _safe_qty_field (handles
+              # None/float/string cleanly) and the whole per-holding block
+              # is wrapped in try/except so one malformed row from Kite
+              # can't silently kill every holding processed after it.
+                try:
+                    qty = (_safe_qty_field(h.get("quantity"))
+                           + _safe_qty_field(h.get("t1_quantity"))
+                           + _safe_qty_field(h.get("collateral_quantity")))
+                    if qty <= 0 or sym == LIQUIDCASE_SYMBOL:
+                        continue
+                    if sym not in active_etfs and sym not in bnh_symbols:
+                        continue
+                    avg = float(h.get("average_price", 0))
+                    ltp = (realtime.get_ltp(sym) if realtime else None) or float(h.get("last_price", avg))
+                    val = qty * ltp
+
+                    # today_move = (ltp - prev_close) * qty  — today's P&L only
+                    prev_close = None
+                    prev_close_src = "none"
+                    if realtime:
+                        ohlc = realtime.get_ohlc(sym)
+                        if ohlc and ohlc.get("close") and float(ohlc["close"]) > 0:
+                            prev_close = float(ohlc["close"])
+                            prev_close_src = "ohlc"
+                    if prev_close is None:
+                        # Use get_latest_close — always returns yesterday's close from cached CSV
+                        if historical:
+                            try:
+                                pc = historical.get_latest_close(sym)
+                                if pc and pc > 0:
+                                    prev_close = pc
+                                    prev_close_src = "historical"
+                            except Exception:
+                                pass
+                    today_move = round((ltp - prev_close) * qty, 2) if prev_close and prev_close > 0 else 0.0
+                    today_move_pct = round((ltp - prev_close) / prev_close * 100, 2) if prev_close and prev_close > 0 else 0.0
+
+                    # Unrealised P&L — use Zerodha's pnl field directly (matches Kite)
+                    _z_pnl = h.get("pnl")
+                    if _z_pnl is not None:
+                        unrealised_pnl     = round(float(_z_pnl), 2)
+                        cost_basis         = avg * qty
+                        unrealised_pnl_pct = round(unrealised_pnl / cost_basis * 100, 2) if cost_basis > 0 else 0.0
+                    else:
+                        unrealised_pnl     = round((ltp - avg) * qty, 2) if avg > 0 else 0.0
+                        unrealised_pnl_pct = round((ltp - avg) / avg * 100, 2) if avg > 0 else 0.0
+
+                    total_value += val
+                    held_set.add(sym)
+                    holdings.append({
+                        "symbol":   sym,
+                        "quantity": qty,
+                        "avg":      round(avg, 2),
+                        "ltp":      round(ltp, 2),
+                        "value":    round(val, 2),
+                        "pnl":      today_move,
+                        "pnl_pct":  today_move_pct,
+                        "unrealised_pnl":     unrealised_pnl,
+                        "unrealised_pnl_pct": unrealised_pnl_pct,
+                        "strategy":   "bnh" if sym in bnh_symbols else "active",
+                        "buys_today": _safe_position_slots_used(signal_gen, sym, bnh_symbols) or 0,
+                        "max_slots":  int(settings.get("slots_count", slots_count)),
+                    })
+                except Exception as _e:
+                    # A single malformed holding (unexpected field type,
+                    # missing key, etc.) must never take every other
+                    # holding down with it.
+                    logger.warning(f"Snapshot: skipping holding {sym!r} due to error: {_e}")
                     continue
-                if sym not in active_etfs and sym not in bnh_symbols:
-                    continue
-                avg = float(h.get("average_price", 0))
-                ltp = (realtime.get_ltp(sym) if realtime else None) or float(h.get("last_price", avg))
-                val = qty * ltp
-
-                # today_move = (ltp - prev_close) * qty  — today's P&L only
-                prev_close = None
-                prev_close_src = "none"
-                if realtime:
-                    ohlc = realtime.get_ohlc(sym)
-                    if ohlc and ohlc.get("close") and float(ohlc["close"]) > 0:
-                        prev_close = float(ohlc["close"])
-                        prev_close_src = "ohlc"
-                if prev_close is None:
-                    # Use get_latest_close — always returns yesterday's close from cached CSV
-                    if historical:
-                        try:
-                            pc = historical.get_latest_close(sym)
-                            if pc and pc > 0:
-                                prev_close = pc
-                                prev_close_src = "historical"
-                        except Exception:
-                            pass
-                import sys as _sys
-                today_move = round((ltp - prev_close) * qty, 2) if prev_close and prev_close > 0 else 0.0
-                today_move_pct = round((ltp - prev_close) / prev_close * 100, 2) if prev_close and prev_close > 0 else 0.0
-
-                # Unrealised P&L — use Zerodha's pnl field directly (matches Kite)
-                _z_pnl = h.get("pnl")
-                if _z_pnl is not None:
-                    unrealised_pnl     = round(float(_z_pnl), 2)
-                    cost_basis         = avg * qty
-                    unrealised_pnl_pct = round(unrealised_pnl / cost_basis * 100, 2) if cost_basis > 0 else 0.0
-                else:
-                    unrealised_pnl     = round((ltp - avg) * qty, 2) if avg > 0 else 0.0
-                    unrealised_pnl_pct = round((ltp - avg) / avg * 100, 2) if avg > 0 else 0.0
-
-                total_value += val
-                held_set.add(sym)
-                holdings.append({
-                    "symbol":   sym,
-                    "quantity": qty,
-                    "avg":      round(avg, 2),
-                    "ltp":      round(ltp, 2),
-                    "value":    round(val, 2),
-                    "pnl":      today_move,
-                    "pnl_pct":  today_move_pct,
-                    "unrealised_pnl":     unrealised_pnl,
-                    "unrealised_pnl_pct": unrealised_pnl_pct,
-                    "strategy":   "bnh" if sym in bnh_symbols else "active",
-                    "buys_today": _safe_position_slots_used(signal_gen, sym, bnh_symbols) or 0,
-                    "max_slots":  int(settings.get("slots_count", slots_count)),
-                })
 
             # LIQUIDCASE
             liq_qty   = getattr(portfolio, "liquidcase_quantity", 0)
@@ -266,48 +299,56 @@ def write_snapshot(dashboard_state: dict):
                 # margin collateral, so a fully-pledged position (e.g. an
                 # ETF pledged for margin) computed qty=0 and was silently
                 # dropped from "All Holdings" even though it's a real demat
-                # position. Include collateral_quantity in the total; the
-                # already-separate "pledged" field below still shows how
-                # much of that total is pledged vs free.
-                qty = (int(h.get("quantity", 0)) + int(h.get("t1_quantity", 0))
-                       + int(h.get("collateral_quantity", 0)))
-                if qty <= 0:
+                # position. Uses _safe_qty_field (handles None/float/string
+                # cleanly — a bare int() on a None or "12.0" field raises
+                # and, uncaught, would kill every holding after it in
+                # iteration order) and the whole per-holding block is now
+                # wrapped in try/except so one malformed row can't silently
+                # drop the rest of the list.
+                try:
+                    qty = (_safe_qty_field(h.get("quantity"))
+                           + _safe_qty_field(h.get("t1_quantity"))
+                           + _safe_qty_field(h.get("collateral_quantity")))
+                    if qty <= 0:
+                        continue
+                    avg = float(h.get("average_price", 0))
+                    ltp = (realtime.get_ltp(sym) if realtime else None) or float(h.get("last_price", avg))
+                    val = qty * ltp
+                    invested = avg * qty
+
+                    # Prefer Zerodha's own unrealised pnl field (matches Kite exactly)
+                    _eq_pnl = h.get("pnl")
+                    if _eq_pnl is not None:
+                        unrealised_pnl     = round(float(_eq_pnl), 2)
+                        unrealised_pnl_pct = round(unrealised_pnl / invested * 100, 2) if invested > 0 else 0.0
+                    else:
+                        unrealised_pnl     = round((ltp - avg) * qty, 2) if avg > 0 else 0.0
+                        unrealised_pnl_pct = round((ltp - avg) / avg * 100, 2) if avg > 0 else 0.0
+
+                    day_chg_abs = float(h.get("day_change", 0) or 0)
+                    day_chg_pct = float(h.get("day_change_percentage", 0) or 0)
+
+                    equity_holdings.append({
+                        "symbol":      sym,
+                        "exchange":    h.get("exchange", ""),
+                        "isin":        h.get("isin", ""),
+                        "quantity":    qty,
+                        "pledged":     _safe_qty_field(h.get("collateral_quantity")),
+                        "avg":         round(avg, 2),
+                        "ltp":         round(ltp, 2),
+                        "invested":    round(invested, 2),
+                        "value":       round(val, 2),
+                        "pnl":         unrealised_pnl,
+                        "pnl_pct":     unrealised_pnl_pct,
+                        "day_pnl":     round(day_chg_abs * qty, 2),
+                        "day_pnl_pct": round(day_chg_pct, 2),
+                        # Flag so the frontend can badge symbols the bot is
+                        # actively managing (also shown in the Slot Matrix above)
+                        "tracked":     sym in active_etfs or sym in bnh_symbols,
+                    })
+                except Exception as _e:
+                    logger.warning(f"Snapshot: skipping equity_holding {sym!r} due to error: {_e}")
                     continue
-                avg = float(h.get("average_price", 0))
-                ltp = (realtime.get_ltp(sym) if realtime else None) or float(h.get("last_price", avg))
-                val = qty * ltp
-                invested = avg * qty
-
-                # Prefer Zerodha's own unrealised pnl field (matches Kite exactly)
-                _eq_pnl = h.get("pnl")
-                if _eq_pnl is not None:
-                    unrealised_pnl     = round(float(_eq_pnl), 2)
-                    unrealised_pnl_pct = round(unrealised_pnl / invested * 100, 2) if invested > 0 else 0.0
-                else:
-                    unrealised_pnl     = round((ltp - avg) * qty, 2) if avg > 0 else 0.0
-                    unrealised_pnl_pct = round((ltp - avg) / avg * 100, 2) if avg > 0 else 0.0
-
-                day_chg_abs = float(h.get("day_change", 0) or 0)
-                day_chg_pct = float(h.get("day_change_percentage", 0) or 0)
-
-                equity_holdings.append({
-                    "symbol":      sym,
-                    "exchange":    h.get("exchange", ""),
-                    "isin":        h.get("isin", ""),
-                    "quantity":    qty,
-                    "pledged":     int(h.get("collateral_quantity", 0) or 0),
-                    "avg":         round(avg, 2),
-                    "ltp":         round(ltp, 2),
-                    "invested":    round(invested, 2),
-                    "value":       round(val, 2),
-                    "pnl":         unrealised_pnl,
-                    "pnl_pct":     unrealised_pnl_pct,
-                    "day_pnl":     round(day_chg_abs * qty, 2),
-                    "day_pnl_pct": round(day_chg_pct, 2),
-                    # Flag so the frontend can badge symbols the bot is
-                    # actively managing (also shown in the Slot Matrix above)
-                    "tracked":     sym in active_etfs or sym in bnh_symbols,
-                })
 
             equity_holdings.sort(key=lambda x: x["value"], reverse=True)
             eq_invested = sum(x["invested"] for x in equity_holdings)
