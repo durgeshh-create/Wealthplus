@@ -15,3 +15,4 @@
 2026-08-14 10:32:39 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: BSE @ ₹3464.1
 2026-08-14 10:32:39 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 7 × BSE @ ₹3464.10
 2026-08-14 10:32:40 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: BSE x7 @ ₹3464.10
+2026-08-14 12:24:21 IST | ERROR    | backend.portfolio.tracker | Error fetching holdings: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
