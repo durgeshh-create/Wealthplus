@@ -10,3 +10,4 @@
 2026-08-14 10:49:15 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.49
 2026-08-14 10:49:15 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 134 units @ ₹115.49
 2026-08-14 10:50:56 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [BSE]: Margin not credited after 90s: live_balance ₹36,705.35 < required ₹39,212.30. LIQUIDCASE was sold (134 units) — cash should credit shortly.
+2026-08-14 11:17:17 IST | ERROR    | backend.portfolio.tracker | Error fetching positions: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
