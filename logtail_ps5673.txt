@@ -1,0 +1,28 @@
+2026-08-17 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-97.0), B(W%R=-97.0+drop=4.16%), C(W%R=-97.0+drop=4.16%)]: BSE | Price=₹3303.60 | PrevClose=₹3447.00 | AvgBuy=₹3481.54 | Slot 1/6
+2026-08-17 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-89.0), B(W%R=-89.0+drop=3.45%), C(W%R=-89.0+drop=3.45%)]: EMBASSY-RR | Price=₹437.00 | PrevClose=₹452.61 | AvgBuy=None | Slot 1/6
+2026-08-17 09:20:01 IST | INFO     | __main__             |   🟢 BUY: BSE | W%R=-97.02 | ₹3303.60
+2026-08-17 09:20:01 IST | INFO     | __main__             |   🟢 BUY: EMBASSY-RR | W%R=-89.04 | ₹437.00
+2026-08-17 09:20:01 IST | INFO     | backend.strategy.executor |                           EXECUTING AUTOMATED BUY: BSE                          
+2026-08-17 09:20:01 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹8047.40 + sell 131 LIQUIDCASE × ₹115.50 = ₹15130.50 (shortfall) → Buy 7 BSE × ₹3303.60 = ₹23125.20
+2026-08-17 09:20:01 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹3303.60 for BSE (LTP was ₹3303.60, top_ask from depth)
+2026-08-17 09:20:02 IST | INFO     | backend.orders.manager | smart_buy 7 × BSE @ ₹3303.60 (cost ₹23,125.20) | Available cash: ₹23,047.40 (spendable after ₹15000 reserve: ₹8,047.40)
+2026-08-17 09:20:02 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.49 (top_bid from depth)
+2026-08-17 09:20:02 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 141 x LIQUIDCASE
+2026-08-17 09:20:02 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260817150130649
+2026-08-17 09:20:03 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.49
+2026-08-17 09:20:03 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 141 units @ ₹115.50
+2026-08-17 09:20:05 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹3303.6 → ₹3301.90 (top_ask from depth)
+2026-08-17 09:20:05 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 7 x BSE
+2026-08-17 09:20:05 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260817150131418
+2026-08-17 09:20:06 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: BSE @ ₹3298.6
+2026-08-17 09:20:06 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 7 × BSE @ ₹3303.60
+2026-08-17 09:20:07 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: BSE x7 @ ₹3303.60
+2026-08-17 09:20:07 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: EMBASSY-RR                       
+2026-08-17 09:20:07 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹8047.40 + sell 147 LIQUIDCASE × ₹115.49 = ₹16977.03 (shortfall) → Buy 57 EMBASSY-RR × ₹437.00 = ₹24909.00
+2026-08-17 09:20:07 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹437.20 for EMBASSY-RR (LTP was ₹437.00, top_ask from depth)
+2026-08-17 09:20:07 IST | INFO     | backend.orders.manager | smart_buy 57 × EMBASSY-RR @ ₹437.20 (cost ₹24,920.40) | Available cash: ₹23,047.40 (spendable after ₹15000 reserve: ₹8,047.40)
+2026-08-17 09:20:08 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.49 (top_bid from depth)
+2026-08-17 09:20:08 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 158 x LIQUIDCASE
+2026-08-17 09:20:08 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260817150132302
+2026-08-17 09:20:09 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.49
+2026-08-17 09:20:09 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 158 units @ ₹115.49
