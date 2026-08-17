@@ -1,0 +1,19 @@
+2026-08-17 09:45:10 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-93.9), B(W%R=-93.9+drop=3.82%), C(W%R=-93.9+drop=3.82%)]: BSE | Price=₹3315.30 | PrevClose=₹3447.00 | AvgBuy=₹3455.22 | Slot 1/6
+2026-08-17 09:45:10 IST | INFO     | __main__             |   🟢 BUY: BSE | W%R=-93.93 | ₹3315.30
+2026-08-17 09:45:10 IST | INFO     | backend.strategy.executor |                           EXECUTING AUTOMATED BUY: BSE                          
+2026-08-17 09:45:10 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹3315.40 for BSE (LTP was ₹3315.30, top_ask from depth)
+2026-08-17 09:45:10 IST | INFO     | backend.orders.manager | smart_buy 6 × BSE @ ₹3315.40 (cost ₹19,892.40) | Available cash: ₹37,265.30 (spendable after ₹15000 reserve: ₹22,265.30)
+2026-08-17 09:45:10 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 6 x BSE
+2026-08-17 09:45:11 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260817190278493
+2026-08-17 09:45:11 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 38805.66. Margin available: 37265.30. Check orderbook for open orders.
+2026-08-17 09:45:11 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.49 (top_bid from depth)
+2026-08-17 09:45:11 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 186 x LIQUIDCASE
+2026-08-17 09:45:12 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260817190278566
+2026-08-17 09:45:12 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.49
+2026-08-17 09:45:12 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 186 units @ ₹115.51
+2026-08-17 09:45:14 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹3315.4 → ₹3314.20 (top_ask from depth)
+2026-08-17 09:45:14 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 6 x BSE
+2026-08-17 09:45:15 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260817190278774
+2026-08-17 09:45:16 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: BSE @ ₹3314.2
+2026-08-17 09:45:16 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 6 × BSE @ ₹3315.40
+2026-08-17 09:45:17 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: BSE x6 @ ₹3315.30
