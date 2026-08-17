@@ -1,0 +1,11 @@
+2026-08-17 11:43:52 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-94.2), B(W%R=-94.2+drop=4.11%), C(W%R=-94.2+drop=4.11%)]: BSE | Price=₹3305.30 | PrevClose=₹3447.00 | AvgBuy=₹3441.53 | Slot 1/6
+2026-08-17 11:43:52 IST | INFO     | __main__             |   🟢 BUY: BSE | W%R=-94.23 | ₹3305.30
+2026-08-17 11:43:52 IST | INFO     | backend.strategy.executor |                           EXECUTING AUTOMATED BUY: BSE                          
+2026-08-17 11:43:53 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹8047.40 + sell 131 LIQUIDCASE × ₹115.49 = ₹15129.19 (shortfall) → Buy 7 BSE × ₹3305.30 = ₹23137.10
+2026-08-17 11:43:53 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹3305.30 for BSE (LTP was ₹3305.30, top_ask from depth)
+2026-08-17 11:43:53 IST | INFO     | backend.orders.manager | smart_buy 7 × BSE @ ₹3305.30 (cost ₹23,137.10) | Available cash: ₹23,047.40 (spendable after ₹15000 reserve: ₹8,047.40)
+2026-08-17 11:43:53 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.49 (top_bid from depth)
+2026-08-17 11:43:53 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 142 x LIQUIDCASE
+2026-08-17 11:43:54 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260817150764302
+2026-08-17 11:43:54 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.49
+2026-08-17 11:43:54 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 142 units @ ₹115.49
