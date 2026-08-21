@@ -1,6 +1,6 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-08-21 09:08:04 IST",
+  "timestamp": "2026-08-21 09:09:06 IST",
   "bot_running": true,
   "total_value": 7510027.34,
   "today_pnl": -348.87,
@@ -53,8 +53,8 @@
       "value": 523244.85,
       "pnl": -348.87,
       "pnl_pct": -0.07,
-      "unrealised_pnl": -430.57,
-      "unrealised_pnl_pct": -0.08,
+      "unrealised_pnl": -779.44,
+      "unrealised_pnl_pct": -0.15,
       "strategy": "active",
       "buys_today": 1,
       "max_slots": 6
@@ -144,13 +144,13 @@
       "quantity": 5841,
       "pledged": 0,
       "avg": 177.28,
-      "ltp": 175.51,
+      "ltp": 175.8,
       "invested": 1035473.7,
-      "value": 1025153.91,
-      "pnl": -10319.79,
-      "pnl_pct": -1.0,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "value": 1026847.8,
+      "pnl": -8625.9,
+      "pnl_pct": -0.83,
+      "day_pnl": 1693.89,
+      "day_pnl_pct": 0.17,
       "tracked": false
     },
     {
@@ -160,13 +160,13 @@
       "quantity": 1917,
       "pledged": 1917,
       "avg": 485.69,
-      "ltp": 497.96,
+      "ltp": 498.84,
       "invested": 931062.15,
-      "value": 954589.32,
-      "pnl": 23527.17,
-      "pnl_pct": 2.53,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "value": 956276.28,
+      "pnl": 25214.13,
+      "pnl_pct": 2.71,
+      "day_pnl": 1686.96,
+      "day_pnl_pct": 0.18,
       "tracked": false
     },
     {
@@ -195,10 +195,10 @@
       "ltp": 434.95,
       "invested": 524024.29,
       "value": 523244.85,
-      "pnl": -430.57,
-      "pnl_pct": -0.08,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "pnl": -779.44,
+      "pnl_pct": -0.15,
+      "day_pnl": -348.87,
+      "day_pnl_pct": -0.07,
       "tracked": true
     },
     {
@@ -236,11 +236,11 @@
   ],
   "equity_summary": {
     "total_invested": 10634686.12,
-    "total_cur_val": 10755912.47,
-    "total_pnl": 121226.35,
-    "total_pnl_pct": 1.14,
-    "day_pnl": -1681.3,
-    "day_pnl_pct": -0.02,
+    "total_cur_val": 10759293.32,
+    "total_pnl": 124607.2,
+    "total_pnl_pct": 1.17,
+    "day_pnl": 1350.68,
+    "day_pnl_pct": 0.01,
     "count": 9
   },
   "positions": [
@@ -326,9 +326,9 @@
     },
     {
       "symbol": "EMBASSY-RR",
-      "ltp": 434.95,
-      "change_pct": -0.07,
-      "williams_r": -86.98,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -85.6,
       "is_held": true,
       "avg_price": 435.6,
       "strategy": "active"
