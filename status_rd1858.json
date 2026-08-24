@@ -1,6 +1,6 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-08-24 10:17:33 IST",
+  "timestamp": "2026-08-24 10:18:34 IST",
   "bot_running": true,
   "total_value": 6993600.44,
   "today_pnl": 3195.69,
@@ -52,8 +52,8 @@
       "value": 742820.43,
       "pnl": 2109.33,
       "pnl_pct": 0.28,
-      "unrealised_pnl": 38651.22,
-      "unrealised_pnl_pct": 5.49,
+      "unrealised_pnl": 38345.52,
+      "unrealised_pnl_pct": 5.45,
       "strategy": "bnh",
       "buys_today": 0,
       "max_slots": 6
@@ -84,10 +84,10 @@
       "ltp": 115.61,
       "invested": 4800598.57,
       "value": 4912615.73,
-      "pnl": 112017.16,
-      "pnl_pct": 2.33,
-      "day_pnl": 849.86,
-      "day_pnl_pct": 0.02,
+      "pnl": 111592.23,
+      "pnl_pct": 2.32,
+      "day_pnl": 424.93,
+      "day_pnl_pct": 0.01,
       "tracked": false
     },
     {
@@ -145,13 +145,13 @@
       "quantity": 1917,
       "pledged": 1917,
       "avg": 485.69,
-      "ltp": 497.97,
+      "ltp": 497.99,
       "invested": 931062.15,
-      "value": 954608.49,
-      "pnl": 23546.34,
+      "value": 954646.83,
+      "pnl": 23584.68,
       "pnl_pct": 2.53,
-      "day_pnl": 5731.83,
-      "day_pnl_pct": 0.6,
+      "day_pnl": 5770.17,
+      "day_pnl_pct": 0.61,
       "tracked": false
     },
     {
@@ -164,10 +164,10 @@
       "ltp": 242.99,
       "invested": 704199.78,
       "value": 742820.43,
-      "pnl": 38651.22,
-      "pnl_pct": 5.49,
-      "day_pnl": 2139.9,
-      "day_pnl_pct": 0.29,
+      "pnl": 38345.52,
+      "pnl_pct": 5.45,
+      "day_pnl": 1834.2,
+      "day_pnl_pct": 0.25,
       "tracked": true
     },
     {
@@ -193,13 +193,13 @@
       "quantity": 43,
       "pledged": 0,
       "avg": 3435.54,
-      "ltp": 3333.8,
+      "ltp": 3335.2,
       "invested": 147728.2,
-      "value": 143353.4,
-      "pnl": -4374.8,
-      "pnl_pct": -2.96,
-      "day_pnl": 3990.4,
-      "day_pnl_pct": 2.86,
+      "value": 143413.6,
+      "pnl": -4314.6,
+      "pnl_pct": -2.92,
+      "day_pnl": 4050.6,
+      "day_pnl_pct": 2.91,
       "tracked": false
     },
     {
@@ -221,11 +221,11 @@
   ],
   "equity_summary": {
     "total_invested": 10634686.12,
-    "total_cur_val": 10775579.17,
-    "total_pnl": 140893.05,
-    "total_pnl_pct": 1.32,
-    "day_pnl": 26065.47,
-    "day_pnl_pct": 0.25,
+    "total_cur_val": 10775677.71,
+    "total_pnl": 140991.59,
+    "total_pnl_pct": 1.33,
+    "day_pnl": 25433.38,
+    "day_pnl_pct": 0.24,
     "count": 9
   },
   "positions": [
@@ -257,9 +257,9 @@
       "symbol": "PGINVIT-IV",
       "quantity": 10009,
       "avg": 99.91,
-      "ltp": 99.88,
-      "pnl": -300.27,
-      "unrealised": -300.27,
+      "ltp": 99.86,
+      "pnl": -500.45,
+      "unrealised": -500.45,
       "realised": 0.0,
       "buy_qty": 10009,
       "sell_qty": 0,
@@ -278,9 +278,9 @@
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 801.0,
-      "change_pct": 0.09,
-      "williams_r": -54.89,
+      "ltp": 800.91,
+      "change_pct": 0.08,
+      "williams_r": -55.1,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -296,9 +296,9 @@
     },
     {
       "symbol": "HDFCSML250",
-      "ltp": 186.3,
-      "change_pct": 0.49,
-      "williams_r": -54.39,
+      "ltp": 186.28,
+      "change_pct": 0.48,
+      "williams_r": -54.7,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -314,9 +314,9 @@
     },
     {
       "symbol": "GOLDBEES",
-      "ltp": 132.97,
-      "change_pct": 1.26,
-      "williams_r": -3.68,
+      "ltp": 132.96,
+      "change_pct": 1.25,
+      "williams_r": -3.75,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
@@ -347,19 +347,19 @@
   ],
   "indices": {
     "NIFTY 50": {
-      "ltp": 24277.4,
+      "ltp": 24276.05,
       "prev_close": 24252.0,
-      "change": 25.4,
+      "change": 24.05,
       "change_pct": 0.1,
       "open": 24285.05,
       "high": 24313.0,
       "low": 24267.3
     },
     "INDIA VIX": {
-      "ltp": 11.32,
+      "ltp": 11.3,
       "prev_close": 11.2,
-      "change": 0.12,
-      "change_pct": 1.07,
+      "change": 0.1,
+      "change_pct": 0.89,
       "open": 11.2,
       "high": 11.34,
       "low": 10.32
@@ -526,6 +526,6 @@
     }
   },
   "available_cash": 36581.71,
-  "available_margin": 3425606.51,
+  "available_margin": 3426343.61,
   "available_margin_note": null
 }
