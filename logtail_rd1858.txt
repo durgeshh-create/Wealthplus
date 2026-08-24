@@ -1,0 +1,17 @@
+2026-08-24 15:15:26 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-75.2)]: HDFCSML250 | Price=₹184.95 | PrevClose=₹185.39 | AvgBuy=None | Slot 1/6
+2026-08-24 15:15:26 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-75.19 | ₹184.95
+2026-08-24 15:15:26 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
+2026-08-24 15:15:26 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹1580.90 + sell 203 LIQUIDCASE × ₹115.61 = ₹23468.83 (shortfall) → Buy 135 HDFCSML250 × ₹184.95 = ₹24968.25
+2026-08-24 15:15:26 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹185.11 for HDFCSML250 (LTP was ₹184.95, top_ask from depth)
+2026-08-24 15:15:26 IST | INFO     | backend.orders.manager | smart_buy 135 × HDFCSML250 @ ₹185.11 (cost ₹24,989.85) | Available cash: ₹16,580.90 (spendable after ₹15000 reserve: ₹1,580.90)
+2026-08-24 15:15:26 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.60 (top_bid from depth)
+2026-08-24 15:15:26 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 219 x LIQUIDCASE
+2026-08-24 15:15:27 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260824191121310
+2026-08-24 15:15:27 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.6
+2026-08-24 15:15:27 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 219 units @ ₹115.61
+2026-08-24 15:15:29 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹185.11 → ₹185.15 (top_ask from depth)
+2026-08-24 15:15:29 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 135 x HDFCSML250
+2026-08-24 15:15:30 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260824191121439
+2026-08-24 15:15:30 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: HDFCSML250 @ ₹185.15
+2026-08-24 15:15:30 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 135 × HDFCSML250 @ ₹185.11
+2026-08-24 15:15:31 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: HDFCSML250 x135 @ ₹184.95
