@@ -1,1 +1,4 @@
 2026-08-25 15:01:33 IST | ERROR    | backend.portfolio.tracker | Error fetching positions: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
+2026-08-25 15:26:50 IST | ERROR    | kiteconnect.ticker   | Connection error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+2026-08-25 15:26:50 IST | ERROR    | backend.data.realtime | ❌ WebSocket error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+2026-08-25 15:26:50 IST | ERROR    | kiteconnect.ticker   | Connection closed: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
