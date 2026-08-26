@@ -252,6 +252,15 @@
             font-weight: 600;
             color: #1a1f3a;
         }
+        .fund-name-link {
+            color: inherit;
+            text-decoration: none;
+            border-bottom: 1px dashed #9aa3c0;
+        }
+        .fund-name-link:hover {
+            color: #3355dd;
+            border-bottom-color: #3355dd;
+        }
         .fund-type {
             font-size: 0.75rem;
             color: #5a6478;
@@ -1313,6 +1322,7 @@
                 fallbackSymbols: ["542602.BO"],
                 gfTicker: "BOM:542602",
                 url: "https://www.google.com/finance/beta/quote/542602:BOM",
+                corpActionUrl: "https://www.nseindia.com/companies-listing/corporate-filings-actions?symbol=EMBASSY&tabIndex=invitsreits",
                 history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, williamsR: null, status: null
             },
             {
@@ -1322,6 +1332,7 @@
                 fallbackSymbols: ["543217.BO"],
                 gfTicker: "BOM:543217",
                 url: "https://www.google.com/finance/beta/quote/543217:BOM",
+                corpActionUrl: "https://www.nseindia.com/companies-listing/corporate-filings-actions?symbol=MINDSPACE&tabIndex=invitsreits",
                 history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, williamsR: null, status: null
             },
             {
@@ -1331,6 +1342,7 @@
                 fallbackSymbols: ["540565.BO"],
                 gfTicker: "BOM:540565",
                 url: "https://www.google.com/finance/beta/quote/540565:BOM",
+                corpActionUrl: "https://www.nseindia.com/companies-listing/corporate-filings-actions?symbol=INDIGRID&tabIndex=invitsreits",
                 history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, williamsR: null, status: null
             },
             {
@@ -1340,6 +1352,17 @@
                 fallbackSymbols: ["543913.BO"],
                 gfTicker: "BOM:543913",
                 url: "https://www.google.com/finance/beta/quote/543913:BOM",
+                corpActionUrl: "https://www.nseindia.com/companies-listing/corporate-filings-actions?symbol=NXST&tabIndex=invitsreits",
+                history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, williamsR: null, status: null
+            },
+            {
+                name: "PGINVIT",
+                assetType: "invit",
+                symbol: "PGINVIT.BO",
+                fallbackSymbols: ["543290.BO"],
+                gfTicker: "BOM:543290",
+                url: "https://www.google.com/finance/beta/quote/543290:BOM",
+                corpActionUrl: "https://www.nseindia.com/companies-listing/corporate-filings-actions?symbol=PGINVIT&tabIndex=invitsreits",
                 history: null, sparkSvg: null, pct20dma: null, dayChange: null, ltp: null, cagr3y: null, cagr5y: null, cagr7y: null, cagr10y: null, williamsR: null, status: null
             }
         ];
@@ -1848,9 +1871,13 @@
 
                 row.className = isOversoldHighlight ? 'row-highlight' : '';
 
+                const fundNameContent = fund.corpActionUrl
+                    ? `<a href="${fund.corpActionUrl}" target="_blank" class="fund-name-link">${fund.name}</a>`
+                    : fund.name;
+
                 row.innerHTML = `
                     <td>
-                        <div class="fund-name${isOversoldHighlight ? ' name-highlight' : ''}">${fund.name}</div>
+                        <div class="fund-name${isOversoldHighlight ? ' name-highlight' : ''}">${fundNameContent}</div>
                         <div class="fund-type">${assetTypeLabels[fund.assetType] || fund.assetType}</div>
                     </td>
                     <td>${sparkCell}</td>
