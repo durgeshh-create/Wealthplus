@@ -23,3 +23,16 @@
 2026-08-31 09:27:57 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 7 × ₹241.82 = ₹1693 | LIMIT | Available Cash
 2026-08-31 09:28:58 IST | ERROR    | backend.portfolio.tracker | Error fetching holdings: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
 2026-08-31 10:32:21 IST | ERROR    | backend.portfolio.tracker | Error fetching positions: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
+2026-08-31 10:34:50 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [B(W%R=-73.4+drop=1.00%)]: JUNIORBEES | Price=₹793.25 | PrevClose=₹801.29 | AvgBuy=None | Slot 1/6
+2026-08-31 10:34:50 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-73.41 | ₹793.25
+2026-08-31 10:34:50 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-08-31 10:34:50 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹793.55 for JUNIORBEES (LTP was ₹793.25, top_ask from depth)
+2026-08-31 10:34:50 IST | INFO     | backend.orders.manager | smart_buy 31 × JUNIORBEES @ ₹793.55 (cost ₹24,600.05) | Available cash: ₹52,461.90 (spendable after ₹15000 reserve: ₹37,461.90)
+2026-08-31 10:34:50 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 31 x JUNIORBEES
+2026-08-31 10:34:51 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831150562121
+2026-08-31 10:34:51 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 38153909.26. Margin available: 38130281.52. Check orderbook for open orders.
+2026-08-31 10:34:52 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.71 (top_bid from depth)
+2026-08-31 10:34:52 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 230 x LIQUIDCASE
+2026-08-31 10:34:53 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831150562229
+2026-08-31 10:34:53 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.71
+2026-08-31 10:34:53 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 230 units @ ₹115.72
