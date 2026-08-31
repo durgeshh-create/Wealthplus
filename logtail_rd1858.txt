@@ -3,3 +3,32 @@
 2026-08-31 09:17:49 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831190079579
 2026-08-31 09:17:57 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹241.92
 2026-08-31 09:17:58 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 7 × ₹241.92 = ₹1693 | LIMIT | Available Cash
+2026-08-31 09:20:00 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [B(W%R=-65.6+drop=3.78%)]: SILVERBEES | Price=₹221.70 | PrevClose=₹230.42 | AvgBuy=None | Slot 1/6
+2026-08-31 09:20:00 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [B(W%R=-70.0+drop=3.13%)]: GOLDBEES | Price=₹126.75 | PrevClose=₹130.85 | AvgBuy=None | Slot 1/6
+2026-08-31 09:20:00 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-65.62 | ₹221.70
+2026-08-31 09:20:00 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-70.00 | ₹126.75
+2026-08-31 09:20:00 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-08-31 09:20:00 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹221.70 for SILVERBEES (LTP was ₹221.70, top_ask from depth)
+2026-08-31 09:20:00 IST | INFO     | backend.orders.manager | smart_buy 112 × SILVERBEES @ ₹221.70 (cost ₹24,830.40) | Available cash: ₹49,698.20 (spendable after ₹15000 reserve: ₹34,698.20)
+2026-08-31 09:20:00 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 112 x SILVERBEES
+2026-08-31 09:20:01 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831190100820
+2026-08-31 09:20:01 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: SILVERBEES @ ₹221.69
+2026-08-31 09:20:02 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: SILVERBEES x112 @ ₹221.70
+2026-08-31 09:20:02 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
+2026-08-31 09:20:02 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹126.75 for GOLDBEES (LTP was ₹126.75, top_ask from depth)
+2026-08-31 09:20:02 IST | INFO     | backend.orders.manager | smart_buy 197 × GOLDBEES @ ₹126.75 (cost ₹24,969.75) | Available cash: ₹49,698.20 (spendable after ₹15000 reserve: ₹34,698.20)
+2026-08-31 09:20:02 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 197 x GOLDBEES
+2026-08-31 09:20:03 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831190101214
+2026-08-31 09:20:03 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 51492.47. Margin available: 49698.20. Check orderbook for open orders.
+2026-08-31 09:20:03 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.71 (top_bid from depth)
+2026-08-31 09:20:03 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 234 x LIQUIDCASE
+2026-08-31 09:20:04 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831190101388
+2026-08-31 09:20:04 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.71
+2026-08-31 09:20:04 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 234 units @ ₹115.72
+2026-08-31 09:20:06 IST | INFO     | backend.orders.manager | [smart_buy] Price moved ₹126.75→₹126.76 — qty 197→196 (budget cap 196 @ orig. budget ₹24,969.75, cash cap 278 @ avail ₹35,251.62)
+2026-08-31 09:20:06 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹126.75 → ₹126.76 (top_ask from depth)
+2026-08-31 09:20:06 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 196 x GOLDBEES
+2026-08-31 09:20:06 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831190101790
+2026-08-31 09:20:08 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: GOLDBEES @ ₹126.76
+2026-08-31 09:20:08 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 196 × GOLDBEES @ ₹126.75
+2026-08-31 09:20:08 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: GOLDBEES x197 @ ₹126.75
