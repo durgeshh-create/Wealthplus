@@ -10,3 +10,18 @@
 2026-08-31 14:18:49 IST | INFO     | backend.orders.manager | smart_buy 31 × JUNIORBEES @ ₹794.10 (cost ₹24,617.10) | Available cash: ₹52,461.90 (spendable after ₹15000 reserve: ₹37,461.90)
 2026-08-31 14:18:49 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 31 x JUNIORBEES
 2026-08-31 14:18:49 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831151148607
+2026-08-31 14:19:33 IST | ERROR    | backend.orders.manager | Order 260831151148607 still not complete after 36s — giving up
+2026-08-31 14:19:34 IST | INFO     | backend.orders.manager | [smart_buy] Cancelled open BUY 260831151148607 (JUNIORBEES) to free margin
+2026-08-31 14:19:34 IST | INFO     | backend.orders.manager | [smart_buy] Cancelled 1 open BUY order(s) to free margin
+2026-08-31 14:19:36 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.71 (top_bid from depth)
+2026-08-31 14:19:36 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 230 x LIQUIDCASE
+2026-08-31 14:19:36 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831151150358
+2026-08-31 14:19:36 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.71
+2026-08-31 14:19:36 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 230 units @ ₹115.72
+2026-08-31 14:19:39 IST | INFO     | backend.orders.manager | [smart_buy] Price moved ₹794.10→₹794.31 — qty 31→30 (budget cap 30 @ orig. budget ₹24,617.10, cash cap 40 @ avail ₹31,947.68)
+2026-08-31 14:19:39 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹794.1 → ₹794.31 (top_ask from depth)
+2026-08-31 14:19:39 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 30 x JUNIORBEES
+2026-08-31 14:19:39 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831151150468
+2026-08-31 14:19:48 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: JUNIORBEES @ ₹794.31
+2026-08-31 14:19:48 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 30 × JUNIORBEES @ ₹794.10
+2026-08-31 14:19:49 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: JUNIORBEES x31 @ ₹793.10
