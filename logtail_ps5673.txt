@@ -1,0 +1,18 @@
+2026-08-31 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [B(W%R=-65.7+drop=3.79%)]: SILVERBEES | Price=₹221.69 | PrevClose=₹230.42 | AvgBuy=None | Slot 1/6
+2026-08-31 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [B(W%R=-70.0+drop=3.13%)]: GOLDBEES | Price=₹126.75 | PrevClose=₹130.85 | AvgBuy=None | Slot 1/6
+2026-08-31 09:20:01 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-65.68 | ₹221.69
+2026-08-31 09:20:01 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-70.00 | ₹126.75
+2026-08-31 09:20:01 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-08-31 09:20:01 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹221.69 for SILVERBEES (LTP was ₹221.69, top_ask from depth)
+2026-08-31 09:20:02 IST | INFO     | backend.orders.manager | smart_buy 112 × SILVERBEES @ ₹221.69 (cost ₹24,829.28) | Available cash: ₹52,461.90 (spendable after ₹15000 reserve: ₹37,461.90)
+2026-08-31 09:20:02 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 112 x SILVERBEES
+2026-08-31 09:20:02 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831150127072
+2026-08-31 09:20:02 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: SILVERBEES @ ₹221.69
+2026-08-31 09:20:03 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: SILVERBEES x112 @ ₹221.69
+2026-08-31 09:20:03 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
+2026-08-31 09:20:03 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹126.75 for GOLDBEES (LTP was ₹126.75, top_ask from depth)
+2026-08-31 09:20:03 IST | INFO     | backend.orders.manager | smart_buy 197 × GOLDBEES @ ₹126.75 (cost ₹24,969.75) | Available cash: ₹52,461.90 (spendable after ₹15000 reserve: ₹37,461.90)
+2026-08-31 09:20:03 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 197 x GOLDBEES
+2026-08-31 09:20:04 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831150127471
+2026-08-31 09:20:04 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: GOLDBEES @ ₹126.74
+2026-08-31 09:20:04 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: GOLDBEES x197 @ ₹126.75
