@@ -32,3 +32,12 @@
 2026-08-31 09:20:08 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: GOLDBEES @ ₹126.76
 2026-08-31 09:20:08 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 196 × GOLDBEES @ ₹126.75
 2026-08-31 09:20:08 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: GOLDBEES x197 @ ₹126.75
+2026-08-31 10:34:50 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [B(W%R=-73.4+drop=1.00%)]: JUNIORBEES | Price=₹793.25 | PrevClose=₹801.29 | AvgBuy=None | Slot 1/6
+2026-08-31 10:34:50 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-73.41 | ₹793.25
+2026-08-31 10:34:50 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-08-31 10:34:50 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹793.55 for JUNIORBEES (LTP was ₹793.25, top_ask from depth)
+2026-08-31 10:34:50 IST | INFO     | backend.orders.manager | smart_buy 31 × JUNIORBEES @ ₹793.55 (cost ₹24,600.05) | Available cash: ₹49,698.20 (spendable after ₹15000 reserve: ₹34,698.20)
+2026-08-31 10:34:50 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 31 x JUNIORBEES
+2026-08-31 10:34:50 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831190460678
+2026-08-31 10:34:51 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: JUNIORBEES @ ₹793.55
+2026-08-31 10:34:51 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: JUNIORBEES x31 @ ₹793.25
