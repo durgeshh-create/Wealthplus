@@ -3,3 +3,10 @@
 2026-08-31 13:59:33 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831151089821
 2026-08-31 13:59:33 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹241.79
 2026-08-31 13:59:34 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 7 × ₹241.80 = ₹1693 | LIMIT | Available Cash
+2026-08-31 14:18:48 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [B(W%R=-73.8+drop=1.02%)]: JUNIORBEES | Price=₹793.10 | PrevClose=₹801.29 | AvgBuy=None | Slot 1/6
+2026-08-31 14:18:48 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-73.76 | ₹793.10
+2026-08-31 14:18:48 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-08-31 14:18:48 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹794.10 for JUNIORBEES (LTP was ₹793.10, top_ask from depth)
+2026-08-31 14:18:49 IST | INFO     | backend.orders.manager | smart_buy 31 × JUNIORBEES @ ₹794.10 (cost ₹24,617.10) | Available cash: ₹52,461.90 (spendable after ₹15000 reserve: ₹37,461.90)
+2026-08-31 14:18:49 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 31 x JUNIORBEES
+2026-08-31 14:18:49 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260831151148607
