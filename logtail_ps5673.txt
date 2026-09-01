@@ -16,3 +16,13 @@
 2026-09-01 14:47:55 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260901151565485
 2026-09-01 14:47:56 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.73
 2026-09-01 14:47:56 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 157 units @ ₹115.74
+2026-09-01 14:49:38 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [SILVERBEES]: Margin not credited after 90s: live_balance ₹23,086.20 < required ₹39,829.20. LIQUIDCASE was sold (157 units) — cash should credit shortly.
+2026-09-01 14:49:38 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
+2026-09-01 14:49:39 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹8086.20 + sell 146 LIQUIDCASE × ₹115.74 = ₹16898.04 (shortfall) → Buy 199 GOLDBEES × ₹125.39 = ₹24952.61
+2026-09-01 14:49:39 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹125.39 for GOLDBEES (LTP was ₹125.39, top_ask from depth)
+2026-09-01 14:49:39 IST | INFO     | backend.orders.manager | smart_buy 199 × GOLDBEES @ ₹125.39 (cost ₹24,952.61) | Available cash: ₹23,086.20 (spendable after ₹15000 reserve: ₹8,086.20)
+2026-09-01 14:49:39 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.73 (top_bid from depth)
+2026-09-01 14:49:39 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 158 x LIQUIDCASE
+2026-09-01 14:49:40 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260901151571577
+2026-09-01 14:49:40 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.73
+2026-09-01 14:49:40 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 158 units @ ₹115.74
