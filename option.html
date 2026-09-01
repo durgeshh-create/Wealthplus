@@ -315,87 +315,84 @@
             </div>
         </div>
 
-        <!-- NIFTY & MIDCPNIFTY Expiry Day Intraday Strikes: auto-shown on Tuesdays, toggle available otherwise -->
+        <!-- NIFTY & MIDCPNIFTY Expiry Day Intraday Strikes -->
         <div id="expiryStrikesSection">
-        <!-- NIFTY Expiry Day Intraday Strikes -->
-        <div class="section-divider">
-            <span>NIFTY EXPIRY DAY INTRADAY (Div: 30,000)</span>
-        </div>
+            <!-- NIFTY Expiry Day Intraday Strikes -->
+            <div class="section-divider">
+                <span>NIFTY EXPIRY DAY INTRADAY (Div: 30,000)</span>
+            </div>
 
-        <div class="expiry-day-banner" id="niftyExpiryBanner">
-            Today is NIFTY Expiry Day! Intraday strikes with divisor 30,000.
-        </div>
+            <div class="expiry-day-banner" id="niftyExpiryBanner">
+                Today is NIFTY Expiry Day! Intraday strikes with divisor 30,000.
+            </div>
 
-        <div class="results-row">
-            <div class="result-card">
-                <div class="result-header expiry-section">
-                    <h2>NIFTY EXPIRY PUT</h2>
-                    <div class="strike-badge expiry" id="expiryPutStrike">23,200</div>
+            <div class="results-row">
+                <div class="result-card">
+                    <div class="result-header expiry-section">
+                        <h2>NIFTY EXPIRY PUT</h2>
+                        <div class="strike-badge expiry" id="expiryPutStrike">23,200</div>
+                    </div>
+                    <div class="symbol-display">
+                        <div class="symbol-code expiry" id="expiryPutSymbol">
+                            <span id="expiryPutSymbolText">NIFTY26JUN23200PE</span>
+                            <button class="copy-btn" onclick="copyToClipboard('expiryPutSymbolText', this)">Copy</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="symbol-display">
-                    <div class="symbol-code expiry" id="expiryPutSymbol">
-                        <span id="expiryPutSymbolText">NIFTY26JUN23200PE</span>
-                        <button class="copy-btn" onclick="copyToClipboard('expiryPutSymbolText', this)">Copy</button>
+
+                <div class="result-card">
+                    <div class="result-header expiry-section">
+                        <h2>NIFTY EXPIRY CALL</h2>
+                        <div class="strike-badge expiry" id="expiryCallStrike">24,700</div>
+                    </div>
+                    <div class="symbol-display">
+                        <div class="symbol-code expiry" id="expiryCallSymbol">
+                            <span id="expiryCallSymbolText">NIFTY26JUN24700CE</span>
+                            <button class="copy-btn" onclick="copyToClipboard('expiryCallSymbolText', this)">Copy</button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="result-card">
-                <div class="result-header expiry-section">
-                    <h2>NIFTY EXPIRY CALL</h2>
-                    <div class="strike-badge expiry" id="expiryCallStrike">24,700</div>
+            <!-- MIDCPNIFTY Expiry Day Intraday Strikes -->
+            <div id="midcpExpirySection">
+                <div class="section-divider">
+                    <span>MIDCPNIFTY EXPIRY DAY INTRADAY (Div: 17,000)</span>
                 </div>
-                <div class="symbol-display">
-                    <div class="symbol-code expiry" id="expiryCallSymbol">
-                        <span id="expiryCallSymbolText">NIFTY26JUN24700CE</span>
-                        <button class="copy-btn" onclick="copyToClipboard('expiryCallSymbolText', this)">Copy</button>
+
+                <div class="midcp-banner" id="midcpExpiryBanner">
+                    MIDCPNIFTY intraday strikes using divisor 17,000. Strike interval: 25.
+                </div>
+
+                <div class="results-row">
+                    <div class="result-card">
+                        <div class="result-header midcp">
+                            <h2>MIDCP PUT</h2>
+                            <div class="strike-badge midcp" id="midcpPutStrike">13,850</div>
+                        </div>
+                        <div class="symbol-display">
+                            <div class="symbol-code midcp" id="midcpPutSymbol">
+                                <span id="midcpPutSymbolText">MIDCPNIFTY26JUN13850PE</span>
+                                <button class="copy-btn" onclick="copyToClipboard('midcpPutSymbolText', this)">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="result-card">
+                        <div class="result-header midcp">
+                            <h2>MIDCP CALL</h2>
+                            <div class="strike-badge midcp" id="midcpCallStrike">14,875</div>
+                        </div>
+                        <div class="symbol-display">
+                            <div class="symbol-code midcp" id="midcpCallSymbol">
+                                <span id="midcpCallSymbolText">MIDCPNIFTY26JUN14875CE</span>
+                                <button class="copy-btn" onclick="copyToClipboard('midcpCallSymbolText', this)">Copy</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                <div class="midcp-caveat">Do MIDCPNIFTY only on last Tue of month if these strikes have good volume</div>
             </div>
-        </div>
-
-        <!-- MIDCPNIFTY Expiry Day Intraday Strikes: only auto-shown on the
-             LAST Tuesday of the month (monthly expiry) — earlier weekly
-             Tuesdays' MIDCPNIFTY expiry-day strikes see too little volume
-             to be worth surfacing by default. -->
-        <div id="midcpExpirySection">
-        <div class="section-divider">
-            <span>MIDCPNIFTY EXPIRY DAY INTRADAY (Div: 17,000)</span>
-        </div>
-
-        <div class="midcp-banner" id="midcpExpiryBanner">
-            MIDCPNIFTY intraday strikes using divisor 17,000. Strike interval: 25.
-        </div>
-
-        <div class="results-row">
-            <div class="result-card">
-                <div class="result-header midcp">
-                    <h2>MIDCP PUT</h2>
-                    <div class="strike-badge midcp" id="midcpPutStrike">13,850</div>
-                </div>
-                <div class="symbol-display">
-                    <div class="symbol-code midcp" id="midcpPutSymbol">
-                        <span id="midcpPutSymbolText">MIDCPNIFTY26JUN13850PE</span>
-                        <button class="copy-btn" onclick="copyToClipboard('midcpPutSymbolText', this)">Copy</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="result-card">
-                <div class="result-header midcp">
-                    <h2>MIDCP CALL</h2>
-                    <div class="strike-badge midcp" id="midcpCallStrike">14,875</div>
-                </div>
-                <div class="symbol-display">
-                    <div class="symbol-code midcp" id="midcpCallSymbol">
-                        <span id="midcpCallSymbolText">MIDCPNIFTY26JUN14875CE</span>
-                        <button class="copy-btn" onclick="copyToClipboard('midcpCallSymbolText', this)">Copy</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="midcp-caveat">Do MIDCPNIFTY only on last Tue of month if these strikes have good volume</div>
-        </div>
         </div>
 
         <div class="note">
@@ -404,585 +401,547 @@
     </div>
 
     <script>
-    const DIVISORS = { 1: 3300, 2: 3800, 3: 4500, 4: 6000, 5: 8000, 6: 3300, 0: 3300 };
-    const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-    const EXPIRY_DAY_DIVISOR = 30000;
-    const MIDCP_EXPIRY_DAY_DIVISOR = 17000;
+        const DIVISORS = { 1: 3300, 2: 3800, 3: 4500, 4: 6000, 5: 8000, 6: 3300, 0: 3300 };
+        const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const EXPIRY_DAY_DIVISOR = 30000;
+        const MIDCP_EXPIRY_DAY_DIVISOR = 17000;
 
-    let currentNifty = 23945, currentVix = 13.61, currentMidcp = 14367;
-    let liveDataLoaded = false;
+        let currentNifty = 23945, currentVix = 13.61, currentMidcp = 14367;
+        let liveDataLoaded = false;
 
-    /* ---------- CACHE ---------- */
-    const CACHE_KEY = 'dotm_strategy_cache_v1';
-    const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+        /* ---------- CACHE ---------- */
+        const CACHE_KEY = 'dotm_strategy_cache_v2';
+        const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
-    function saveCache(nifty, vix, midcp) {
-        try {
-            localStorage.setItem(CACHE_KEY, JSON.stringify({ nifty, vix, midcp, timestamp: Date.now() }));
-        } catch (e) { /* ignore */ }
-    }
-
-    function loadCache() {
-        try {
-            const raw = localStorage.getItem(CACHE_KEY);
-            if (!raw) return null;
-            const data = JSON.parse(raw);
-            if (Date.now() - data.timestamp > CACHE_MAX_AGE_MS) {
-                localStorage.removeItem(CACHE_KEY);
-                return null;
-            }
-            return data;
-        } catch (e) { return null; }
-    }
-
-    /* ---------- COPY ---------- */
-    function copyToClipboard(elementId, btn) {
-        const text = document.getElementById(elementId).textContent.trim();
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(text).then(() => showCopied(btn)).catch(() => fallbackCopy(text, btn));
-        } else {
-            fallbackCopy(text, btn);
-        }
-    }
-
-    function fallbackCopy(text, btn) {
-        const range = document.createRange();
-        const selection = window.getSelection();
-        const tempEl = document.createElement('span');
-        tempEl.textContent = text;
-        tempEl.style.position = 'absolute';
-        tempEl.style.left = '-9999px';
-        document.body.appendChild(tempEl);
-        range.selectNodeContents(tempEl);
-        selection.removeAllRanges();
-        selection.addRange(range);
-        try { document.execCommand('copy') ? showCopied(btn) : showFailed(btn); }
-        catch (e) { showFailed(btn); }
-        selection.removeAllRanges();
-        document.body.removeChild(tempEl);
-    }
-
-    function showCopied(btn) {
-        const originalText = btn.textContent;
-        btn.textContent = 'Copied!';
-        btn.classList.add('copied');
-        setTimeout(() => { btn.textContent = originalText; btn.classList.remove('copied'); }, 1500);
-    }
-
-    function showFailed(btn) {
-        const originalText = btn.textContent;
-        btn.textContent = 'Failed';
-        setTimeout(() => { btn.textContent = originalText; }, 1500);
-    }
-
-    /* ---------- DATE HELPERS ---------- */
-    function formatDDMMYYYY(date) {
-        const dd = date.getDate().toString().padStart(2, '0');
-        const mm = (date.getMonth() + 1).toString().padStart(2, '0');
-        const yyyy = date.getFullYear();
-        return `${dd}/${mm}/${yyyy}`;
-    }
-
-    function getNextTuesday(date) {
-        const d = new Date(date);
-        const day = d.getDay();
-        let daysToTue = day <= 2 ? 2 - day : 9 - day;
-        d.setDate(d.getDate() + daysToTue);
-        return d;
-    }
-
-    function isLastTuesdayOfMonth(date) {
-        const year = date.getFullYear(), month = date.getMonth(), day = date.getDate();
-        const nextMonth = month === 11 ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
-        const tuesdays = [];
-        const d = new Date(year, month, 1);
-        while (d < nextMonth) { if (d.getDay() === 2) tuesdays.push(d.getDate()); d.setDate(d.getDate() + 1); }
-        return tuesdays.length > 0 && day === tuesdays[tuesdays.length - 1];
-    }
-
-    function getExpiryForWeekday(date) {
-        const dayOfWeek = date.getDay();
-        if (dayOfWeek === 1 || dayOfWeek === 2) {
-            const nextTue = getNextTuesday(date);
-            const expiry = new Date(nextTue);
-            expiry.setDate(expiry.getDate() + 7);
-            return expiry;
-        }
-        return getNextTuesday(date);
-    }
-
-    function formatWeeklySymbol(underlying, expiry, strike, type) {
-        const yy = expiry.getFullYear().toString().slice(-2);
-        const m = (expiry.getMonth() + 1).toString();
-        const dd = expiry.getDate().toString().padStart(2, '0');
-        return `${underlying}${yy}${m}${dd}${Math.round(strike)}${type}`;
-    }
-
-    function formatMonthlySymbol(underlying, expiry, strike, type) {
-        const yy = expiry.getFullYear().toString().slice(-2);
-        return `${underlying}${yy}${MONTH_NAMES[expiry.getMonth()]}${Math.round(strike)}${type}`;
-    }
-
-    /* ---------- UI HELPERS ---------- */
-    const DERIVED_VALUE_IDS = [
-        'rangeDisplay', 'rangeFormula', 'niftyDivisorValue', 'rangeValue', 'expiryDate',
-        'putStrike', 'putSymbolText', 'callStrike', 'callSymbolText',
-        'expiryPutStrike', 'expiryPutSymbolText', 'expiryCallStrike', 'expiryCallSymbolText',
-        'midcpPutStrike', 'midcpPutSymbolText', 'midcpCallStrike', 'midcpCallSymbolText'
-    ];
-
-    function showLoadingPlaceholders() {
-        DERIVED_VALUE_IDS.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) { el.textContent = '···'; el.classList.add('pending'); }
-        });
-        document.getElementById('niftyDisplay').textContent = '···';
-        document.getElementById('vixDisplay').textContent = '···';
-        document.getElementById('midcpDisplay').textContent = '···';
-        ['niftyDisplay', 'vixDisplay', 'midcpDisplay'].forEach(id =>
-            document.getElementById(id).classList.add('pending'));
-        document.querySelectorAll('.copy-btn').forEach(btn => btn.disabled = true);
-        const statusEl = document.getElementById('fetchStatus');
-        statusEl.textContent = 'Fetching live prices…';
-        statusEl.style.color = '#60a5fa';
-    }
-
-    function clearPlaceholders() {
-        DERIVED_VALUE_IDS.concat(['niftyDisplay', 'vixDisplay', 'midcpDisplay']).forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.classList.remove('pending');
-        });
-        document.querySelectorAll('.copy-btn').forEach(btn => btn.disabled = false);
-    }
-
-    /* ---------- CALCULATION ---------- */
-    function calculateRange() {
-        const nifty = parseFloat(document.getElementById('manualNifty').value) || currentNifty;
-        const vix = parseFloat(document.getElementById('manualVix').value) || currentVix;
-        const midcp = parseFloat(document.getElementById('manualMidcp').value) || currentMidcp;
-
-        const today = new Date();
-        const dayOfWeek = today.getDay();
-        const divisor = DIVISORS[dayOfWeek];
-
-        currentNifty = nifty; currentVix = vix; currentMidcp = midcp;
-
-        const expiryDate = getExpiryForWeekday(today);
-        const isMonthlyExpiry = isLastTuesdayOfMonth(expiryDate);
-
-        const currentRange = nifty * Math.sqrt((vix * 2) / divisor);
-        const putStrike = Math.floor((nifty - currentRange) / 100) * 100;
-        const callStrike = Math.ceil((nifty + currentRange) / 100) * 100;
-
-        document.getElementById('niftyDisplay').textContent = nifty.toLocaleString('en-IN', {maximumFractionDigits: 2});
-        document.getElementById('vixDisplay').textContent = vix.toFixed(2);
-        document.getElementById('midcpDisplay').textContent = midcp.toLocaleString('en-IN', {maximumFractionDigits: 2});
-        document.getElementById('rangeDisplay').textContent = currentRange.toFixed(2);
-        document.getElementById('niftyDivisorValue').textContent = divisor.toLocaleString();
-        document.getElementById('rangeValue').textContent = currentRange.toFixed(2);
-        document.getElementById('currentDate').textContent = `${WEEKDAY_NAMES[dayOfWeek]} (${formatDDMMYYYY(today)})`;
-        document.getElementById('expiryDate').textContent = formatDDMMYYYY(expiryDate) + (isMonthlyExpiry ? ' M' : ' W');
-        document.getElementById('rangeFormula').textContent = `${nifty.toFixed(2)} x sqrt(${vix.toFixed(2)} x 200% / ${divisor}) = ${currentRange.toFixed(2)}`;
-
-        let putSym, callSym;
-        if (isMonthlyExpiry) {
-            putSym = formatMonthlySymbol('NIFTY', expiryDate, putStrike, 'PE');
-            callSym = formatMonthlySymbol('NIFTY', expiryDate, callStrike, 'CE');
-            document.getElementById('putTypeBadge').textContent = 'M';
-            document.getElementById('putTypeBadge').className = 'option-type-badge monthly-badge';
-            document.getElementById('callTypeBadge').textContent = 'M';
-            document.getElementById('callTypeBadge').className = 'option-type-badge monthly-badge';
-        } else {
-            putSym = formatWeeklySymbol('NIFTY', expiryDate, putStrike, 'PE');
-            callSym = formatWeeklySymbol('NIFTY', expiryDate, callStrike, 'CE');
-            document.getElementById('putTypeBadge').textContent = 'W';
-            document.getElementById('putTypeBadge').className = 'option-type-badge weekly-badge';
-            document.getElementById('callTypeBadge').textContent = 'W';
-            document.getElementById('callTypeBadge').className = 'option-type-badge weekly-badge';
-        }
-
-        document.getElementById('putSymbolText').textContent = putSym;
-        document.getElementById('callSymbolText').textContent = callSym;
-        document.getElementById('putStrike').textContent = putStrike.toLocaleString();
-        document.getElementById('callStrike').textContent = callStrike.toLocaleString();
-
-        // NIFTY Expiry Day Intraday
-        const niftyExpiryDayRange = nifty * Math.sqrt((vix * 2) / EXPIRY_DAY_DIVISOR);
-        const niftyExpiryPutStrike = Math.floor((nifty - niftyExpiryDayRange) / 100) * 100;
-        const niftyExpiryCallStrike = Math.ceil((nifty + niftyExpiryDayRange) / 100) * 100;
-        const niftyImmediateExpiry = getNextTuesday(today);
-        const niftyImmediateIsMonthly = isLastTuesdayOfMonth(niftyImmediateExpiry);
-
-        let niftyExpiryPutSym, niftyExpiryCallSym;
-        if (niftyImmediateIsMonthly) {
-            niftyExpiryPutSym = formatMonthlySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryPutStrike, 'PE');
-            niftyExpiryCallSym = formatMonthlySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryCallStrike, 'CE');
-        } else {
-            niftyExpiryPutSym = formatWeeklySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryPutStrike, 'PE');
-            niftyExpiryCallSym = formatWeeklySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryCallStrike, 'CE');
-        }
-
-        document.getElementById('expiryPutSymbolText').textContent = niftyExpiryPutSym;
-        document.getElementById('expiryCallSymbolText').textContent = niftyExpiryCallSym;
-        document.getElementById('expiryPutStrike').textContent = niftyExpiryPutStrike.toLocaleString();
-        document.getElementById('expiryCallStrike').textContent = niftyExpiryCallStrike.toLocaleString();
-
-        const isTodayNiftyExpiry = (dayOfWeek === 2);
-        document.getElementById('niftyExpiryBanner').textContent = isTodayNiftyExpiry
-            ? 'Today is NIFTY Expiry Day! Intraday strikes with divisor 30,000.'
-            : "NIFTY intraday strikes for today's expiry using divisor 30,000.";
-
-        // MIDCPNIFTY Expiry Day Intraday
-        const midcpExpiryDayRange = midcp * Math.sqrt((vix * 2) / MIDCP_EXPIRY_DAY_DIVISOR);
-        const midcpExpiryPutStrike = Math.floor((midcp - midcpExpiryDayRange) / 25) * 25;
-        const midcpExpiryCallStrike = Math.ceil((midcp + midcpExpiryDayRange) / 25) * 25;
-        const midcpMonthName = MONTH_NAMES[today.getMonth()];
-        const midcpYY = today.getFullYear().toString().slice(-2);
-        document.getElementById('midcpPutSymbolText').textContent = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryPutStrike}PE`;
-        document.getElementById('midcpCallSymbolText').textContent = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryCallStrike}CE`;
-        document.getElementById('midcpPutStrike').textContent = midcpExpiryPutStrike.toLocaleString();
-        document.getElementById('midcpCallStrike').textContent = midcpExpiryCallStrike.toLocaleString();
-    }
-
-    function onManualOverride() {
-        liveDataLoaded = true;
-        calculateRange();
-        clearPlaceholders();
-    }
-
-    /* ---------- FETCH ---------- */
-    const YAHOO_SYMBOLS = {
-        nifty: '%5ENSEI',
-        vix: '%5EINDIAVIX',
-        midcp: 'NIFTY_MID_SELECT.NS'
-    };
-
-    // Working free CORS proxies (September 2026)
-    const CORS_PROXIES = [
-        (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-        (url) => `https://corsproxy.org/?${encodeURIComponent(url)}`
-    ];
-
-    async function fetchWithTimeout(url, ms) {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), ms);
-        try { return await fetch(url, { cache: 'no-store', signal: controller.signal }); }
-        finally { clearTimeout(timer); }
-    }
-
-    function parseYahooPrice(data) {
-        const result = data?.chart?.result?.[0];
-        const price = result?.meta?.regularMarketPrice ?? result?.meta?.previousClose;
-        return typeof price === 'number' ? price : null;
-    }
-
-    async function fetchViaProxy(targetUrl, timeoutMs) {
-        const attempts = CORS_PROXIES.map((buildProxyUrl) =>
-            fetchWithTimeout(buildProxyUrl(targetUrl), timeoutMs).then(async res => {
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                const data = await res.json();
-                const price = parseYahooPrice(data);
-                if (price === null || isNaN(price)) throw new Error('No price');
-                return price;
-            })
-        );
-        return Promise.any(attempts);
-    }
-
-    const FETCH_TIMEOUT_MS = 6000;
-    let fetchInProgress = false;
-
-    async function fetchLiveData() {
-        if (fetchInProgress) return;
-        fetchInProgress = true;
-
-        const btn = document.getElementById('refreshBtn');
-        const statusEl = document.getElementById('fetchStatus');
-        btn.disabled = true;
-        btn.innerHTML = 'Fetching... <span class="loading"></span>';
-
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-        const results = await Promise.allSettled([
-            fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${YAHOO_SYMBOLS.nifty}?interval=1d&range=1d&_=${Date.now()}`, FETCH_TIMEOUT_MS),
-            fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${YAHOO_SYMBOLS.vix}?interval=1d&range=1d&_=${Date.now()}`, FETCH_TIMEOUT_MS),
-            fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${YAHOO_SYMBOLS.midcp}?interval=1d&range=1d&_=${Date.now()}`, FETCH_TIMEOUT_MS)
-        ]);
-
-        const [niftyResult, vixResult, midcpResult] = results;
-        let successCount = 0;
-
-        if (niftyResult.status === 'fulfilled') {
-            currentNifty = niftyResult.value;
-            document.getElementById('manualNifty').value = currentNifty;
-            successCount++;
-        }
-        if (vixResult.status === 'fulfilled') {
-            currentVix = vixResult.value;
-            document.getElementById('manualVix').value = currentVix;
-            successCount++;
-        }
-        if (midcpResult.status === 'fulfilled') {
-            currentMidcp = midcpResult.value;
-            document.getElementById('manualMidcp').value = currentMidcp;
-            successCount++;
-        }
-
-        if (successCount > 0) {
-            liveDataLoaded = true;
-            saveCache(currentNifty, currentVix, currentMidcp);
-            calculateRange();
-            clearPlaceholders();
-        }
-
-        if (successCount === 3) {
-            statusEl.textContent = `Updated ${timeStr}`;
-            statusEl.style.color = '#4ade80';
-        } else if (successCount > 0) {
-            statusEl.textContent = `Partial update ${timeStr} (${successCount}/3)`;
-            statusEl.style.color = '#fbbf24';
-        } else {
-            // All fetches failed — try cache
-            const cache = loadCache();
-            if (cache && !liveDataLoaded) {
-                currentNifty = cache.nifty;
-                currentVix = cache.vix;
-                currentMidcp = cache.midcp;
-                document.getElementById('manualNifty').value = currentNifty;
-                document.getElementById('manualVix').value = currentVix;
-                document.getElementById('manualMidcp').value = currentMidcp;
-                liveDataLoaded = true;
-                calculateRange();
-                clearPlaceholders();
-                statusEl.textContent = `Using cached prices (${new Date(cache.timestamp).toLocaleDateString('en-IN')}) — refresh failed`;
-                statusEl.style.color = '#fbbf24';
-            } else if (!liveDataLoaded) {
-                statusEl.textContent = `Live fetch failed — enter NIFTY/VIX/MIDCP manually below`;
-                statusEl.style.color = '#f87171';
-                document.getElementById('manualInputs').classList.add('active');
-            } else {
-                statusEl.textContent = `Refresh failed ${timeStr} — showing last known prices`;
-                statusEl.style.color = '#f87171';
-            }
-        }
-
-        btn.disabled = false;
-        btn.innerHTML = 'Fetch Live Data';
-        fetchInProgress = false;
-    }
-
-    function toggleManualInputs() {
-        document.getElementById('manualInputs').classList.toggle('active');
-    }
-
-    /* ---------- DOTM FILTER ---------- */
-    const DOTM_REPO_OWNER = 'durgeshh-create';
-    const DOTM_REPO_NAME = 'Wealthplus';
-    const DOTM_FILTER_PATH = 'settings-editor/dotm-filter.json';
-    let _dotmSha = '';
-
-    function getDotmAdminToken() {
-        try {
-            const c = JSON.parse(localStorage.getItem('wealthalgo_cfg') || '{}');
-            return (c.owner === DOTM_REPO_OWNER && c.repo === DOTM_REPO_NAME && c.token) ? c.token : null;
-        } catch (e) { return null; }
-    }
-
-    function setDotmStatus(msg, color) {
-        const el = document.getElementById('dotmFilterStatus');
-        if (el) { el.textContent = msg; el.style.color = color || '#94a3b8'; }
-    }
-
-    async function loadDOTMFilter() {
-        const isAdmin = !!getDotmAdminToken();
-        document.querySelectorAll('input[name="dotmFilter"]').forEach(r => r.disabled = !isAdmin);
-        if (!isAdmin) setDotmStatus('set by admin');
-
-        try {
-            const url = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}?ref=gh-pages`;
-            const r = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
-            if (r.ok) {
-                const data = await r.json();
-                _dotmSha = data.sha;
-                const json = JSON.parse(atob(data.content.replace(/\n/g, '')));
-                const mode = ['both', 'put', 'call'].includes(json.mode) ? json.mode : 'both';
-                applyDOTMFilter(mode);
-            } else if (r.status === 404) {
-                applyDOTMFilter('both');
-                if (isAdmin) await saveDOTMFilter('both');
-            } else {
-                throw new Error(`GitHub API ${r.status}`);
-            }
-        } catch (e) {
-            console.error('loadDOTMFilter failed:', e);
-            applyDOTMFilter('both');
-            if (isAdmin) setDotmStatus('⚠ could not load shared setting', '#f87171');
-        }
-    }
-
-    async function fetchDotmSha(token) {
-        const url = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}?ref=gh-pages`;
-        const r = await fetch(url, { headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' } });
-        if (r.status === 404) return null;
-        if (!r.ok) throw new Error(`GitHub API ${r.status}`);
-        return (await r.json()).sha;
-    }
-
-    async function saveDOTMFilter(mode) {
-        const token = getDotmAdminToken();
-        if (!token) return;
-        setDotmStatus('saving…');
-        const url = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}`;
-        const MAX_RETRIES = 4;
-
-        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        function saveCache(nifty, vix, midcp) {
             try {
-                const sha = await fetchDotmSha(token);
-                _dotmSha = sha;
-                const body = {
-                    message: `dotm-filter: ${mode} (${new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'})} IST)`,
-                    content: btoa(unescape(encodeURIComponent(JSON.stringify({ mode }, null, 2)))),
-                    branch: 'gh-pages',
-                };
-                if (sha) body.sha = sha;
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ nifty, vix, midcp, timestamp: Date.now() }));
+            } catch (e) { /* ignore */ }
+        }
 
-                const r = await fetch(url, {
-                    method: 'PUT',
-                    headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body),
-                });
-
-                if (r.status === 409 || r.status === 422) {
-                    if (attempt < MAX_RETRIES) { await new Promise(res => setTimeout(res, 400 * attempt)); continue; }
-                    throw new Error(`GitHub API ${r.status} after ${MAX_RETRIES} attempts`);
+        function loadCache() {
+            try {
+                const raw = localStorage.getItem(CACHE_KEY);
+                if (!raw) return null;
+                const data = JSON.parse(raw);
+                if (Date.now() - data.timestamp > CACHE_MAX_AGE_MS) {
+                    localStorage.removeItem(CACHE_KEY);
+                    return null;
                 }
-                if (!r.ok) throw new Error(`GitHub API ${r.status}`);
-
-                _dotmSha = (await r.json()).content.sha;
-                setDotmStatus('✓ saved for all visitors', '#4ade80');
-                return;
-            } catch (e) {
-                if (attempt >= MAX_RETRIES) { console.error('saveDOTMFilter failed:', e); setDotmStatus('⚠ save failed', '#f87171'); return; }
-                await new Promise(res => setTimeout(res, 400 * attempt));
-            }
+                return data;
+            } catch (e) { return null; }
         }
-    }
 
-    function onDotmRadioChange(mode) {
-        applyDOTMFilter(mode);
-        saveDOTMFilter(mode);
-    }
-
-    function applyDOTMFilter(mode) {
-        const putCard = document.getElementById('dotmPutCard');
-        const callCard = document.getElementById('dotmCallCard');
-        const row = document.getElementById('regularResults');
-        const showPut = mode === 'both' || mode === 'put';
-        const showCall = mode === 'both' || mode === 'call';
-        putCard.style.display = showPut ? '' : 'none';
-        callCard.style.display = showCall ? '' : 'none';
-        row.classList.toggle('single-col', mode !== 'both');
-        const radio = document.querySelector(`input[name="dotmFilter"][value="${mode}"]`);
-        if (radio) radio.checked = true;
-        document.getElementById('dotmFilterPutLabel').classList.toggle('active-put', mode === 'put');
-        document.getElementById('dotmFilterCallLabel').classList.toggle('active-call', mode === 'call');
-    }
-
-    /* ---------- EXPIRY VISIBILITY ---------- */
-    let manualExpiryOverride = false;
-
-    function isTuesdayIST() {
-        return new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Kolkata', weekday: 'short' }).format(new Date()) === 'Tue';
-    }
-
-    function isLastTuesdayOfMonthIST() {
-        if (!isTuesdayIST()) return false;
-        const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
-        const map = {}; parts.forEach(p => { map[p.type] = p.value; });
-        const year = +map.year, month = +map.month - 1, day = +map.day;
-        const nextMonth = month === 11 ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
-        let lastTuesday = null;
-        const d = new Date(year, month, 1);
-        while (d < nextMonth) { if (d.getDay() === 2) lastTuesday = d.getDate(); d.setDate(d.getDate() + 1); }
-        return lastTuesday !== null && day === lastTuesday;
-    }
-
-    function updateExpiryVisibility() {
-        const isTuesday = isTuesdayIST();
-        const isLastTue = isLastTuesdayOfMonthIST();
-        const section = document.getElementById('expiryStrikesSection');
-        const midcpSection = document.getElementById('midcpExpirySection');
-        const btn = document.getElementById('expiryToggleBtn');
-
-        if (isTuesday) {
-            section.style.display = '';
-            btn.style.display = 'none';
-            manualExpiryOverride = false;
-        } else {
-            btn.style.display = '';
-            if (manualExpiryOverride) {
-                section.style.display = '';
-                btn.textContent = 'Hide Expiry Strikes';
+        /* ---------- COPY ---------- */
+        function copyToClipboard(elementId, btn) {
+            const text = document.getElementById(elementId).textContent.trim();
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => showCopied(btn)).catch(() => fallbackCopy(text, btn));
             } else {
-                section.style.display = 'none';
-                btn.textContent = 'Display Expiry Strikes';
+                fallbackCopy(text, btn);
             }
         }
-        if (midcpSection) {
-            midcpSection.style.display = (isLastTue || (!isTuesday && manualExpiryOverride)) ? '' : 'none';
+
+        function fallbackCopy(text, btn) {
+            const range = document.createRange();
+            const selection = window.getSelection();
+            const tempEl = document.createElement('span');
+            tempEl.textContent = text;
+            tempEl.style.position = 'absolute';
+            tempEl.style.left = '-9999px';
+            document.body.appendChild(tempEl);
+            range.selectNodeContents(tempEl);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try { document.execCommand('copy') ? showCopied(btn) : showFailed(btn); }
+            catch (e) { showFailed(btn); }
+            selection.removeAllRanges();
+            document.body.removeChild(tempEl);
         }
-    }
 
-    function toggleExpiryStrikes() {
-        manualExpiryOverride = !manualExpiryOverride;
-        updateExpiryVisibility();
-    }
-
-    function checkMarketStatus() {
-        const now = new Date();
-        const hour = now.getHours(), minute = now.getMinutes(), day = now.getDay();
-        const isWeekday = day >= 1 && day <= 5;
-        const isMarketHours = (hour > 9 || (hour === 9 && minute >= 15)) && (hour < 15 || (hour === 15 && minute <= 30));
-        const statusEl = document.getElementById('marketStatus');
-        if (isWeekday && isMarketHours) {
-            statusEl.textContent = 'Market Open';
-            statusEl.className = 'market-status market-open';
-        } else {
-            statusEl.textContent = 'Market Closed';
-            statusEl.className = 'market-status market-closed';
+        function showCopied(btn) {
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => { btn.textContent = originalText; btn.classList.remove('copied'); }, 1500);
         }
-    }
 
-    /* ---------- INIT ---------- */
-    checkMarketStatus();
-    showLoadingPlaceholders();
-    updateExpiryVisibility();
+        function showFailed(btn) {
+            const originalText = btn.textContent;
+            btn.textContent = 'Failed';
+            setTimeout(() => { btn.textContent = originalText; }, 1500);
+        }
 
-    // Try cache first for instant display, then fetch live
-    const cache = loadCache();
-    if (cache) {
-        currentNifty = cache.nifty;
-        currentVix = cache.vix;
-        currentMidcp = cache.midcp;
-        document.getElementById('manualNifty').value = currentNifty;
-        document.getElementById('manualVix').value = currentVix;
-        document.getElementById('manualMidcp').value = currentMidcp;
-        liveDataLoaded = true;
-        calculateRange();
-        clearPlaceholders();
-        document.getElementById('fetchStatus').textContent = `Cached prices loaded — fetching live…`;
-        document.getElementById('fetchStatus').style.color = '#fbbf24';
-    }
+        /* ---------- DATE HELPERS ---------- */
+        function formatDDMMYYYY(date) {
+            const dd = date.getDate().toString().padStart(2, '0');
+            const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+            const yyyy = date.getFullYear();
+            return `${dd}/${mm}/${yyyy}`;
+        }
 
-    fetchLiveData();
-    loadDOTMFilter();
+        function getNextTuesday(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            let daysToTue = day <= 2 ? 2 - day : 9 - day;
+            d.setDate(d.getDate() + daysToTue);
+            return d;
+        }
 
-    setInterval(() => {
+        function isLastTuesdayOfMonth(date) {
+            const year = date.getFullYear(), month = date.getMonth(), day = date.getDate();
+            const nextMonth = month === 11 ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
+            const tuesdays = [];
+            const d = new Date(year, month, 1);
+            while (d < nextMonth) { if (d.getDay() === 2) tuesdays.push(d.getDate()); d.setDate(d.getDate() + 1); }
+            return tuesdays.length > 0 && day === tuesdays[tuesdays.length - 1];
+        }
+
+        function getExpiryForWeekday(date) {
+            const dayOfWeek = date.getDay();
+            if (dayOfWeek === 1 || dayOfWeek === 2) {
+                const nextTue = getNextTuesday(date);
+                const expiry = new Date(nextTue);
+                expiry.setDate(expiry.getDate() + 7);
+                return expiry;
+            }
+            return getNextTuesday(date);
+        }
+
+        function formatWeeklySymbol(underlying, expiry, strike, type) {
+            const yy = expiry.getFullYear().toString().slice(-2);
+            const m = (expiry.getMonth() + 1).toString();
+            const dd = expiry.getDate().toString().padStart(2, '0');
+            return `${underlying}${yy}${m}${dd}${Math.round(strike)}${type}`;
+        }
+
+        function formatMonthlySymbol(underlying, expiry, strike, type) {
+            const yy = expiry.getFullYear().toString().slice(-2);
+            return `${underlying}${yy}${MONTH_NAMES[expiry.getMonth()]}${Math.round(strike)}${type}`;
+        }
+
+        /* ---------- CALCULATION ---------- */
+        function calculateRange() {
+            const nifty = parseFloat(document.getElementById('manualNifty').value) || currentNifty;
+            const vix = parseFloat(document.getElementById('manualVix').value) || currentVix;
+            const midcp = parseFloat(document.getElementById('manualMidcp').value) || currentMidcp;
+
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const divisor = DIVISORS[dayOfWeek];
+
+            currentNifty = nifty; currentVix = vix; currentMidcp = midcp;
+
+            const expiryDate = getExpiryForWeekday(today);
+            const isMonthlyExpiry = isLastTuesdayOfMonth(expiryDate);
+
+            const currentRange = nifty * Math.sqrt((vix * 2) / divisor);
+            const putStrike = Math.floor((nifty - currentRange) / 100) * 100;
+            const callStrike = Math.ceil((nifty + currentRange) / 100) * 100;
+
+            document.getElementById('niftyDisplay').textContent = nifty.toLocaleString('en-IN', {maximumFractionDigits: 2});
+            document.getElementById('vixDisplay').textContent = vix.toFixed(2);
+            document.getElementById('midcpDisplay').textContent = midcp.toLocaleString('en-IN', {maximumFractionDigits: 2});
+            document.getElementById('rangeDisplay').textContent = currentRange.toFixed(2);
+            document.getElementById('niftyDivisorValue').textContent = divisor.toLocaleString();
+            document.getElementById('rangeValue').textContent = currentRange.toFixed(2);
+            document.getElementById('currentDate').textContent = `${WEEKDAY_NAMES[dayOfWeek]} (${formatDDMMYYYY(today)})`;
+            document.getElementById('expiryDate').textContent = formatDDMMYYYY(expiryDate) + (isMonthlyExpiry ? ' M' : ' W');
+            document.getElementById('rangeFormula').textContent = `${nifty.toFixed(2)} x sqrt(${vix.toFixed(2)} x 200% / ${divisor}) = ${currentRange.toFixed(2)}`;
+
+            let putSym, callSym;
+            if (isMonthlyExpiry) {
+                putSym = formatMonthlySymbol('NIFTY', expiryDate, putStrike, 'PE');
+                callSym = formatMonthlySymbol('NIFTY', expiryDate, callStrike, 'CE');
+                document.getElementById('putTypeBadge').textContent = 'M';
+                document.getElementById('putTypeBadge').className = 'option-type-badge monthly-badge';
+                document.getElementById('callTypeBadge').textContent = 'M';
+                document.getElementById('callTypeBadge').className = 'option-type-badge monthly-badge';
+            } else {
+                putSym = formatWeeklySymbol('NIFTY', expiryDate, putStrike, 'PE');
+                callSym = formatWeeklySymbol('NIFTY', expiryDate, callStrike, 'CE');
+                document.getElementById('putTypeBadge').textContent = 'W';
+                document.getElementById('putTypeBadge').className = 'option-type-badge weekly-badge';
+                document.getElementById('callTypeBadge').textContent = 'W';
+                document.getElementById('callTypeBadge').className = 'option-type-badge weekly-badge';
+            }
+
+            document.getElementById('putSymbolText').textContent = putSym;
+            document.getElementById('callSymbolText').textContent = callSym;
+            document.getElementById('putStrike').textContent = putStrike.toLocaleString();
+            document.getElementById('callStrike').textContent = callStrike.toLocaleString();
+
+            // NIFTY Expiry Day Intraday
+            const niftyExpiryDayRange = nifty * Math.sqrt((vix * 2) / EXPIRY_DAY_DIVISOR);
+            const niftyExpiryPutStrike = Math.floor((nifty - niftyExpiryDayRange) / 100) * 100;
+            const niftyExpiryCallStrike = Math.ceil((nifty + niftyExpiryDayRange) / 100) * 100;
+            const niftyImmediateExpiry = getNextTuesday(today);
+            const niftyImmediateIsMonthly = isLastTuesdayOfMonth(niftyImmediateExpiry);
+
+            let niftyExpiryPutSym, niftyExpiryCallSym;
+            if (niftyImmediateIsMonthly) {
+                niftyExpiryPutSym = formatMonthlySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryPutStrike, 'PE');
+                niftyExpiryCallSym = formatMonthlySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryCallStrike, 'CE');
+            } else {
+                niftyExpiryPutSym = formatWeeklySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryPutStrike, 'PE');
+                niftyExpiryCallSym = formatWeeklySymbol('NIFTY', niftyImmediateExpiry, niftyExpiryCallStrike, 'CE');
+            }
+
+            document.getElementById('expiryPutSymbolText').textContent = niftyExpiryPutSym;
+            document.getElementById('expiryCallSymbolText').textContent = niftyExpiryCallSym;
+            document.getElementById('expiryPutStrike').textContent = niftyExpiryPutStrike.toLocaleString();
+            document.getElementById('expiryCallStrike').textContent = niftyExpiryCallStrike.toLocaleString();
+
+            const isTodayNiftyExpiry = (dayOfWeek === 2);
+            document.getElementById('niftyExpiryBanner').textContent = isTodayNiftyExpiry
+                ? 'Today is NIFTY Expiry Day! Intraday strikes with divisor 30,000.'
+                : "NIFTY intraday strikes for today's expiry using divisor 30,000.";
+
+            // MIDCPNIFTY Expiry Day Intraday
+            const midcpExpiryDayRange = midcp * Math.sqrt((vix * 2) / MIDCP_EXPIRY_DAY_DIVISOR);
+            const midcpExpiryPutStrike = Math.floor((midcp - midcpExpiryDayRange) / 25) * 25;
+            const midcpExpiryCallStrike = Math.ceil((midcp + midcpExpiryDayRange) / 25) * 25;
+            const midcpMonthName = MONTH_NAMES[today.getMonth()];
+            const midcpYY = today.getFullYear().toString().slice(-2);
+            document.getElementById('midcpPutSymbolText').textContent = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryPutStrike}PE`;
+            document.getElementById('midcpCallSymbolText').textContent = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryCallStrike}CE`;
+            document.getElementById('midcpPutStrike').textContent = midcpExpiryPutStrike.toLocaleString();
+            document.getElementById('midcpCallStrike').textContent = midcpExpiryCallStrike.toLocaleString();
+        }
+
+        function onManualOverride() {
+            liveDataLoaded = true;
+            calculateRange();
+        }
+
+        /* ---------- FETCH ---------- */
+        const YAHOO_SYMBOLS = {
+            nifty: '%5ENSEI',
+            vix: '%5EINDIAVIX',
+            midcp: 'NIFTY_MID_SELECT.NS'
+        };
+
+        // Working free CORS proxies (Sep 2026)
+        const CORS_PROXIES = [
+            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            (url) => `https://corsproxy.org/?${encodeURIComponent(url)}`
+        ];
+
+        async function fetchWithTimeout(url, ms) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), ms);
+            try { return await fetch(url, { cache: 'no-store', signal: controller.signal }); }
+            finally { clearTimeout(timer); }
+        }
+
+        function parseYahooPrice(data) {
+            const result = data?.chart?.result?.[0];
+            const price = result?.meta?.regularMarketPrice ?? result?.meta?.previousClose;
+            return typeof price === 'number' ? price : null;
+        }
+
+        async function fetchViaProxy(targetUrl, timeoutMs) {
+            const attempts = CORS_PROXIES.map((buildProxyUrl) =>
+                fetchWithTimeout(buildProxyUrl(targetUrl), timeoutMs).then(async res => {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const data = await res.json();
+                    const price = parseYahooPrice(data);
+                    if (price === null || isNaN(price)) throw new Error('No price');
+                    return price;
+                })
+            );
+            return Promise.any(attempts);
+        }
+
+        const FETCH_TIMEOUT_MS = 8000;
+        let fetchInProgress = false;
+
+        async function fetchLiveData() {
+            if (fetchInProgress) return;
+            fetchInProgress = true;
+
+            const btn = document.getElementById('refreshBtn');
+            const statusEl = document.getElementById('fetchStatus');
+            btn.disabled = true;
+            btn.innerHTML = 'Fetching... <span class="loading"></span>';
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            const results = await Promise.allSettled([
+                fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${YAHOO_SYMBOLS.nifty}?interval=1d&range=1d&_=${Date.now()}`, FETCH_TIMEOUT_MS),
+                fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${YAHOO_SYMBOLS.vix}?interval=1d&range=1d&_=${Date.now()}`, FETCH_TIMEOUT_MS),
+                fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${YAHOO_SYMBOLS.midcp}?interval=1d&range=1d&_=${Date.now()}`, FETCH_TIMEOUT_MS)
+            ]);
+
+            const [niftyResult, vixResult, midcpResult] = results;
+            let successCount = 0;
+
+            if (niftyResult.status === 'fulfilled') {
+                currentNifty = niftyResult.value;
+                document.getElementById('manualNifty').value = currentNifty.toFixed(2);
+                successCount++;
+            }
+            if (vixResult.status === 'fulfilled') {
+                currentVix = vixResult.value;
+                document.getElementById('manualVix').value = currentVix.toFixed(2);
+                successCount++;
+            }
+            if (midcpResult.status === 'fulfilled') {
+                currentMidcp = midcpResult.value;
+                document.getElementById('manualMidcp').value = currentMidcp.toFixed(2);
+                successCount++;
+            }
+
+            if (successCount > 0) {
+                liveDataLoaded = true;
+                saveCache(currentNifty, currentVix, currentMidcp);
+                calculateRange();
+            }
+
+            if (successCount === 3) {
+                statusEl.textContent = `Updated ${timeStr}`;
+                statusEl.style.color = '#4ade80';
+            } else if (successCount > 0) {
+                statusEl.textContent = `Partial update ${timeStr} (${successCount}/3)`;
+                statusEl.style.color = '#fbbf24';
+            } else {
+                console.error('Fetch failed:', niftyResult.reason, vixResult.reason, midcpResult.reason);
+                if (!liveDataLoaded) {
+                    const cache = loadCache();
+                    if (cache) {
+                        currentNifty = cache.nifty;
+                        currentVix = cache.vix;
+                        currentMidcp = cache.midcp;
+                        document.getElementById('manualNifty').value = currentNifty;
+                        document.getElementById('manualVix').value = currentVix;
+                        document.getElementById('manualMidcp').value = currentMidcp;
+                        liveDataLoaded = true;
+                        calculateRange();
+                        statusEl.textContent = `Using cached prices — live fetch failed`;
+                        statusEl.style.color = '#fbbf24';
+                    } else {
+                        statusEl.textContent = `Live fetch failed — enter values manually below`;
+                        statusEl.style.color = '#f87171';
+                        document.getElementById('manualInputs').classList.add('active');
+                    }
+                } else {
+                    statusEl.textContent = `Refresh failed ${timeStr} — showing last known prices`;
+                    statusEl.style.color = '#f87171';
+                }
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = 'Fetch Live Data';
+            fetchInProgress = false;
+        }
+
+        function toggleManualInputs() {
+            document.getElementById('manualInputs').classList.toggle('active');
+        }
+
+        /* ---------- DOTM FILTER ---------- */
+        const DOTM_REPO_OWNER = 'durgeshh-create';
+        const DOTM_REPO_NAME = 'Wealthplus';
+        const DOTM_FILTER_PATH = 'settings-editor/dotm-filter.json';
+        let _dotmSha = '';
+
+        function getDotmAdminToken() {
+            try {
+                const c = JSON.parse(localStorage.getItem('wealthalgo_cfg') || '{}');
+                return (c.owner === DOTM_REPO_OWNER && c.repo === DOTM_REPO_NAME && c.token) ? c.token : null;
+            } catch (e) { return null; }
+        }
+
+        function setDotmStatus(msg, color) {
+            const el = document.getElementById('dotmFilterStatus');
+            if (el) { el.textContent = msg; el.style.color = color || '#94a3b8'; }
+        }
+
+        async function loadDOTMFilter() {
+            const isAdmin = !!getDotmAdminToken();
+            document.querySelectorAll('input[name="dotmFilter"]').forEach(r => r.disabled = !isAdmin);
+            if (!isAdmin) setDotmStatus('set by admin');
+
+            try {
+                const url = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}?ref=gh-pages`;
+                const r = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
+                if (r.ok) {
+                    const data = await r.json();
+                    _dotmSha = data.sha;
+                    const json = JSON.parse(atob(data.content.replace(/\n/g, '')));
+                    const mode = ['both', 'put', 'call'].includes(json.mode) ? json.mode : 'both';
+                    applyDOTMFilter(mode);
+                } else if (r.status === 404) {
+                    applyDOTMFilter('both');
+                    if (isAdmin) await saveDOTMFilter('both');
+                } else {
+                    throw new Error(`GitHub API ${r.status}`);
+                }
+            } catch (e) {
+                console.error('loadDOTMFilter failed:', e);
+                applyDOTMFilter('both');
+                if (isAdmin) setDotmStatus('⚠ could not load shared setting', '#f87171');
+            }
+        }
+
+        async function fetchDotmSha(token) {
+            const url = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}?ref=gh-pages`;
+            const r = await fetch(url, { headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' } });
+            if (r.status === 404) return null;
+            if (!r.ok) throw new Error(`GitHub API ${r.status}`);
+            return (await r.json()).sha;
+        }
+
+        async function saveDOTMFilter(mode) {
+            const token = getDotmAdminToken();
+            if (!token) return;
+            setDotmStatus('saving…');
+            const url = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}`;
+            const MAX_RETRIES = 4;
+
+            for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+                try {
+                    const sha = await fetchDotmSha(token);
+                    _dotmSha = sha;
+                    const body = {
+                        message: `dotm-filter: ${mode} (${new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'})} IST)`,
+                        content: btoa(unescape(encodeURIComponent(JSON.stringify({ mode }, null, 2)))),
+                        branch: 'gh-pages',
+                    };
+                    if (sha) body.sha = sha;
+
+                    const r = await fetch(url, {
+                        method: 'PUT',
+                        headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body),
+                    });
+
+                    if (r.status === 409 || r.status === 422) {
+                        if (attempt < MAX_RETRIES) { await new Promise(res => setTimeout(res, 400 * attempt)); continue; }
+                        throw new Error(`GitHub API ${r.status} after ${MAX_RETRIES} attempts`);
+                    }
+                    if (!r.ok) throw new Error(`GitHub API ${r.status}`);
+
+                    _dotmSha = (await r.json()).content.sha;
+                    setDotmStatus('✓ saved for all visitors', '#4ade80');
+                    return;
+                } catch (e) {
+                    if (attempt >= MAX_RETRIES) { console.error('saveDOTMFilter failed:', e); setDotmStatus('⚠ save failed', '#f87171'); return; }
+                    await new Promise(res => setTimeout(res, 400 * attempt));
+                }
+            }
+        }
+
+        function onDotmRadioChange(mode) {
+            applyDOTMFilter(mode);
+            saveDOTMFilter(mode);
+        }
+
+        function applyDOTMFilter(mode) {
+            const putCard = document.getElementById('dotmPutCard');
+            const callCard = document.getElementById('dotmCallCard');
+            const row = document.getElementById('regularResults');
+            const showPut = mode === 'both' || mode === 'put';
+            const showCall = mode === 'both' || mode === 'call';
+            putCard.style.display = showPut ? '' : 'none';
+            callCard.style.display = showCall ? '' : 'none';
+            row.classList.toggle('single-col', mode !== 'both');
+            const radio = document.querySelector(`input[name="dotmFilter"][value="${mode}"]`);
+            if (radio) radio.checked = true;
+            document.getElementById('dotmFilterPutLabel').classList.toggle('active-put', mode === 'put');
+            document.getElementById('dotmFilterCallLabel').classList.toggle('active-call', mode === 'call');
+        }
+
+        /* ---------- EXPIRY VISIBILITY ---------- */
+        let manualExpiryOverride = false;
+
+        function isTuesdayIST() {
+            return new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Kolkata', weekday: 'short' }).format(new Date()) === 'Tue';
+        }
+
+        function isLastTuesdayOfMonthIST() {
+            if (!isTuesdayIST()) return false;
+            const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+            const map = {}; parts.forEach(p => { map[p.type] = p.value; });
+            const year = +map.year, month = +map.month - 1, day = +map.day;
+            const nextMonth = month === 11 ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
+            let lastTuesday = null;
+            const d = new Date(year, month, 1);
+            while (d < nextMonth) { if (d.getDay() === 2) lastTuesday = d.getDate(); d.setDate(d.getDate() + 1); }
+            return lastTuesday !== null && day === lastTuesday;
+        }
+
+        function updateExpiryVisibility() {
+            const isTuesday = isTuesdayIST();
+            const isLastTue = isLastTuesdayOfMonthIST();
+            const section = document.getElementById('expiryStrikesSection');
+            const midcpSection = document.getElementById('midcpExpirySection');
+            const btn = document.getElementById('expiryToggleBtn');
+
+            if (isTuesday) {
+                section.style.display = '';
+                btn.style.display = 'none';
+                manualExpiryOverride = false;
+            } else {
+                btn.style.display = '';
+                if (manualExpiryOverride) {
+                    section.style.display = '';
+                    btn.textContent = 'Hide Expiry Strikes';
+                } else {
+                    section.style.display = 'none';
+                    btn.textContent = 'Display Expiry Strikes';
+                }
+            }
+            if (midcpSection) {
+                midcpSection.style.display = (isLastTue || (!isTuesday && manualExpiryOverride)) ? '' : 'none';
+            }
+        }
+
+        function toggleExpiryStrikes() {
+            manualExpiryOverride = !manualExpiryOverride;
+            updateExpiryVisibility();
+        }
+
+        function checkMarketStatus() {
+            const now = new Date();
+            const hour = now.getHours(), minute = now.getMinutes(), day = now.getDay();
+            const isWeekday = day >= 1 && day <= 5;
+            const isMarketHours = (hour > 9 || (hour === 9 && minute >= 15)) && (hour < 15 || (hour === 15 && minute <= 30));
+            const statusEl = document.getElementById('marketStatus');
+            if (isWeekday && isMarketHours) {
+                statusEl.textContent = 'Market Open';
+                statusEl.className = 'market-status market-open';
+            } else {
+                statusEl.textContent = 'Market Closed';
+                statusEl.className = 'market-status market-closed';
+            }
+        }
+
+        /* ---------- INIT ---------- */
         checkMarketStatus();
+        updateExpiryVisibility();
+
+        // Load cache or defaults so page is NEVER blank
+        const cache = loadCache();
+        if (cache) {
+            currentNifty = cache.nifty;
+            currentVix = cache.vix;
+            currentMidcp = cache.midcp;
+            document.getElementById('manualNifty').value = currentNifty;
+            document.getElementById('manualVix').value = currentVix;
+            document.getElementById('manualMidcp').value = currentMidcp;
+            liveDataLoaded = true;
+        }
+        calculateRange(); // Always calculate on load — never show blank placeholders
         fetchLiveData();
-    }, 10000);
-</script>
+        loadDOTMFilter();
+
+        setInterval(() => {
+            checkMarketStatus();
+            fetchLiveData();
+        }, 10000);
+    </script>
 </body>
 </html>
