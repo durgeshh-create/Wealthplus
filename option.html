@@ -254,15 +254,18 @@
         <div class="manual-inputs" id="manualInputs">
             <div class="input-card">
                 <label>NIFTY 50</label>
-                <input type="number" id="manualNifty" value="23945" step="0.05" onchange="onManualOverride()">
+                <input type="number" id="manualNifty" value="23945" step="0.05" oninput="onManualOverride()">
             </div>
             <div class="input-card">
                 <label>India VIX</label>
-                <input type="number" id="manualVix" value="13.61" step="0.01" onchange="onManualOverride()">
+                <input type="number" id="manualVix" value="13.61" step="0.01" oninput="onManualOverride()">
             </div>
             <div class="input-card">
                 <label>MIDCPNIFTY</label>
-                <input type="number" id="manualMidcp" value="14367" step="0.05" onchange="onManualOverride()">
+                <input type="number" id="manualMidcp" value="14367" step="0.05" oninput="onManualOverride()">
+            </div>
+            <div class="input-card" style="display:flex; align-items:flex-end;">
+                <button type="button" class="toggle-btn" style="width:100%; padding:6px 8px; font-size:0.65rem;" onclick="onManualOverride()">Apply Values</button>
             </div>
         </div>
 
@@ -315,84 +318,87 @@
             </div>
         </div>
 
-        <!-- NIFTY & MIDCPNIFTY Expiry Day Intraday Strikes -->
+        <!-- NIFTY & MIDCPNIFTY Expiry Day Intraday Strikes: auto-shown on Tuesdays, toggle available otherwise -->
         <div id="expiryStrikesSection">
-            <!-- NIFTY Expiry Day Intraday Strikes -->
-            <div class="section-divider">
-                <span>NIFTY EXPIRY DAY INTRADAY (Div: 30,000)</span>
-            </div>
+        <!-- NIFTY Expiry Day Intraday Strikes -->
+        <div class="section-divider">
+            <span>NIFTY EXPIRY DAY INTRADAY (Div: 30,000)</span>
+        </div>
 
-            <div class="expiry-day-banner" id="niftyExpiryBanner">
-                Today is NIFTY Expiry Day! Intraday strikes with divisor 30,000.
-            </div>
+        <div class="expiry-day-banner" id="niftyExpiryBanner">
+            Today is NIFTY Expiry Day! Intraday strikes with divisor 30,000.
+        </div>
 
-            <div class="results-row">
-                <div class="result-card">
-                    <div class="result-header expiry-section">
-                        <h2>NIFTY EXPIRY PUT</h2>
-                        <div class="strike-badge expiry" id="expiryPutStrike">23,200</div>
-                    </div>
-                    <div class="symbol-display">
-                        <div class="symbol-code expiry" id="expiryPutSymbol">
-                            <span id="expiryPutSymbolText">NIFTY26JUN23200PE</span>
-                            <button class="copy-btn" onclick="copyToClipboard('expiryPutSymbolText', this)">Copy</button>
-                        </div>
-                    </div>
+        <div class="results-row">
+            <div class="result-card">
+                <div class="result-header expiry-section">
+                    <h2>NIFTY EXPIRY PUT</h2>
+                    <div class="strike-badge expiry" id="expiryPutStrike">23,200</div>
                 </div>
-
-                <div class="result-card">
-                    <div class="result-header expiry-section">
-                        <h2>NIFTY EXPIRY CALL</h2>
-                        <div class="strike-badge expiry" id="expiryCallStrike">24,700</div>
-                    </div>
-                    <div class="symbol-display">
-                        <div class="symbol-code expiry" id="expiryCallSymbol">
-                            <span id="expiryCallSymbolText">NIFTY26JUN24700CE</span>
-                            <button class="copy-btn" onclick="copyToClipboard('expiryCallSymbolText', this)">Copy</button>
-                        </div>
+                <div class="symbol-display">
+                    <div class="symbol-code expiry" id="expiryPutSymbol">
+                        <span id="expiryPutSymbolText">NIFTY26JUN23200PE</span>
+                        <button class="copy-btn" onclick="copyToClipboard('expiryPutSymbolText', this)">Copy</button>
                     </div>
                 </div>
             </div>
 
-            <!-- MIDCPNIFTY Expiry Day Intraday Strikes -->
-            <div id="midcpExpirySection">
-                <div class="section-divider">
-                    <span>MIDCPNIFTY EXPIRY DAY INTRADAY (Div: 17,000)</span>
+            <div class="result-card">
+                <div class="result-header expiry-section">
+                    <h2>NIFTY EXPIRY CALL</h2>
+                    <div class="strike-badge expiry" id="expiryCallStrike">24,700</div>
                 </div>
-
-                <div class="midcp-banner" id="midcpExpiryBanner">
-                    MIDCPNIFTY intraday strikes using divisor 17,000. Strike interval: 25.
-                </div>
-
-                <div class="results-row">
-                    <div class="result-card">
-                        <div class="result-header midcp">
-                            <h2>MIDCP PUT</h2>
-                            <div class="strike-badge midcp" id="midcpPutStrike">13,850</div>
-                        </div>
-                        <div class="symbol-display">
-                            <div class="symbol-code midcp" id="midcpPutSymbol">
-                                <span id="midcpPutSymbolText">MIDCPNIFTY26JUN13850PE</span>
-                                <button class="copy-btn" onclick="copyToClipboard('midcpPutSymbolText', this)">Copy</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="result-card">
-                        <div class="result-header midcp">
-                            <h2>MIDCP CALL</h2>
-                            <div class="strike-badge midcp" id="midcpCallStrike">14,875</div>
-                        </div>
-                        <div class="symbol-display">
-                            <div class="symbol-code midcp" id="midcpCallSymbol">
-                                <span id="midcpCallSymbolText">MIDCPNIFTY26JUN14875CE</span>
-                                <button class="copy-btn" onclick="copyToClipboard('midcpCallSymbolText', this)">Copy</button>
-                            </div>
-                        </div>
+                <div class="symbol-display">
+                    <div class="symbol-code expiry" id="expiryCallSymbol">
+                        <span id="expiryCallSymbolText">NIFTY26JUN24700CE</span>
+                        <button class="copy-btn" onclick="copyToClipboard('expiryCallSymbolText', this)">Copy</button>
                     </div>
                 </div>
-                <div class="midcp-caveat">Do MIDCPNIFTY only on last Tue of month if these strikes have good volume</div>
             </div>
+        </div>
+
+        <!-- MIDCPNIFTY Expiry Day Intraday Strikes: only auto-shown on the
+             LAST Tuesday of the month (monthly expiry) — earlier weekly
+             Tuesdays' MIDCPNIFTY expiry-day strikes see too little volume
+             to be worth surfacing by default. -->
+        <div id="midcpExpirySection">
+        <div class="section-divider">
+            <span>MIDCPNIFTY EXPIRY DAY INTRADAY (Div: 17,000)</span>
+        </div>
+
+        <div class="midcp-banner" id="midcpExpiryBanner">
+            MIDCPNIFTY intraday strikes using divisor 17,000. Strike interval: 25.
+        </div>
+
+        <div class="results-row">
+            <div class="result-card">
+                <div class="result-header midcp">
+                    <h2>MIDCP PUT</h2>
+                    <div class="strike-badge midcp" id="midcpPutStrike">13,850</div>
+                </div>
+                <div class="symbol-display">
+                    <div class="symbol-code midcp" id="midcpPutSymbol">
+                        <span id="midcpPutSymbolText">MIDCPNIFTY26JUN13850PE</span>
+                        <button class="copy-btn" onclick="copyToClipboard('midcpPutSymbolText', this)">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <div class="result-header midcp">
+                    <h2>MIDCP CALL</h2>
+                    <div class="strike-badge midcp" id="midcpCallStrike">14,875</div>
+                </div>
+                <div class="symbol-display">
+                    <div class="symbol-code midcp" id="midcpCallSymbol">
+                        <span id="midcpCallSymbolText">MIDCPNIFTY26JUN14875CE</span>
+                        <button class="copy-btn" onclick="copyToClipboard('midcpCallSymbolText', this)">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="midcp-caveat">Do MIDCPNIFTY only on last Tue of month if these strikes have good volume</div>
+        </div>
         </div>
 
         <div class="note">
@@ -408,54 +414,50 @@
         const MIDCP_EXPIRY_DAY_DIVISOR = 17000;
 
         let currentNifty = 23945, currentVix = 13.61, currentMidcp = 14367;
-        let liveDataLoaded = false;
+        let liveDataLoaded = false; // becomes true once we have real fetched or manually-entered values
 
-        /* ---------- CACHE ---------- */
-        const CACHE_KEY = 'dotm_strategy_cache_v2';
-        const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
-
-        function saveCache(nifty, vix, midcp) {
-            try {
-                localStorage.setItem(CACHE_KEY, JSON.stringify({ nifty, vix, midcp, timestamp: Date.now() }));
-            } catch (e) { /* ignore */ }
-        }
-
-        function loadCache() {
-            try {
-                const raw = localStorage.getItem(CACHE_KEY);
-                if (!raw) return null;
-                const data = JSON.parse(raw);
-                if (Date.now() - data.timestamp > CACHE_MAX_AGE_MS) {
-                    localStorage.removeItem(CACHE_KEY);
-                    return null;
-                }
-                return data;
-            } catch (e) { return null; }
-        }
-
-        /* ---------- COPY ---------- */
         function copyToClipboard(elementId, btn) {
             const text = document.getElementById(elementId).textContent.trim();
+
+            // Method 1: Try modern Clipboard API
             if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(text).then(() => showCopied(btn)).catch(() => fallbackCopy(text, btn));
+                navigator.clipboard.writeText(text).then(function() {
+                    showCopied(btn);
+                }).catch(function() {
+                    fallbackCopy(text, btn);
+                });
             } else {
                 fallbackCopy(text, btn);
             }
         }
 
         function fallbackCopy(text, btn) {
+            // Method 2: Use selection + execCommand
             const range = document.createRange();
             const selection = window.getSelection();
+
+            // Create a temporary element
             const tempEl = document.createElement('span');
             tempEl.textContent = text;
             tempEl.style.position = 'absolute';
             tempEl.style.left = '-9999px';
             document.body.appendChild(tempEl);
+
             range.selectNodeContents(tempEl);
             selection.removeAllRanges();
             selection.addRange(range);
-            try { document.execCommand('copy') ? showCopied(btn) : showFailed(btn); }
-            catch (e) { showFailed(btn); }
+
+            try {
+                const success = document.execCommand('copy');
+                if (success) {
+                    showCopied(btn);
+                } else {
+                    showFailed(btn);
+                }
+            } catch (e) {
+                showFailed(btn);
+            }
+
             selection.removeAllRanges();
             document.body.removeChild(tempEl);
         }
@@ -464,16 +466,20 @@
             const originalText = btn.textContent;
             btn.textContent = 'Copied!';
             btn.classList.add('copied');
-            setTimeout(() => { btn.textContent = originalText; btn.classList.remove('copied'); }, 1500);
+            setTimeout(function() {
+                btn.textContent = originalText;
+                btn.classList.remove('copied');
+            }, 1500);
         }
 
         function showFailed(btn) {
             const originalText = btn.textContent;
             btn.textContent = 'Failed';
-            setTimeout(() => { btn.textContent = originalText; }, 1500);
+            setTimeout(function() {
+                btn.textContent = originalText;
+            }, 1500);
         }
 
-        /* ---------- DATE HELPERS ---------- */
         function formatDDMMYYYY(date) {
             const dd = date.getDate().toString().padStart(2, '0');
             const mm = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -484,44 +490,99 @@
         function getNextTuesday(date) {
             const d = new Date(date);
             const day = d.getDay();
-            let daysToTue = day <= 2 ? 2 - day : 9 - day;
+            let daysToTue;
+            if (day <= 2) daysToTue = 2 - day;
+            else daysToTue = 9 - day;
             d.setDate(d.getDate() + daysToTue);
             return d;
         }
 
         function isLastTuesdayOfMonth(date) {
-            const year = date.getFullYear(), month = date.getMonth(), day = date.getDate();
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const day = date.getDate();
             const nextMonth = month === 11 ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
             const tuesdays = [];
             const d = new Date(year, month, 1);
-            while (d < nextMonth) { if (d.getDay() === 2) tuesdays.push(d.getDate()); d.setDate(d.getDate() + 1); }
+            while (d < nextMonth) {
+                if (d.getDay() === 2) tuesdays.push(d.getDate());
+                d.setDate(d.getDate() + 1);
+            }
             return tuesdays.length > 0 && day === tuesdays[tuesdays.length - 1];
         }
 
         function getExpiryForWeekday(date) {
             const dayOfWeek = date.getDay();
+            let expiry;
             if (dayOfWeek === 1 || dayOfWeek === 2) {
                 const nextTue = getNextTuesday(date);
-                const expiry = new Date(nextTue);
+                expiry = new Date(nextTue);
                 expiry.setDate(expiry.getDate() + 7);
-                return expiry;
+            } else {
+                expiry = getNextTuesday(date);
             }
-            return getNextTuesday(date);
+            return expiry;
         }
 
         function formatWeeklySymbol(underlying, expiry, strike, type) {
             const yy = expiry.getFullYear().toString().slice(-2);
             const m = (expiry.getMonth() + 1).toString();
             const dd = expiry.getDate().toString().padStart(2, '0');
-            return `${underlying}${yy}${m}${dd}${Math.round(strike)}${type}`;
+            const strikeStr = Math.round(strike).toString();
+            return `${underlying}${yy}${m}${dd}${strikeStr}${type}`;
         }
 
         function formatMonthlySymbol(underlying, expiry, strike, type) {
             const yy = expiry.getFullYear().toString().slice(-2);
-            return `${underlying}${yy}${MONTH_NAMES[expiry.getMonth()]}${Math.round(strike)}${type}`;
+            const monthName = MONTH_NAMES[expiry.getMonth()];
+            const strikeStr = Math.round(strike).toString();
+            return `${underlying}${yy}${monthName}${strikeStr}${type}`;
         }
 
-        /* ---------- CALCULATION ---------- */
+        // IDs of every element that shows a derived strike/symbol/range value.
+        // These must never display a strike computed from stale hardcoded
+        // defaults — only from a live fetch or an explicit manual entry.
+        const DERIVED_VALUE_IDS = [
+            'rangeDisplay', 'rangeFormula', 'niftyDivisorValue', 'rangeValue', 'expiryDate',
+            'putStrike', 'putSymbolText', 'callStrike', 'callSymbolText',
+            'expiryPutStrike', 'expiryPutSymbolText', 'expiryCallStrike', 'expiryCallSymbolText',
+            'midcpPutStrike', 'midcpPutSymbolText', 'midcpCallStrike', 'midcpCallSymbolText'
+        ];
+
+        function showLoadingPlaceholders() {
+            DERIVED_VALUE_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.textContent = '···'; el.classList.add('pending'); }
+            });
+            document.getElementById('niftyDisplay').textContent = '···';
+            document.getElementById('vixDisplay').textContent = '···';
+            document.getElementById('midcpDisplay').textContent = '···';
+            ['niftyDisplay', 'vixDisplay', 'midcpDisplay'].forEach(id =>
+                document.getElementById(id).classList.add('pending'));
+
+            document.querySelectorAll('.copy-btn').forEach(btn => btn.disabled = true);
+
+            const statusEl = document.getElementById('fetchStatus');
+            statusEl.textContent = 'Fetching live prices…';
+            statusEl.style.color = '#60a5fa';
+        }
+
+        function clearPlaceholders() {
+            DERIVED_VALUE_IDS.concat(['niftyDisplay', 'vixDisplay', 'midcpDisplay']).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('pending');
+            });
+            document.querySelectorAll('.copy-btn').forEach(btn => btn.disabled = false);
+        }
+
+        // User typed a manual override — treat it as real data immediately,
+        // independent of whether the live fetch ever succeeded.
+        function onManualOverride() {
+            liveDataLoaded = true;
+            calculateRange();
+            clearPlaceholders();
+        }
+
         function calculateRange() {
             const nifty = parseFloat(document.getElementById('manualNifty').value) || currentNifty;
             const vix = parseFloat(document.getElementById('manualVix').value) || currentVix;
@@ -531,11 +592,14 @@
             const dayOfWeek = today.getDay();
             const divisor = DIVISORS[dayOfWeek];
 
-            currentNifty = nifty; currentVix = vix; currentMidcp = midcp;
+            currentNifty = nifty;
+            currentVix = vix;
+            currentMidcp = midcp;
 
             const expiryDate = getExpiryForWeekday(today);
             const isMonthlyExpiry = isLastTuesdayOfMonth(expiryDate);
 
+            // Main NIFTY range and strikes
             const currentRange = nifty * Math.sqrt((vix * 2) / divisor);
             const putStrike = Math.floor((nifty - currentRange) / 100) * 100;
             const callStrike = Math.ceil((nifty + currentRange) / 100) * 100;
@@ -546,10 +610,13 @@
             document.getElementById('rangeDisplay').textContent = currentRange.toFixed(2);
             document.getElementById('niftyDivisorValue').textContent = divisor.toLocaleString();
             document.getElementById('rangeValue').textContent = currentRange.toFixed(2);
-            document.getElementById('currentDate').textContent = `${WEEKDAY_NAMES[dayOfWeek]} (${formatDDMMYYYY(today)})`;
+
+            const dayName = WEEKDAY_NAMES[dayOfWeek];
+            document.getElementById('currentDate').textContent = `${dayName} (${formatDDMMYYYY(today)})`;
             document.getElementById('expiryDate').textContent = formatDDMMYYYY(expiryDate) + (isMonthlyExpiry ? ' M' : ' W');
             document.getElementById('rangeFormula').textContent = `${nifty.toFixed(2)} x sqrt(${vix.toFixed(2)} x 200% / ${divisor}) = ${currentRange.toFixed(2)}`;
 
+            // Main NIFTY symbols
             let putSym, callSym;
             if (isMonthlyExpiry) {
                 putSym = formatMonthlySymbol('NIFTY', expiryDate, putStrike, 'PE');
@@ -576,6 +643,7 @@
             const niftyExpiryDayRange = nifty * Math.sqrt((vix * 2) / EXPIRY_DAY_DIVISOR);
             const niftyExpiryPutStrike = Math.floor((nifty - niftyExpiryDayRange) / 100) * 100;
             const niftyExpiryCallStrike = Math.ceil((nifty + niftyExpiryDayRange) / 100) * 100;
+
             const niftyImmediateExpiry = getNextTuesday(today);
             const niftyImmediateIsMonthly = isLastTuesdayOfMonth(niftyImmediateExpiry);
 
@@ -594,7 +662,7 @@
             document.getElementById('expiryCallStrike').textContent = niftyExpiryCallStrike.toLocaleString();
 
             const isTodayNiftyExpiry = (dayOfWeek === 2);
-            document.getElementById('niftyExpiryBanner').textContent = isTodayNiftyExpiry
+            document.getElementById('niftyExpiryBanner').textContent = isTodayNiftyExpiry 
                 ? 'Today is NIFTY Expiry Day! Intraday strikes with divisor 30,000.'
                 : "NIFTY intraday strikes for today's expiry using divisor 30,000.";
 
@@ -602,59 +670,78 @@
             const midcpExpiryDayRange = midcp * Math.sqrt((vix * 2) / MIDCP_EXPIRY_DAY_DIVISOR);
             const midcpExpiryPutStrike = Math.floor((midcp - midcpExpiryDayRange) / 25) * 25;
             const midcpExpiryCallStrike = Math.ceil((midcp + midcpExpiryDayRange) / 25) * 25;
+
             const midcpMonthName = MONTH_NAMES[today.getMonth()];
             const midcpYY = today.getFullYear().toString().slice(-2);
-            document.getElementById('midcpPutSymbolText').textContent = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryPutStrike}PE`;
-            document.getElementById('midcpCallSymbolText').textContent = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryCallStrike}CE`;
+            const midcpPutSym = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryPutStrike}PE`;
+            const midcpCallSym = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryCallStrike}CE`;
+
+            document.getElementById('midcpPutSymbolText').textContent = midcpPutSym;
+            document.getElementById('midcpCallSymbolText').textContent = midcpCallSym;
             document.getElementById('midcpPutStrike').textContent = midcpExpiryPutStrike.toLocaleString();
             document.getElementById('midcpCallStrike').textContent = midcpExpiryCallStrike.toLocaleString();
         }
 
-        function onManualOverride() {
-            liveDataLoaded = true;
-            calculateRange();
-        }
+        // Free public CORS proxies (allorigins/codetabs/corsproxy.io) turned
+        // out to be too unreliable in practice — rate-limited to a handful of
+        // requests/min, or (corsproxy.io) now blocked entirely for anything
+        // that isn't localhost. Scraping Google/Yahoo Finance from the
+        // browser through them was the source of the "Live fetch failed"
+        // problem.
+        //
+        // Instead this fetches from a small Cloudflare Worker (see worker.js)
+        // that does the Yahoo Finance lookup server-side — no CORS involved
+        // server-side at all — and returns the three prices as JSON with
+        // permissive CORS headers, so the browser can call it directly.
+        //
+        // >>> If you later also set up the Cloudflare Worker option, put its
+        // URL here and it'll be tried first. Leave blank/commented while
+        // using the GitHub Actions approach below. <<<
+        const WORKER_URL = ''; // e.g. 'https://nifty-prices.YOURNAME.workers.dev'
 
-        /* ---------- FETCH ---------- */
-        const YAHOO_SYMBOLS = {
-            nifty: '%5ENSEI',
-            vix: '%5EINDIAVIX',
-            midcp: 'NIFTY_MID_SELECT.NS'
-        };
-
-        // Working free CORS proxies (Sep 2026)
-        const CORS_PROXIES = [
-            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-            (url) => `https://corsproxy.org/?${encodeURIComponent(url)}`
+        // Primary: data/prices.json lives on the gh-pages branch, right next
+        // to this file, kept fresh by .github/workflows/fetch-prices.yml
+        // (which runs from the main branch but pushes its output here).
+        // Fallback: same file fetched directly from raw.githubusercontent.com
+        // in case this HTML is ever opened from somewhere other than the
+        // gh-pages site itself.
+        const PRICES_JSON_CANDIDATES = [
+            ...(WORKER_URL ? [WORKER_URL] : []),
+            'data/prices.json',
+            `https://raw.githubusercontent.com/${'durgeshh-create'}/${'Wealthplus'}/gh-pages/data/prices.json`
         ];
 
         async function fetchWithTimeout(url, ms) {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), ms);
-            try { return await fetch(url, { cache: 'no-store', signal: controller.signal }); }
-            finally { clearTimeout(timer); }
+            try {
+                return await fetch(url, { cache: 'no-store', signal: controller.signal });
+            } finally {
+                clearTimeout(timer);
+            }
         }
 
-        function parseYahooPrice(data) {
-            const result = data?.chart?.result?.[0];
-            const price = result?.meta?.regularMarketPrice ?? result?.meta?.previousClose;
-            return typeof price === 'number' ? price : null;
-        }
+        const FETCH_TIMEOUT_MS = 6000;
 
-        async function fetchViaProxy(targetUrl, timeoutMs) {
-            const attempts = CORS_PROXIES.map((buildProxyUrl) =>
-                fetchWithTimeout(buildProxyUrl(targetUrl), timeoutMs).then(async res => {
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
+        async function fetchPricesJson() {
+            let lastErr = null;
+            for (const base of PRICES_JSON_CANDIDATES) {
+                const url = base + (base.includes('?') ? '&' : '?') + '_=' + Date.now();
+                try {
+                    const res = await fetchWithTimeout(url, FETCH_TIMEOUT_MS);
+                    if (!res.ok) throw new Error('HTTP ' + res.status + ' for ' + url);
                     const data = await res.json();
-                    const price = parseYahooPrice(data);
-                    if (price === null || isNaN(price)) throw new Error('No price');
-                    return price;
-                })
-            );
-            return Promise.any(attempts);
+                    if (typeof data.nifty !== 'number' || typeof data.vix !== 'number' || typeof data.midcp !== 'number') {
+                        throw new Error('prices.json missing nifty/vix/midcp numbers');
+                    }
+                    return data;
+                } catch (e) {
+                    lastErr = e;
+                }
+            }
+            throw lastErr || new Error('No prices.json source succeeded');
         }
 
-        const FETCH_TIMEOUT_MS = 8000;
         let fetchInProgress = false;
 
         async function fetchLiveData() {
@@ -669,64 +756,38 @@
             const now = new Date();
             const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-            const results = await Promise.allSettled([
-                fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${YAHOO_SYMBOLS.nifty}?interval=1d&range=1d&_=${Date.now()}`, FETCH_TIMEOUT_MS),
-                fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${YAHOO_SYMBOLS.vix}?interval=1d&range=1d&_=${Date.now()}`, FETCH_TIMEOUT_MS),
-                fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${YAHOO_SYMBOLS.midcp}?interval=1d&range=1d&_=${Date.now()}`, FETCH_TIMEOUT_MS)
-            ]);
+            try {
+                const data = await fetchPricesJson();
 
-            const [niftyResult, vixResult, midcpResult] = results;
-            let successCount = 0;
+                currentNifty = data.nifty;
+                currentVix = data.vix;
+                currentMidcp = data.midcp;
+                document.getElementById('manualNifty').value = currentNifty;
+                document.getElementById('manualVix').value = currentVix;
+                document.getElementById('manualMidcp').value = currentMidcp;
 
-            if (niftyResult.status === 'fulfilled') {
-                currentNifty = niftyResult.value;
-                document.getElementById('manualNifty').value = currentNifty.toFixed(2);
-                successCount++;
-            }
-            if (vixResult.status === 'fulfilled') {
-                currentVix = vixResult.value;
-                document.getElementById('manualVix').value = currentVix.toFixed(2);
-                successCount++;
-            }
-            if (midcpResult.status === 'fulfilled') {
-                currentMidcp = midcpResult.value;
-                document.getElementById('manualMidcp').value = currentMidcp.toFixed(2);
-                successCount++;
-            }
-
-            if (successCount > 0) {
                 liveDataLoaded = true;
-                saveCache(currentNifty, currentVix, currentMidcp);
                 calculateRange();
-            }
+                clearPlaceholders();
 
-            if (successCount === 3) {
-                statusEl.textContent = `Updated ${timeStr}`;
+                let ageNote = '';
+                if (data.updated_at) {
+                    const ageMin = Math.max(0, Math.round((Date.now() - new Date(data.updated_at).getTime()) / 60000));
+                    ageNote = ageMin <= 1 ? ' (just now)' : ` (${ageMin}m old)`;
+                }
+                statusEl.textContent = `Updated ${timeStr}${ageNote}`;
                 statusEl.style.color = '#4ade80';
-            } else if (successCount > 0) {
-                statusEl.textContent = `Partial update ${timeStr} (${successCount}/3)`;
-                statusEl.style.color = '#fbbf24';
-            } else {
-                console.error('Fetch failed:', niftyResult.reason, vixResult.reason, midcpResult.reason);
+            } catch (e) {
+                console.error('fetchLiveData failed:', e);
                 if (!liveDataLoaded) {
-                    const cache = loadCache();
-                    if (cache) {
-                        currentNifty = cache.nifty;
-                        currentVix = cache.vix;
-                        currentMidcp = cache.midcp;
-                        document.getElementById('manualNifty').value = currentNifty;
-                        document.getElementById('manualVix').value = currentVix;
-                        document.getElementById('manualMidcp').value = currentMidcp;
-                        liveDataLoaded = true;
-                        calculateRange();
-                        statusEl.textContent = `Using cached prices — live fetch failed`;
-                        statusEl.style.color = '#fbbf24';
-                    } else {
-                        statusEl.textContent = `Live fetch failed — enter values manually below`;
-                        statusEl.style.color = '#f87171';
-                        document.getElementById('manualInputs').classList.add('active');
-                    }
+                    // Never had real data yet — do NOT reveal strikes computed
+                    // from the hardcoded defaults. Prompt for manual entry instead.
+                    statusEl.textContent = `Live fetch failed — enter NIFTY/VIX/MIDCP manually below`;
+                    statusEl.style.color = '#f87171';
+                    document.getElementById('manualInputs').classList.add('active');
                 } else {
+                    // We already have a good value on screen from an earlier
+                    // successful fetch; leave it displayed and just flag it as stale.
                     statusEl.textContent = `Refresh failed ${timeStr} — showing last known prices`;
                     statusEl.style.color = '#f87171';
                 }
@@ -738,18 +799,34 @@
         }
 
         function toggleManualInputs() {
-            document.getElementById('manualInputs').classList.toggle('active');
+            const el = document.getElementById('manualInputs');
+            el.classList.toggle('active');
         }
 
-        /* ---------- DOTM FILTER ---------- */
-        const DOTM_REPO_OWNER = 'durgeshh-create';
-        const DOTM_REPO_NAME = 'Wealthplus';
+        // ── Shared DOTM filter persistence ──────────────────────────────────
+        // The Put/Call visibility choice is meant to apply to EVERY visitor of
+        // this page (it's served statically from GitHub Pages, same repo as
+        // the settings-editor dashboard), not just the browser that set it.
+        // So it's stored as settings-editor/dotm-filter.json in the repo and
+        // read by anyone who loads this page.
+        //
+        // Only the admin can CHANGE it — that requires a GitHub token, which
+        // this page never asks for directly. Instead it reuses the same
+        // 'wealthalgo_cfg' localStorage entry the settings-editor dashboard
+        // already stores {owner, repo, token} in — since both pages are
+        // served from the same origin, a browser that's already set up as
+        // admin there is automatically recognized as admin here too. Anyone
+        // else just sees the current shared choice with the radios disabled.
+        const DOTM_REPO_OWNER  = 'durgeshh-create';
+        const DOTM_REPO_NAME   = 'Wealthplus';
         const DOTM_FILTER_PATH = 'settings-editor/dotm-filter.json';
+
         let _dotmSha = '';
 
         function getDotmAdminToken() {
             try {
                 const c = JSON.parse(localStorage.getItem('wealthalgo_cfg') || '{}');
+                // Only trust the stored token if it was configured for THIS repo.
                 return (c.owner === DOTM_REPO_OWNER && c.repo === DOTM_REPO_NAME && c.token) ? c.token : null;
             } catch (e) { return null; }
         }
@@ -759,6 +836,9 @@
             if (el) { el.textContent = msg; el.style.color = color || '#94a3b8'; }
         }
 
+        // Fetches the shared choice from GitHub and applies it. Works for
+        // every visitor — this is an unauthenticated read against a public
+        // repo, no token required.
         async function loadDOTMFilter() {
             const isAdmin = !!getDotmAdminToken();
             document.querySelectorAll('input[name="dotmFilter"]').forEach(r => r.disabled = !isAdmin);
@@ -774,6 +854,8 @@
                     const mode = ['both', 'put', 'call'].includes(json.mode) ? json.mode : 'both';
                     applyDOTMFilter(mode);
                 } else if (r.status === 404) {
+                    // Doesn't exist yet — default to "both", and if this browser
+                    // is the admin, seed the file so future visitors see it too.
                     applyDOTMFilter('both');
                     if (isAdmin) await saveDOTMFilter('both');
                 } else {
@@ -786,18 +868,36 @@
             }
         }
 
+        // Fetches the current blob SHA for dotm-filter.json fresh from gh-pages,
+        // or null if it doesn't exist yet. Used right before every save attempt
+        // rather than relying on a cached _dotmSha, because gh-pages is under
+        // near-constant concurrent commits from trading-bot.yml's snapshot
+        // pusher (status_rd1858.json / status_ps5673.json) — a sha captured at
+        // page-load time can be stale by the time the admin clicks a radio.
         async function fetchDotmSha(token) {
             const url = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}?ref=gh-pages`;
-            const r = await fetch(url, { headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' } });
+            const r = await fetch(url, {
+                headers: {
+                    'Authorization': 'token ' + token,
+                    'Accept': 'application/vnd.github.v3+json',
+                },
+            });
             if (r.status === 404) return null;
-            if (!r.ok) throw new Error(`GitHub API ${r.status}`);
-            return (await r.json()).sha;
+            if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+            const data = await r.json();
+            return data.sha;
         }
 
+        // Commits the admin's choice to GitHub so every visitor sees it.
+        // Retries on 409 (stale-sha conflict) with a freshly-fetched sha, the
+        // same pattern push_snapshot.py already uses — needed because gh-pages
+        // gets committed to very frequently by the bot workflow, so a single
+        // attempt can lose a race and fail silently otherwise.
         async function saveDOTMFilter(mode) {
             const token = getDotmAdminToken();
-            if (!token) return;
+            if (!token) return;   // not admin on this browser — nothing to persist
             setDotmStatus('saving…');
+
             const url = `https://api.github.com/repos/${DOTM_REPO_OWNER}/${DOTM_REPO_NAME}/contents/${DOTM_FILTER_PATH}`;
             const MAX_RETRIES = 4;
 
@@ -805,6 +905,7 @@
                 try {
                     const sha = await fetchDotmSha(token);
                     _dotmSha = sha;
+
                     const body = {
                         message: `dotm-filter: ${mode} (${new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'})} IST)`,
                         content: btoa(unescape(encodeURIComponent(JSON.stringify({ mode }, null, 2)))),
@@ -814,62 +915,112 @@
 
                     const r = await fetch(url, {
                         method: 'PUT',
-                        headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                        headers: {
+                            'Authorization': 'token ' + token,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json',
+                        },
                         body: JSON.stringify(body),
                     });
 
                     if (r.status === 409 || r.status === 422) {
-                        if (attempt < MAX_RETRIES) { await new Promise(res => setTimeout(res, 400 * attempt)); continue; }
-                        throw new Error(`GitHub API ${r.status} after ${MAX_RETRIES} attempts`);
+                        // Branch moved between our GET and PUT — another commit
+                        // (almost certainly the bot's snapshot pusher) landed
+                        // first. Back off briefly and retry with a fresh sha.
+                        console.warn(`saveDOTMFilter: sha conflict (attempt ${attempt}/${MAX_RETRIES}), retrying...`);
+                        if (attempt < MAX_RETRIES) {
+                            await new Promise(res => setTimeout(res, 400 * attempt));
+                            continue;
+                        }
+                        throw new Error(`GitHub API ${r.status} after ${MAX_RETRIES} attempts: ${await r.text()}`);
                     }
-                    if (!r.ok) throw new Error(`GitHub API ${r.status}`);
 
-                    _dotmSha = (await r.json()).content.sha;
+                    if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
+
+                    const resp = await r.json();
+                    _dotmSha = resp.content.sha;
                     setDotmStatus('✓ saved for all visitors', '#4ade80');
                     return;
                 } catch (e) {
-                    if (attempt >= MAX_RETRIES) { console.error('saveDOTMFilter failed:', e); setDotmStatus('⚠ save failed', '#f87171'); return; }
+                    if (attempt >= MAX_RETRIES) {
+                        console.error('saveDOTMFilter failed:', e);
+                        setDotmStatus('⚠ save failed — check GitHub token/repo', '#f87171');
+                        return;
+                    }
+                    // Network-level error, not a 409 — still worth a retry.
+                    console.warn(`saveDOTMFilter: error on attempt ${attempt}/${MAX_RETRIES}, retrying...`, e);
                     await new Promise(res => setTimeout(res, 400 * attempt));
                 }
             }
         }
 
+        // Admin changed a radio — apply it locally immediately, then persist.
         function onDotmRadioChange(mode) {
             applyDOTMFilter(mode);
             saveDOTMFilter(mode);
         }
 
+        // Lets the viewer hide the DOTM Put or Call card independently — e.g.
+        // if they're only trading one side this expiry and don't need the
+        // other symbol cluttering the view. Purely a display filter; doesn't
+        // touch any of the underlying strike calculations.
         function applyDOTMFilter(mode) {
-            const putCard = document.getElementById('dotmPutCard');
+            const putCard  = document.getElementById('dotmPutCard');
             const callCard = document.getElementById('dotmCallCard');
-            const row = document.getElementById('regularResults');
-            const showPut = mode === 'both' || mode === 'put';
+            const row      = document.getElementById('regularResults');
+
+            const showPut  = mode === 'both' || mode === 'put';
             const showCall = mode === 'both' || mode === 'call';
-            putCard.style.display = showPut ? '' : 'none';
+            putCard.style.display  = showPut  ? '' : 'none';
             callCard.style.display = showCall ? '' : 'none';
             row.classList.toggle('single-col', mode !== 'both');
+
             const radio = document.querySelector(`input[name="dotmFilter"][value="${mode}"]`);
             if (radio) radio.checked = true;
+
             document.getElementById('dotmFilterPutLabel').classList.toggle('active-put', mode === 'put');
             document.getElementById('dotmFilterCallLabel').classList.toggle('active-call', mode === 'call');
         }
 
-        /* ---------- EXPIRY VISIBILITY ---------- */
+        // Expiry strikes sections (NIFTY & MIDCPNIFTY EXPIRY DAY INTRADAY) are
+        // only relevant on Tuesdays (the weekly expiry day), so they're hidden
+        // by default on other days. The button lets users reveal them manually.
         let manualExpiryOverride = false;
 
+        // Determines "is it Tuesday" using India Standard Time explicitly,
+        // rather than new Date().getDay() (which reflects whatever timezone
+        // the viewer's device happens to be set to). Since this page is
+        // served statically from GitHub Pages, all this logic runs in the
+        // visitor's own browser — so without this, someone opening the page
+        // from a non-IST device could see the wrong day near midnight IST.
         function isTuesdayIST() {
-            return new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Kolkata', weekday: 'short' }).format(new Date()) === 'Tue';
+            const istWeekday = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'Asia/Kolkata',
+                weekday: 'short'
+            }).format(new Date());
+            return istWeekday === 'Tue';
         }
 
+        // Is today the LAST Tuesday of its month, per India Standard Time
+        // (not the viewer's device timezone). Used to gate the MIDCPNIFTY
+        // expiry-day strikes, which are only worth showing automatically on
+        // the monthly expiry Tuesday.
         function isLastTuesdayOfMonthIST() {
             if (!isTuesdayIST()) return false;
-            const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
-            const map = {}; parts.forEach(p => { map[p.type] = p.value; });
+            const parts = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit'
+            }).formatToParts(new Date());
+            const map = {};
+            parts.forEach(p => { map[p.type] = p.value; });
             const year = +map.year, month = +map.month - 1, day = +map.day;
+
             const nextMonth = month === 11 ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
             let lastTuesday = null;
             const d = new Date(year, month, 1);
-            while (d < nextMonth) { if (d.getDay() === 2) lastTuesday = d.getDate(); d.setDate(d.getDate() + 1); }
+            while (d < nextMonth) {
+                if (d.getDay() === 2) lastTuesday = d.getDate();
+                d.setDate(d.getDate() + 1);
+            }
             return lastTuesday !== null && day === lastTuesday;
         }
 
@@ -881,6 +1032,7 @@
             const btn = document.getElementById('expiryToggleBtn');
 
             if (isTuesday) {
+                // Always shown on Tuesday; no need for the toggle button.
                 section.style.display = '';
                 btn.style.display = 'none';
                 manualExpiryOverride = false;
@@ -894,6 +1046,11 @@
                     btn.textContent = 'Display Expiry Strikes';
                 }
             }
+
+            // MIDCPNIFTY expiry-day strikes: auto-shown only on the monthly
+            // (last Tuesday) expiry, unlike NIFTY which shows every Tuesday.
+            // Still respects the manual "Display Expiry Strikes" preview on
+            // non-Tuesday days, since that's an explicit user action.
             if (midcpSection) {
                 midcpSection.style.display = (isLastTue || (!isTuesday && manualExpiryOverride)) ? '' : 'none';
             }
@@ -909,6 +1066,7 @@
             const hour = now.getHours(), minute = now.getMinutes(), day = now.getDay();
             const isWeekday = day >= 1 && day <= 5;
             const isMarketHours = (hour > 9 || (hour === 9 && minute >= 15)) && (hour < 15 || (hour === 15 && minute <= 30));
+
             const statusEl = document.getElementById('marketStatus');
             if (isWeekday && isMarketHours) {
                 statusEl.textContent = 'Market Open';
@@ -919,22 +1077,15 @@
             }
         }
 
-        /* ---------- INIT ---------- */
+        // Run immediately on load. Note: we deliberately do NOT call
+        // calculateRange() here — that would render strikes off the
+        // hardcoded default NIFTY/VIX/MIDCP values before any real price
+        // has been fetched, which is exactly the stale-looking-live bug
+        // this was rewritten to avoid. Placeholders stay up until
+        // fetchLiveData() resolves with at least one real price.
         checkMarketStatus();
+        showLoadingPlaceholders();
         updateExpiryVisibility();
-
-        // Load cache or defaults so page is NEVER blank
-        const cache = loadCache();
-        if (cache) {
-            currentNifty = cache.nifty;
-            currentVix = cache.vix;
-            currentMidcp = cache.midcp;
-            document.getElementById('manualNifty').value = currentNifty;
-            document.getElementById('manualVix').value = currentVix;
-            document.getElementById('manualMidcp').value = currentMidcp;
-            liveDataLoaded = true;
-        }
-        calculateRange(); // Always calculate on load — never show blank placeholders
         fetchLiveData();
         loadDOTMFilter();
 
