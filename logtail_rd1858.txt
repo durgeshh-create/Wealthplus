@@ -4,3 +4,16 @@
 2026-09-01 14:46:54 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260901191478159
 2026-09-01 14:46:54 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.73
 2026-09-01 14:46:54 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 63 units @ ₹115.74
+2026-09-01 14:47:53 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-86.0), B(W%R=-86.0+drop=2.42%), C(W%R=-86.0+drop=2.42%)]: SILVERBEES | Price=₹217.80 | PrevClose=₹223.21 | AvgBuy=₹221.69 | Slot 1/6
+2026-09-01 14:47:53 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-84.4), B(W%R=-84.4+drop=1.56%), C(W%R=-84.4+drop=1.56%)]: GOLDBEES | Price=₹125.34 | PrevClose=₹127.32 | AvgBuy=₹126.76 | Slot 1/6
+2026-09-01 14:47:53 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-85.97 | ₹217.80
+2026-09-01 14:47:53 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-84.39 | ₹125.34
+2026-09-01 14:47:53 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-09-01 14:47:54 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹0.00 + sell 215 LIQUIDCASE × ₹115.74 = ₹24884.10 (shortfall) → Buy 114 SILVERBEES × ₹217.80 = ₹24829.20
+2026-09-01 14:47:54 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹217.80 for SILVERBEES (LTP was ₹217.80, top_ask from depth)
+2026-09-01 14:47:54 IST | INFO     | backend.orders.manager | smart_buy 114 × SILVERBEES @ ₹217.80 (cost ₹24,829.20) | Available cash: ₹2,627.70 (spendable after ₹15000 reserve: ₹0.00)
+2026-09-01 14:47:54 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.73 (top_bid from depth)
+2026-09-01 14:47:54 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 232 x LIQUIDCASE
+2026-09-01 14:47:54 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260901191481252
+2026-09-01 14:47:55 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.73
+2026-09-01 14:47:55 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 232 units @ ₹115.74
