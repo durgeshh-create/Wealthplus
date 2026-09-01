@@ -1,0 +1,74 @@
+name: Fetch Live Prices
+
+on:
+  schedule:
+    # Every 5 minutes, 09:00-15:35 IST, Mon-Fri.
+    # IST = UTC+5:30, so 09:00-15:35 IST = 03:30-10:05 UTC.
+    - cron: '*/5 3-9 * * 1-5'
+    - cron: '0,5 10 * * 1-5'
+  workflow_dispatch: {} # lets you trigger it manually from the Actions tab
+
+# Required for the gh-pages push step below.
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Fetch prices
+        run: python scripts/fetch_prices.py
+
+      - name: Configure git
+        run: |
+          git config user.name  "price-bot"
+          git config user.email "price-bot@users.noreply.github.com"
+
+      - name: Push data/prices.json to gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO:      ${{ github.repository }}
+        run: |
+          set -e
+
+          echo "Fetching gh-pages from origin..."
+          git fetch origin gh-pages
+
+          git worktree remove --force /tmp/ghp 2>/dev/null || true
+          rm -rf /tmp/ghp
+          git branch -D gh-pages 2>/dev/null || true
+
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            echo "Creating worktree from freshly-fetched origin/gh-pages"
+            git worktree add /tmp/ghp -B gh-pages origin/gh-pages
+          else
+            echo "origin/gh-pages does not exist yet — creating orphan branch"
+            git worktree add /tmp/ghp --orphan gh-pages
+          fi
+
+          mkdir -p /tmp/ghp/data
+          cp prices.json /tmp/ghp/data/prices.json
+
+          cd /tmp/ghp
+          git add data/prices.json
+          if git diff --cached --quiet; then
+            echo "No price change — skipping commit"
+          else
+            git commit -m "Update live prices $(date -u +'%Y-%m-%d %H:%M')"
+            for _retry in 1 2 3; do
+              git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+              if git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages; then
+                echo "✅ Pushed data/prices.json to gh-pages"
+                break
+              fi
+              echo "Push attempt ${_retry} failed — retrying..."
+              sleep 3
+            done
+          fi
