@@ -204,6 +204,94 @@ jobs:
           done
 
   # ────────────────────────────────────────────────────────────────────────────
+  # fetch-prices — keeps data/prices.json (NIFTY 50 / India VIX / MIDCPNIFTY)
+  # fresh on gh-pages for the standalone NIFTY Weekly DOTM dashboard
+  # (option.html). Rides the same two-session schedule as the rest of this
+  # workflow instead of a separate 5-minute cron — a standalone cron job was
+  # unreliable in practice (scheduled triggers can silently not fire, e.g.
+  # when Actions minutes run low), whereas this schedule is already proven to
+  # fire. Runs independently of check-suspend: price data should keep
+  # updating even if the trading bots themselves are suspended.
+  # ────────────────────────────────────────────────────────────────────────────
+  fetch-prices:
+    needs: [bootstrap-ghpages]
+    runs-on: ubuntu-latest
+    timeout-minutes: 210
+    concurrency:
+      group: fetch-prices
+      cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Configure git
+        run: |
+          git config user.name  "price-bot"
+          git config user.email "price-bot@users.noreply.github.com"
+
+      - name: Loop — fetch NIFTY/VIX/MIDCP and push to gh-pages every 5 min
+        timeout-minutes: 195
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO:      ${{ github.repository }}
+        run: |
+          # Run for ~195 minutes (comfortably inside the 210-min job timeout,
+          # and covers either session's length) rather than relying on a
+          # fixed iteration count, so a slow cycle never gets cut off mid-push.
+          END=$(( $(date +%s) + 195*60 ))
+
+          while [ "$(date +%s)" -lt "$END" ]; do
+            echo "── $(date -u +'%H:%M:%S') UTC — fetching NIFTY/VIX/MIDCP ──"
+
+            if python3 scripts/fetch_prices.py; then
+              git fetch origin gh-pages
+
+              git worktree remove --force /tmp/ghp 2>/dev/null || true
+              rm -rf /tmp/ghp
+              git worktree prune 2>/dev/null || true
+              git branch -D gh-pages 2>/dev/null || true
+
+              if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+                git worktree add /tmp/ghp -B gh-pages origin/gh-pages
+              else
+                git worktree add /tmp/ghp --orphan gh-pages
+              fi
+
+              mkdir -p /tmp/ghp/data
+              cp prices.json /tmp/ghp/data/prices.json
+
+              (
+                cd /tmp/ghp
+                git add data/prices.json
+                if git diff --cached --quiet; then
+                  echo "No price change — skipping commit"
+                else
+                  git commit -m "Update live prices $(date -u +'%Y-%m-%d %H:%M')"
+                  for _retry in 1 2 3; do
+                    git pull --rebase "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages 2>/dev/null || true
+                    if git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GH_REPO}.git" gh-pages; then
+                      echo "✅ Pushed data/prices.json to gh-pages"
+                      break
+                    fi
+                    echo "Push attempt ${_retry} failed — retrying..."
+                    sleep 3
+                  done
+                fi
+              )
+            else
+              echo "⚠️ Price fetch failed this cycle — will retry next loop"
+            fi
+
+            sleep 300
+          done
+
+  # ────────────────────────────────────────────────────────────────────────────
   # RD1858 — runs in parallel with PS5673, after bootstrap
   # ────────────────────────────────────────────────────────────────────────────
   RD1858:
