@@ -29,3 +29,4 @@
 2026-09-01 13:56:21 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.73
 2026-09-01 13:56:21 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 234 units @ ₹115.74
 2026-09-01 13:58:02 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [SILVERBEES]: Margin not credited after 90s: live_balance ₹2,627.70 < required ₹39,992.22. LIQUIDCASE was sold (234 units) — cash should credit shortly.
+2026-09-01 14:21:22 IST | ERROR    | backend.portfolio.tracker | Error fetching holdings: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
