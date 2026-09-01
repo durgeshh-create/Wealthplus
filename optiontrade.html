@@ -488,15 +488,18 @@
         <div class="manual-inputs" id="manualInputs">
             <div class="input-card">
                 <label>NIFTY 50</label>
-                <input type="number" id="manualNifty" value="23945" step="0.05" onchange="onManualOverride()">
+                <input type="number" id="manualNifty" value="23945" step="0.05" oninput="onManualOverride()">
             </div>
             <div class="input-card">
                 <label>India VIX</label>
-                <input type="number" id="manualVix" value="13.61" step="0.01" onchange="onManualOverride()">
+                <input type="number" id="manualVix" value="13.61" step="0.01" oninput="onManualOverride()">
             </div>
             <div class="input-card">
                 <label>MIDCPNIFTY</label>
-                <input type="number" id="manualMidcp" value="14367" step="0.05" onchange="onManualOverride()">
+                <input type="number" id="manualMidcp" value="14367" step="0.05" oninput="onManualOverride()">
+            </div>
+            <div class="input-card" style="display:flex; align-items:flex-end;">
+                <button type="button" class="toggle-btn" style="width:100%; padding:6px 8px; font-size:0.65rem;" onclick="onManualOverride()">Apply Values</button>
             </div>
         </div>
 
@@ -921,49 +924,28 @@
             if (typeof syncSymbolInputs === 'function') syncSymbolInputs();
         }
 
-        // NSE's own API rejects cross-origin browser requests (no CORS headers),
-        // so it can't be called directly from a static GitHub Pages site.
+        // Free public CORS proxies (allorigins/codetabs/corsproxy.io) turned
+        // out to be too unreliable in practice — rate-limited to a handful of
+        // requests/min, or (corsproxy.io) now blocked entirely for anything
+        // that isn't localhost. Scraping Google/Yahoo Finance from the
+        // browser through them was the source of the "Live fetch failed"
+        // problem.
         //
-        // NIFTY 50 and INDIA VIX are scraped from Google Finance (the price is
-        // rendered directly into the page HTML, no login/auth/crumb required —
-        // unlike Yahoo's quote API). Google Finance does not list "NIFTY MID
-        // SELECT" though, so that one still comes from Yahoo's chart endpoint
-        // (v8), which works anonymously. Yahoo's chart endpoint is also kept as
-        // an automatic fallback for NIFTY/VIX in case Google's markup changes.
+        // Instead this fetches from data/prices.json on the gh-pages branch
+        // (right next to this file), kept fresh by a job in
+        // .github/workflows/trading-bot.yml that fetches NIFTY/VIX/MIDCP
+        // server-side every few minutes during market hours — no CORS
+        // involved server-side at all — and pushes the result here.
         //
-        // Everything is routed through a public CORS proxy. Proxy order matters:
-        // corsproxy.io's free tier only allows a fixed allowlist of origins
-        // (localhost, *.github.io, CodePen, Replit, etc.) and silently fails for
-        // anything else (e.g. a custom domain on GitHub Pages), so it's listed
-        // LAST as a fallback; the primary proxies have no such restriction.
+        // Optional: if you also set up the Cloudflare Worker option, put its
+        // URL here and it'll be tried first.
+        const WORKER_URL = ''; // e.g. 'https://nifty-prices.YOURNAME.workers.dev'
 
-        const GOOGLE_SYMBOLS = {
-            nifty: 'NIFTY_50:INDEXNSE',
-            vix: 'INDIA_VIX:INDEXNSE'
-        };
-
-        const YAHOO_SYMBOLS = {
-            nifty: '%5ENSEI',            // ^NSEI = NIFTY 50
-            vix: '%5EINDIAVIX',          // ^INDIAVIX = INDIA VIX
-            midcp: 'NIFTY_MID_SELECT.NS' // NIFTY MID SELECT
-        };
-
-        const CORS_PROXIES = [
-            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-            (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`
+        const PRICES_JSON_CANDIDATES = [
+            ...(WORKER_URL ? [WORKER_URL] : []),
+            'data/prices.json',
+            `https://raw.githubusercontent.com/${'durgeshh-create'}/${'Wealthplus'}/gh-pages/data/prices.json`
         ];
-
-        // Remembers which proxy answered fastest last time, per source, so we
-        // can try it first on the next refresh. Doesn't change worst-case
-        // speed (everything races in parallel regardless) but tends to make
-        // the "winning" response come back sooner on repeat fetches.
-        const lastGoodProxy = { google: 0, yahoo: 0 };
-        function orderedProxies(sourceKey) {
-            const idx = lastGoodProxy[sourceKey] || 0;
-            if (idx === 0) return CORS_PROXIES;
-            return [CORS_PROXIES[idx], ...CORS_PROXIES.filter((_, i) => i !== idx)];
-        }
 
         async function fetchWithTimeout(url, ms) {
             const controller = new AbortController();
@@ -975,73 +957,25 @@
             }
         }
 
-        function parseGoogleFinancePrice(html) {
-            // Google Finance renders the headline price inside a span with
-            // class "YMlKec fxKbKc", e.g. <div class="YMlKec fxKbKc">23,913.70</div>
-            const m = html.match(/class="YMlKec fxKbKc"[^>]*>([\d,]+(?:\.\d+)?)/);
-            if (m) {
-                const price = parseFloat(m[1].replace(/,/g, ''));
-                if (!isNaN(price)) return price;
-            }
-            return null;
-        }
+        const FETCH_TIMEOUT_MS = 6000;
 
-        // Fires all 3 proxies for a given target URL AT ONCE and resolves with
-        // whichever comes back first with a usable value — instead of trying
-        // them one after another, which is what made a single price take up
-        // to 24s (3 proxies x 8s timeout) before even falling back to Yahoo.
-        function raceProxies(targetUrl, sourceKey, parseFn, timeoutMs) {
-            const attempts = orderedProxies(sourceKey).map((buildProxyUrl, i) => {
-                const proxyIndex = CORS_PROXIES.indexOf(buildProxyUrl);
-                return (async () => {
-                    const res = await fetchWithTimeout(buildProxyUrl(targetUrl), timeoutMs);
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
-                    const body = await (parseFn.isJson ? res.json() : res.text());
-                    const price = parseFn(body);
-                    if (price === null || price === undefined || isNaN(price)) {
-                        throw new Error('No usable price in response');
+        async function fetchPricesJson() {
+            let lastErr = null;
+            for (const base of PRICES_JSON_CANDIDATES) {
+                const url = base + (base.includes('?') ? '&' : '?') + '_=' + Date.now();
+                try {
+                    const res = await fetchWithTimeout(url, FETCH_TIMEOUT_MS);
+                    if (!res.ok) throw new Error('HTTP ' + res.status + ' for ' + url);
+                    const data = await res.json();
+                    if (typeof data.nifty !== 'number' || typeof data.vix !== 'number' || typeof data.midcp !== 'number') {
+                        throw new Error('prices.json missing nifty/vix/midcp numbers');
                     }
-                    lastGoodProxy[sourceKey] = proxyIndex;
-                    return price;
-                })();
-            });
-            return Promise.any(attempts);
-        }
-
-        function parseYahooPrice(data) {
-            const result = data && data.chart && data.chart.result && data.chart.result[0];
-            const price = result && result.meta && (result.meta.regularMarketPrice ?? result.meta.previousClose);
-            return typeof price === 'number' ? price : null;
-        }
-        parseYahooPrice.isJson = true;
-
-        function fetchGooglePriceRaced(symbolPath, timeoutMs) {
-            const googleUrl = `https://www.google.com/finance/quote/${symbolPath}?_=${Date.now()}`;
-            return raceProxies(googleUrl, 'google', parseGoogleFinancePrice, timeoutMs);
-        }
-
-        function fetchYahooPriceRaced(symbol, timeoutMs) {
-            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d&_=${Date.now()}`;
-            return raceProxies(yahooUrl, 'yahoo', parseYahooPrice, timeoutMs);
-        }
-
-        const FETCH_TIMEOUT_MS = 4500; // per proxy attempt; all attempts run in parallel, so this is close to the real worst case now
-
-        // Race Google Finance and Yahoo simultaneously too (rather than trying
-        // Google, waiting for it to fully fail, then trying Yahoo) — whichever
-        // of the two sources answers first wins.
-        function fetchNiftyPrice() {
-            return Promise.any([
-                fetchGooglePriceRaced(GOOGLE_SYMBOLS.nifty, FETCH_TIMEOUT_MS),
-                fetchYahooPriceRaced(YAHOO_SYMBOLS.nifty, FETCH_TIMEOUT_MS)
-            ]);
-        }
-
-        function fetchVixPrice() {
-            return Promise.any([
-                fetchGooglePriceRaced(GOOGLE_SYMBOLS.vix, FETCH_TIMEOUT_MS),
-                fetchYahooPriceRaced(YAHOO_SYMBOLS.vix, FETCH_TIMEOUT_MS)
-            ]);
+                    return data;
+                } catch (e) {
+                    lastErr = e;
+                }
+            }
+            throw lastErr || new Error('No prices.json source succeeded');
         }
 
         let fetchInProgress = false;
@@ -1058,46 +992,29 @@
             const now = new Date();
             const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-            const results = await Promise.allSettled([
-                fetchNiftyPrice(),
-                fetchVixPrice(),
-                fetchYahooPriceRaced(YAHOO_SYMBOLS.midcp, FETCH_TIMEOUT_MS)
-            ]);
+            try {
+                const data = await fetchPricesJson();
 
-            const [niftyResult, vixResult, midcpResult] = results;
-            let successCount = 0;
-
-            if (niftyResult.status === 'fulfilled') {
-                currentNifty = niftyResult.value;
+                currentNifty = data.nifty;
+                currentVix = data.vix;
+                currentMidcp = data.midcp;
                 document.getElementById('manualNifty').value = currentNifty;
-                successCount++;
-            }
-            if (vixResult.status === 'fulfilled') {
-                currentVix = vixResult.value;
                 document.getElementById('manualVix').value = currentVix;
-                successCount++;
-            }
-            if (midcpResult.status === 'fulfilled') {
-                currentMidcp = midcpResult.value;
                 document.getElementById('manualMidcp').value = currentMidcp;
-                successCount++;
-            }
 
-            if (successCount > 0) {
-                // We have at least one real, live number — safe to render strikes now.
                 liveDataLoaded = true;
                 calculateRange();
                 clearPlaceholders();
-            }
 
-            if (successCount === 3) {
-                statusEl.textContent = `Updated ${timeStr}`;
+                let ageNote = '';
+                if (data.updated_at) {
+                    const ageMin = Math.max(0, Math.round((Date.now() - new Date(data.updated_at).getTime()) / 60000));
+                    ageNote = ageMin <= 1 ? ' (just now)' : ` (${ageMin}m old)`;
+                }
+                statusEl.textContent = `Updated ${timeStr}${ageNote}`;
                 statusEl.style.color = '#4ade80';
-            } else if (successCount > 0) {
-                statusEl.textContent = `Partial update ${timeStr} (${successCount}/3) — remaining value(s) held at last known price`;
-                statusEl.style.color = '#fbbf24';
-            } else {
-                console.error('NIFTY:', niftyResult.reason, 'VIX:', vixResult.reason, 'MIDCP:', midcpResult.reason);
+            } catch (e) {
+                console.error('fetchLiveData failed:', e);
                 if (!liveDataLoaded) {
                     // Never had real data yet — do NOT reveal strikes computed
                     // from the hardcoded defaults. Prompt for manual entry instead.
