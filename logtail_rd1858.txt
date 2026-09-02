@@ -1,43 +1,5 @@
-2026-09-02 09:59:26 IST | INFO     | backend.orders.manager | smart_buy 19 × MID150BEES @ ₹238.50 (cost ₹4,531.50) | Available cash: ₹97,479.00 (spendable after ₹15000 reserve: ₹82,479.00)
-2026-09-02 09:59:26 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 19 x MID150BEES
-2026-09-02 09:59:26 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902190350046
-2026-09-02 09:59:27 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹238.5
-2026-09-02 09:59:28 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 19 × ₹238.50 = ₹4532 | LIMIT | Available Cash
-2026-09-02 10:00:26 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-95.2), B(W%R=-95.2+drop=1.25%), C(W%R=-95.2+drop=1.25%)]: SILVERBEES | Price=₹215.00 | PrevClose=₹217.72 | AvgBuy=₹218.53 | Slot 1/6
-2026-09-02 10:00:26 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-93.7), B(W%R=-93.7+drop=1.52%), C(W%R=-93.7+drop=1.52%)]: GOLDBEES | Price=₹123.43 | PrevClose=₹125.34 | AvgBuy=₹125.02 | Slot 1/6
-2026-09-02 10:00:26 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-95.21 | ₹215.00
-2026-09-02 10:00:26 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-93.74 | ₹123.43
-2026-09-02 10:00:26 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
-2026-09-02 10:00:26 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹215.00 for SILVERBEES (LTP was ₹215.00, top_ask from depth)
-2026-09-02 10:00:27 IST | INFO     | backend.orders.manager | smart_buy 116 × SILVERBEES @ ₹215.00 (cost ₹24,940.00) | Available cash: ₹97,479.00 (spendable after ₹15000 reserve: ₹82,479.00)
-2026-09-02 10:00:27 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 116 x SILVERBEES
-2026-09-02 10:00:27 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902190356409
-2026-09-02 10:00:27 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 35479643.81. Margin available: 35474783.54. Check orderbook for open orders.
-2026-09-02 10:00:27 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.73 (top_bid from depth)
-2026-09-02 10:00:27 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 233 x LIQUIDCASE
-2026-09-02 10:00:28 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902190356483
-2026-09-02 10:00:28 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.73
-2026-09-02 10:00:28 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 233 units @ ₹115.73
-2026-09-02 10:00:30 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹215.0 → ₹215.00 (top_ask from depth)
-2026-09-02 10:00:30 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 116 x SILVERBEES
-2026-09-02 10:00:30 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902190356693
-2026-09-02 10:00:31 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: SILVERBEES @ ₹214.99
-2026-09-02 10:00:31 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 116 × SILVERBEES @ ₹215.00
-2026-09-02 10:00:31 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: SILVERBEES x116 @ ₹215.00
-2026-09-02 10:00:31 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
-2026-09-02 10:00:32 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹123.43 for GOLDBEES (LTP was ₹123.40, top_ask from depth)
-2026-09-02 10:00:32 IST | INFO     | backend.orders.manager | smart_buy 202 × GOLDBEES @ ₹123.43 (cost ₹24,932.86) | Available cash: ₹97,479.00 (spendable after ₹15000 reserve: ₹82,479.00)
-2026-09-02 10:00:32 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 202 x GOLDBEES
-2026-09-02 10:00:32 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902190356817
-2026-09-02 10:00:32 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 35477610.42. Margin available: 35474783.54. Check orderbook for open orders.
-2026-09-02 10:00:33 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.74 (top_bid from depth)
-2026-09-02 10:00:33 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 233 x LIQUIDCASE
-2026-09-02 10:00:33 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902190356867
-2026-09-02 10:00:33 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.74
-2026-09-02 10:00:33 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 233 units @ ₹115.73
-2026-09-02 10:00:36 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹123.43 → ₹123.40 (top_ask from depth)
-2026-09-02 10:00:36 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 202 x GOLDBEES
-2026-09-02 10:00:36 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902190357097
-2026-09-02 10:00:36 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: GOLDBEES @ ₹123.38
-2026-09-02 10:00:36 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 202 × GOLDBEES @ ₹123.43
-2026-09-02 10:00:37 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: GOLDBEES x202 @ ₹123.40
+2026-09-02 12:36:52 IST | INFO     | backend.orders.manager | smart_buy 19 × MID150BEES @ ₹238.48 (cost ₹4,531.12) | Available cash: ₹97,479.00 (spendable after ₹15000 reserve: ₹82,479.00)
+2026-09-02 12:36:52 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 19 x MID150BEES
+2026-09-02 12:36:53 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902190827386
+2026-09-02 12:36:53 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹238.48
+2026-09-02 12:36:54 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 19 × ₹238.48 = ₹4531 | LIMIT | Available Cash
