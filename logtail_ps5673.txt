@@ -5,3 +5,40 @@
 2026-09-02 09:01:41 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 48 x LIQUIDCASE
 2026-09-02 09:01:41 IST | ERROR    | backend.orders.manager | ✗ Order placement HTTP error: Your order could not be converted to a After Market Order (AMO).
 2026-09-02 09:01:41 IST | ERROR    | backend.strategy.intraday_engine | [MID150BEES] smart_buy failed: LIQUIDCASE sell failed: Your order could not be converted to a After Market Order (AMO).
+2026-09-02 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-93.0), B(W%R=-93.0+drop=1.04%), C(W%R=-93.0+drop=1.04%)]: SILVERBEES | Price=₹215.45 | PrevClose=₹217.72 | AvgBuy=₹221.69 | Slot 1/6
+2026-09-02 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-97.5)]: JUNIORBEES | Price=₹781.10 | PrevClose=₹788.17 | AvgBuy=₹794.27 | Slot 1/6
+2026-09-02 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-94.7), B(W%R=-94.7+drop=1.60%), C(W%R=-94.7+drop=1.60%)]: GOLDBEES | Price=₹123.33 | PrevClose=₹125.34 | AvgBuy=₹126.74 | Slot 1/6
+2026-09-02 09:20:01 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-92.99 | ₹215.45
+2026-09-02 09:20:01 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-97.50 | ₹781.10
+2026-09-02 09:20:01 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-94.66 | ₹123.33
+2026-09-02 09:20:01 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-09-02 09:20:01 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹215.48 for SILVERBEES (LTP was ₹215.45, top_ask from depth)
+2026-09-02 09:20:02 IST | INFO     | backend.orders.manager | smart_buy 116 × SILVERBEES @ ₹215.48 (cost ₹24,995.68) | Available cash: ₹49,357.00 (spendable after ₹15000 reserve: ₹34,357.00)
+2026-09-02 09:20:02 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 116 x SILVERBEES
+2026-09-02 09:20:02 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902150135761
+2026-09-02 09:20:02 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: SILVERBEES @ ₹215.48
+2026-09-02 09:20:03 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: SILVERBEES x116 @ ₹215.45
+2026-09-02 09:20:03 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-09-02 09:20:03 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹781.14 for JUNIORBEES (LTP was ₹781.10, top_ask from depth)
+2026-09-02 09:20:03 IST | INFO     | backend.orders.manager | smart_buy 32 × JUNIORBEES @ ₹781.14 (cost ₹24,996.48) | Available cash: ₹49,357.00 (spendable after ₹15000 reserve: ₹34,357.00)
+2026-09-02 09:20:03 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 32 x JUNIORBEES
+2026-09-02 09:20:03 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902150136074
+2026-09-02 09:20:04 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 49992.16. Margin available: 49357.00. Check orderbook for open orders.
+2026-09-02 09:20:04 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.74 (top_bid from depth)
+2026-09-02 09:20:04 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 234 x LIQUIDCASE
+2026-09-02 09:20:04 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902150136318
+2026-09-02 09:20:05 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.74
+2026-09-02 09:20:05 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 234 units @ ₹115.74
+2026-09-02 09:20:07 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹781.14 → ₹780.93 (top_ask from depth)
+2026-09-02 09:20:07 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 32 x JUNIORBEES
+2026-09-02 09:20:07 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902150137045
+2026-09-02 09:20:08 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: JUNIORBEES @ ₹780.78
+2026-09-02 09:20:08 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 32 × JUNIORBEES @ ₹781.14
+2026-09-02 09:20:08 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: JUNIORBEES x32 @ ₹781.10
+2026-09-02 09:20:08 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
+2026-09-02 09:20:08 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹123.34 for GOLDBEES (LTP was ₹123.31, top_ask from depth)
+2026-09-02 09:20:09 IST | INFO     | backend.orders.manager | smart_buy 202 × GOLDBEES @ ₹123.34 (cost ₹24,914.68) | Available cash: ₹49,357.00 (spendable after ₹15000 reserve: ₹34,357.00)
+2026-09-02 09:20:09 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 202 x GOLDBEES
+2026-09-02 09:20:09 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902150137408
+2026-09-02 09:20:09 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: GOLDBEES @ ₹123.34
+2026-09-02 09:20:11 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: GOLDBEES x202 @ ₹123.31
