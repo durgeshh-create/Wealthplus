@@ -32,3 +32,16 @@
 2026-09-02 09:20:04 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902190105915
 2026-09-02 09:20:05 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: GOLDBEES @ ₹123.33
 2026-09-02 09:20:06 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: GOLDBEES x202 @ ₹123.33
+2026-09-02 09:22:32 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-97.9), B(W%R=-97.9+drop=1.28%), C(W%R=-97.9+drop=1.28%)]: HDFCSML250 | Price=₹183.27 | PrevClose=₹185.65 | AvgBuy=₹185.15 | Slot 1/6
+2026-09-02 09:22:32 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-97.91 | ₹183.27
+2026-09-02 09:22:32 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
+2026-09-02 09:22:32 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹183.34 for HDFCSML250 (LTP was ₹183.27, top_ask from depth)
+2026-09-02 09:22:32 IST | INFO     | backend.orders.manager | smart_buy 136 × HDFCSML250 @ ₹183.34 (cost ₹24,934.24) | Available cash: ₹97,479.00 (spendable after ₹15000 reserve: ₹82,479.00)
+2026-09-02 09:22:32 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 136 x HDFCSML250
+2026-09-02 09:22:32 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902190129134
+2026-09-02 09:22:33 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 99832.86. Margin available: 97479.00. Check orderbook for open orders.
+2026-09-02 09:22:33 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.73 (top_bid from depth)
+2026-09-02 09:22:33 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 233 x LIQUIDCASE
+2026-09-02 09:22:33 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902190129309
+2026-09-02 09:22:34 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.73
+2026-09-02 09:22:34 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 233 units @ ₹115.74
