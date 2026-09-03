@@ -5,3 +5,4 @@
 2026-09-03 09:01:46 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 30 x LIQUIDCASE
 2026-09-03 09:01:47 IST | ERROR    | backend.orders.manager | ✗ Order placement HTTP error: Your order could not be converted to a After Market Order (AMO).
 2026-09-03 09:01:47 IST | ERROR    | backend.strategy.intraday_engine | [MID150BEES] smart_buy failed: LIQUIDCASE sell failed: Your order could not be converted to a After Market Order (AMO).
+2026-09-03 09:21:58 IST | ERROR    | backend.portfolio.tracker | Error fetching holdings: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
