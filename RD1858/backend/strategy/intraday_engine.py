@@ -733,7 +733,27 @@ class IntradayEngine:
 
                 exec_val = self._s('buy_execution_time', '15:15')
                 anytime  = (exec_val == 'anytime')
-                at_trigger = anytime or (dtime(BUY_HOUR, BUY_MIN) <= t <= dtime(BUY_HOUR, BUY_MIN + 1))
+
+                # ── Market-hours guard ──────────────────────────────────────
+                # NSE trading hours: 09:15–15:30 IST. In "anytime" mode there is
+                # no other floor on at_trigger, so without this check a bot
+                # process started before the open (e.g. by a 9:00 AM scheduled
+                # task) fires its first buy immediately — before the exchange
+                # opens and before the broker will accept non-AMO orders.
+                # Mirrors the guard already used in signal_generator.py.
+                _MARKET_OPEN  = dtime(Config.MARKET_OPEN_HOUR, Config.MARKET_OPEN_MINUTE)
+                _MARKET_CLOSE = dtime(15, 25)   # 5-min buffer before 15:30 hard close
+                in_market_hours = (_MARKET_OPEN <= t <= _MARKET_CLOSE)
+
+                at_trigger = (anytime and in_market_hours) or (
+                    dtime(BUY_HOUR, BUY_MIN) <= t <= dtime(BUY_HOUR, BUY_MIN + 1)
+                )
+
+                if anytime and not in_market_hours:
+                    logger.debug(
+                        f"⏸ anytime mode but outside market hours "
+                        f"({t.strftime('%H:%M')}) — holding buys"
+                    )
 
                 for sym in self._bnh_symbols():
                     st = self._sym_states.get(sym)
