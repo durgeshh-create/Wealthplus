@@ -1,8 +1,5 @@
-2026-09-03 09:01:46 IST | INFO     | backend.orders.manager | smart_buy 13 × MID150BEES @ ₹239.07 (cost ₹3,107.91) | Available cash: ₹25,529.60 (spendable after ₹15000 reserve: ₹10,529.60)
-2026-09-03 09:01:46 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 13 x MID150BEES
-2026-09-03 09:01:46 IST | ERROR    | backend.orders.manager | ✗ Order placement HTTP error: Limit price should be greater than zero.
-2026-09-03 09:01:46 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.16 (depth unavailable, fell back to LTP ₹115.74 - 0.5%)
-2026-09-03 09:01:46 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 30 x LIQUIDCASE
-2026-09-03 09:01:47 IST | ERROR    | backend.orders.manager | ✗ Order placement HTTP error: Your order could not be converted to a After Market Order (AMO).
-2026-09-03 09:01:47 IST | ERROR    | backend.strategy.intraday_engine | [MID150BEES] smart_buy failed: LIQUIDCASE sell failed: Your order could not be converted to a After Market Order (AMO).
-2026-09-03 09:21:58 IST | ERROR    | backend.portfolio.tracker | Error fetching holdings: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
+2026-09-03 09:30:45 IST | INFO     | backend.orders.manager | smart_buy 7 × MID150BEES @ ₹239.73 (cost ₹1,678.11) | Available cash: ₹25,529.60 (spendable after ₹15000 reserve: ₹10,529.60)
+2026-09-03 09:30:45 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 7 x MID150BEES
+2026-09-03 09:30:45 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260903190188723
+2026-09-03 09:30:45 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹239.73
+2026-09-03 09:30:46 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 7 × ₹239.73 = ₹1678 | LIMIT | Available Cash
