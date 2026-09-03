@@ -1,6 +1,7 @@
-2026-09-02 12:36:52 IST | INFO     | backend.orders.manager | smart_buy 19 × MID150BEES @ ₹238.48 (cost ₹4,531.12) | Available cash: ₹97,479.00 (spendable after ₹15000 reserve: ₹82,479.00)
-2026-09-02 12:36:52 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 19 x MID150BEES
-2026-09-02 12:36:53 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260902190827386
-2026-09-02 12:36:53 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹238.48
-2026-09-02 12:36:54 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 19 × ₹238.48 = ₹4531 | LIMIT | Available Cash
-2026-09-02 14:25:27 IST | ERROR    | backend.portfolio.tracker | Error fetching positions: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+2026-09-03 09:01:46 IST | INFO     | backend.orders.manager | smart_buy 13 × MID150BEES @ ₹239.07 (cost ₹3,107.91) | Available cash: ₹25,529.60 (spendable after ₹15000 reserve: ₹10,529.60)
+2026-09-03 09:01:46 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 13 x MID150BEES
+2026-09-03 09:01:46 IST | ERROR    | backend.orders.manager | ✗ Order placement HTTP error: Limit price should be greater than zero.
+2026-09-03 09:01:46 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.16 (depth unavailable, fell back to LTP ₹115.74 - 0.5%)
+2026-09-03 09:01:46 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 30 x LIQUIDCASE
+2026-09-03 09:01:47 IST | ERROR    | backend.orders.manager | ✗ Order placement HTTP error: Your order could not be converted to a After Market Order (AMO).
+2026-09-03 09:01:47 IST | ERROR    | backend.strategy.intraday_engine | [MID150BEES] smart_buy failed: LIQUIDCASE sell failed: Your order could not be converted to a After Market Order (AMO).
