@@ -589,8 +589,11 @@
             { name: "NIPPON INDIA ULTRA SHORT", type: "Ultra Short Duration", slug: "nippon-india-ultra-short-duration-fund-M_NILS", mfQuery: "Nippon India Ultra Short Duration Fund", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/nippon-india-ultra-short-duration-fund-M_NILS" }
         ];
 
+        // GitHub Pages cannot proxy requests server-side. These public proxies are
+        // only a browser-side fallback; every request gets a cache-buster both in
+        // the target URL and at the proxy URL so an old cached quote is rejected.
+        // corsproxy.io was removed because it now requires an API key.
         const corsProxies = [
-            { url: "https://corsproxy.io/?url=", name: "corsproxy" },
             { url: "https://api.allorigins.win/raw?url=", name: "allorigins" },
             { url: "https://api.codetabs.com/v1/proxy?quest=", name: "codetabs" },
             { url: "https://thingproxy.freeboard.io/fetch/", name: "thingproxy" }
@@ -741,7 +744,10 @@
 
         async function fetchViaSingleProxy(url, proxyIndex, timeoutMs, validate) {
             const proxy = corsProxies[proxyIndex];
-            const proxyUrl = proxy.url + encodeURIComponent(url);
+            const requestId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+            const encodedTarget = encodeURIComponent(url);
+            const proxySeparator = proxy.url.includes('?') ? '&' : '?';
+            const proxyUrl = `${proxy.url}${encodedTarget}${proxySeparator}_replit_cb=${requestId}`;
 
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -752,7 +758,6 @@
                     cache: 'no-store',
                     headers: {
                         'Accept': 'text/html,application/xhtml+xml,application/json,text/plain,*/*',
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                         'Cache-Control': 'no-cache',
                         'Pragma': 'no-cache'
                     }
@@ -1465,12 +1470,17 @@
             } catch (e) { console.error('Section cache save error:', e); }
         }
 
-        async function fetchJSONWithProxies(url, timeoutMs = 8000) {
+        async function fetchJSONWithProxies(url, timeoutMs = 8000, validateJson = null) {
             const attempts = corsProxies.map((proxy, i) =>
                 fetchViaSingleProxy(url, i, timeoutMs).then(text => {
                     try {
-                        return JSON.parse(text);
+                        const json = JSON.parse(text);
+                        if (validateJson && !validateJson(json)) {
+                            throw new Error(`Stale or invalid response via ${proxy.name}`);
+                        }
+                        return json;
                     } catch (parseErr) {
+                        if (parseErr.message.startsWith('Stale or invalid')) throw parseErr;
                         throw new Error(`Non-JSON response via ${proxy.name}`);
                     }
                 }).catch(err => {
@@ -2149,15 +2159,36 @@
             return { mood: "Extreme Greed", class: "up" };
         }
 
-        // Fetch MMI score from TickerTape API via proxies (with HTML scrape fallback)
+        // Fetch the current MMI snapshot from TickerTape. The same response also
+        // contains the latest NIFTY close, so NIFTY does not need a second Yahoo
+        // request before the market opens.
         async function fetchMMI() {
-            const apiUrl = "https://api.tickertape.in/mmi/now";
+            const apiUrl = `https://api.tickertape.in/mmi/now?_replit_cb=${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
             try {
-                const apiData = await fetchJSONWithProxies(apiUrl, 5000);
-                const score = apiData?.data?.currentValue || apiData?.currentValue;
-                if (score !== null && score !== undefined && !isNaN(score)) {
-                    return parseFloat(score);
-                }
+                const apiData = await fetchJSONWithProxies(apiUrl, 8000, json => {
+                    const data = json?.data || json;
+                    return data?.currentValue !== null &&
+                        data?.currentValue !== undefined &&
+                        !isNaN(data.currentValue);
+                });
+                const data = apiData?.data || apiData;
+                const score = parseFloat(data.currentValue);
+                const nifty = data.nifty !== undefined && !isNaN(data.nifty)
+                    ? parseFloat(data.nifty)
+                    : null;
+                const previousNifty = data.lastDay?.nifty !== undefined && !isNaN(data.lastDay.nifty)
+                    ? parseFloat(data.lastDay.nifty)
+                    : null;
+                const changePct = nifty !== null && previousNifty
+                    ? ((nifty - previousNifty) / previousNifty) * 100
+                    : null;
+
+                return {
+                    score,
+                    nifty,
+                    changePct,
+                    updatedAt: data.date || null
+                };
             } catch (apiErr) {
                 console.warn('MMI API fetch failed, falling back to HTML scrape:', apiErr.message);
             }
@@ -2183,7 +2214,7 @@
             }
             
             if (score === null || isNaN(score)) throw new Error("Could not parse MMI score");
-            return parseFloat(score);
+            return { score: parseFloat(score), nifty: null, changePct: null, updatedAt: null };
         }
 
         function renderMMITicker(score, stale = false) {
@@ -2215,9 +2246,13 @@
                     if (c) renderTickerItem(idx.elId, c.price, c.changePct, idx.decimals, true);
                 });
                 
-                const cachedMMI = localStorage.getItem('mmi_cache_val');
-                if (cachedMMI) {
-                    renderMMITicker(parseFloat(cachedMMI), true);
+                const cachedMMI = JSON.parse(localStorage.getItem('mmi_cache_val') || 'null');
+                if (cachedMMI !== null) {
+                    const cachedScore = typeof cachedMMI === 'number' ? cachedMMI : cachedMMI.score;
+                    renderMMITicker(parseFloat(cachedScore), true);
+                    if (cachedMMI.nifty !== undefined && cachedMMI.nifty !== null) {
+                        renderTickerItem('ticker-nifty', cachedMMI.nifty, cachedMMI.changePct, 2, true);
+                    }
                 }
             } catch (e) { console.error('Market index cache load error:', e); }
         }
@@ -2234,8 +2269,15 @@
             const hosts = ['https://query1.finance.yahoo.com', 'https://query2.finance.yahoo.com'];
             const cacheBuster = Date.now();
             const attempts = hosts.map(host => {
-                const url = `${host}/v8/finance/chart/${symbol}?range=1d&interval=1m&_=${cacheBuster}`;
-                return fetchJSONWithProxies(url).then(json => {
+                // 5m is sufficient for the ticker and is less aggressively
+                // rate-limited than Yahoo's 1m endpoint.
+                const url = `${host}/v8/finance/chart/${symbol}?range=1d&interval=5m&_=${cacheBuster}`;
+                return fetchJSONWithProxies(url, 10000, json => {
+                    const meta = json?.chart?.result?.[0]?.meta;
+                    return !!meta &&
+                        meta.regularMarketPrice !== undefined &&
+                        meta.regularMarketTime !== undefined;
+                }).then(json => {
                     const meta = json?.chart?.result?.[0]?.meta;
                     if (!meta || meta.regularMarketPrice === undefined) {
                         throw new Error('No meta in chart response');
@@ -2243,10 +2285,20 @@
                     const price = meta.regularMarketPrice;
                     const prevClose = meta.previousClose ?? meta.chartPreviousClose;
                     const changePct = (prevClose) ? ((price - prevClose) / prevClose) * 100 : null;
-                    return { price, changePct };
+                    const marketTimeMs = meta.regularMarketTime * 1000;
+                    const ageMs = Date.now() - marketTimeMs;
+                    // Allow the previous trading session overnight/weekends, but
+                    // reject the several-week-old values that caused the bug.
+                    if (ageMs > 72 * 60 * 60 * 1000 || ageMs < -5 * 60 * 1000) {
+                        throw new Error(`Stale quote (${(ageMs / 3600000).toFixed(1)}h old)`);
+                    }
+                    return { price, changePct, marketTimeMs };
                 });
             });
-            return Promise.any(attempts);
+            return Promise.any(attempts).catch(aggregateErr => {
+                const firstMsg = aggregateErr.errors?.[0]?.message;
+                throw new Error(firstMsg || 'Index quote fetch failed on all hosts');
+            });
         }
 
         function renderTickerItem(elId, price, changePct, decimals, stale) {
@@ -2270,15 +2322,24 @@
 
         async function updateMarketTicker() {
             // Update MMI
-            fetchMMI().then(score => {
-                renderMMITicker(score, false);
-                try { localStorage.setItem('mmi_cache_val', score); } catch(e) {}
-            }).catch(err => {
+            let mmiSnapshot = null;
+            try {
+                mmiSnapshot = await fetchMMI();
+                renderMMITicker(mmiSnapshot.score, false);
+                if (mmiSnapshot.nifty !== null) {
+                    renderTickerItem('ticker-nifty', mmiSnapshot.nifty, mmiSnapshot.changePct, 2, false);
+                    saveMarketIndexCache('ticker-nifty', mmiSnapshot.nifty, mmiSnapshot.changePct);
+                }
+                try { localStorage.setItem('mmi_cache_val', JSON.stringify(mmiSnapshot)); } catch(e) {}
+            } catch (err) {
                 console.warn('MMI fetch failed:', err.message);
-            });
+            }
 
-            // Update Indices
-            await Promise.all(marketIndices.map(async idx => {
+            // Try Yahoo for both indices so NIFTY/VIX can move intraday.
+            // The MMI response remains the NIFTY fallback when Yahoo is
+            // unavailable or rate-limited.
+            const indicesToFetch = marketIndices;
+            await Promise.all(indicesToFetch.map(async idx => {
                 try {
                     const { price, changePct } = await fetchIndexQuote(idx.symbol);
                     renderTickerItem(idx.elId, price, changePct, idx.decimals, false);
