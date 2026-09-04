@@ -2196,7 +2196,7 @@
             return parseFloat(score);
         }
 
-        function renderMMITicker(score, stale = false) {
+        function renderMMITicker(score, stale = false, ts = null) {
             const el = document.getElementById('ticker-mmi');
             if (!el) return;
             
@@ -2214,6 +2214,18 @@
                 changeEl.className = 'ticker-change flat';
             }
             
+            let staleEl = el.querySelector('.ticker-stale');
+            if (stale && ts) {
+                if (!staleEl) {
+                    staleEl = document.createElement('span');
+                    staleEl.className = 'ticker-stale';
+                    staleEl.style.cssText = 'display:block;font-size:10px;color:#b45309;font-weight:600;';
+                    el.appendChild(staleEl);
+                }
+                staleEl.textContent = `cached ${ageLabel(ts)}`;
+            } else if (staleEl) {
+                staleEl.remove();
+            }
             el.classList.toggle('loading', !!stale);
         }
 
@@ -2222,12 +2234,13 @@
                 const cached = JSON.parse(localStorage.getItem(marketIndexCacheKey) || '{}');
                 marketIndices.forEach(idx => {
                     const c = cached[idx.elId];
-                    if (c) renderTickerItem(idx.elId, c.price, c.changePct, idx.decimals, true);
+                    if (c) renderTickerItem(idx.elId, c.price, c.changePct, idx.decimals, true, c.ts);
                 });
                 
                 const cachedMMI = localStorage.getItem('mmi_cache_val');
+                const cachedMMITs = localStorage.getItem('mmi_cache_time');
                 if (cachedMMI) {
-                    renderMMITicker(parseFloat(cachedMMI), true);
+                    renderMMITicker(parseFloat(cachedMMI), true, cachedMMITs ? parseInt(cachedMMITs) : null);
                 }
             } catch (e) { console.error('Market index cache load error:', e); }
         }
@@ -2235,17 +2248,28 @@
         function saveMarketIndexCache(elId, price, changePct) {
             try {
                 const cached = JSON.parse(localStorage.getItem(marketIndexCacheKey) || '{}');
-                cached[elId] = { price, changePct };
+                cached[elId] = { price, changePct, ts: Date.now() };
                 localStorage.setItem(marketIndexCacheKey, JSON.stringify(cached));
             } catch (e) { console.error('Market index cache save error:', e); }
+        }
+
+        function ageLabel(ts) {
+            if (!ts) return '';
+            const ageMs = Date.now() - ts;
+            if (ageMs < 60000) return 'just now';
+            if (ageMs < 3600000) return `${Math.floor(ageMs / 60000)}m ago`;
+            if (ageMs < 86400000) return `${Math.floor(ageMs / 3600000)}h ago`;
+            return `${Math.floor(ageMs / 86400000)}d ago`;
         }
 
         async function fetchIndexQuote(symbol) {
             const hosts = ['https://query1.finance.yahoo.com', 'https://query2.finance.yahoo.com'];
             const cacheBuster = Date.now();
-            const attempts = hosts.map(host => {
-                const url = `${host}/v8/finance/chart/${symbol}?range=1d&interval=1m&_=${cacheBuster}`;
-                return fetchJSONWithProxies(url).then(json => {
+            let lastErr;
+            for (let i = 0; i < hosts.length; i++) {
+                const url = `${hosts[i]}/v8/finance/chart/${symbol}?range=1d&interval=1m&_=${cacheBuster}`;
+                try {
+                    const json = await fetchJSONWithProxies(url, 12000);
                     const meta = json?.chart?.result?.[0]?.meta;
                     if (!meta || meta.regularMarketPrice === undefined) {
                         throw new Error('No meta in chart response');
@@ -2254,12 +2278,15 @@
                     const prevClose = meta.previousClose ?? meta.chartPreviousClose;
                     const changePct = (prevClose) ? ((price - prevClose) / prevClose) * 100 : null;
                     return { price, changePct };
-                });
-            });
-            return Promise.any(attempts);
+                } catch (err) {
+                    lastErr = err;
+                    if (i < hosts.length - 1) await new Promise(r => setTimeout(r, 300));
+                }
+            }
+            throw lastErr || new Error('Index quote fetch failed on all hosts');
         }
 
-        function renderTickerItem(elId, price, changePct, decimals, stale) {
+        function renderTickerItem(elId, price, changePct, decimals, stale, ts) {
             const el = document.getElementById(elId);
             if (!el) return;
             const priceEl = el.querySelector('.ticker-price');
@@ -2275,6 +2302,18 @@
                 changeEl.textContent = `${sign}${changePct.toFixed(2)}%`;
                 changeEl.className = 'ticker-change ' + (changePct > 0 ? 'up' : changePct < 0 ? 'down' : 'flat');
             }
+            let staleEl = el.querySelector('.ticker-stale');
+            if (stale && ts) {
+                if (!staleEl) {
+                    staleEl = document.createElement('span');
+                    staleEl.className = 'ticker-stale';
+                    staleEl.style.cssText = 'display:block;font-size:10px;color:#b45309;font-weight:600;';
+                    el.appendChild(staleEl);
+                }
+                staleEl.textContent = `cached ${ageLabel(ts)}`;
+            } else if (staleEl) {
+                staleEl.remove();
+            }
             el.classList.toggle('loading', !!stale);
         }
 
@@ -2282,7 +2321,10 @@
             // Update MMI
             fetchMMI().then(score => {
                 renderMMITicker(score, false);
-                try { localStorage.setItem('mmi_cache_val', score); } catch(e) {}
+                try {
+                    localStorage.setItem('mmi_cache_val', score);
+                    localStorage.setItem('mmi_cache_time', Date.now().toString());
+                } catch(e) {}
             }).catch(err => {
                 console.warn('MMI fetch failed:', err.message);
             });
