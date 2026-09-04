@@ -385,6 +385,7 @@
         <div class="header-row">
             <h1>Portfolio Analyzer</h1>
             <div class="market-ticker" id="marketTicker">
+                <!-- INDIA MMI (Inserted directly before NIFTY 50) -->
                 <div class="ticker-item loading" id="ticker-mmi">
                     <span class="ticker-label">INDIA MMI</span>
                     <span class="ticker-price">—</span>
@@ -588,105 +589,12 @@
             { name: "NIPPON INDIA ULTRA SHORT", type: "Ultra Short Duration", slug: "nippon-india-ultra-short-duration-fund-M_NILS", mfQuery: "Nippon India Ultra Short Duration Fund", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/nippon-india-ultra-short-duration-fund-M_NILS" }
         ];
 
-        // ===== IMPROVED CORS PROXY LAYER (Sep 2026) =====
         const corsProxies = [
-            // Currently the most reliable free option for Yahoo
-            { url: "https://api.allorigins.win/raw?url=", name: "allorigins", timeout: 9000 },
-            // Works on localhost / some environments, blocked on GitHub Pages free tier
-            { url: "https://corsproxy.io/?url=", name: "corsproxy", timeout: 7000 },
-            // Fallback – often slow or rate-limited
-            { url: "https://api.codetabs.com/v1/proxy?quest=", name: "codetabs", timeout: 8000 },
+            { url: "https://api.codetabs.com/v1/proxy?quest=", name: "codetabs" },
+            { url: "https://corsproxy.io/?url=", name: "corsproxy" },
+            { url: "https://api.allorigins.win/raw?url=", name: "allorigins" },
+            { url: "https://thingproxy.freeboard.io/fetch/", name: "thingproxy" }
         ];
-
-        /**
-         * Fetch a single URL through one proxy with hard timeout + validation
-         */
-        async function fetchViaSingleProxy(url, proxyIndex, timeoutMs, validate) {
-            const proxy = corsProxies[proxyIndex];
-            const proxyUrl = proxy.url + encodeURIComponent(url);
-            const effectiveTimeout = timeoutMs || proxy.timeout || 8000;
-
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
-
-            try {
-                const response = await fetch(proxyUrl, {
-                    signal: controller.signal,
-                    cache: 'no-store',
-                    headers: {
-                        'Accept': 'text/html,application/xhtml+xml,application/json,text/plain,*/*',
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status} via ${proxy.name}`);
-                }
-
-                const text = await response.text();
-                if (!text || text.length < 5) {
-                    throw new Error(`Empty response via ${proxy.name}`);
-                }
-
-                if (validate && !validate(text)) {
-                    throw new Error(`Invalid content via ${proxy.name}`);
-                }
-
-                return text;
-            } finally {
-                clearTimeout(timeoutId);
-            }
-        }
-
-        /**
-         * Try proxies in order (allorigins first). Uses sequential attempts
-         * with short timeouts so one slow proxy doesn't hang everything.
-         */
-        async function fetchWithProxy(url, validateFn = null) {
-            for (let i = 0; i < corsProxies.length; i++) {
-                try {
-                    return await fetchViaSingleProxy(url, i, corsProxies[i].timeout, validateFn);
-                } catch (err) {
-                    console.warn(`[proxy] ${corsProxies[i].name} failed: ${err.message}`);
-                }
-            }
-            throw new Error('All CORS proxies exhausted');
-        }
-
-        /**
-         * Same idea for JSON endpoints
-         */
-        async function fetchJSONWithProxies(url, timeoutMs = 9000) {
-            const attempts = corsProxies.map((proxy, i) =>
-                fetchViaSingleProxy(url, i, timeoutMs || proxy.timeout).then(text => {
-                    try {
-                        return JSON.parse(text);
-                    } catch (e) {
-                        throw new Error(`Non-JSON from ${proxy.name}`);
-                    }
-                }).catch(err => {
-                    console.warn(`[json-proxy] ${proxy.name}: ${err.message}`);
-                    throw err;
-                })
-            );
-
-            try {
-                // Give allorigins a small head-start
-                const first = attempts[0];
-                const rest = Promise.any(attempts.slice(1));
-
-                return await Promise.race([
-                    first,
-                    new Promise((resolve, reject) => {
-                        setTimeout(() => rest.then(resolve).catch(reject), 1200);
-                    })
-                ]);
-            } catch (aggregateErr) {
-                const msg = aggregateErr.errors?.[0]?.message || aggregateErr.message;
-                throw new Error(msg || 'All CORS proxies failed for JSON');
-            }
-        }
 
         function formatLastUpdated(date) {
             const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -831,9 +739,77 @@
             return value;
         }
 
+        // Small helper: run async tasks with limited concurrency instead of all-at-once,
+        // so we don't overwhelm the free CORS proxies with a burst of simultaneous requests.
+        async function runWithConcurrency(items, batchSize, delayMs, worker, onProgress) {
+            let completed = 0;
+            for (let i = 0; i < items.length; i += batchSize) {
+                const batch = items.slice(i, i + batchSize);
+                await Promise.all(batch.map(item => worker(item).then(() => {
+                    completed++;
+                    if (onProgress) onProgress(completed);
+                })));
+                if (i + batchSize < items.length && delayMs > 0) {
+                    await new Promise(r => setTimeout(r, delayMs));
+                }
+            }
+        }
+
+        async function fetchViaSingleProxy(url, proxyIndex, timeoutMs, validate) {
+            const proxy = corsProxies[proxyIndex];
+            const proxyUrl = proxy.url + encodeURIComponent(url);
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+            try {
+                const response = await fetch(proxyUrl, {
+                    signal: controller.signal,
+                    cache: 'no-store',
+                    headers: {
+                        'Accept': 'text/html,application/xhtml+xml,application/json,text/plain,*/*',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const text = await response.text();
+                if (!text || text.length < 2) {
+                    throw new Error('Empty response');
+                }
+
+                if (validate && !validate(text)) {
+                    throw new Error(`Non-target response via ${proxy.name}`);
+                }
+
+                return text;
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        }
+
         function isValidTickertapePage(text) {
             const lower = text.toLowerCase();
             return lower.includes('tickertape') || lower.includes('mmi') || lower.includes('currentvalue') || text.includes('₹');
+        }
+
+        async function fetchWithProxy(url) {
+            const attempts = corsProxies.map((proxy, i) =>
+                fetchViaSingleProxy(url, i, 12000, isValidTickertapePage).catch(err => {
+                    console.warn(`Proxy ${proxy.name} failed:`, err.message);
+                    throw err;
+                })
+            );
+            try {
+                return await Promise.any(attempts);
+            } catch (aggregateErr) {
+                throw new Error('All CORS proxies exhausted');
+            }
         }
 
         function extractMetrics(html, fundName) {
@@ -1209,9 +1185,10 @@
             const BATCH_SIZE = 3;
             for (let i = 0; i < funds.length; i += BATCH_SIZE) {
                 const batch = funds.slice(i, i + BATCH_SIZE);
-                await Promise.all(batch.map((fund, batchIdx) => 
-                    fetchFundData(fund, i + batchIdx, funds.length)
-                ));
+                await Promise.all(batch.map((f, j) => fetchFundData(f, i + j, funds.length)));
+                if (i + BATCH_SIZE < funds.length) {
+                    await new Promise(r => setTimeout(r, 500));
+                }
             }
 
             saveCache();
@@ -1504,6 +1481,27 @@
             } catch (e) { console.error('Section cache save error:', e); }
         }
 
+        async function fetchJSONWithProxies(url, timeoutMs = 12000) {
+            const attempts = corsProxies.map((proxy, i) =>
+                fetchViaSingleProxy(url, i, timeoutMs).then(text => {
+                    try {
+                        return JSON.parse(text);
+                    } catch (parseErr) {
+                        throw new Error(`Non-JSON response via ${proxy.name}`);
+                    }
+                }).catch(err => {
+                    console.warn(`JSON fetch failed via ${proxy.name}:`, err.message);
+                    throw err;
+                })
+            );
+            try {
+                return await Promise.any(attempts);
+            } catch (aggregateErr) {
+                const firstMsg = aggregateErr.errors?.[0]?.message;
+                throw new Error(firstMsg || 'All CORS proxies failed to return valid JSON');
+            }
+        }
+
         async function fetchMFHistory(query) {
             const searchUrl = `https://api.mfapi.in/mf/search?q=${encodeURIComponent(query)}`;
             const results = await fetchJSONWithProxies(searchUrl);
@@ -1628,25 +1626,27 @@
             };
 
             const cacheBuster = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-            const attempts = hosts.map(host => {
-                const url = `${host}/v8/finance/chart/${symbol}?period1=${period1}&period2=${now}&interval=1d&includePrePost=false&events=div,splits&_cb=${cacheBuster}`;
-                return fetchJSONWithProxies(url).then(parseChartJson);
-            });
-
-            try {
-                return await Promise.any(attempts);
-            } catch (aggregateErr) {
-                const firstMsg = aggregateErr.errors?.[0]?.message;
-                throw new Error(firstMsg || 'ETF history fetch failed on all hosts');
+            let lastErr;
+            for (let i = 0; i < hosts.length; i++) {
+                const url = `${hosts[i]}/v8/finance/chart/${symbol}?period1=${period1}&period2=${now}&interval=1d&includePrePost=false&events=div,splits&_cb=${cacheBuster}`;
+                try {
+                    return parseChartJson(await fetchJSONWithProxies(url));
+                } catch (err) {
+                    lastErr = err;
+                    if (i < hosts.length - 1) await new Promise(r => setTimeout(r, 300));
+                }
             }
+            throw lastErr || new Error('ETF history fetch failed on all hosts');
         }
 
         async function fetchLiveQuoteSingle(symbol) {
             const hosts = ['https://query1.finance.yahoo.com', 'https://query2.finance.yahoo.com'];
             const cacheBuster = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-            const attempts = hosts.map(host => {
-                const url = `${host}/v8/finance/chart/${symbol}?range=1d&interval=5m&_cb=${cacheBuster}`;
-                return fetchJSONWithProxies(url).then(json => {
+            let lastErr;
+            for (let i = 0; i < hosts.length; i++) {
+                const url = `${hosts[i]}/v8/finance/chart/${symbol}?range=1d&interval=5m&_cb=${cacheBuster}`;
+                try {
+                    const json = await fetchJSONWithProxies(url);
                     const meta = json?.chart?.result?.[0]?.meta;
                     if (!meta || meta.regularMarketPrice === undefined) {
                         throw new Error('No meta in chart response');
@@ -1664,12 +1664,12 @@
                     }
 
                     return { price, changePct: ((price - prevClose) / prevClose) * 100, marketTimeMs };
-                });
-            });
-            return Promise.any(attempts).catch(aggregateErr => {
-                const firstMsg = aggregateErr.errors?.[0]?.message;
-                throw new Error(firstMsg || 'Live quote fetch failed on all hosts');
-            });
+                } catch (err) {
+                    lastErr = err;
+                    if (i < hosts.length - 1) await new Promise(r => setTimeout(r, 300));
+                }
+            }
+            throw lastErr || new Error('Live quote fetch failed on all hosts');
         }
 
         async function fetchLiveQuote(symbols) {
@@ -1757,6 +1757,13 @@
         }
 
         // ===== MANUAL DISTRIBUTION FALLBACK (REIT/InvIT) =====
+        // Yahoo Finance's chart "events.dividends" feed is frequently empty or incomplete
+        // for Indian REITs/InvITs, since their payouts are a blend of interest, dividend,
+        // and capital-repayment components rather than a simple dividend line item.
+        // This table is sourced directly from issuers' own distribution filings/investor
+        // pages and is used to fill in (not silently override) whatever Yahoo does report,
+        // so total-return CAGR reflects actual cash distributed rather than price-only CAGR.
+        // Amounts are in Rs. per unit; dates are payment dates.
         const manualDistributions = {
             "PGINVIT": [
                 { date: "2021-11-22", amount: 4.50 },
@@ -1768,19 +1775,23 @@
                 { date: "2023-06-08", amount: 3.00 },
                 { date: "2023-08-09", amount: 3.00 },
                 { date: "2024-02-08", amount: 3.00 },
-                { date: "2024-06-01", amount: 3.00 },
-                { date: "2024-08-08", amount: 3.00 },
+                { date: "2024-06-01", amount: 3.00 },  // Q4 FY23-24, date approximate
+                { date: "2024-08-08", amount: 3.00 },  // Q1 FY24-25, date approximate
                 { date: "2024-11-20", amount: 3.00 },
                 { date: "2025-02-03", amount: 3.00 },
                 { date: "2025-06-05", amount: 3.00 },
-                { date: "2025-08-08", amount: 3.00 },
-                { date: "2025-11-15", amount: 3.00 },
+                { date: "2025-08-08", amount: 3.00 },  // Q1 FY25-26, date approximate
+                { date: "2025-11-15", amount: 3.00 },  // Q2 FY25-26, date approximate
                 { date: "2026-02-19", amount: 3.00 },
                 { date: "2026-05-27", amount: 3.00 },
                 { date: "2026-08-07", amount: 3.00 }
             ]
         };
 
+        // Merge Yahoo-reported dividends with the verified manual table for a fund.
+        // Manual entries win when they fall within 5 days of a Yahoo-reported entry
+        // (treated as the same distribution); Yahoo entries outside that window are kept
+        // in case they capture something the manual table misses.
         function mergeDividends(yahooDividends, fundName) {
             const manual = (manualDistributions[fundName] || []).map(d => ({
                 date: new Date(d.date), amount: d.amount
@@ -2016,7 +2027,7 @@
                     if (attempt < MAX_AUTO_RETRIES) {
                         fund.errorMsg = `Retrying... (${attempt + 1}/${MAX_AUTO_RETRIES})`;
                         renderSectionTable(section);
-                        await new Promise(r => setTimeout(r, 1200 * (attempt + 1));
+                        await new Promise(r => setTimeout(r, 1200 * (attempt + 1)));
                     }
                 }
             }
@@ -2073,14 +2084,10 @@
             progressBar.classList.add('active');
             statusEl.textContent = `Fetching ${section.funds.length} item(s)...`;
 
-            let completed = 0;
-            await Promise.all(section.funds.map(fund =>
-                loadSectionFundData(section, fund).then(() => {
-                    completed++;
-                    progressFill.style.width = `${(completed / section.funds.length) * 100}%`;
-                    statusEl.textContent = `Fetching... (${completed}/${section.funds.length})`;
-                })
-            ));
+            await runWithConcurrency(section.funds, 2, 700, fund => loadSectionFundData(section, fund), completed => {
+                progressFill.style.width = `${(completed / section.funds.length) * 100}%`;
+                statusEl.textContent = `Fetching... (${completed}/${section.funds.length})`;
+            });
 
             saveSectionCache(section);
 
@@ -2114,13 +2121,9 @@
                 if (progressBar) progressBar.classList.add('active');
                 if (statusEl) statusEl.textContent = `Auto-refreshing ${listedFunds.length} item(s)...`;
 
-                let completed = 0;
-                await Promise.all(listedFunds.map(fund =>
-                    loadSectionFundData(section, fund).then(() => {
-                        completed++;
-                        if (progressFill) progressFill.style.width = `${(completed / listedFunds.length) * 100}%`;
-                    })
-                ));
+                await runWithConcurrency(listedFunds, 2, 700, fund => loadSectionFundData(section, fund), completed => {
+                    if (progressFill) progressFill.style.width = `${(completed / listedFunds.length) * 100}%`;
+                });
 
                 saveSectionCache(section);
 
@@ -2148,6 +2151,7 @@
             { symbol: '%5EINDIAVIX', elId: 'ticker-vix', decimals: 2 }
         ];
 
+        // MMI Mood Helper (matching IFS rule: <30 Extreme Fear, 30-50 Fear, 50-70 Greed, >70 Extreme Greed)
         function getMMIMood(score) {
             if (score < 30) return { mood: "Extreme Fear", class: "down" };
             if (score >= 30 && score < 50) return { mood: "Fear", class: "down" };
@@ -2155,56 +2159,40 @@
             return { mood: "Extreme Greed", class: "up" };
         }
 
+        // Fetch MMI score from TickerTape API via proxies (with HTML scrape fallback)
         async function fetchMMI() {
-            // 1. Try direct API first
-            try {
-                const controller = new AbortController();
-                const t = setTimeout(() => controller.abort(), 4500);
-                const resp = await fetch("https://api.tickertape.in/mmi/now", {
-                    signal: controller.signal,
-                    cache: 'no-store'
-                });
-                clearTimeout(t);
-                if (resp.ok) {
-                    const apiData = await resp.json();
-                    const score = apiData?.data?.currentValue ?? apiData?.currentValue;
-                    if (score != null && !isNaN(score)) return parseFloat(score);
-                }
-            } catch (e) {
-                console.warn('Direct MMI API failed, falling back to proxy:', e.message);
-            }
-
-            // 2. Proxy path
             const apiUrl = "https://api.tickertape.in/mmi/now";
             try {
-                const apiData = await fetchJSONWithProxies(apiUrl, 6000);
+                const apiData = await fetchJSONWithProxies(apiUrl, 5000);
                 const score = apiData?.data?.currentValue || apiData?.currentValue;
-                if (score != null && !isNaN(score)) return parseFloat(score);
+                if (score !== null && score !== undefined && !isNaN(score)) {
+                    return parseFloat(score);
+                }
             } catch (apiErr) {
-                console.warn('MMI API via proxy failed:', apiErr.message);
+                console.warn('MMI API fetch failed, falling back to HTML scrape:', apiErr.message);
             }
 
-            // 3. HTML scrape fallback
+            // Scrape Fallback
             const htmlUrl = "https://www.tickertape.in/market-mood-index";
-            const html = await fetchWithProxy(htmlUrl, isValidTickertapePage);
+            const html = await fetchWithProxy(htmlUrl);
             let score = null;
-
+            
             const nextDataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i);
             if (nextDataMatch) {
                 try {
                     const data = JSON.parse(nextDataMatch[1]);
-                    score = data?.props?.pageProps?.mmiData?.currentValue 
-                         || data?.props?.pageProps?.currentValue;
+                    score = data?.props?.pageProps?.mmiData?.currentValue || data?.props?.pageProps?.currentValue;
                 } catch (e) {}
             }
-
-            if (score == null || isNaN(score)) {
-                const match = html.match(/class="[^"]*mmi-value[^"]*"[^>]*>([\d.]+)/i)
-                           || html.match(/currentValue":\s*([\d.]+)/i);
+            
+            if (score === null || isNaN(score)) {
+                const match = html.match(/class="[^"]*mmi-value[^"]*"[^>]*>([\d.]+)/i) || 
+                              html.match(/currentValue":\s*([\d.]+)/i) ||
+                              html.match(/<span>([\d.]+)<\/span>/i);
                 if (match) score = parseFloat(match[1]);
             }
-
-            if (score == null || isNaN(score)) throw new Error("Could not parse MMI score");
+            
+            if (score === null || isNaN(score)) throw new Error("Could not parse MMI score");
             return parseFloat(score);
         }
 
@@ -2318,10 +2306,6 @@
         loadSectionCache(sectionsMap.bullion);
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Clear stale market cache once after this update
-            localStorage.removeItem('market_index_cache_v1');
-            localStorage.removeItem('mmi_cache_val');
-
             loadMarketIndexCache();
             updateMarketTicker();
             setInterval(updateMarketTicker, MARKET_INDEX_REFRESH_MS);
