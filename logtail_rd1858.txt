@@ -1,126 +1,3 @@
-2026-09-04 11:42:20 IST | ERROR    | kiteconnect.ticker   | Connection error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
-2026-09-04 11:42:20 IST | ERROR    | backend.data.realtime | ❌ WebSocket error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
-2026-09-04 11:42:20 IST | ERROR    | kiteconnect.ticker   | Connection closed: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
-2026-09-04 11:43:02 IST | WARNING  | backend.data.realtime | REST LTP fallback for HDFCSML250 (3643649): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:02 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:02 IST | WARNING  | backend.data.realtime | REST LTP fallback for NIFTYBEES (2707457): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:02 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:03 IST | WARNING  | backend.data.realtime | REST LTP fallback for GOLDBEES (3693569): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:03 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:03 IST | WARNING  | backend.data.realtime | REST LTP fallback for MID150BEES (2177537): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:03 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:05 IST | WARNING  | backend.data.realtime | REST LTP fallback for HDFCSML250 (3643649): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:05 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:05 IST | WARNING  | backend.data.realtime | REST LTP fallback for NIFTYBEES (2707457): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:05 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:05 IST | WARNING  | backend.data.realtime | REST LTP fallback for GOLDBEES (3693569): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:05 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:05 IST | WARNING  | backend.data.realtime | REST LTP fallback for MID150BEES (2177537): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:05 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:07 IST | WARNING  | backend.data.realtime | REST LTP fallback for MID150BEES (2177537): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:07 IST | WARNING  | backend.data.realtime | REST LTP fallback for MID150BEES (2177537): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:07 IST | WARNING  | backend.data.realtime | REST LTP fallback for MID150BEES (2177537): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:07 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for MID150BEES — pausing REST quote calls for this symbol for 30s (trip #1 for this symbol)
-2026-09-04 11:43:07 IST | WARNING  | backend.data.realtime | REST LTP fallback for LIQUIDCASE (5568001): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:07 IST | WARNING  | backend.data.realtime | REST LTP fallback for SILVERBEES (2068481): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:07 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:08 IST | WARNING  | backend.data.realtime | REST LTP fallback for JUNIORBEES (2800385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:08 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:08 IST | WARNING  | backend.data.realtime | REST LTP fallback for BANKBEES (2928385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:08 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:08 IST | WARNING  | backend.data.realtime | REST LTP fallback for HDFCSML250 (3643649): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:08 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:08 IST | WARNING  | backend.data.realtime | REST LTP fallback for NIFTYBEES (2707457): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:08 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:08 IST | WARNING  | backend.data.realtime | REST LTP fallback for GOLDBEES (3693569): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:08 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:08 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:10 IST | WARNING  | backend.data.realtime | REST LTP fallback for SILVERBEES (2068481): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:10 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:10 IST | WARNING  | backend.data.realtime | REST LTP fallback for JUNIORBEES (2800385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:10 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:10 IST | WARNING  | backend.data.realtime | REST LTP fallback for BANKBEES (2928385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:10 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:10 IST | WARNING  | backend.data.realtime | REST LTP fallback for HDFCSML250 (3643649): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:10 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:10 IST | WARNING  | backend.data.realtime | REST LTP fallback for NIFTYBEES (2707457): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:10 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:11 IST | WARNING  | backend.data.realtime | REST LTP fallback for GOLDBEES (3693569): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:11 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:11 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:12 IST | WARNING  | backend.data.realtime | REST LTP fallback for SILVERBEES (2068481): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:12 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:12 IST | WARNING  | backend.data.realtime | REST LTP fallback for JUNIORBEES (2800385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:12 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:12 IST | WARNING  | backend.data.realtime | REST LTP fallback for BANKBEES (2928385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:12 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:12 IST | WARNING  | backend.data.realtime | REST LTP fallback for HDFCSML250 (3643649): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:12 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for HDFCSML250 — pausing REST quote calls for this symbol for 30s (trip #1 for this symbol)
-2026-09-04 11:43:12 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:13 IST | WARNING  | backend.data.realtime | REST LTP fallback for NIFTYBEES (2707457): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:13 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for NIFTYBEES — pausing REST quote calls for this symbol for 30s (trip #1 for this symbol)
-2026-09-04 11:43:13 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:13 IST | WARNING  | backend.data.realtime | REST LTP fallback for GOLDBEES (3693569): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:13 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for GOLDBEES — pausing REST quote calls for this symbol for 30s (trip #1 for this symbol)
-2026-09-04 11:43:13 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:13 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:14 IST | WARNING  | backend.data.realtime | REST LTP fallback for SILVERBEES (2068481): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:14 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:14 IST | WARNING  | backend.data.realtime | REST LTP fallback for JUNIORBEES (2800385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:14 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:14 IST | WARNING  | backend.data.realtime | REST LTP fallback for BANKBEES (2928385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:14 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:14 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:14 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:14 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:14 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:16 IST | WARNING  | backend.data.realtime | REST LTP fallback for SILVERBEES (2068481): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:16 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for SILVERBEES — pausing REST quote calls for this symbol for 30s (trip #1 for this symbol)
-2026-09-04 11:43:16 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:16 IST | WARNING  | backend.data.realtime | REST LTP fallback for JUNIORBEES (2800385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:16 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for JUNIORBEES — pausing REST quote calls for this symbol for 30s (trip #1 for this symbol)
-2026-09-04 11:43:16 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:16 IST | WARNING  | backend.data.realtime | REST LTP fallback for BANKBEES (2928385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:16 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for BANKBEES — pausing REST quote calls for this symbol for 30s (trip #1 for this symbol)
-2026-09-04 11:43:16 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:16 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:16 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:16 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:16 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:18 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:18 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:18 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:18 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:18 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:18 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:18 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:20 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:20 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:20 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:20 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:20 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:20 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:20 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:21 IST | WARNING  | backend.data.realtime | REST LTP fallback for LIQUIDCASE (5568001): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:21 IST | WARNING  | backend.data.realtime | REST LTP fallback for LIQUIDCASE (5568001): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:22 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:22 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:22 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:22 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:22 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:22 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:22 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:22 IST | WARNING  | backend.data.realtime | REST LTP fallback for LIQUIDCASE (5568001): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:23 IST | WARNING  | backend.data.realtime | REST LTP fallback for NIFTY 50 (256265): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:23 IST | WARNING  | backend.data.realtime | REST LTP fallback for INDIA VIX (264969): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
-2026-09-04 11:43:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
-2026-09-04 11:43:26 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
 2026-09-04 11:43:26 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
 2026-09-04 11:43:26 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
 2026-09-04 11:43:26 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
@@ -364,3 +241,260 @@
 2026-09-04 11:44:23 IST | WARNING  | backend.data.realtime | REST LTP fallback for LIQUIDCASE (5568001): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
 2026-09-04 11:44:24 IST | WARNING  | backend.data.realtime | REST LTP fallback for LIQUIDCASE (5568001): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
 2026-09-04 11:44:24 IST | WARNING  | backend.data.realtime | REST LTP fallback for LIQUIDCASE (5568001): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:24 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:25 IST | WARNING  | backend.data.realtime | REST LTP fallback for NIFTY 50 (256265): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:25 IST | WARNING  | backend.data.realtime | REST LTP fallback for INDIA VIX (264969): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:26 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:26 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:26 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:26 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:26 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:26 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:26 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:28 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:28 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:28 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:28 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:28 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:28 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:28 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:30 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:30 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:30 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:30 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:30 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:30 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:30 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:32 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:32 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:32 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:32 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:32 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:32 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:32 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:34 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:34 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:34 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:34 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:34 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:34 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:34 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:36 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:36 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:36 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:36 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:36 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:36 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:36 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:38 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:38 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:38 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:38 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:38 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:38 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:38 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:39 IST | WARNING  | backend.data.realtime | REST LTP fallback for LIQUIDCASE (5568001): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:39 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for LIQUIDCASE — pausing REST quote calls for this symbol for 60s (trip #2 for this symbol)
+2026-09-04 11:44:40 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:40 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:40 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:40 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:40 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:40 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:40 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:42 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:42 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:42 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:42 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:42 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:42 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:42 IST | WARNING  | backend.data.realtime | REST LTP fallback for MID150BEES (2177537): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:42 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:44 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:44 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:44 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:44 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:44 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:44 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:45 IST | WARNING  | backend.data.realtime | REST LTP fallback for MID150BEES (2177537): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:45 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:47 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:47 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:47 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:47 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:47 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:47 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:47 IST | WARNING  | backend.data.realtime | REST LTP fallback for MID150BEES (2177537): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:47 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:49 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:49 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:49 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:49 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:49 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:49 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:49 IST | WARNING  | backend.data.realtime | REST LTP fallback for MID150BEES (2177537): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:49 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:51 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:51 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:51 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:51 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:51 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:51 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:51 IST | WARNING  | backend.data.realtime | REST LTP fallback for MID150BEES (2177537): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:51 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for MID150BEES — pausing REST quote calls for this symbol for 120s (trip #3 for this symbol)
+2026-09-04 11:44:51 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:53 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:53 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:53 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:54 IST | WARNING  | backend.data.realtime | REST LTP fallback for HDFCSML250 (3643649): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:54 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:54 IST | WARNING  | backend.data.realtime | REST LTP fallback for NIFTYBEES (2707457): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:54 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:54 IST | WARNING  | backend.data.realtime | REST LTP fallback for GOLDBEES (3693569): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:54 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:54 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:55 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:55 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:55 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:56 IST | WARNING  | backend.data.realtime | REST LTP fallback for HDFCSML250 (3643649): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:56 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:56 IST | WARNING  | backend.data.realtime | REST LTP fallback for NIFTYBEES (2707457): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:56 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:56 IST | WARNING  | backend.data.realtime | REST LTP fallback for GOLDBEES (3693569): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:56 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:56 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:58 IST | WARNING  | backend.data.realtime | REST LTP fallback for SILVERBEES (2068481): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:58 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:58 IST | WARNING  | backend.data.realtime | REST LTP fallback for JUNIORBEES (2800385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:58 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:58 IST | WARNING  | backend.data.realtime | REST LTP fallback for BANKBEES (2928385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:58 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:58 IST | WARNING  | backend.data.realtime | REST LTP fallback for HDFCSML250 (3643649): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:58 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:59 IST | WARNING  | backend.data.realtime | REST LTP fallback for NIFTYBEES (2707457): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:59 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:59 IST | WARNING  | backend.data.realtime | REST LTP fallback for GOLDBEES (3693569): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:44:59 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:44:59 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:00 IST | WARNING  | backend.data.realtime | REST LTP fallback for SILVERBEES (2068481): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:00 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:00 IST | WARNING  | backend.data.realtime | REST LTP fallback for JUNIORBEES (2800385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:00 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:00 IST | WARNING  | backend.data.realtime | REST LTP fallback for BANKBEES (2928385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:00 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:01 IST | WARNING  | backend.data.realtime | REST LTP fallback for HDFCSML250 (3643649): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:01 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:01 IST | WARNING  | backend.data.realtime | REST LTP fallback for NIFTYBEES (2707457): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:01 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:01 IST | WARNING  | backend.data.realtime | REST LTP fallback for GOLDBEES (3693569): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:01 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:01 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:02 IST | WARNING  | backend.data.realtime | REST LTP fallback for SILVERBEES (2068481): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:02 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:03 IST | WARNING  | backend.data.realtime | REST LTP fallback for JUNIORBEES (2800385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:03 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:03 IST | WARNING  | backend.data.realtime | REST LTP fallback for BANKBEES (2928385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:03 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:03 IST | WARNING  | backend.data.realtime | REST LTP fallback for HDFCSML250 (3643649): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:03 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for HDFCSML250 — pausing REST quote calls for this symbol for 120s (trip #3 for this symbol)
+2026-09-04 11:45:03 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:03 IST | WARNING  | backend.data.realtime | REST LTP fallback for NIFTYBEES (2707457): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:03 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for NIFTYBEES — pausing REST quote calls for this symbol for 120s (trip #3 for this symbol)
+2026-09-04 11:45:03 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:03 IST | WARNING  | backend.data.realtime | REST LTP fallback for GOLDBEES (3693569): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:03 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for GOLDBEES — pausing REST quote calls for this symbol for 120s (trip #3 for this symbol)
+2026-09-04 11:45:03 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:03 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:05 IST | WARNING  | backend.data.realtime | REST LTP fallback for SILVERBEES (2068481): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:05 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:05 IST | WARNING  | backend.data.realtime | REST LTP fallback for JUNIORBEES (2800385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:05 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:05 IST | WARNING  | backend.data.realtime | REST LTP fallback for BANKBEES (2928385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:05 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:05 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:05 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:05 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:05 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:07 IST | WARNING  | backend.data.realtime | REST LTP fallback for SILVERBEES (2068481): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:07 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for SILVERBEES — pausing REST quote calls for this symbol for 120s (trip #3 for this symbol)
+2026-09-04 11:45:07 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:07 IST | WARNING  | backend.data.realtime | REST LTP fallback for JUNIORBEES (2800385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:07 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for JUNIORBEES — pausing REST quote calls for this symbol for 120s (trip #3 for this symbol)
+2026-09-04 11:45:07 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:08 IST | WARNING  | backend.data.realtime | REST LTP fallback for BANKBEES (2928385): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
+2026-09-04 11:45:08 IST | WARNING  | backend.data.realtime | 🔌 REST LTP fallback circuit breaker OPEN for BANKBEES — pausing REST quote calls for this symbol for 120s (trip #3 for this symbol)
+2026-09-04 11:45:08 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:08 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:08 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:08 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:08 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:09 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:09 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:09 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:09 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:09 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:09 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:09 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:11 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:11 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:11 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:11 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:11 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:11 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:11 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:13 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:13 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:13 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:13 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:13 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:13 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:13 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:15 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:15 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:15 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:15 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:15 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:15 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:15 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:17 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:17 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:17 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:17 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:17 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:17 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:17 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:19 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:19 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:19 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:19 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:19 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:19 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:19 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:21 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:21 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:21 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:21 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:21 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:21 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:21 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:23 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:23 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:23 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:23 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:23 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:23 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:23 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:25 IST | WARNING  | backend.strategy.signal_generator | ⚠️ SILVERBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:25 IST | WARNING  | backend.strategy.signal_generator | ⚠️ JUNIORBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:25 IST | WARNING  | backend.strategy.signal_generator | ⚠️ BANKBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:25 IST | WARNING  | backend.strategy.signal_generator | ⚠️ HDFCSML250: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:25 IST | WARNING  | backend.strategy.signal_generator | ⚠️ NIFTYBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:25 IST | WARNING  | backend.strategy.signal_generator | ⚠️ GOLDBEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:25 IST | WARNING  | backend.strategy.signal_generator | ⚠️ MID150BEES: no live price available — skipping signal generation this cycle (not using stale daily close as a substitute)
+2026-09-04 11:45:26 IST | WARNING  | backend.data.realtime | REST LTP fallback for NIFTY 50 (256265): HTTP 400 — {"status": "error","message": "Bad Request","error_type": "InputException"}
