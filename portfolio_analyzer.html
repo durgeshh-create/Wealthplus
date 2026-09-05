@@ -808,9 +808,21 @@
             return lower.includes('tickertape') || lower.includes('mmi') || lower.includes('currentvalue') || text.includes('₹');
         }
 
-        async function fetchWithProxy(url) {
-            const attempts = corsProxies.map((proxy, i) =>
-                fetchViaSingleProxy(url, i, 12000, isValidTickertapePage).catch(err => {
+        // Try the user's own proxy (if configured) alone first; only race the shared
+        // free proxies as a fallback if it fails. Keeps normal operation entirely on
+        // the dedicated proxy, and avoids a slow/stale shared proxy ever "winning".
+        async function fetchViaProxies(url, timeoutMs, validate) {
+            const hasOwnProxy = corsProxies[0]?.name === 'own-worker';
+            if (hasOwnProxy) {
+                try {
+                    return await fetchViaSingleProxy(url, 0, timeoutMs, validate);
+                } catch (err) {
+                    console.warn('Own proxy failed, falling back to shared proxies:', err.message);
+                }
+            }
+            const startIdx = hasOwnProxy ? 1 : 0;
+            const attempts = corsProxies.slice(startIdx).map((proxy, offset) =>
+                fetchViaSingleProxy(url, startIdx + offset, timeoutMs, validate).catch(err => {
                     console.warn(`Proxy ${proxy.name} failed:`, err.message);
                     throw err;
                 })
@@ -818,8 +830,13 @@
             try {
                 return await Promise.any(attempts);
             } catch (aggregateErr) {
-                throw new Error('All CORS proxies exhausted');
+                const firstMsg = aggregateErr.errors?.[0]?.message;
+                throw new Error(firstMsg || 'All CORS proxies exhausted');
             }
+        }
+
+        async function fetchWithProxy(url) {
+            return fetchViaProxies(url, 12000, isValidTickertapePage);
         }
 
         function extractMetrics(html, fundName) {
@@ -1492,23 +1509,11 @@
         }
 
         async function fetchJSONWithProxies(url, timeoutMs = 12000) {
-            const attempts = corsProxies.map((proxy, i) =>
-                fetchViaSingleProxy(url, i, timeoutMs).then(text => {
-                    try {
-                        return JSON.parse(text);
-                    } catch (parseErr) {
-                        throw new Error(`Non-JSON response via ${proxy.name}`);
-                    }
-                }).catch(err => {
-                    console.warn(`JSON fetch failed via ${proxy.name}:`, err.message);
-                    throw err;
-                })
-            );
+            const text = await fetchViaProxies(url, timeoutMs, null);
             try {
-                return await Promise.any(attempts);
-            } catch (aggregateErr) {
-                const firstMsg = aggregateErr.errors?.[0]?.message;
-                throw new Error(firstMsg || 'All CORS proxies failed to return valid JSON');
+                return JSON.parse(text);
+            } catch (parseErr) {
+                throw new Error('Non-JSON response from proxy');
             }
         }
 
@@ -2287,6 +2292,18 @@
                     const price = meta.regularMarketPrice;
                     const prevClose = meta.previousClose ?? meta.chartPreviousClose;
                     const changePct = (prevClose) ? ((price - prevClose) / prevClose) * 100 : null;
+
+                    // Guard against a shared proxy serving a stale cached copy: reject
+                    // anything older than 4 days (covers weekends/holidays but still
+                    // catches genuinely stale/cached-for-a-while responses).
+                    const marketTimeMs = (meta.regularMarketTime || 0) * 1000;
+                    const ageMs = Date.now() - marketTimeMs;
+                    const maxAgeMs = 4 * 24 * 60 * 60 * 1000;
+                    if (!marketTimeMs || ageMs > maxAgeMs) {
+                        const ageDesc = marketTimeMs ? `${(ageMs / 3600000).toFixed(1)}h old` : 'missing timestamp';
+                        throw new Error(`Stale index quote (${ageDesc})`);
+                    }
+
                     return { price, changePct };
                 } catch (err) {
                     lastErr = err;
