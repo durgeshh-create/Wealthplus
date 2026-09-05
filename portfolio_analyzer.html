@@ -589,7 +589,17 @@
             { name: "NIPPON INDIA ULTRA SHORT", type: "Ultra Short Duration", slug: "nippon-india-ultra-short-duration-fund-M_NILS", mfQuery: "Nippon India Ultra Short Duration Fund", ytm: null, exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, url: "https://www.tickertape.in/mutualfunds/nippon-india-ultra-short-duration-fund-M_NILS" }
         ];
 
+        // ─────────────────────────────────────────────────────────────
+        // OPTIONAL: your own CORS proxy (recommended — see setup notes)
+        // Deploy the included cors-worker.js as a free Cloudflare Worker,
+        // then paste its URL below, e.g.:
+        //   const OWN_PROXY_URL = "https://your-worker-name.yoursubdomain.workers.dev/?url=";
+        // Leave blank to keep using only the shared free proxies (less reliable).
+        // ─────────────────────────────────────────────────────────────
+        const OWN_PROXY_URL = "https://portfolio-cors-proxy.durgeshh.workers.dev/?url=";
+
         const corsProxies = [
+            ...(OWN_PROXY_URL ? [{ url: OWN_PROXY_URL, name: "own-worker" }] : []),
             { url: "https://api.codetabs.com/v1/proxy?quest=", name: "codetabs" },
             { url: "https://corsproxy.io/?url=", name: "corsproxy" },
             { url: "https://api.allorigins.win/raw?url=", name: "allorigins" },
