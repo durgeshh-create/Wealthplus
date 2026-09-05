@@ -1346,7 +1346,7 @@
             {
                 name: "Invesco India Smallcap Fund",
                 assetType: "mf",
-                mfQuery: "Invesco India Smallcap Fund",
+                mfQuery: "Invesco India Small Cap Fund",
                 gfTicker: "MUTF_IN:INVE_INDI_SMAL_Y23R9P",
                 url: "https://www.google.com/finance/beta/quote/INVE_INDI_SMAL_Y23R9P:MUTF_IN",
                 history: null, sparkSvg: null, pct20dma: null, dayChange: null, williamsR: null, status: null
@@ -1514,9 +1514,31 @@
             }
         }
 
+        // mfapi.in's search is sensitive to exact spacing in category words (e.g. a scheme
+        // may be indexed as "Small Cap" even when everyone colloquially writes "Smallcap").
+        // Generate a couple of reasonable spacing variants and try each until one returns
+        // results, rather than failing outright on a cosmetic mismatch.
+        function generateQueryVariants(query) {
+            const variants = [query];
+            const capWords = ['small cap', 'mid cap', 'large cap', 'multi cap', 'flexi cap'];
+            for (const spaced of capWords) {
+                const joined = spaced.replace(' ', '');
+                if (query.toLowerCase().includes(joined)) {
+                    variants.push(query.replace(new RegExp(joined, 'i'), spaced));
+                } else if (query.toLowerCase().includes(spaced)) {
+                    variants.push(query.replace(new RegExp(spaced, 'i'), joined));
+                }
+            }
+            return [...new Set(variants)];
+        }
+
         async function fetchMFHistory(query) {
-            const searchUrl = `https://api.mfapi.in/mf/search?q=${encodeURIComponent(query)}`;
-            const results = await fetchJSONWithProxies(searchUrl);
+            let results = null;
+            for (const variant of generateQueryVariants(query)) {
+                const searchUrl = `https://api.mfapi.in/mf/search?q=${encodeURIComponent(variant)}`;
+                const attempt = await fetchJSONWithProxies(searchUrl);
+                if (attempt && attempt.length) { results = attempt; break; }
+            }
             if (!results || !results.length) throw new Error('Scheme not found');
 
             const stopWords = new Set(['fund', 'direct', 'growth', 'plan', 'regular', 'the', 'of', 'and', 'sun', 'life']);
