@@ -1,1 +1,6 @@
 2026-09-10 10:30:25 IST | ERROR    | backend.portfolio.tracker | Error fetching positions: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
+2026-09-10 11:05:29 IST | INFO     | backend.orders.manager | smart_buy 7 × MID150BEES @ ₹236.40 (cost ₹1,654.80) | Available cash: ₹120,888.60 (spendable after ₹15000 reserve: ₹105,888.60)
+2026-09-10 11:05:29 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 7 x MID150BEES
+2026-09-10 11:05:29 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260910190581914
+2026-09-10 11:05:29 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹236.4
+2026-09-10 11:05:30 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 7 × ₹236.40 = ₹1655 | LIMIT | Available Cash
