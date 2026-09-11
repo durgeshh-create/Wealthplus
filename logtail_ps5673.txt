@@ -3,3 +3,31 @@
 2026-09-11 12:36:44 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260911150940332
 2026-09-11 12:36:44 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹235.98
 2026-09-11 12:36:45 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 9 × ₹235.98 = ₹2124 | LIMIT | Available Cash
+2026-09-11 12:37:44 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-84.0), B(W%R=-84.0+drop=2.94%), C(W%R=-84.0+drop=2.94%)]: SILVERBEES | Price=₹216.96 | PrevClose=₹223.53 | AvgBuy=None | Slot 1/6
+2026-09-11 12:37:44 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-83.9)]: JUNIORBEES | Price=₹779.90 | PrevClose=₹785.79 | AvgBuy=₹788.01 | Slot 1/6
+2026-09-11 12:37:44 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-84.05 | ₹216.96
+2026-09-11 12:37:44 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-83.90 | ₹779.90
+2026-09-11 12:37:44 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-09-11 12:37:44 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹10346.10 + sell 126 LIQUIDCASE × ₹115.91 = ₹14604.66 (shortfall) → Buy 115 SILVERBEES × ₹216.96 = ₹24950.40
+2026-09-11 12:37:44 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹216.96 for SILVERBEES (LTP was ₹216.96, top_ask from depth)
+2026-09-11 12:37:45 IST | INFO     | backend.orders.manager | smart_buy 115 × SILVERBEES @ ₹216.96 (cost ₹24,950.40) | Available cash: ₹25,346.10 (spendable after ₹15000 reserve: ₹10,346.10)
+2026-09-11 12:37:45 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.90 (top_bid from depth)
+2026-09-11 12:37:45 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 137 x LIQUIDCASE
+2026-09-11 12:37:45 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260911150942373
+2026-09-11 12:37:46 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.9
+2026-09-11 12:37:46 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 137 units @ ₹115.91
+2026-09-11 12:37:48 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹216.96 → ₹216.96 (top_ask from depth)
+2026-09-11 12:37:48 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 115 x SILVERBEES
+2026-09-11 12:37:48 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260911150942472
+2026-09-11 12:37:49 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: SILVERBEES @ ₹216.93
+2026-09-11 12:37:49 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 115 × SILVERBEES @ ₹216.96
+2026-09-11 12:37:49 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: SILVERBEES x115 @ ₹216.96
+2026-09-11 12:37:49 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-09-11 12:37:50 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹10346.10 + sell 127 LIQUIDCASE × ₹115.90 = ₹14719.30 (shortfall) → Buy 32 JUNIORBEES × ₹779.90 = ₹24956.80
+2026-09-11 12:37:50 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹779.90 for JUNIORBEES (LTP was ₹779.90, top_ask from depth)
+2026-09-11 12:37:50 IST | INFO     | backend.orders.manager | smart_buy 32 × JUNIORBEES @ ₹779.90 (cost ₹24,956.80) | Available cash: ₹25,346.10 (spendable after ₹15000 reserve: ₹10,346.10)
+2026-09-11 12:37:51 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.90 (top_bid from depth)
+2026-09-11 12:37:51 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 137 x LIQUIDCASE
+2026-09-11 12:37:51 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260911150942582
+2026-09-11 12:37:52 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.9
+2026-09-11 12:37:52 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 137 units @ ₹115.90
