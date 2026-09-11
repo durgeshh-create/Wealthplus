@@ -1,0 +1,18 @@
+2026-09-11 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-96.9), B(W%R=-96.9+drop=3.99%), C(W%R=-96.9+drop=3.99%)]: SILVERBEES | Price=₹214.60 | PrevClose=₹223.53 | AvgBuy=None | Slot 1/6
+2026-09-11 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-92.1), B(W%R=-92.1+drop=1.27%), C(W%R=-92.1+drop=1.27%)]: JUNIORBEES | Price=₹775.81 | PrevClose=₹785.79 | AvgBuy=₹788.01 | Slot 1/6
+2026-09-11 09:20:01 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-96.91 | ₹214.60
+2026-09-11 09:20:01 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-92.07 | ₹775.81
+2026-09-11 09:20:01 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-09-11 09:20:02 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹10346.10 + sell 126 LIQUIDCASE × ₹115.91 = ₹14604.66 (shortfall) → Buy 116 SILVERBEES × ₹214.60 = ₹24893.60
+2026-09-11 09:20:02 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹214.60 for SILVERBEES (LTP was ₹214.60, top_ask from depth)
+2026-09-11 09:20:02 IST | INFO     | backend.orders.manager | smart_buy 116 × SILVERBEES @ ₹214.60 (cost ₹24,893.60) | Available cash: ₹25,346.10 (spendable after ₹15000 reserve: ₹10,346.10)
+2026-09-11 09:20:02 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.90 (top_bid from depth)
+2026-09-11 09:20:02 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 136 x LIQUIDCASE
+2026-09-11 09:20:02 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260911150145127
+2026-09-11 09:20:03 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.9
+2026-09-11 09:20:03 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 136 units @ ₹115.90
+2026-09-11 09:20:06 IST | INFO     | backend.orders.manager | smart_buy 22 × MID150BEES @ ₹234.00 (cost ₹5,148.00) | Available cash: ₹25,346.10 (spendable after ₹15000 reserve: ₹10,346.10)
+2026-09-11 09:20:06 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 22 x MID150BEES
+2026-09-11 09:20:07 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260911150146201
+2026-09-11 09:20:07 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹234
+2026-09-11 09:20:08 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 22 × ₹234.00 = ₹5148 | LIMIT | Available Cash
