@@ -27,3 +27,12 @@
 2026-09-15 12:38:44 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 25 × MID150BEES @ ₹233.90
 2026-09-15 12:38:44 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 25 × ₹233.90 = ₹5848 | LIMIT | Available Cash
 2026-09-15 12:40:25 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [JUNIORBEES]: Margin not credited after 90s: live_balance ₹29,810.72 < required ₹39,631.36. LIQUIDCASE was sold (230 units) — cash should credit shortly.
+2026-09-15 13:08:34 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-96.0)]: SILVERBEES | Price=₹214.75 | PrevClose=₹216.72 | AvgBuy=₹216.93 | Slot 1/6
+2026-09-15 13:08:34 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-96.04 | ₹214.75
+2026-09-15 13:08:34 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-09-15 13:08:34 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹214.76 for SILVERBEES (LTP was ₹214.75, top_ask from depth)
+2026-09-15 13:08:34 IST | INFO     | backend.orders.manager | smart_buy 116 × SILVERBEES @ ₹214.76 (cost ₹24,912.16) | Available cash: ₹56,269.20 (spendable after ₹15000 reserve: ₹41,269.20)
+2026-09-15 13:08:34 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 116 x SILVERBEES
+2026-09-15 13:08:34 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260915151122623
+2026-09-15 13:08:35 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: SILVERBEES @ ₹214.76
+2026-09-15 13:08:35 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: SILVERBEES x116 @ ₹214.75
