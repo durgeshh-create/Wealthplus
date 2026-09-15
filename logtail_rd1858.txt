@@ -17,3 +17,14 @@
 2026-09-15 12:01:53 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 213 units @ ₹115.93
 2026-09-15 12:02:34 IST | ERROR    | backend.strategy.intraday_engine | [MID150BEES] smart_buy failed: Margin not credited after 90s: live_balance ₹16,898.30 < required ₹20,150.64. LIQUIDCASE was sold (31 units) — cash should credit shortly.
 2026-09-15 12:03:35 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [JUNIORBEES]: Margin not credited after 90s: live_balance ₹16,898.30 < required ₹39,655.68. LIQUIDCASE was sold (213 units) — cash should credit shortly.
+2026-09-15 12:07:43 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-98.3), B(W%R=-98.3+drop=1.52%), C(W%R=-98.3+drop=1.52%)]: HDFCSML250 | Price=₹182.35 | PrevClose=₹185.17 | AvgBuy=₹184.24 | Slot 1/6
+2026-09-15 12:07:43 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-98.30 | ₹182.35
+2026-09-15 12:07:43 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
+2026-09-15 12:07:43 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹1898.30 + sell 200 LIQUIDCASE × ₹115.92 = ₹23184.00 (shortfall) → Buy 137 HDFCSML250 × ₹182.35 = ₹24981.95
+2026-09-15 12:07:43 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹182.35 for HDFCSML250 (LTP was ₹182.35, top_ask from depth)
+2026-09-15 12:07:43 IST | INFO     | backend.orders.manager | smart_buy 137 × HDFCSML250 @ ₹182.35 (cost ₹24,981.95) | Available cash: ₹16,898.30 (spendable after ₹15000 reserve: ₹1,898.30)
+2026-09-15 12:07:44 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.92 (top_bid from depth)
+2026-09-15 12:07:44 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 216 x LIQUIDCASE
+2026-09-15 12:07:44 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260915190848543
+2026-09-15 12:07:44 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.92
+2026-09-15 12:07:44 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 216 units @ ₹115.92
