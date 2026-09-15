@@ -18,3 +18,13 @@
 2026-09-15 12:38:00 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.91
 2026-09-15 12:38:00 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 212 units @ ₹115.92
 2026-09-15 12:38:41 IST | ERROR    | backend.strategy.intraday_engine | [MID150BEES] smart_buy failed: Margin not credited after 90s: live_balance ₹16,898.30 < required ₹20,848.25. LIQUIDCASE was sold (37 units) — cash should credit shortly.
+2026-09-15 12:39:42 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [JUNIORBEES]: Margin not credited after 90s: live_balance ₹16,898.30 < required ₹39,638.08. LIQUIDCASE was sold (212 units) — cash should credit shortly.
+2026-09-15 12:39:42 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
+2026-09-15 12:39:42 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹1898.30 + sell 200 LIQUIDCASE × ₹115.91 = ₹23182.00 (shortfall) → Buy 137 HDFCSML250 × ₹182.30 = ₹24975.10
+2026-09-15 12:39:42 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹182.28 for HDFCSML250 (LTP was ₹182.30, top_ask from depth)
+2026-09-15 12:39:42 IST | INFO     | backend.orders.manager | smart_buy 137 × HDFCSML250 @ ₹182.28 (cost ₹24,972.36) | Available cash: ₹16,898.30 (spendable after ₹15000 reserve: ₹1,898.30)
+2026-09-15 12:39:43 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.91 (top_bid from depth)
+2026-09-15 12:39:43 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 215 x LIQUIDCASE
+2026-09-15 12:39:43 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260915190931200
+2026-09-15 12:39:43 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.91
+2026-09-15 12:39:43 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 215 units @ ₹115.91
