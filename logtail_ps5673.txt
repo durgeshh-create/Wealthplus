@@ -36,3 +36,16 @@
 2026-09-15 13:08:34 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260915151122623
 2026-09-15 13:08:35 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: SILVERBEES @ ₹214.76
 2026-09-15 13:08:35 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: SILVERBEES x116 @ ₹214.75
+2026-09-15 13:12:57 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-99.2), B(W%R=-99.2+drop=1.77%), C(W%R=-99.2+drop=1.77%)]: HDFCSML250 | Price=₹181.89 | PrevClose=₹185.17 | AvgBuy=₹183.75 | Slot 1/6
+2026-09-15 13:12:57 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-99.20 | ₹181.89
+2026-09-15 13:12:57 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
+2026-09-15 13:12:57 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹182.02 for HDFCSML250 (LTP was ₹181.89, top_ask from depth)
+2026-09-15 13:12:58 IST | INFO     | backend.orders.manager | smart_buy 137 × HDFCSML250 @ ₹182.02 (cost ₹24,936.74) | Available cash: ₹56,269.20 (spendable after ₹15000 reserve: ₹41,269.20)
+2026-09-15 13:12:58 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 137 x HDFCSML250
+2026-09-15 13:12:58 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260915151137291
+2026-09-15 13:12:58 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 77272.63. Margin available: 56269.20. Check orderbook for open orders.
+2026-09-15 13:12:59 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.91 (top_bid from depth)
+2026-09-15 13:12:59 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 233 x LIQUIDCASE
+2026-09-15 13:13:00 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260915151137359
+2026-09-15 13:13:00 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.91
+2026-09-15 13:13:00 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 233 units @ ₹115.92
