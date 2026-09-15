@@ -7,3 +7,22 @@
 2026-09-15 12:37:42 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260915151036060
 2026-09-15 12:37:43 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.91
 2026-09-15 12:37:43 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 55 units @ ₹115.92
+2026-09-15 12:38:40 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-99.0), B(W%R=-99.0+drop=1.59%), C(W%R=-99.0+drop=1.59%)]: JUNIORBEES | Price=₹769.55 | PrevClose=₹781.96 | AvgBuy=₹782.45 | Slot 1/6
+2026-09-15 12:38:40 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-98.96 | ₹769.55
+2026-09-15 12:38:40 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-09-15 12:38:40 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹769.73 for JUNIORBEES (LTP was ₹769.55, top_ask from depth)
+2026-09-15 12:38:40 IST | INFO     | backend.orders.manager | smart_buy 32 × JUNIORBEES @ ₹769.73 (cost ₹24,631.36) | Available cash: ₹56,269.20 (spendable after ₹15000 reserve: ₹41,269.20)
+2026-09-15 12:38:40 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 32 x JUNIORBEES
+2026-09-15 12:38:41 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260915151038669
+2026-09-15 12:38:41 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 72868.89. Margin available: 56269.20. Check orderbook for open orders.
+2026-09-15 12:38:41 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.91 (top_bid from depth)
+2026-09-15 12:38:41 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 230 x LIQUIDCASE
+2026-09-15 12:38:42 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260915151038709
+2026-09-15 12:38:42 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹233.9 → ₹233.82 (top_ask from depth)
+2026-09-15 12:38:42 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 25 x MID150BEES
+2026-09-15 12:38:42 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260915151038723
+2026-09-15 12:38:42 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.91
+2026-09-15 12:38:42 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 230 units @ ₹115.92
+2026-09-15 12:38:44 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹233.82
+2026-09-15 12:38:44 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 25 × MID150BEES @ ₹233.90
+2026-09-15 12:38:44 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 25 × ₹233.90 = ₹5848 | LIMIT | Available Cash
