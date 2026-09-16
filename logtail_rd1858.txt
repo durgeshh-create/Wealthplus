@@ -45,3 +45,9 @@
 2026-09-16 09:39:57 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916190250479
 2026-09-16 09:39:57 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.94
 2026-09-16 09:39:57 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 232 units @ ₹115.95
+2026-09-16 09:40:00 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹177.71 → ₹177.66 (top_ask from depth)
+2026-09-16 09:40:00 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 140 x HDFCSML250
+2026-09-16 09:40:00 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916190250822
+2026-09-16 09:40:03 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: HDFCSML250 @ ₹177.66
+2026-09-16 09:40:03 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 140 × HDFCSML250 @ ₹177.71
+2026-09-16 09:40:03 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: HDFCSML250 x140 @ ₹177.70
