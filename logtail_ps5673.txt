@@ -1,3 +1,22 @@
 2026-09-16 12:36:41 IST | INFO     | backend.orders.manager | smart_buy 15 × MID150BEES @ ₹231.25 (cost ₹3,468.75) | Available cash: ₹30,515.20 (spendable after ₹15000 reserve: ₹15,515.20)
 2026-09-16 12:36:41 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 15 x MID150BEES
 2026-09-16 12:36:42 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916150938569
+2026-09-16 12:36:46 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹231.25
+2026-09-16 12:36:46 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 15 × ₹231.25 = ₹3469 | LIMIT | Available Cash
+2026-09-16 12:37:42 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-85.2)]: JUNIORBEES | Price=₹764.41 | PrevClose=₹762.71 | AvgBuy=₹782.45 | Slot 1/6
+2026-09-16 12:37:42 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-85.17 | ₹764.41
+2026-09-16 12:37:42 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-09-16 12:37:42 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹15515.20 + sell 78 LIQUIDCASE × ₹115.95 = ₹9044.10 (shortfall) → Buy 32 JUNIORBEES × ₹764.41 = ₹24461.12
+2026-09-16 12:37:42 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹764.53 for JUNIORBEES (LTP was ₹764.41, top_ask from depth)
+2026-09-16 12:37:42 IST | INFO     | backend.orders.manager | smart_buy 32 × JUNIORBEES @ ₹764.53 (cost ₹24,464.96) | Available cash: ₹30,515.20 (spendable after ₹15000 reserve: ₹15,515.20)
+2026-09-16 12:37:42 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.94 (top_bid from depth)
+2026-09-16 12:37:42 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 84 x LIQUIDCASE
+2026-09-16 12:37:43 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916150940755
+2026-09-16 12:37:43 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.94
+2026-09-16 12:37:43 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 84 units @ ₹115.95
+2026-09-16 12:37:45 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹764.53 → ₹764.53 (top_ask from depth)
+2026-09-16 12:37:45 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 32 x JUNIORBEES
+2026-09-16 12:37:45 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916150940875
+2026-09-16 12:37:46 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 44660.67. Margin available: 30515.20. Check orderbook for open orders.
+2026-09-16 12:37:46 IST | ERROR    | backend.orders.manager | 🚨 ORPHAN: JUNIORBEES buy incomplete after LIQUIDCASE sell
+2026-09-16 12:37:46 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [JUNIORBEES]: Buy order did not complete after LIQUIDCASE sell: Insufficient funds. Margin required: 44660.67. Margin available: 30515.20. Check orderbook for open orders.
