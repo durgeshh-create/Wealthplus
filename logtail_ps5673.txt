@@ -10,3 +10,34 @@
 2026-09-16 09:38:59 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹229.98 → ₹229.99 (top_ask from depth)
 2026-09-16 09:38:59 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 48 x MID150BEES
 2026-09-16 09:38:59 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916150293713
+2026-09-16 09:39:00 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹229.99
+2026-09-16 09:39:00 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 48 × MID150BEES @ ₹229.98
+2026-09-16 09:39:01 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 48 × ₹229.98 = ₹11039 | LIMIT | Available Cash
+2026-09-16 09:39:55 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-99.7)]: JUNIORBEES | Price=₹757.16 | PrevClose=₹762.71 | AvgBuy=₹782.45 | Slot 1/6
+2026-09-16 09:39:55 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-99.3), B(W%R=-99.3+drop=1.73%), C(W%R=-99.3+drop=1.73%)]: HDFCSML250 | Price=₹177.70 | PrevClose=₹180.83 | AvgBuy=₹183.76 | Slot 1/6
+2026-09-16 09:39:55 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-99.68 | ₹757.16
+2026-09-16 09:39:55 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-99.32 | ₹177.70
+2026-09-16 09:39:55 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-09-16 09:39:56 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹15515.20 + sell 82 LIQUIDCASE × ₹115.94 = ₹9507.08 (shortfall) → Buy 33 JUNIORBEES × ₹757.16 = ₹24986.28
+2026-09-16 09:39:56 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹757.16 for JUNIORBEES (LTP was ₹757.16, top_ask from depth)
+2026-09-16 09:39:56 IST | INFO     | backend.orders.manager | smart_buy 33 × JUNIORBEES @ ₹757.16 (cost ₹24,986.28) | Available cash: ₹30,515.20 (spendable after ₹15000 reserve: ₹15,515.20)
+2026-09-16 09:39:56 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.94 (top_bid from depth)
+2026-09-16 09:39:56 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 89 x LIQUIDCASE
+2026-09-16 09:39:56 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916150301790
+2026-09-16 09:39:57 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.94
+2026-09-16 09:39:57 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 89 units @ ₹115.95
+2026-09-16 09:39:59 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹757.16 → ₹757.07 (top_ask from depth)
+2026-09-16 09:39:59 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 33 x JUNIORBEES
+2026-09-16 09:39:59 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916150302247
+2026-09-16 09:40:00 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 36782.35. Margin available: 30515.20. Check orderbook for open orders.
+2026-09-16 09:40:00 IST | ERROR    | backend.orders.manager | 🚨 ORPHAN: JUNIORBEES buy incomplete after LIQUIDCASE sell
+2026-09-16 09:40:00 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [JUNIORBEES]: Buy order did not complete after LIQUIDCASE sell: Insufficient funds. Margin required: 36782.35. Margin available: 30515.20. Check orderbook for open orders.
+2026-09-16 09:40:00 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
+2026-09-16 09:40:00 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹15515.20 + sell 81 LIQUIDCASE × ₹115.95 = ₹9391.95 (shortfall) → Buy 140 HDFCSML250 × ₹177.66 = ₹24872.40
+2026-09-16 09:40:00 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹177.66 for HDFCSML250 (LTP was ₹177.66, top_ask from depth)
+2026-09-16 09:40:01 IST | INFO     | backend.orders.manager | smart_buy 140 × HDFCSML250 @ ₹177.66 (cost ₹24,872.40) | Available cash: ₹30,515.20 (spendable after ₹15000 reserve: ₹15,515.20)
+2026-09-16 09:40:01 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.94 (top_bid from depth)
+2026-09-16 09:40:01 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 88 x LIQUIDCASE
+2026-09-16 09:40:01 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916150302549
+2026-09-16 09:40:02 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.94
+2026-09-16 09:40:02 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 88 units @ ₹115.95
