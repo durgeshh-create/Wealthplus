@@ -1,0 +1,15 @@
+2026-09-16 09:38:50 IST | INFO     | backend.orders.manager | smart_buy 48 × MID150BEES @ ₹229.99 (cost ₹11,039.52) | Available cash: ₹105,590.60 (spendable after ₹15000 reserve: ₹90,590.60)
+2026-09-16 09:38:50 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 48 x MID150BEES
+2026-09-16 09:38:50 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916190242848
+2026-09-16 09:38:51 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 114624.52. Margin available: 105590.60. Check orderbook for open orders.
+2026-09-16 09:38:51 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.94 (top_bid from depth)
+2026-09-16 09:38:51 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 103 x LIQUIDCASE
+2026-09-16 09:38:51 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916190242959
+2026-09-16 09:38:52 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.94
+2026-09-16 09:38:52 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 103 units @ ₹115.94
+2026-09-16 09:38:54 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹229.99 → ₹229.98 (top_ask from depth)
+2026-09-16 09:38:54 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 48 x MID150BEES
+2026-09-16 09:38:54 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916190243319
+2026-09-16 09:38:55 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹229.95
+2026-09-16 09:38:55 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 48 × MID150BEES @ ₹229.99
+2026-09-16 09:38:55 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 48 × ₹229.99 = ₹11040 | LIMIT | Available Cash
