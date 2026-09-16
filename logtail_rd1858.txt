@@ -3,3 +3,16 @@
 2026-09-16 12:37:17 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916190841229
 2026-09-16 12:37:18 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹231.19
 2026-09-16 12:37:19 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 13 × ₹231.24 = ₹3006 | LIMIT | Available Cash
+2026-09-16 12:38:17 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-85.3)]: JUNIORBEES | Price=₹764.32 | PrevClose=₹762.71 | AvgBuy=₹776.53 | Slot 1/6
+2026-09-16 12:38:17 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-85.30 | ₹764.32
+2026-09-16 12:38:17 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-09-16 12:38:17 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹764.73 for JUNIORBEES (LTP was ₹764.32, top_ask from depth)
+2026-09-16 12:38:18 IST | INFO     | backend.orders.manager | smart_buy 32 × JUNIORBEES @ ₹764.73 (cost ₹24,471.36) | Available cash: ₹105,590.60 (spendable after ₹15000 reserve: ₹90,590.60)
+2026-09-16 12:38:18 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 32 x JUNIORBEES
+2026-09-16 12:38:18 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916190843617
+2026-09-16 12:38:18 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 123990.44. Margin available: 105590.60. Check orderbook for open orders.
+2026-09-16 12:38:19 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.94 (top_bid from depth)
+2026-09-16 12:38:19 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 228 x LIQUIDCASE
+2026-09-16 12:38:19 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916190843641
+2026-09-16 12:38:20 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.94
+2026-09-16 12:38:20 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 228 units @ ₹115.95
