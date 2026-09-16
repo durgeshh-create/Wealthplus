@@ -20,3 +20,20 @@
 2026-09-16 12:37:46 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 44660.67. Margin available: 30515.20. Check orderbook for open orders.
 2026-09-16 12:37:46 IST | ERROR    | backend.orders.manager | 🚨 ORPHAN: JUNIORBEES buy incomplete after LIQUIDCASE sell
 2026-09-16 12:37:46 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [JUNIORBEES]: Buy order did not complete after LIQUIDCASE sell: Insufficient funds. Margin required: 44660.67. Margin available: 30515.20. Check orderbook for open orders.
+2026-09-16 12:52:38 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-75.1)]: HDFCSML250 | Price=₹179.70 | PrevClose=₹180.83 | AvgBuy=₹181.67 | Slot 1/6
+2026-09-16 12:52:38 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-75.06 | ₹179.70
+2026-09-16 12:52:38 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
+2026-09-16 12:52:38 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹15515.20 + sell 82 LIQUIDCASE × ₹115.95 = ₹9507.90 (shortfall) → Buy 139 HDFCSML250 × ₹179.70 = ₹24978.30
+2026-09-16 12:52:38 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹179.80 for HDFCSML250 (LTP was ₹179.70, top_ask from depth)
+2026-09-16 12:52:39 IST | INFO     | backend.orders.manager | smart_buy 139 × HDFCSML250 @ ₹179.80 (cost ₹24,992.20) | Available cash: ₹30,515.20 (spendable after ₹15000 reserve: ₹15,515.20)
+2026-09-16 12:52:39 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.94 (top_bid from depth)
+2026-09-16 12:52:39 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 89 x LIQUIDCASE
+2026-09-16 12:52:39 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916150969848
+2026-09-16 12:52:40 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.94
+2026-09-16 12:52:40 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 89 units @ ₹115.95
+2026-09-16 12:52:42 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹179.8 → ₹179.79 (top_ask from depth)
+2026-09-16 12:52:42 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 139 x HDFCSML250
+2026-09-16 12:52:42 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916150969935
+2026-09-16 12:52:43 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 34867.86. Margin available: 30515.20. Check orderbook for open orders.
+2026-09-16 12:52:43 IST | ERROR    | backend.orders.manager | 🚨 ORPHAN: HDFCSML250 buy incomplete after LIQUIDCASE sell
+2026-09-16 12:52:43 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [HDFCSML250]: Buy order did not complete after LIQUIDCASE sell: Insufficient funds. Margin required: 34867.86. Margin available: 30515.20. Check orderbook for open orders.
