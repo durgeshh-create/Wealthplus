@@ -51,3 +51,22 @@
 2026-09-16 09:40:03 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: HDFCSML250 @ ₹177.66
 2026-09-16 09:40:03 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 140 × HDFCSML250 @ ₹177.71
 2026-09-16 09:40:03 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: HDFCSML250 x140 @ ₹177.70
+2026-09-16 09:41:35 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-96.9)]: BANKBEES | Price=₹579.11 | PrevClose=₹579.33 | AvgBuy=₹585.1 | Slot 1/6
+2026-09-16 09:41:35 IST | INFO     | __main__             |   🟢 BUY: BANKBEES | W%R=-96.88 | ₹579.11
+2026-09-16 09:41:35 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: BANKBEES                        
+2026-09-16 09:41:35 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹579.45 for BANKBEES (LTP was ₹579.11, top_ask from depth)
+2026-09-16 09:41:35 IST | INFO     | backend.orders.manager | smart_buy 43 × BANKBEES @ ₹579.45 (cost ₹24,916.35) | Available cash: ₹105,590.60 (spendable after ₹15000 reserve: ₹90,590.60)
+2026-09-16 09:41:35 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 43 x BANKBEES
+2026-09-16 09:41:35 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916190262356
+2026-09-16 09:41:36 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 123531.50. Margin available: 105590.60. Check orderbook for open orders.
+2026-09-16 09:41:36 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹115.94 (top_bid from depth)
+2026-09-16 09:41:36 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 233 x LIQUIDCASE
+2026-09-16 09:41:36 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916190262472
+2026-09-16 09:41:37 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹115.94
+2026-09-16 09:41:37 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 233 units @ ₹115.95
+2026-09-16 09:41:39 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹579.45 → ₹579.45 (top_ask from depth)
+2026-09-16 09:41:39 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 43 x BANKBEES
+2026-09-16 09:41:39 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260916190262799
+2026-09-16 09:41:40 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: BANKBEES @ ₹579.36
+2026-09-16 09:41:40 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 43 × BANKBEES @ ₹579.45
+2026-09-16 09:41:40 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: BANKBEES x43 @ ₹579.11
