@@ -1,6 +1,6 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-09-18 09:08:59 IST",
+  "timestamp": "2026-09-18 09:10:03 IST",
   "bot_running": true,
   "total_value": 7088876.93,
   "today_pnl": 1165.36,
@@ -52,8 +52,8 @@
       "value": 75306.0,
       "pnl": 648.0,
       "pnl_pct": 0.87,
-      "unrealised_pnl": -22.38,
-      "unrealised_pnl_pct": -0.03,
+      "unrealised_pnl": 625.62,
+      "unrealised_pnl_pct": 0.84,
       "strategy": "active",
       "buys_today": 7,
       "max_slots": 6
@@ -122,8 +122,8 @@
       "value": 25647.6,
       "pnl": 517.36,
       "pnl_pct": 2.06,
-      "unrealised_pnl": 236.64,
-      "unrealised_pnl_pct": 0.95,
+      "unrealised_pnl": 754.0,
+      "unrealised_pnl_pct": 3.03,
       "strategy": "active",
       "buys_today": 7,
       "max_slots": 6
@@ -169,13 +169,13 @@
       "quantity": 2329,
       "pledged": 1917,
       "avg": 485.66,
-      "ltp": 499.08,
+      "ltp": 499.0,
       "invested": 1131104.63,
-      "value": 1162357.32,
-      "pnl": 31252.69,
-      "pnl_pct": 2.76,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "value": 1162171.0,
+      "pnl": 31066.37,
+      "pnl_pct": 2.75,
+      "day_pnl": -186.32,
+      "day_pnl_pct": -0.02,
       "tracked": false
     },
     {
@@ -185,13 +185,13 @@
       "quantity": 6705,
       "pledged": 6705,
       "avg": 168.05,
-      "ltp": 166.25,
+      "ltp": 166.84,
       "invested": 1126769.6,
-      "value": 1114706.25,
-      "pnl": -12063.35,
-      "pnl_pct": -1.07,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "value": 1118662.2,
+      "pnl": -8107.4,
+      "pnl_pct": -0.72,
+      "day_pnl": 3955.95,
+      "day_pnl_pct": 0.35,
       "tracked": false
     },
     {
@@ -217,13 +217,13 @@
       "quantity": 10009,
       "pledged": 0,
       "avg": 99.91,
-      "ltp": 101.6,
+      "ltp": 101.77,
       "invested": 999999.19,
-      "value": 1016914.4,
-      "pnl": 16915.21,
-      "pnl_pct": 1.69,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "value": 1018615.93,
+      "pnl": 18616.74,
+      "pnl_pct": 1.86,
+      "day_pnl": 1701.53,
+      "day_pnl_pct": 0.17,
       "tracked": false
     },
     {
@@ -316,10 +316,10 @@
       "ltp": 125.51,
       "invested": 74680.38,
       "value": 75306.0,
-      "pnl": -22.38,
-      "pnl_pct": -0.03,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "pnl": 625.62,
+      "pnl_pct": 0.84,
+      "day_pnl": 648.0,
+      "day_pnl_pct": 0.87,
       "tracked": true
     },
     {
@@ -332,20 +332,20 @@
       "ltp": 221.1,
       "invested": 24893.6,
       "value": 25647.6,
-      "pnl": 236.64,
-      "pnl_pct": 0.95,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "pnl": 754.0,
+      "pnl_pct": 3.03,
+      "day_pnl": 517.36,
+      "day_pnl_pct": 2.06,
       "tracked": true
     }
   ],
   "equity_summary": {
     "total_invested": 11877482.9,
-    "total_cur_val": 11922719.2,
-    "total_pnl": 45236.3,
-    "total_pnl_pct": 0.38,
-    "day_pnl": 0.0,
-    "day_pnl_pct": 0.0,
+    "total_cur_val": 11928190.36,
+    "total_pnl": 50707.46,
+    "total_pnl_pct": 0.43,
+    "day_pnl": 6636.52,
+    "day_pnl_pct": 0.06,
     "count": 13
   },
   "positions": [
@@ -377,9 +377,9 @@
   "williams_r": [
     {
       "symbol": "SILVERBEES",
-      "ltp": 221.1,
-      "change_pct": 2.06,
-      "williams_r": -42.16,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -84.39,
       "is_held": true,
       "avg_price": 214.6,
       "strategy": "active"
@@ -422,9 +422,9 @@
     },
     {
       "symbol": "GOLDBEES",
-      "ltp": 125.51,
-      "change_pct": 0.87,
-      "williams_r": -45.35,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -79.83,
       "is_held": true,
       "avg_price": 124.47,
       "strategy": "active"
@@ -439,16 +439,7 @@
       "strategy": "bnh"
     }
   ],
-  "signals": [
-    {
-      "type": "SELL",
-      "symbol": "SILVERBEES",
-      "reason": "Profit target 3.0% \u2265 3.0%",
-      "ltp": 221.1,
-      "avg": 214.6,
-      "profit_pct": 3.03
-    }
-  ],
+  "signals": [],
   "orders": [],
   "indices": {
     "NIFTY 50": {
