@@ -1,6 +1,6 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-09-18 15:31:58 IST",
+  "timestamp": "2026-09-18 15:33:03 IST",
   "bot_running": true,
   "total_value": 7055111.45,
   "today_pnl": 24113.32,
@@ -371,69 +371,77 @@
   "williams_r": [
     {
       "symbol": "SILVERBEES",
-      "ltp": 224.07,
-      "change_pct": 3.43,
-      "williams_r": -18.54,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -84.39,
       "is_held": false,
       "avg_price": null,
       "strategy": "active"
     },
     {
       "symbol": "JUNIORBEES",
-      "ltp": 781.11,
-      "change_pct": 1.19,
-      "williams_r": -51.73,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -74.01,
       "is_held": true,
       "avg_price": 775.37,
       "strategy": "active"
     },
     {
       "symbol": "BANKBEES",
-      "ltp": 583.58,
-      "change_pct": 0.33,
-      "williams_r": -81.88,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -88.39,
       "is_held": true,
       "avg_price": 586.87,
       "strategy": "active"
     },
     {
       "symbol": "HDFCSML250",
-      "ltp": 184.55,
-      "change_pct": 1.46,
-      "williams_r": -37.14,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -57.86,
       "is_held": true,
       "avg_price": 181.67,
       "strategy": "active"
     },
     {
       "symbol": "NIFTYBEES",
-      "ltp": 266.53,
-      "change_pct": 0.17,
-      "williams_r": -75.54,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -78.48,
       "is_held": true,
       "avg_price": 279.25,
       "strategy": "active"
     },
     {
       "symbol": "GOLDBEES",
-      "ltp": 126.48,
-      "change_pct": 1.65,
-      "williams_r": -26.14,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -79.83,
       "is_held": true,
       "avg_price": 124.47,
       "strategy": "active"
     },
     {
       "symbol": "MID150BEES",
-      "ltp": 236.52,
-      "change_pct": 1.32,
-      "williams_r": -54.7,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -72.55,
       "is_held": true,
       "avg_price": 234.36,
       "strategy": "bnh"
     }
   ],
-  "signals": [],
+  "signals": [
+    {
+      "type": "BUY",
+      "symbol": "SILVERBEES",
+      "reason": "W%R -84.4 \u2264 -75.0",
+      "ltp": null,
+      "williams_r": -84.39
+    }
+  ],
   "orders": [
     {
       "order_id": "260918150460393",
@@ -469,10 +477,10 @@
       "low": 23286.6
     },
     "INDIA VIX": {
-      "ltp": 11.34,
+      "ltp": 11.37,
       "prev_close": 12.29,
-      "change": -0.95,
-      "change_pct": -7.73,
+      "change": -0.92,
+      "change_pct": -7.49,
       "open": 12.29,
       "high": 12.29,
       "low": 11.31
