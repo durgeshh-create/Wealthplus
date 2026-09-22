@@ -836,6 +836,81 @@
             return fetchViaProxies(url, 12000, isValidTickertapePage);
         }
 
+        // ------------------------------------------------------------------
+        // YTM fallback source: advisorkhoj.com
+        //
+        // Tickertape stopped rendering "Yield to Maturity" for anonymous /
+        // scraped page loads (it's now loaded client-side and/or gated behind
+        // their "Go Pro" tier), so the extractMetrics() table-scraping logic
+        // above can no longer find a real YTM number there. advisorkhoj.com
+        // still publishes it as a plain, server-rendered "Indicators" table
+        // (labelled "Yield to Maturity" in the raw HTML), so we use it just
+        // for that one number. YTM is a portfolio-level characteristic (same
+        // for Direct and Regular plans of the same fund), so it doesn't
+        // matter which plan's advisorkhoj page we land on.
+        //
+        // advisorkhoj's URL slugs aren't consistent between funds ("Growth
+        // Option" vs "Direct Plan-Growth Option" vs "Direct Growth", etc.),
+        // so rather than hardcode one fragile guess per fund, we try a short
+        // list of likely slugs and use whichever one actually contains a
+        // real "Yield to Maturity" value.
+        // ------------------------------------------------------------------
+        const ADVISORKHOJ_BASE = 'https://www.advisorkhoj.com/mutual-funds-research/';
+
+        function isValidAdvisorkhojPage(text) {
+            const lower = text.toLowerCase();
+            return lower.includes('advisorkhoj') || lower.includes('indicators') || lower.includes('yield to maturity');
+        }
+
+        function buildAdvisorkhojCandidates(fund) {
+            const name = (fund.mfQuery || fund.name).trim();
+            const suffixes = [
+                'Direct Plan-Growth Option',
+                'Direct Plan - Growth Option',
+                'Direct Growth',
+                '- Growth Option',
+                'Growth Option',
+                'Regular Plan-Growth Option'
+            ];
+            const seen = new Set();
+            const urls = [];
+            suffixes.forEach(suffix => {
+                const full = `${name} ${suffix}`.replace(/\s+/g, ' ').trim();
+                const slug = full.replace(/\s+/g, '-');
+                if (!seen.has(slug)) {
+                    seen.add(slug);
+                    urls.push(ADVISORKHOJ_BASE + slug.split('-').map(encodeURIComponent).join('-'));
+                }
+            });
+            return urls;
+        }
+
+        function extractYtmFromAdvisorkhoj(html) {
+            const idx = html.indexOf('Yield to Maturity');
+            if (idx === -1) return null;
+            // Strip tags from the snippet right after the label so this survives
+            // markup changes (it doesn't depend on table/column structure at all).
+            const snippet = html.slice(idx, idx + 300).replace(/<[^>]+>/g, ' ');
+            const m = snippet.match(/Yield to Maturity\s*([\d.]+)/i);
+            if (!m) return null; // e.g. the value was "-" (not yet published for this fund)
+            const val = parseFloat(m[1]);
+            return (!isNaN(val) && val > 0 && val < 20) ? val : null;
+        }
+
+        async function fetchYtmFromAdvisorkhoj(fund) {
+            const candidates = buildAdvisorkhojCandidates(fund);
+            for (const url of candidates) {
+                try {
+                    const html = await fetchViaProxies(url, 10000, isValidAdvisorkhojPage);
+                    const ytm = extractYtmFromAdvisorkhoj(html);
+                    if (ytm !== null) return ytm;
+                } catch (err) {
+                    // try the next candidate slug
+                }
+            }
+            return null;
+        }
+
         function extractMetrics(html, fundName) {
             const result = { ytm: 'na', exp: null, nav: null, ret3y: null, dayChangePct: null, dayChangeAbs: null };
 
@@ -1117,11 +1192,15 @@
             renderTable();
 
             try {
-                const [html, mfChange] = await Promise.all([
+                const [html, mfChange, advisorkhojYtm] = await Promise.all([
                     fetchWithProxy(fund.url),
-                    fetchDebtDayChangeViaMFApi(fund)
+                    fetchDebtDayChangeViaMFApi(fund),
+                    fetchYtmFromAdvisorkhoj(fund).catch(() => null)
                 ]);
                 const result = extractMetrics(html, fund.name);
+                if (advisorkhojYtm !== null) {
+                    result.ytm = advisorkhojYtm;
+                }
 
                 fund.ytm = !isNaN(result.ytm) && result.ytm !== 'na' ? result.ytm.toFixed(2) : 'na';
                 fund.exp = result.exp ? result.exp.toFixed(2) : null;
@@ -1157,11 +1236,15 @@
             progressFill.style.width = `${((index + 1) / total) * 100}%`;
 
             try {
-                const [html, mfChange] = await Promise.all([
+                const [html, mfChange, advisorkhojYtm] = await Promise.all([
                     fetchWithProxy(fund.url),
-                    fetchDebtDayChangeViaMFApi(fund)
+                    fetchDebtDayChangeViaMFApi(fund),
+                    fetchYtmFromAdvisorkhoj(fund).catch(() => null)
                 ]);
                 const result = extractMetrics(html, fund.name);
+                if (advisorkhojYtm !== null) {
+                    result.ytm = advisorkhojYtm;
+                }
 
                 fund.ytm = !isNaN(result.ytm) && result.ytm !== 'na' ? result.ytm.toFixed(2) : 'na';
                 fund.exp = result.exp ? result.exp.toFixed(2) : null;
