@@ -1,0 +1,11 @@
+2026-09-22 13:59:15 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [B(W%R=-60.2+drop=1.52%)]: SILVERBEES | Price=₹218.83 | PrevClose=₹222.21 | AvgBuy=None | Slot 1/6
+2026-09-22 13:59:15 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-60.22 | ₹218.83
+2026-09-22 13:59:15 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-09-22 13:59:15 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹38.90 + sell 215 LIQUIDCASE × ₹116.03 = ₹24946.45 (shortfall) → Buy 114 SILVERBEES × ₹218.83 = ₹24946.62
+2026-09-22 13:59:15 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹218.83 for SILVERBEES (LTP was ₹218.83, top_ask from depth)
+2026-09-22 13:59:15 IST | INFO     | backend.orders.manager | smart_buy 114 × SILVERBEES @ ₹218.83 (cost ₹24,946.62) | Available cash: ₹15,038.90 (spendable after ₹15000 reserve: ₹38.90)
+2026-09-22 13:59:16 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹116.02 (top_bid from depth)
+2026-09-22 13:59:16 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 232 x LIQUIDCASE
+2026-09-22 13:59:16 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260922151126556
+2026-09-22 13:59:17 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.02
+2026-09-22 13:59:17 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 232 units @ ₹116.03
