@@ -1,0 +1,22 @@
+2026-09-24 10:15:28 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-79.7), B(W%R=-79.7+drop=1.45%), C(W%R=-79.7+drop=1.45%)]: BANKBEES | Price=₹577.05 | PrevClose=₹585.57 | AvgBuy=₹582.88 | Slot 1/6
+2026-09-24 10:15:28 IST | INFO     | __main__             |   🟢 BUY: BANKBEES | W%R=-79.65 | ₹577.05
+2026-09-24 10:15:28 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: BANKBEES                        
+2026-09-24 10:15:29 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹577.17 for BANKBEES (LTP was ₹577.05, top_ask from depth)
+2026-09-24 10:15:29 IST | INFO     | backend.orders.manager | smart_buy 8 × BANKBEES @ ₹577.17 (cost ₹4,617.36) | Available cash: ₹65,465.00 (spendable after ₹15000 reserve: ₹50,465.00)
+2026-09-24 10:15:29 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 8 x BANKBEES
+2026-09-24 10:15:29 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260924190466327
+2026-09-24 10:15:29 IST | ERROR    | backend.orders.manager | ✗ Order REJECTED: Insufficient funds. Margin required: 68315.68. Margin available: 65465.00. Check orderbook for open orders.
+2026-09-24 10:15:30 IST | INFO     | backend.orders.manager | [smart_buy] Cancelled open BUY 260924190401767 (NSE) to free margin
+2026-09-24 10:15:30 IST | INFO     | backend.orders.manager | [smart_buy] Cancelled 1 open BUY order(s) to free margin
+2026-09-24 10:15:32 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹116.05 (top_bid from depth)
+2026-09-24 10:15:32 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 43 x LIQUIDCASE
+2026-09-24 10:15:32 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260924190466599
+2026-09-24 10:15:32 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.05
+2026-09-24 10:15:32 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 43 units @ ₹116.06
+2026-09-24 10:15:35 IST | INFO     | backend.orders.manager | [smart_buy] Price moved ₹577.17→₹577.18 — qty 8→7 (budget cap 7 @ orig. budget ₹4,617.36, cash cap 87 @ avail ₹50,465.00)
+2026-09-24 10:15:35 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹577.17 → ₹577.18 (top_ask from depth)
+2026-09-24 10:15:35 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 7 x BANKBEES
+2026-09-24 10:15:35 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260924190466812
+2026-09-24 10:15:35 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: BANKBEES @ ₹577.18
+2026-09-24 10:15:35 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 7 × BANKBEES @ ₹577.17
+2026-09-24 10:15:36 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: BANKBEES x8 @ ₹577.05
