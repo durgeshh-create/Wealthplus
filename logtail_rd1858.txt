@@ -1,32 +1,6 @@
-2026-09-25 09:20:20 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-80.3)]: BANKBEES | Price=₹576.86 | PrevClose=₹575.88 | AvgBuy=₹582.7 | Slot 1/6
-2026-09-25 09:20:20 IST | INFO     | __main__             |   🟢 BUY: BANKBEES | W%R=-80.28 | ₹576.86
-2026-09-25 09:20:20 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: BANKBEES                        
-2026-09-25 09:43:19 IST | INFO     | backend.orders.manager | smart_buy 8 × MID150BEES @ ₹232.14 (cost ₹1,857.12) | Available cash: ₹16,122.20 (spendable after ₹15000 reserve: ₹1,122.20)
-2026-09-25 09:43:20 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹116.09 (top_bid from depth)
-2026-09-25 09:43:20 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 7 x LIQUIDCASE
-2026-09-25 09:43:21 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260925190237350
-2026-09-25 09:43:21 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.09
-2026-09-25 09:43:21 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 7 units @ ₹116.09
-2026-09-25 09:43:23 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹232.14 → ₹232.14 (top_ask from depth)
-2026-09-25 09:43:23 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 8 x MID150BEES
-2026-09-25 09:43:24 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260925190237612
-2026-09-25 09:43:24 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹232.14
-2026-09-25 09:43:24 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 8 × MID150BEES @ ₹232.14
-2026-09-25 09:43:25 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 8 × ₹232.14 = ₹1857 | LIMIT | Available Cash
-2026-09-25 10:40:50 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-85.4)]: SILVERBEES | Price=₹215.66 | PrevClose=₹215.95 | AvgBuy=₹217.87 | Slot 1/6
-2026-09-25 10:40:50 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-85.44 | ₹215.66
-2026-09-25 10:40:50 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
-2026-09-25 10:40:50 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹1122.20 + sell 204 LIQUIDCASE × ₹116.10 = ₹23684.40 (shortfall) → Buy 115 SILVERBEES × ₹215.66 = ₹24800.90
-2026-09-25 10:40:50 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹215.70 for SILVERBEES (LTP was ₹215.66, top_ask from depth)
-2026-09-25 10:40:50 IST | INFO     | backend.orders.manager | smart_buy 115 × SILVERBEES @ ₹215.70 (cost ₹24,805.50) | Available cash: ₹16,122.20 (spendable after ₹15000 reserve: ₹1,122.20)
-2026-09-25 10:40:50 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹116.10 (top_bid from depth)
-2026-09-25 10:40:50 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 221 x LIQUIDCASE
-2026-09-25 10:40:51 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260925190452775
-2026-09-25 10:40:51 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.1
-2026-09-25 10:40:51 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 221 units @ ₹116.10
-2026-09-25 10:40:54 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹215.7 → ₹215.69 (top_ask from depth)
-2026-09-25 10:40:54 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 115 x SILVERBEES
-2026-09-25 10:40:54 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260925190452885
-2026-09-25 10:40:54 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: SILVERBEES @ ₹215.65
-2026-09-25 10:40:54 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 115 × SILVERBEES @ ₹215.70
-2026-09-25 10:40:55 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: SILVERBEES x115 @ ₹215.66
+2026-09-25 12:34:52 IST | INFO     | backend.orders.manager | smart_buy 8 × MID150BEES @ ₹231.98 (cost ₹1,855.84) | Available cash: ₹16,122.20 (spendable after ₹15000 reserve: ₹1,122.20)
+2026-09-25 12:34:52 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹116.10 (top_bid from depth)
+2026-09-25 12:34:52 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 7 x LIQUIDCASE
+2026-09-25 12:34:52 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260925190696343
+2026-09-25 12:34:53 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.1
+2026-09-25 12:34:53 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 7 units @ ₹116.11
