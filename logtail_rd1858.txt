@@ -4,3 +4,13 @@
 2026-09-25 12:37:05 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260925190701236
 2026-09-25 12:37:06 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.1
 2026-09-25 12:37:06 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 7 units @ ₹116.11
+2026-09-25 12:37:08 IST | INFO     | backend.orders.manager | [smart_buy] Price moved ₹231.89→₹231.90 — qty 8→7 (budget cap 7 @ orig. budget ₹1,855.12, cash cap 11 @ avail ₹2,561.46)
+2026-09-25 12:37:08 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹231.89 → ₹231.90 (top_ask from depth)
+2026-09-25 12:37:08 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 7 x MID150BEES
+2026-09-25 12:37:08 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260925190701371
+2026-09-25 12:37:09 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹231.9
+2026-09-25 12:37:09 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 7 × MID150BEES @ ₹231.89
+2026-09-25 12:37:09 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 8 × ₹231.89 = ₹1855 | LIMIT | Available Cash
+2026-09-25 12:38:05 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-82.2)]: BANKBEES | Price=₹576.27 | PrevClose=₹575.88 | AvgBuy=₹582.7 | Slot 1/6
+2026-09-25 12:38:05 IST | INFO     | __main__             |   🟢 BUY: BANKBEES | W%R=-82.24 | ₹576.27
+2026-09-25 12:38:05 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: BANKBEES                        
