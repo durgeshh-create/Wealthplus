@@ -67,3 +67,4 @@
 2026-09-28 12:38:39 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 2 × JUNIORBEES @ ₹765.58
 2026-09-28 12:38:39 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: JUNIORBEES x2 @ ₹765.42
 2026-09-28 13:48:15 IST | ERROR    | backend.portfolio.tracker | Error fetching holdings: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
+2026-09-28 14:15:16 IST | ERROR    | backend.portfolio.tracker | Error fetching holdings: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
