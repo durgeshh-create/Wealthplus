@@ -1,0 +1,49 @@
+2026-09-28 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-99.3), B(W%R=-99.3+drop=2.72%), C(W%R=-99.3+drop=2.72%)]: SILVERBEES | Price=₹212.85 | PrevClose=₹218.80 | AvgBuy=₹216.76 | Slot 1/6
+2026-09-28 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-99.7)]: BANKBEES | Price=₹570.60 | PrevClose=₹576.33 | AvgBuy=₹582.7 | Slot 1/6
+2026-09-28 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-97.6), B(W%R=-97.6+drop=2.15%), C(W%R=-97.6+drop=2.15%)]: GOLDBEES | Price=₹121.75 | PrevClose=₹124.43 | AvgBuy=₹124.47 | Slot 1/6
+2026-09-28 09:20:01 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-99.27 | ₹212.85
+2026-09-28 09:20:01 IST | INFO     | __main__             |   🟢 BUY: BANKBEES | W%R=-99.67 | ₹570.60
+2026-09-28 09:20:01 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-97.56 | ₹121.75
+2026-09-28 09:20:01 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-09-28 09:20:01 IST | INFO     | backend.orders.manager | smart_buy 19 × MID150BEES @ ₹230.39 (cost ₹4,377.41) | Available cash: ₹15,916.70 (spendable after ₹15000 reserve: ₹916.70)
+2026-09-28 09:20:01 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹116.11 (top_bid from depth)
+2026-09-28 09:20:01 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 33 x LIQUIDCASE
+2026-09-28 09:20:01 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹916.70 + sell 207 LIQUIDCASE × ₹116.12 = ₹24036.84 (shortfall) → Buy 117 SILVERBEES × ₹212.85 = ₹24903.45
+2026-09-28 09:20:01 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹212.88 for SILVERBEES (LTP was ₹212.85, top_ask from depth)
+2026-09-28 09:20:02 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260928190104805
+2026-09-28 09:20:02 IST | INFO     | backend.orders.manager | smart_buy 117 × SILVERBEES @ ₹212.88 (cost ₹24,906.96) | Available cash: ₹15,916.70 (spendable after ₹15000 reserve: ₹916.70)
+2026-09-28 09:20:02 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹116.11 (top_bid from depth)
+2026-09-28 09:20:02 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 224 x LIQUIDCASE
+2026-09-28 09:20:02 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.11
+2026-09-28 09:20:02 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 33 units @ ₹116.12
+2026-09-28 09:20:02 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260928190104930
+2026-09-28 09:20:03 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.11
+2026-09-28 09:20:03 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 224 units @ ₹116.12
+2026-09-28 09:20:05 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹230.39 → ₹230.38 (top_ask from depth)
+2026-09-28 09:20:05 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 19 x MID150BEES
+2026-09-28 09:20:05 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260928190105477
+2026-09-28 09:20:05 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹212.88 → ₹212.85 (top_ask from depth)
+2026-09-28 09:20:05 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 117 x SILVERBEES
+2026-09-28 09:20:05 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260928190105567
+2026-09-28 09:20:05 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹230.38
+2026-09-28 09:20:05 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 19 × MID150BEES @ ₹230.39
+2026-09-28 09:20:06 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: SILVERBEES @ ₹212.85
+2026-09-28 09:20:06 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 117 × SILVERBEES @ ₹212.88
+2026-09-28 09:20:06 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 19 × ₹230.39 = ₹4377 | LIMIT | Available Cash
+2026-09-28 09:20:06 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: SILVERBEES x117 @ ₹212.85
+2026-09-28 09:20:06 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: BANKBEES                        
+2026-09-28 09:20:06 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
+2026-09-28 09:20:07 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹916.70 + sell 208 LIQUIDCASE × ₹116.11 = ₹24150.88 (shortfall) → Buy 205 GOLDBEES × ₹121.75 = ₹24958.75
+2026-09-28 09:20:07 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹121.75 for GOLDBEES (LTP was ₹121.75, top_ask from depth)
+2026-09-28 09:20:08 IST | INFO     | backend.orders.manager | smart_buy 205 × GOLDBEES @ ₹121.75 (cost ₹24,958.75) | Available cash: ₹15,916.70 (spendable after ₹15000 reserve: ₹916.70)
+2026-09-28 09:20:10 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹116.11 (top_bid from depth)
+2026-09-28 09:20:10 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 224 x LIQUIDCASE
+2026-09-28 09:20:10 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260928190106302
+2026-09-28 09:20:10 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.11
+2026-09-28 09:20:10 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 224 units @ ₹116.11
+2026-09-28 09:20:13 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹121.75 → ₹121.75 (top_ask from depth)
+2026-09-28 09:20:13 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 205 x GOLDBEES
+2026-09-28 09:20:13 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260928190106871
+2026-09-28 09:20:13 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: GOLDBEES @ ₹121.75
+2026-09-28 09:20:13 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 205 × GOLDBEES @ ₹121.75
+2026-09-28 09:20:14 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: GOLDBEES x205 @ ₹121.75
