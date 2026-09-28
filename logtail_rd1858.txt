@@ -48,3 +48,14 @@
 2026-09-28 09:35:50 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: GOLDBEES @ ₹121.76
 2026-09-28 09:35:50 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 205 × GOLDBEES @ ₹121.76
 2026-09-28 09:35:51 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: GOLDBEES x205 @ ₹121.76
+2026-09-28 11:18:33 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [B(W%R=-74.9+drop=1.47%)]: JUNIORBEES | Price=₹765.24 | PrevClose=₹776.69 | AvgBuy=₹773.19 | Slot 1/6
+2026-09-28 11:18:33 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-74.91 | ₹765.24
+2026-09-28 11:18:33 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-09-28 11:18:34 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹916.70 + sell 6 LIQUIDCASE × ₹116.13 = ₹696.78 (shortfall) → Buy 2 JUNIORBEES × ₹765.24 = ₹1530.48
+2026-09-28 11:18:34 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹765.68 for JUNIORBEES (LTP was ₹765.24, top_ask from depth)
+2026-09-28 11:18:34 IST | INFO     | backend.orders.manager | smart_buy 2 × JUNIORBEES @ ₹765.68 (cost ₹1,531.36) | Available cash: ₹15,916.70 (spendable after ₹15000 reserve: ₹916.70)
+2026-09-28 11:18:34 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹116.11 (top_bid from depth)
+2026-09-28 11:18:34 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 6 x LIQUIDCASE
+2026-09-28 11:18:34 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260928190643226
+2026-09-28 11:18:35 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.11
+2026-09-28 11:18:35 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 6 units @ ₹116.11
