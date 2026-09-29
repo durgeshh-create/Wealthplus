@@ -31,3 +31,6 @@
 2026-09-29 12:37:35 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260929151153976
 2026-09-29 12:37:36 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.12
 2026-09-29 12:37:36 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 41 units @ ₹116.12
+2026-09-29 12:39:17 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [SILVERBEES]: Margin not credited after 90s: live_balance ₹35,625.80 < required ₹39,953.11. LIQUIDCASE was sold (41 units) — cash should credit shortly.
+2026-09-29 12:39:17 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-09-29 12:39:17 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
