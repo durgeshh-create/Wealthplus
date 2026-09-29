@@ -36,3 +36,11 @@
 2026-09-29 09:35:27 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260929190252307
 2026-09-29 09:35:28 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.12
 2026-09-29 09:35:28 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 157 units @ ₹116.12
+2026-09-29 09:37:09 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [HDFCSML250]: Margin not credited after 90s: live_balance ₹23,212.80 < required ₹40,004.00. LIQUIDCASE was sold (157 units) — cash should credit shortly.
+2026-09-29 09:37:10 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
+2026-09-29 09:37:10 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹120.64 for GOLDBEES (LTP was ₹120.64, top_ask from depth)
+2026-09-29 09:37:10 IST | INFO     | backend.orders.manager | smart_buy 4 × GOLDBEES @ ₹120.64 (cost ₹482.56) | Available cash: ₹23,212.80 (spendable after ₹15000 reserve: ₹8,212.80)
+2026-09-29 09:37:10 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 4 x GOLDBEES
+2026-09-29 09:37:10 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260929190270212
+2026-09-29 09:37:11 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: GOLDBEES @ ₹120.63
+2026-09-29 09:37:11 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: GOLDBEES x4 @ ₹120.64
