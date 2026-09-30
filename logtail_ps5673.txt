@@ -3,3 +3,18 @@
 2026-09-30 14:57:25 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260930151278146
 2026-09-30 14:57:25 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹227.21
 2026-09-30 14:57:26 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 26 × ₹227.21 = ₹5907 | LIMIT | Available Cash
+2026-09-30 14:58:25 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-92.5)]: SILVERBEES | Price=₹209.73 | PrevClose=₹209.15 | AvgBuy=₹213.27 | Slot 1/6
+2026-09-30 14:58:25 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-82.2)]: JUNIORBEES | Price=₹755.55 | PrevClose=₹761.66 | AvgBuy=₹775.37 | Slot 1/6
+2026-09-30 14:58:25 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-77.3)]: GOLDBEES | Price=₹121.42 | PrevClose=₹120.64 | AvgBuy=₹122.99 | Slot 1/6
+2026-09-30 14:58:25 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-92.46 | ₹209.73
+2026-09-30 14:58:25 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-82.18 | ₹755.55
+2026-09-30 14:58:25 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-77.34 | ₹121.42
+2026-09-30 14:58:25 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-09-30 14:58:25 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹209.73 for SILVERBEES (LTP was ₹209.73, top_ask from depth)
+2026-09-30 14:58:26 IST | INFO     | backend.orders.manager | smart_buy 5 × SILVERBEES @ ₹209.73 (cost ₹1,048.65) | Available cash: ₹47,991.90 (spendable after ₹15000 reserve: ₹32,991.90)
+2026-09-30 14:58:26 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 5 x SILVERBEES
+2026-09-30 14:58:26 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260930151281068
+2026-09-30 14:58:31 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: SILVERBEES @ ₹209.73
+2026-09-30 14:58:32 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: SILVERBEES x5 @ ₹209.73
+2026-09-30 14:58:32 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-09-30 14:58:32 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
