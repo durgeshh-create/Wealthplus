@@ -6,3 +6,6 @@
 2026-09-30 12:37:36 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-86.2)]: SILVERBEES | Price=₹210.85 | PrevClose=₹209.15 | AvgBuy=₹213.13 | Slot 1/6
 2026-09-30 12:37:36 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-86.25 | ₹210.85
 2026-09-30 12:37:36 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-09-30 13:23:19 IST | ERROR    | kiteconnect.ticker   | Connection error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+2026-09-30 13:23:19 IST | ERROR    | backend.data.realtime | ❌ WebSocket error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+2026-09-30 13:23:19 IST | ERROR    | kiteconnect.ticker   | Connection closed: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
