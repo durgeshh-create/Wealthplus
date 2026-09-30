@@ -3,3 +3,12 @@
 2026-09-30 12:36:55 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260930150868899
 2026-09-30 12:36:56 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹227.57
 2026-09-30 12:36:56 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 22 × ₹227.57 = ₹5007 | LIMIT | Available Cash
+2026-09-30 12:37:55 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-86.3)]: SILVERBEES | Price=₹210.84 | PrevClose=₹209.15 | AvgBuy=₹213.76 | Slot 1/6
+2026-09-30 12:37:55 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-86.30 | ₹210.84
+2026-09-30 12:37:55 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-09-30 12:37:56 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹210.84 for SILVERBEES (LTP was ₹210.84, top_ask from depth)
+2026-09-30 12:37:56 IST | INFO     | backend.orders.manager | smart_buy 118 × SILVERBEES @ ₹210.84 (cost ₹24,879.12) | Available cash: ₹47,991.90 (spendable after ₹15000 reserve: ₹32,991.90)
+2026-09-30 12:37:56 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 118 x SILVERBEES
+2026-09-30 12:37:57 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260930150872057
+2026-09-30 12:37:57 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: SILVERBEES @ ₹210.84
+2026-09-30 12:37:57 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: SILVERBEES x118 @ ₹210.84
