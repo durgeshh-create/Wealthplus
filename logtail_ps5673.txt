@@ -24,3 +24,19 @@
 2026-09-30 09:43:26 IST | INFO     | backend.orders.manager | smart_buy 119 × SILVERBEES @ ₹209.92 (cost ₹24,980.48) | Available cash: ₹47,991.90 (spendable after ₹15000 reserve: ₹32,991.90)
 2026-09-30 09:43:26 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 119 x SILVERBEES
 2026-09-30 09:43:26 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260930150287980
+2026-09-30 09:44:10 IST | ERROR    | backend.orders.manager | Order 260930150287980 still not complete after 36s — giving up
+2026-09-30 09:44:10 IST | INFO     | backend.orders.manager | [smart_buy] Cancelled open BUY 260930150287980 (SILVERBEES) to free margin
+2026-09-30 09:44:10 IST | INFO     | backend.orders.manager | [smart_buy] Cancelled 1 open BUY order(s) to free margin
+2026-09-30 09:44:12 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹116.15 (top_bid from depth)
+2026-09-30 09:44:12 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 233 x LIQUIDCASE
+2026-09-30 09:44:13 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260930150292179
+2026-09-30 09:44:13 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.15
+2026-09-30 09:44:13 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 233 units @ ₹116.15
+2026-09-30 09:44:15 IST | INFO     | backend.orders.manager | [smart_buy] Price moved ₹209.92→₹209.97 — qty 119→118 (budget cap 118 @ orig. budget ₹24,980.48, cash cap 550 @ avail ₹115,685.85)
+2026-09-30 09:44:15 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹209.92 → ₹209.97 (top_ask from depth)
+2026-09-30 09:44:15 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 118 x SILVERBEES
+2026-09-30 09:44:16 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 260930150292445
+2026-09-30 09:44:16 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: SILVERBEES @ ₹209.96
+2026-09-30 09:44:16 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 118 × SILVERBEES @ ₹209.92
+2026-09-30 09:44:16 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: SILVERBEES x119 @ ₹209.91
+2026-09-30 09:44:16 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
