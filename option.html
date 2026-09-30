@@ -402,7 +402,7 @@
         </div>
 
         <div class="note">
-            <strong>How to use:</strong> Live NIFTY/VIX/MIDCP prices auto-refresh every 10 seconds via Yahoo Finance. Click <strong>Fetch Live Data</strong> to refresh immediately, or expand <strong>Edit NIFTY/VIX/MIDCP</strong> to override manually. Mon/Tue = next week expiry. Wed-Fri = current week. NIFTY: FLOOR/CEILING(100). MIDCPNIFTY: FLOOR/CEILING(25). Weekly: [YY][M][DD]. Monthly: [YY][Month].
+            <strong>How to use:</strong> Live NIFTY/VIX/MIDCP prices auto-refresh every 10 seconds via Yahoo Finance. Click <strong>Fetch Live Data</strong> to refresh immediately, or expand <strong>Edit NIFTY/VIX/MIDCP</strong> to override manually. Mon/Tue = next week expiry. Wed-Fri = current week. NIFTY: FLOOR/CEILING(100). MIDCPNIFTY: FLOOR/CEILING(25). Weekly: [YY][M][DD] (M = 1-9, O, N, D). Monthly: [YY][Month].
         </div>
     </div>
 
@@ -526,7 +526,8 @@
 
         function formatWeeklySymbol(underlying, expiry, strike, type) {
             const yy = expiry.getFullYear().toString().slice(-2);
-            const m = (expiry.getMonth() + 1).toString();
+            const mo = expiry.getMonth() + 1;
+            const m = mo <= 9 ? mo.toString() : ({10: 'O', 11: 'N', 12: 'D'})[mo];
             const dd = expiry.getDate().toString().padStart(2, '0');
             const strikeStr = Math.round(strike).toString();
             return `${underlying}${yy}${m}${dd}${strikeStr}${type}`;
