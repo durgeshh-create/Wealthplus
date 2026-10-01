@@ -1,27 +1,3 @@
-2026-10-01 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-91.3)]: SILVERBEES | Price=₹209.81 | PrevClose=₹209.62 | AvgBuy=₹213.13 | Slot 1/6
-2026-10-01 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-87.2)]: JUNIORBEES | Price=₹753.00 | PrevClose=₹756.31 | AvgBuy=₹773.11 | Slot 1/6
-2026-10-01 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-77.3)]: BANKBEES | Price=₹568.00 | PrevClose=₹567.42 | AvgBuy=₹582.7 | Slot 1/6
-2026-10-01 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-79.7)]: HDFCSML250 | Price=₹178.88 | PrevClose=₹179.55 | AvgBuy=₹181.05 | Slot 1/6
-2026-10-01 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-78.0)]: GOLDBEES | Price=₹121.37 | PrevClose=₹121.59 | AvgBuy=₹122.98 | Slot 1/6
-2026-10-01 09:20:01 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-91.34 | ₹209.81
-2026-10-01 09:20:01 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-87.16 | ₹753.00
-2026-10-01 09:20:01 IST | INFO     | __main__             |   🟢 BUY: BANKBEES | W%R=-77.30 | ₹568.00
-2026-10-01 09:20:01 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-79.73 | ₹178.88
-2026-10-01 09:20:01 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-78.04 | ₹121.37
-2026-10-01 09:20:01 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
-2026-10-01 09:20:01 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
-2026-10-01 09:20:01 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: BANKBEES                        
-2026-10-01 09:20:01 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
-2026-10-01 09:20:01 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹178.89 for HDFCSML250 (LTP was ₹178.88, top_ask from depth)
-2026-10-01 09:20:01 IST | INFO     | backend.orders.manager | smart_buy 139 × HDFCSML250 @ ₹178.89 (cost ₹24,865.71) | Available cash: ₹75,811.20 (spendable after ₹15000 reserve: ₹60,811.20)
-2026-10-01 09:20:01 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 139 x HDFCSML250
-2026-10-01 09:20:02 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261001190110509
-2026-10-01 09:20:02 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: HDFCSML250 @ ₹178.89
-2026-10-01 09:20:02 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: HDFCSML250 x139 @ ₹178.88
-2026-10-01 09:20:02 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
-2026-10-01 09:20:06 IST | INFO     | backend.orders.manager | smart_buy 33 × MID150BEES @ ₹226.06 (cost ₹7,459.98) | Available cash: ₹75,811.20 (spendable after ₹15000 reserve: ₹60,811.20)
-2026-10-01 09:20:06 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 33 x MID150BEES
-2026-10-01 09:20:06 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261001190111253
-2026-10-01 09:20:06 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹226.06
-2026-10-01 09:20:07 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 33 × ₹226.06 = ₹7460 | LIMIT | Available Cash
-2026-10-01 12:03:52 IST | ERROR    | backend.portfolio.tracker | Error fetching holdings: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
+2026-10-01 12:36:50 IST | INFO     | backend.orders.manager | smart_buy 44 × MID150BEES @ ₹224.71 (cost ₹9,887.24) | Available cash: ₹75,811.20 (spendable after ₹15000 reserve: ₹60,811.20)
+2026-10-01 12:36:50 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 44 x MID150BEES
+2026-10-01 12:36:50 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261001190979051
