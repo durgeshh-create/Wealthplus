@@ -1,28 +1,6 @@
-2026-10-05 11:00:29 IST | INFO     | backend.orders.manager | smart_buy 9 × MID150BEES @ ₹225.40 (cost ₹2,028.60) | Available cash: ₹3,166.70 (spendable after ₹15000 reserve: ₹0.00)
-2026-10-05 11:00:29 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹116.23 (top_bid from depth)
-2026-10-05 11:00:29 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 19 x LIQUIDCASE
-2026-10-05 11:00:29 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261005150685206
-2026-10-05 11:00:30 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.23
-2026-10-05 11:00:30 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 19 units @ ₹116.24
-2026-10-05 11:01:29 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-89.0)]: SILVERBEES | Price=₹209.97 | PrevClose=₹208.71 | AvgBuy=₹213.24 | Slot 1/6
-2026-10-05 11:01:29 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-82.4)]: JUNIORBEES | Price=₹748.49 | PrevClose=₹747.52 | AvgBuy=₹775.37 | Slot 1/6
-2026-10-05 11:01:29 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-79.9)]: HDFCSML250 | Price=₹177.42 | PrevClose=₹177.81 | AvgBuy=₹180.09 | Slot 1/6
-2026-10-05 11:01:29 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-85.2)]: GOLDBEES | Price=₹120.86 | PrevClose=₹121.43 | AvgBuy=₹122.99 | Slot 1/6
-2026-10-05 11:01:29 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-88.99 | ₹209.97
-2026-10-05 11:01:29 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-82.40 | ₹748.49
-2026-10-05 11:01:29 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-79.93 | ₹177.42
-2026-10-05 11:01:29 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-85.17 | ₹120.86
-2026-10-05 11:01:29 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
-2026-10-05 11:01:29 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
-2026-10-05 11:01:29 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
-2026-10-05 11:01:30 IST | INFO     | backend.strategy.executor | 💱 SWAP PLAN: spendable cash ₹0.00 + sell 4 LIQUIDCASE × ₹116.24 = ₹464.96 (shortfall) → Buy 2 HDFCSML250 × ₹177.42 = ₹354.84
-2026-10-05 11:01:30 IST | INFO     | backend.strategy.executor | LIMIT BUY: using top_ask ₹177.42 for HDFCSML250 (LTP was ₹177.42, top_ask from depth)
-2026-10-05 11:01:30 IST | INFO     | backend.orders.manager | smart_buy 2 × HDFCSML250 @ ₹177.42 (cost ₹354.84) | Available cash: ₹3,166.70 (spendable after ₹15000 reserve: ₹0.00)
-2026-10-05 11:01:30 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹116.23 (top_bid from depth)
-2026-10-05 11:01:30 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 4 x LIQUIDCASE
-2026-10-05 11:01:30 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261005150688367
-2026-10-05 11:01:31 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.23
-2026-10-05 11:01:31 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 4 units @ ₹116.24
-2026-10-05 11:02:13 IST | ERROR    | backend.strategy.intraday_engine | [MID150BEES] smart_buy failed: Margin not credited after 90s: live_balance ₹9,386.36 < required ₹17,028.60. LIQUIDCASE was sold (19 units) — cash should credit shortly.
-2026-10-05 11:03:14 IST | ERROR    | backend.strategy.executor | ✗ BUY FAILED after LIQUIDCASE sell [HDFCSML250]: Margin not credited after 90s: live_balance ₹9,668.91 < required ₹15,354.84. LIQUIDCASE was sold (4 units) — cash should credit shortly.
-2026-10-05 11:03:14 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
+2026-10-05 12:36:58 IST | INFO     | backend.orders.manager | smart_buy 12 × MID150BEES @ ₹224.92 (cost ₹2,699.04) | Available cash: ₹3,166.70 (spendable after ₹15000 reserve: ₹0.00)
+2026-10-05 12:36:58 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹116.23 (top_bid from depth)
+2026-10-05 12:36:58 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 26 x LIQUIDCASE
+2026-10-05 12:36:58 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261005150980468
+2026-10-05 12:36:59 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.23
+2026-10-05 12:36:59 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 26 units @ ₹116.24
