@@ -28,3 +28,6 @@
 2026-10-05 12:38:04 IST | INFO     | backend.strategy.executor | ✓ BUY SUCCESS: HDFCSML250 x2 @ ₹177.20
 2026-10-05 12:38:04 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
 2026-10-05 12:38:42 IST | ERROR    | backend.strategy.intraday_engine | [MID150BEES] smart_buy failed: Margin not credited after 90s: live_balance ₹15,121.04 < required ₹17,699.04. LIQUIDCASE was sold (26 units) — cash should credit shortly.
+2026-10-05 12:40:19 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-82.2)]: SILVERBEES | Price=₹211.11 | PrevClose=₹208.71 | AvgBuy=₹213.24 | Slot 1/6
+2026-10-05 12:40:19 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-82.24 | ₹211.11
+2026-10-05 12:40:19 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
