@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- CRITICAL: Allows YouTube to receive the GitHub Pages origin to eliminate Error 153 -->
+  <!-- CRITICAL: Provides valid HTTP referrer to YouTube on GitHub Pages to prevent Error 153 -->
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>EarthLens — Global Live Webcams</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <style>
-    body { background-color: #0b0f19; color: #f1f5f9; font-family: system-ui, -apple-system, sans-serif; }
-    .camera-card { background: #111827; border: 1px solid #1f2937; border-radius: 0.75rem; overflow: hidden; transition: border-color 0.2s; }
-    .camera-card:hover { border-color: #3b82f6; }
+    body { background-color: #0b0f19; color: #f1f5f9; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .camera-card { background: #111827; border: 1px solid #1f2937; border-radius: 0.75rem; overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s; }
+    .camera-card:hover { border-color: #3b82f6; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); }
     .aspect-video { aspect-ratio: 16 / 9; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- Header -->
-  <header class="sticky top-0 z-50 bg-[#0d1424]/90 backdrop-blur border-b border-gray-800 px-4 py-3">
+  <!-- Sticky Header -->
+  <header class="sticky top-0 z-50 bg-[#0d1424]/95 backdrop-blur border-b border-gray-800 px-4 py-3">
     <div class="max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xl">
+        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xl shadow-md shadow-blue-500/20">
           <i class="ph-bold ph-video-camera"></i>
         </div>
         <div>
@@ -32,11 +32,11 @@
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> LIVE
             </span>
           </div>
-          <p class="text-xs text-gray-400">15 Earth Streams & Webcams</p>
+          <p class="text-xs text-gray-400" id="camCountLabel">14 Live Earth Streams</p>
         </div>
       </div>
 
-      <!-- Controls -->
+      <!-- Controls & Filter Toolbar -->
       <div class="flex flex-wrap items-center gap-2">
         <!-- Search -->
         <div class="relative">
@@ -50,6 +50,18 @@
           />
         </div>
 
+        <!-- Category Dropdown -->
+        <select 
+          id="categoryFilter" 
+          onchange="filterWebcams()" 
+          class="bg-gray-900 border border-gray-700 text-sm text-gray-200 px-3 py-1.5 rounded-lg focus:outline-none focus:border-blue-500">
+          <option value="ALL">All Regions</option>
+          <option value="Norway">Norway</option>
+          <option value="Europe">Europe</option>
+          <option value="Russia">Russia</option>
+          <option value="Animals">Animals / Nature</option>
+        </select>
+
         <!-- Grid column buttons -->
         <div class="hidden sm:flex bg-gray-900 border border-gray-800 rounded-lg p-1 space-x-1">
           <button onclick="setGrid(1)" title="1 Column" class="p-1.5 hover:bg-gray-800 rounded text-gray-400 hover:text-white"><i class="ph-bold ph-square"></i></button>
@@ -59,8 +71,8 @@
         </div>
 
         <!-- Reload Streams -->
-        <button onclick="reloadAll()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs font-medium rounded-lg flex items-center gap-1 border border-gray-700">
-          <i class="ph ph-arrows-clockwise"></i> Reload
+        <button onclick="reloadAll()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs font-medium rounded-lg flex items-center gap-1.5 border border-gray-700 transition">
+          <i class="ph ph-arrows-clockwise"></i> Reload All
         </button>
       </div>
     </div>
@@ -69,61 +81,75 @@
   <!-- Webcams Grid -->
   <main class="flex-1 max-w-[1920px] w-full mx-auto p-4 md:p-6">
     <div id="webcamGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-      <!-- Generated via JS -->
+      <!-- Injected via JavaScript -->
     </div>
   </main>
 
   <footer class="py-4 border-t border-gray-800 text-center text-xs text-gray-500">
-    EarthLens &bull; GitHub Pages Edition &bull; Direct YouTube Live Player Handshake
+    EarthLens &bull; GitHub Pages Live Monitoring &bull; All 14 feeds streaming in-page
   </footer>
 
   <script>
+    // 14 distinct streams (Duplicate Siberia removed)
     const webcams = [
-      { id: 'B1r1sD5yKSQ', title: 'Siberia Live', location: 'Siberia, Russia', category: 'Russia' },
       { id: 'LZtcropXJcc', title: 'Lensk City', location: 'Sakha Republic, Russia', category: 'Russia' },
-      { id: 'B1r1sD5yKSQ', title: 'Lena River View', location: 'Lena River, Siberia', category: 'Russia' },
+      { id: 'B1r1sD5yKSQ', title: 'Lena River & Siberia View', location: 'Lena River, Siberia', category: 'Russia' },
       { id: 'kcQgF5qlSxE', title: 'Notting Hill Gate', location: 'West London, UK', category: 'Europe' },
       { id: 'enYFXf8u7Lc', title: 'Swiss Alps Panoramic', location: 'Alps, Switzerland', category: 'Europe' },
       { id: 'mt7uE-n0YPI', title: 'Venice Skyline', location: 'Venice, Italy', category: 'Europe' },
       { id: 'r8N6IsoIkTk', title: 'Venice Grand Canal', location: 'Venice, Italy', category: 'Europe' },
       { id: 'xlepdTYU6G4', title: 'Harstad Harbor', location: 'Harstad, Norway', category: 'Norway' },
       { id: 'faKBmRq0lYg', title: 'Oslo Cityscape', location: 'Oslo, Norway', category: 'Norway' },
+      { 
+        type: 'panomax',
+        panomaxUrl: 'https://loenskylift.panomax.com/',
+        externalUrl: 'https://liveworldwebcams.com/lodalen-loen-live-webcam-norway/',
+        title: 'Mt. Hoven & Lodalen Valley', 
+        location: 'Loen, Nordfjord, Norway', 
+        category: 'Norway' 
+      },
       { id: '2D8hhRDEzwY', title: 'Mehamn Arctic Coast', location: 'Finnmark, Norway', category: 'Norway' },
       { id: 'Gd9d4q6WvUY', title: 'Amsterdam Canals', location: 'Amsterdam, Netherlands', category: 'Europe' },
       { id: 'UCgLr29bxO8', title: 'Rhine Falls', location: 'Neuhausen, Switzerland', category: 'Europe' },
       { id: 'lsxYH2XQQCg', title: 'Japan Monkey Center', location: 'Aichi, Japan', category: 'Animals' },
-      { id: 'SUXPnIEpbn4', title: 'Chengdu Panda Base', location: 'Sichuan, China', category: 'Animals' },
-      { 
-        external: 'https://liveworldwebcams.com/lodalen-loen-live-webcam-norway/', 
-        title: 'Mt. Hoven Panoramic', 
-        location: 'Lodalen, Loen, Norway', 
-        category: 'Norway' 
-      }
+      { id: 'SUXPnIEpbn4', title: 'Chengdu Panda Base', location: 'Sichuan, China', category: 'Animals' }
     ];
 
     function renderWebcams(data) {
       const grid = document.getElementById('webcamGrid');
       grid.innerHTML = '';
+      document.getElementById('camCountLabel').textContent = `${data.length} Live Earth Streams`;
 
       data.forEach(cam => {
         const card = document.createElement('div');
         card.className = 'camera-card flex flex-col shadow-lg';
         
         let videoMarkup = '';
-        if (cam.external) {
+
+        if (cam.type === 'panomax') {
+          // Direct Panomax 360 interactive embed with responsive controls & link
           videoMarkup = `
-            <div class="aspect-video bg-gray-950 flex flex-col items-center justify-center p-6 text-center">
-              <i class="ph ph-broadcast text-4xl text-blue-400 mb-2"></i>
-              <p class="text-sm font-medium mb-1">External Webcam Stream</p>
-              <p class="text-xs text-gray-400 mb-3">LiveWorldWebcams stream requires direct view</p>
-              <a href="${cam.external}" target="_blank" rel="noopener noreferrer" 
-                 class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-xs font-semibold text-white inline-flex items-center gap-1.5 transition">
-                Open Stream View <i class="ph ph-arrow-up-right font-bold"></i>
-              </a>
+            <div class="aspect-video bg-black relative flex flex-col">
+              <iframe
+                src="${cam.panomaxUrl}"
+                title="${cam.title}"
+                class="w-full h-full border-0"
+                allow="fullscreen; accelerometer; gyroscope"
+                referrerpolicy="no-referrer-when-downgrade"
+                loading="lazy">
+              </iframe>
+              <div class="bg-gray-950/90 px-3 py-1.5 flex items-center justify-between text-[11px] text-gray-400 border-t border-gray-800">
+                <span class="flex items-center gap-1.5 text-blue-400">
+                  <i class="ph-bold ph-arrows-out-cardinal"></i> Panomax 360° Interactive View
+                </span>
+                <a href="${cam.externalUrl}" target="_blank" rel="noopener noreferrer" class="hover:text-white flex items-center gap-1">
+                  Source Page <i class="ph ph-arrow-square-out"></i>
+                </a>
+              </div>
             </div>
           `;
         } else {
-          // youtube-nocookie embed with explicit referrer policy and origin
+          // YouTube nocookie embed with strict referrer passing
           const embedUrl = `https://www.youtube-nocookie.com/embed/${cam.id}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1`;
           videoMarkup = `
             <div class="aspect-video bg-black relative">
@@ -142,13 +168,13 @@
 
         card.innerHTML = `
           <div class="px-4 py-3 bg-gray-900 border-b border-gray-800 flex items-center justify-between">
-            <div>
-              <h2 class="text-sm font-semibold text-white tracking-wide">${cam.title}</h2>
-              <p class="text-xs text-gray-400 flex items-center gap-1">
+            <div class="truncate mr-2">
+              <h2 class="text-sm font-semibold text-white tracking-wide truncate">${cam.title}</h2>
+              <p class="text-xs text-gray-400 flex items-center gap-1 truncate">
                 <i class="ph-bold ph-map-pin text-blue-400"></i> ${cam.location}
               </p>
             </div>
-            <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">
+            <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700 whitespace-nowrap">
               ${cam.category}
             </span>
           </div>
@@ -170,11 +196,17 @@
 
     function filterWebcams() {
       const q = document.getElementById('searchInput').value.toLowerCase();
-      const filtered = webcams.filter(c => 
-        c.title.toLowerCase().includes(q) || 
-        c.location.toLowerCase().includes(q) || 
-        c.category.toLowerCase().includes(q)
-      );
+      const cat = document.getElementById('categoryFilter').value;
+
+      const filtered = webcams.filter(c => {
+        const matchesQuery = 
+          c.title.toLowerCase().includes(q) || 
+          c.location.toLowerCase().includes(q) || 
+          c.category.toLowerCase().includes(q);
+        const matchesCat = (cat === 'ALL' || c.category === cat);
+        return matchesQuery && matchesCat;
+      });
+
       renderWebcams(filtered);
     }
 
@@ -182,7 +214,7 @@
       renderWebcams(webcams);
     }
 
-    // Initial load
+    // Initial render
     renderWebcams(webcams);
   </script>
 </body>
