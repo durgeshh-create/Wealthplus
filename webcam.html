@@ -5,25 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- CRITICAL: Provides valid HTTP referrer to YouTube on GitHub Pages to prevent Error 153 -->
   <meta name="referrer" content="strict-origin-when-cross-origin" />
-  <title>EarthLens — Global Live Webcams</title>
+  <title>EarthLens — Global Live Webcams & Street Views</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- Live World Webcams widget loader -->
+  <script async src="https://liveworldwebcams.com/wp-content/plugins/lww-embed-widget/assets/widget.js"></script>
+
   <style>
     body { background-color: #0b0f19; color: #f1f5f9; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     .camera-card { background: #111827; border: 1px solid #1f2937; border-radius: 0.75rem; overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s; }
     .camera-card:hover { border-color: #3b82f6; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); }
     .aspect-video { aspect-ratio: 16 / 9; }
+    /* Fix for LWW widget responsive sizing */
+    [data-lww-widget] iframe { width: 100% !important; height: 100% !important; border: 0 !important; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- Sticky Header -->
+  <!-- Header -->
   <header class="sticky top-0 z-50 bg-[#0d1424]/95 backdrop-blur border-b border-gray-800 px-4 py-3">
     <div class="max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center space-x-3">
         <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xl shadow-md shadow-blue-500/20">
-          <i class="ph-bold ph-video-camera"></i>
+          <i class="ph-bold ph-globe-hemisphere-west"></i>
         </div>
         <div>
           <div class="flex items-center space-x-2">
@@ -32,7 +37,7 @@
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> LIVE
             </span>
           </div>
-          <p class="text-xs text-gray-400" id="camCountLabel">14 Live Earth Streams</p>
+          <p class="text-xs text-gray-400" id="camCountLabel">25 Locations & Streams</p>
         </div>
       </div>
 
@@ -44,22 +49,25 @@
           <input
             id="searchInput"
             type="text"
-            placeholder="Search city, country..."
+            placeholder="Search location, street..."
             class="bg-gray-900 border border-gray-700 text-sm text-gray-200 pl-9 pr-3 py-1.5 rounded-lg focus:outline-none focus:border-blue-500 w-44 md:w-56"
-            oninput="filterWebcams()"
+            oninput="filterLocations()"
           />
         </div>
 
         <!-- Category Dropdown -->
         <select 
           id="categoryFilter" 
-          onchange="filterWebcams()" 
+          onchange="filterLocations()" 
           class="bg-gray-900 border border-gray-700 text-sm text-gray-200 px-3 py-1.5 rounded-lg focus:outline-none focus:border-blue-500">
-          <option value="ALL">All Regions</option>
+          <option value="ALL">All Categories</option>
+          <option value="LIVE">Live Streams Only</option>
+          <option value="STREET">Street Views Only</option>
+          <option value="Americas">Americas (USA / Canada)</option>
+          <option value="Europe">Europe & UK</option>
           <option value="Norway">Norway</option>
-          <option value="Europe">Europe</option>
-          <option value="Russia">Russia</option>
-          <option value="Animals">Animals / Nature</option>
+          <option value="Asia">Asia</option>
+          <option value="Oceania">Oceania</option>
         </select>
 
         <!-- Grid column buttons -->
@@ -78,61 +86,272 @@
     </div>
   </header>
 
-  <!-- Webcams Grid -->
+  <!-- Main Grid -->
   <main class="flex-1 max-w-[1920px] w-full mx-auto p-4 md:p-6">
-    <div id="webcamGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+    <div id="locationGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
       <!-- Injected via JavaScript -->
     </div>
   </main>
 
   <footer class="py-4 border-t border-gray-800 text-center text-xs text-gray-500">
-    EarthLens &bull; GitHub Pages Live Monitoring &bull; All 14 feeds streaming in-page
+    EarthLens &bull; GitHub Pages Live Monitoring &bull; Webcams & Street View Explorer
   </footer>
 
   <script>
-    // 14 distinct streams (Duplicate Siberia removed)
-    const webcams = [
-      { id: 'LZtcropXJcc', title: 'Lensk City', location: 'Sakha Republic, Russia', category: 'Russia' },
-      { id: 'B1r1sD5yKSQ', title: 'Lena River & Siberia View', location: 'Lena River, Siberia', category: 'Russia' },
-      { id: 'kcQgF5qlSxE', title: 'Notting Hill Gate', location: 'West London, UK', category: 'Europe' },
-      { id: 'enYFXf8u7Lc', title: 'Swiss Alps Panoramic', location: 'Alps, Switzerland', category: 'Europe' },
-      { id: 'mt7uE-n0YPI', title: 'Venice Skyline', location: 'Venice, Italy', category: 'Europe' },
-      { id: 'r8N6IsoIkTk', title: 'Venice Grand Canal', location: 'Venice, Italy', category: 'Europe' },
-      { id: 'xlepdTYU6G4', title: 'Harstad Harbor', location: 'Harstad, Norway', category: 'Norway' },
-      { id: 'faKBmRq0lYg', title: 'Oslo Cityscape', location: 'Oslo, Norway', category: 'Norway' },
+    const items = [
+      /* ========== LIVE WEBCAMS ========== */
+      { 
+        type: 'youtube', 
+        id: 'RIEBfh0pwQ4', 
+        title: 'Miami Skyline', 
+        location: 'Miami, Florida, USA', 
+        category: 'Americas',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'lww', 
+        widgetId: '18802', 
+        title: 'West End Skyline', 
+        location: 'Boston, Massachusetts, USA', 
+        category: 'Americas',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: '7gBzLGlJnwk', 
+        title: 'Niagara Falls Panoramic', 
+        location: 'Ontario, Canada', 
+        category: 'Americas',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: 'Bl31TjIJAzI', 
+        title: 'Pattaya Beach & Skyline', 
+        location: 'Pattaya, Thailand', 
+        category: 'Asia',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: '5uZa3-RMFos', 
+        title: 'Sydney Harbour & Opera House', 
+        location: 'Sydney, Australia', 
+        category: 'Oceania',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: 'LZtcropXJcc', 
+        title: 'Lensk City', 
+        location: 'Sakha Republic, Russia', 
+        category: 'Europe',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: 'B1r1sD5yKSQ', 
+        title: 'Lena River & Siberia View', 
+        location: 'Lena River, Siberia', 
+        category: 'Europe',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: 'kcQgF5qlSxE', 
+        title: 'Notting Hill Gate', 
+        location: 'West London, United Kingdom', 
+        category: 'Europe',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: 'enYFXf8u7Lc', 
+        title: 'Swiss Alps Panoramic', 
+        location: 'Alps, Switzerland', 
+        category: 'Europe',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: 'mt7uE-n0YPI', 
+        title: 'Venice Skyline', 
+        location: 'Venice, Italy', 
+        category: 'Europe',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: 'r8N6IsoIkTk', 
+        title: 'Venice Grand Canal', 
+        location: 'Venice, Italy', 
+        category: 'Europe',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: 'xlepdTYU6G4', 
+        title: 'Harstad Harbor', 
+        location: 'Harstad, Norway', 
+        category: 'Norway',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: 'faKBmRq0lYg', 
+        title: 'Oslo Cityscape', 
+        location: 'Oslo, Norway', 
+        category: 'Norway',
+        kind: 'LIVE'
+      },
       { 
         type: 'panomax',
         panomaxUrl: 'https://loenskylift.panomax.com/',
         externalUrl: 'https://liveworldwebcams.com/lodalen-loen-live-webcam-norway/',
         title: 'Mt. Hoven & Lodalen Valley', 
         location: 'Loen, Nordfjord, Norway', 
-        category: 'Norway' 
+        category: 'Norway',
+        kind: 'LIVE'
       },
-      { id: '2D8hhRDEzwY', title: 'Mehamn Arctic Coast', location: 'Finnmark, Norway', category: 'Norway' },
-      { id: 'Gd9d4q6WvUY', title: 'Amsterdam Canals', location: 'Amsterdam, Netherlands', category: 'Europe' },
-      { id: 'UCgLr29bxO8', title: 'Rhine Falls', location: 'Neuhausen, Switzerland', category: 'Europe' },
-      { id: 'lsxYH2XQQCg', title: 'Japan Monkey Center', location: 'Aichi, Japan', category: 'Animals' },
-      { id: 'SUXPnIEpbn4', title: 'Chengdu Panda Base', location: 'Sichuan, China', category: 'Animals' }
+      { 
+        type: 'youtube', 
+        id: '2D8hhRDEzwY', 
+        title: 'Mehamn Arctic Coast', 
+        location: 'Finnmark, Norway', 
+        category: 'Norway',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: 'Gd9d4q6WvUY', 
+        title: 'Amsterdam Canals', 
+        location: 'Amsterdam, Netherlands', 
+        category: 'Europe',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: 'UCgLr29bxO8', 
+        title: 'Rhine Falls', 
+        location: 'Neuhausen, Switzerland', 
+        category: 'Europe',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: 'lsxYH2XQQCg', 
+        title: 'Japan Monkey Center', 
+        location: 'Aichi, Japan', 
+        category: 'Asia',
+        kind: 'LIVE'
+      },
+      { 
+        type: 'youtube', 
+        id: 'SUXPnIEpbn4', 
+        title: 'Chengdu Panda Base', 
+        location: 'Sichuan, China', 
+        category: 'Asia',
+        kind: 'LIVE'
+      },
+
+      /* ========== STREET VIEWS ========== */
+      {
+        type: 'streetview',
+        title: 'Two Mile Ash',
+        location: 'Milton Keynes, MK8 8LH, UK',
+        query: 'Two Mile Ash, Milton Keynes, UK',
+        mapUrl: 'https://maps.app.goo.gl/ckrXaYSHimcP3v5u5',
+        category: 'Europe',
+        kind: 'STREET'
+      },
+      {
+        type: 'streetview',
+        title: '12 The Drive',
+        location: 'Slough, Berkshire, UK',
+        query: '12 The Drive, Slough, UK',
+        mapUrl: 'https://maps.app.goo.gl/CK7DJTjVzBinJSg66',
+        category: 'Europe',
+        kind: 'STREET'
+      },
+      {
+        type: 'streetview',
+        title: '809 Quail Ridge Drive',
+        location: 'Plainsboro, NJ 08536, USA',
+        query: '809 Quail Ridge Dr, Plainsboro, NJ 08536',
+        mapUrl: 'https://maps.app.goo.gl/FJN6XrusxUYTjvFT8',
+        category: 'Americas',
+        kind: 'STREET'
+      },
+      {
+        type: 'streetview',
+        title: 'Sunbeam Hotel Pattaya',
+        location: 'Beach Rd, Bang Lamung, Pattaya, Thailand',
+        query: 'Sunbeam Hotel Pattaya, Thailand',
+        mapUrl: 'https://maps.app.goo.gl/G1uPCiswSGkfYqqv9',
+        category: 'Asia',
+        kind: 'STREET'
+      },
+      {
+        type: 'streetview',
+        title: 'Ramada by Wyndham D MA',
+        location: 'Makkasan, Ratchathewi, Bangkok, Thailand',
+        query: 'Ramada by Wyndham D MA Bangkok',
+        mapUrl: 'https://maps.app.goo.gl/R2Eq7XaNu6S7SDg16',
+        category: 'Asia',
+        kind: 'STREET'
+      },
+      {
+        type: 'streetview',
+        title: 'Thon Hotel Sandvika',
+        location: 'Sandvika, Bærum, Norway',
+        query: 'Thon Hotel Sandvika, Norway',
+        mapUrl: 'https://maps.app.goo.gl/RTm1M2bghs5XJLKh8',
+        category: 'Norway',
+        kind: 'STREET'
+      }
     ];
 
-    function renderWebcams(data) {
-      const grid = document.getElementById('webcamGrid');
+    function renderLocations(data) {
+      const grid = document.getElementById('locationGrid');
       grid.innerHTML = '';
-      document.getElementById('camCountLabel').textContent = `${data.length} Live Earth Streams`;
+      document.getElementById('camCountLabel').textContent = `${data.length} Locations & Streams`;
 
-      data.forEach(cam => {
+      data.forEach(item => {
         const card = document.createElement('div');
         card.className = 'camera-card flex flex-col shadow-lg';
         
-        let videoMarkup = '';
+        let contentMarkup = '';
 
-        if (cam.type === 'panomax') {
-          // Direct Panomax 360 interactive embed with responsive controls & link
-          videoMarkup = `
+        if (item.type === 'youtube') {
+          const embedUrl = `https://www.youtube-nocookie.com/embed/${item.id}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1`;
+          contentMarkup = `
+            <div class="aspect-video bg-black relative">
+              <iframe
+                src="${embedUrl}"
+                title="${item.title}"
+                class="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin"
+                loading="lazy"
+                allowfullscreen>
+              </iframe>
+            </div>
+          `;
+        } else if (item.type === 'lww') {
+          contentMarkup = `
+            <div class="aspect-video bg-gray-950 relative flex flex-col justify-center items-center overflow-hidden">
+              <div data-lww-widget data-mode="specific" data-id="${item.widgetId}" data-api="https://liveworldwebcams.com/wp-json/lww/v1/widget" data-utm="lww-widget" class="w-full h-full"></div>
+              <div class="absolute bottom-1 right-2 z-10 bg-black/75 px-2 py-0.5 rounded text-[10px] text-gray-400">
+                Powered by <a href="https://liveworldwebcams.com/" target="_blank" rel="noopener" class="text-blue-400 hover:underline">Live World Webcams</a>
+              </div>
+            </div>
+          `;
+        } else if (item.type === 'panomax') {
+          contentMarkup = `
             <div class="aspect-video bg-black relative flex flex-col">
               <iframe
-                src="${cam.panomaxUrl}"
-                title="${cam.title}"
+                src="${item.panomaxUrl}"
+                title="${item.title}"
                 class="w-full h-full border-0"
                 allow="fullscreen; accelerometer; gyroscope"
                 referrerpolicy="no-referrer-when-downgrade"
@@ -142,50 +361,68 @@
                 <span class="flex items-center gap-1.5 text-blue-400">
                   <i class="ph-bold ph-arrows-out-cardinal"></i> Panomax 360° Interactive View
                 </span>
-                <a href="${cam.externalUrl}" target="_blank" rel="noopener noreferrer" class="hover:text-white flex items-center gap-1">
+                <a href="${item.externalUrl}" target="_blank" rel="noopener noreferrer" class="hover:text-white flex items-center gap-1">
                   Source Page <i class="ph ph-arrow-square-out"></i>
                 </a>
               </div>
             </div>
           `;
-        } else {
-          // YouTube nocookie embed with strict referrer passing
-          const embedUrl = `https://www.youtube-nocookie.com/embed/${cam.id}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1`;
-          videoMarkup = `
-            <div class="aspect-video bg-black relative">
+        } else if (item.type === 'streetview') {
+          const mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(item.query)}&t=k&z=17&output=embed`;
+          contentMarkup = `
+            <div class="aspect-video bg-gray-950 relative flex flex-col">
               <iframe
-                src="${embedUrl}"
-                title="${cam.title}"
+                src="${mapEmbedUrl}"
+                title="${item.title}"
                 class="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerpolicy="strict-origin-when-cross-origin"
                 loading="lazy"
-                allowfullscreen>
+                referrerpolicy="no-referrer-when-downgrade">
               </iframe>
+              <div class="bg-gray-950/95 px-3 py-2 flex items-center justify-between text-xs border-t border-gray-800">
+                <span class="text-amber-400 font-medium flex items-center gap-1.5">
+                  <i class="ph-bold ph-navigation-arrow"></i> Satellite & Street View
+                </span>
+                <a href="${item.mapUrl}" target="_blank" rel="noopener noreferrer" 
+                   class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-medium inline-flex items-center gap-1 transition text-[11px]">
+                  Open 360° Street View <i class="ph-bold ph-arrow-square-out"></i>
+                </a>
+              </div>
             </div>
           `;
         }
 
+        const badgeColor = item.kind === 'LIVE' ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-amber-950 text-amber-400 border-amber-800';
+
         card.innerHTML = `
           <div class="px-4 py-3 bg-gray-900 border-b border-gray-800 flex items-center justify-between">
             <div class="truncate mr-2">
-              <h2 class="text-sm font-semibold text-white tracking-wide truncate">${cam.title}</h2>
-              <p class="text-xs text-gray-400 flex items-center gap-1 truncate">
-                <i class="ph-bold ph-map-pin text-blue-400"></i> ${cam.location}
+              <div class="flex items-center gap-2">
+                <h2 class="text-sm font-semibold text-white tracking-wide truncate">${item.title}</h2>
+                <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border ${badgeColor}">
+                  ${item.kind}
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 flex items-center gap-1 truncate mt-0.5">
+                <i class="ph-bold ph-map-pin text-blue-400"></i> ${item.location}
               </p>
             </div>
             <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700 whitespace-nowrap">
-              ${cam.category}
+              ${item.category}
             </span>
           </div>
-          ${videoMarkup}
+          ${contentMarkup}
         `;
         grid.appendChild(card);
       });
+
+      // Re-trigger LWW widget script if Boston is rendered
+      if (window.lwwWidgetInit) {
+        window.lwwWidgetInit();
+      }
     }
 
     function setGrid(cols) {
-      const grid = document.getElementById('webcamGrid');
+      const grid = document.getElementById('locationGrid');
       grid.className = `grid gap-5 ${
         cols === 1 ? 'grid-cols-1' :
         cols === 2 ? 'grid-cols-1 md:grid-cols-2' :
@@ -194,28 +431,33 @@
       }`;
     }
 
-    function filterWebcams() {
+    function filterLocations() {
       const q = document.getElementById('searchInput').value.toLowerCase();
-      const cat = document.getElementById('categoryFilter').value;
+      const filter = document.getElementById('categoryFilter').value;
 
-      const filtered = webcams.filter(c => {
+      const filtered = items.filter(c => {
         const matchesQuery = 
           c.title.toLowerCase().includes(q) || 
           c.location.toLowerCase().includes(q) || 
           c.category.toLowerCase().includes(q);
-        const matchesCat = (cat === 'ALL' || c.category === cat);
+
+        let matchesCat = true;
+        if (filter === 'LIVE') matchesCat = (c.kind === 'LIVE');
+        else if (filter === 'STREET') matchesCat = (c.kind === 'STREET');
+        else if (filter !== 'ALL') matchesCat = (c.category === filter);
+
         return matchesQuery && matchesCat;
       });
 
-      renderWebcams(filtered);
+      renderLocations(filtered);
     }
 
     function reloadAll() {
-      renderWebcams(webcams);
+      renderLocations(items);
     }
 
     // Initial render
-    renderWebcams(webcams);
+    renderLocations(items);
   </script>
 </body>
 </html>
