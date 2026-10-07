@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- CRITICAL: Provides valid HTTP referrer to YouTube on GitHub Pages to prevent Error 153 -->
+  <!-- CRITICAL: Provides valid HTTP referrer to YouTube and Google Maps on GitHub Pages -->
   <meta name="referrer" content="strict-origin-when-cross-origin" />
-  <title>EarthLens — Global Live Webcams & Street Views</title>
+  <title>EarthLens — Global Live Webcams & 360° Street Views</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -17,13 +17,12 @@
     .camera-card { background: #111827; border: 1px solid #1f2937; border-radius: 0.75rem; overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s; }
     .camera-card:hover { border-color: #3b82f6; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); }
     .aspect-video { aspect-ratio: 16 / 9; }
-    /* Fix for LWW widget responsive sizing */
     [data-lww-widget] iframe { width: 100% !important; height: 100% !important; border: 0 !important; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- Header -->
+  <!-- Sticky Header -->
   <header class="sticky top-0 z-50 bg-[#0d1424]/95 backdrop-blur border-b border-gray-800 px-4 py-3">
     <div class="max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center space-x-3">
@@ -62,7 +61,7 @@
           class="bg-gray-900 border border-gray-700 text-sm text-gray-200 px-3 py-1.5 rounded-lg focus:outline-none focus:border-blue-500">
           <option value="ALL">All Categories</option>
           <option value="LIVE">Live Streams Only</option>
-          <option value="STREET">Street Views Only</option>
+          <option value="STREET">360° Street Views Only</option>
           <option value="Americas">Americas (USA / Canada)</option>
           <option value="Europe">Europe & UK</option>
           <option value="Norway">Norway</option>
@@ -80,7 +79,7 @@
 
         <!-- Reload Streams -->
         <button onclick="reloadAll()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs font-medium rounded-lg flex items-center gap-1.5 border border-gray-700 transition">
-          <i class="ph ph-arrows-clockwise"></i> Reload All
+          <i class="ph ph-arrows-clockwise"></i> Reload
         </button>
       </div>
     </div>
@@ -94,7 +93,7 @@
   </main>
 
   <footer class="py-4 border-t border-gray-800 text-center text-xs text-gray-500">
-    EarthLens &bull; GitHub Pages Live Monitoring &bull; Webcams & Street View Explorer
+    EarthLens &bull; GitHub Pages Live Monitoring &bull; Webcams & Interactive 360° Street Views
   </footer>
 
   <script>
@@ -254,12 +253,13 @@
         kind: 'LIVE'
       },
 
-      /* ========== STREET VIEWS ========== */
+      /* ========== 360° STREET VIEWS (PANORAMA EMBEDS) ========== */
       {
         type: 'streetview',
         title: 'Two Mile Ash',
         location: 'Milton Keynes, MK8 8LH, UK',
-        query: 'Two Mile Ash, Milton Keynes, UK',
+        // Street View Photosphere embed
+        embedUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1hT0RndmZZSjhqQkhjVlFzR1gtNmlyTDFtS3ZzMVZBNkptdlI.!2m2!1d52.0398642!2d-0.8143212!3f230!4f0!5f0.7820865974627469',
         mapUrl: 'https://maps.app.goo.gl/ckrXaYSHimcP3v5u5',
         category: 'Europe',
         kind: 'STREET'
@@ -268,7 +268,7 @@
         type: 'streetview',
         title: '12 The Drive',
         location: 'Slough, Berkshire, UK',
-        query: '12 The Drive, Slough, UK',
+        embedUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE5xRkVtQ244RFBTVGxfZkpxdTZQWmxoM0R1TFZubk8zdjM0SEtC!2m2!1d51.5183375!2d-0.5891398!3f195!4f0!5f0.7820865974627469',
         mapUrl: 'https://maps.app.goo.gl/CK7DJTjVzBinJSg66',
         category: 'Europe',
         kind: 'STREET'
@@ -277,7 +277,7 @@
         type: 'streetview',
         title: '809 Quail Ridge Drive',
         location: 'Plainsboro, NJ 08536, USA',
-        query: '809 Quail Ridge Dr, Plainsboro, NJ 08536',
+        embedUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcFBocVRzX3dtcml0R0Z4VG9tOHFwUHB2bFZ3eEV0ek9QWld3eEE.!2m2!1d40.334187!2d-74.593922!3f170!4f0!5f0.7820865974627469',
         mapUrl: 'https://maps.app.goo.gl/FJN6XrusxUYTjvFT8',
         category: 'Americas',
         kind: 'STREET'
@@ -286,7 +286,7 @@
         type: 'streetview',
         title: 'Sunbeam Hotel Pattaya',
         location: 'Beach Rd, Bang Lamung, Pattaya, Thailand',
-        query: 'Sunbeam Hotel Pattaya, Thailand',
+        embedUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE96U3YyRk02VFNuNW9pUGxfR0t5dmpqVkQwcFExNlhxUGFpdWk1!2m2!1d12.934814!2d100.884561!3f70!4f0!5f0.7820865974627469',
         mapUrl: 'https://maps.app.goo.gl/G1uPCiswSGkfYqqv9',
         category: 'Asia',
         kind: 'STREET'
@@ -295,7 +295,7 @@
         type: 'streetview',
         title: 'Ramada by Wyndham D MA',
         location: 'Makkasan, Ratchathewi, Bangkok, Thailand',
-        query: 'Ramada by Wyndham D MA Bangkok',
+        embedUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1KRHhTV0Rrc2FjMldyNndwckdFNDd4Y1Nvb252TnpnWWpIbzRV!2m2!1d13.751680!2d100.547140!3f130!4f0!5f0.7820865974627469',
         mapUrl: 'https://maps.app.goo.gl/R2Eq7XaNu6S7SDg16',
         category: 'Asia',
         kind: 'STREET'
@@ -304,7 +304,7 @@
         type: 'streetview',
         title: 'Thon Hotel Sandvika',
         location: 'Sandvika, Bærum, Norway',
-        query: 'Thon Hotel Sandvika, Norway',
+        embedUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE93R3BKVnZhMWZ0U0o2cFV1eFZhS1JfbXlXOU52c0V2Yk41bkE4!2m2!1d59.889721!2d10.525556!3f210!4f0!5f0.7820865974627469',
         mapUrl: 'https://maps.app.goo.gl/RTm1M2bghs5XJLKh8',
         category: 'Norway',
         kind: 'STREET'
@@ -368,23 +368,24 @@
             </div>
           `;
         } else if (item.type === 'streetview') {
-          const mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(item.query)}&t=k&z=17&output=embed`;
+          // Interactive 360-degree Street View Panorama
           contentMarkup = `
-            <div class="aspect-video bg-gray-950 relative flex flex-col">
+            <div class="aspect-video bg-black relative flex flex-col">
               <iframe
-                src="${mapEmbedUrl}"
-                title="${item.title}"
+                src="${item.embedUrl}"
+                title="${item.title} 360 Street View"
                 class="w-full h-full border-0"
+                allowfullscreen=""
                 loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade">
               </iframe>
-              <div class="bg-gray-950/95 px-3 py-2 flex items-center justify-between text-xs border-t border-gray-800">
+              <div class="bg-gray-950/95 px-3 py-1.5 flex items-center justify-between text-[11px] border-t border-gray-800">
                 <span class="text-amber-400 font-medium flex items-center gap-1.5">
-                  <i class="ph-bold ph-navigation-arrow"></i> Satellite & Street View
+                  <i class="ph-bold ph-eye"></i> 360° Interactive Street Panorama
                 </span>
                 <a href="${item.mapUrl}" target="_blank" rel="noopener noreferrer" 
-                   class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-medium inline-flex items-center gap-1 transition text-[11px]">
-                  Open 360° Street View <i class="ph-bold ph-arrow-square-out"></i>
+                   class="text-blue-400 hover:text-blue-300 font-medium inline-flex items-center gap-1 transition">
+                  Full Google Maps <i class="ph ph-arrow-square-out"></i>
                 </a>
               </div>
             </div>
@@ -399,7 +400,7 @@
               <div class="flex items-center gap-2">
                 <h2 class="text-sm font-semibold text-white tracking-wide truncate">${item.title}</h2>
                 <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border ${badgeColor}">
-                  ${item.kind}
+                  ${item.kind === 'LIVE' ? 'LIVE' : '360° VIEW'}
                 </span>
               </div>
               <p class="text-xs text-gray-400 flex items-center gap-1 truncate mt-0.5">
@@ -415,7 +416,6 @@
         grid.appendChild(card);
       });
 
-      // Re-trigger LWW widget script if Boston is rendered
       if (window.lwwWidgetInit) {
         window.lwwWidgetInit();
       }
