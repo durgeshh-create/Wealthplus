@@ -4,3 +4,18 @@
 2026-10-07 12:37:38 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-79.30 | ₹121.28
 2026-10-07 12:37:38 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
 2026-10-07 12:37:38 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
+2026-10-07 13:08:38 IST | INFO     | backend.orders.manager | smart_buy 8 × MID150BEES @ ₹226.07 (cost ₹1,808.56) | Available cash: ₹16,375.70 (spendable after ₹15000 reserve: ₹1,375.70)
+2026-10-07 13:08:38 IST | INFO     | backend.orders.manager | [smart_buy] LIQUIDCASE sell LIMIT ₹116.25 (top_bid from depth)
+2026-10-07 13:08:38 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 5 x LIQUIDCASE
+2026-10-07 13:08:38 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261007150990016
+2026-10-07 13:08:39 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.25
+2026-10-07 13:08:39 IST | INFO     | backend.orders.manager | ✓ LIQUIDCASE sell complete: 5 units @ ₹116.26
+2026-10-07 13:08:41 IST | INFO     | backend.orders.manager | [smart_buy] Refreshing stale LIMIT price after LIQUIDCASE sell: ₹226.07 → ₹226.07 (top_ask from depth)
+2026-10-07 13:08:41 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 8 x MID150BEES
+2026-10-07 13:08:41 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261007150990309
+2026-10-07 13:08:42 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [B(W%R=-73.6+drop=1.03%)]: JUNIORBEES | Price=₹751.00 | PrevClose=₹758.79 | AvgBuy=₹775.37 | Slot 1/6
+2026-10-07 13:08:42 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-73.63 | ₹751.00
+2026-10-07 13:08:42 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-10-07 13:08:42 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹226.06
+2026-10-07 13:08:42 IST | INFO     | backend.orders.manager | ✓ smart_buy complete: 8 × MID150BEES @ ₹226.07
+2026-10-07 13:08:43 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 8 × ₹226.07 = ₹1809 | LIMIT | Available Cash
