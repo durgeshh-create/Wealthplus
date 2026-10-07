@@ -4,3 +4,11 @@
 2026-10-07 12:37:52 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-79.30 | ₹121.28
 2026-10-07 12:37:52 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
 2026-10-07 12:37:52 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
+2026-10-07 13:08:37 IST | INFO     | backend.orders.manager | smart_buy 8 × MID150BEES @ ₹226.13 (cost ₹1,809.04) | Available cash: ₹25,652.80 (spendable after ₹15000 reserve: ₹10,652.80)
+2026-10-07 13:08:37 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 8 x MID150BEES
+2026-10-07 13:08:37 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261007190928134
+2026-10-07 13:08:38 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹226.06
+2026-10-07 13:08:38 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 8 × ₹226.13 = ₹1809 | LIMIT | Available Cash
+2026-10-07 13:08:42 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [B(W%R=-73.6+drop=1.03%)]: JUNIORBEES | Price=₹751.00 | PrevClose=₹758.79 | AvgBuy=₹773.11 | Slot 1/6
+2026-10-07 13:08:42 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-73.63 | ₹751.00
+2026-10-07 13:08:42 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
