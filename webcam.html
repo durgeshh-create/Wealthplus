@@ -3,13 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- CRITICAL: Provides valid HTTP referrer to YouTube and Google Maps on GitHub Pages -->
   <meta name="referrer" content="strict-origin-when-cross-origin" />
-  <title>EarthLens — Global Live Webcams & 360° Street Views</title>
+  <title>EarthLens — Global Live Webcams & Exact 360° Street Views</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  <!-- Live World Webcams widget loader -->
   <script async src="https://liveworldwebcams.com/wp-content/plugins/lww-embed-widget/assets/widget.js"></script>
 
   <style>
@@ -22,7 +20,7 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- Sticky Header -->
+  <!-- Header -->
   <header class="sticky top-0 z-50 bg-[#0d1424]/95 backdrop-blur border-b border-gray-800 px-4 py-3">
     <div class="max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center space-x-3">
@@ -40,9 +38,8 @@
         </div>
       </div>
 
-      <!-- Controls & Filter Toolbar -->
+      <!-- Controls -->
       <div class="flex flex-wrap items-center gap-2">
-        <!-- Search -->
         <div class="relative">
           <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-400"></i>
           <input
@@ -54,7 +51,6 @@
           />
         </div>
 
-        <!-- Category Dropdown -->
         <select 
           id="categoryFilter" 
           onchange="filterLocations()" 
@@ -69,7 +65,6 @@
           <option value="Oceania">Oceania</option>
         </select>
 
-        <!-- Grid column buttons -->
         <div class="hidden sm:flex bg-gray-900 border border-gray-800 rounded-lg p-1 space-x-1">
           <button onclick="setGrid(1)" title="1 Column" class="p-1.5 hover:bg-gray-800 rounded text-gray-400 hover:text-white"><i class="ph-bold ph-square"></i></button>
           <button onclick="setGrid(2)" title="2 Columns" class="p-1.5 hover:bg-gray-800 rounded text-gray-400 hover:text-white"><i class="ph-bold ph-columns"></i></button>
@@ -77,7 +72,10 @@
           <button onclick="setGrid(4)" title="4 Columns" class="p-1.5 hover:bg-gray-800 rounded text-gray-400 hover:text-white"><i class="ph-bold ph-grid-nine"></i></button>
         </div>
 
-        <!-- Reload Streams -->
+        <button onclick="promptForApiKey()" title="Configure Google Maps Embed API Key" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs font-medium rounded-lg flex items-center gap-1.5 border border-gray-700 transition">
+          <i class="ph-bold ph-key"></i> <span id="apiKeyBtnText">API Key</span>
+        </button>
+
         <button onclick="reloadAll()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs font-medium rounded-lg flex items-center gap-1.5 border border-gray-700 transition">
           <i class="ph ph-arrows-clockwise"></i> Reload
         </button>
@@ -85,181 +83,58 @@
     </div>
   </header>
 
-  <!-- Main Grid -->
+  <!-- Grid -->
   <main class="flex-1 max-w-[1920px] w-full mx-auto p-4 md:p-6">
     <div id="locationGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-      <!-- Injected via JavaScript -->
+      <!-- Injected by JS -->
     </div>
   </main>
 
   <footer class="py-4 border-t border-gray-800 text-center text-xs text-gray-500">
-    EarthLens &bull; GitHub Pages Live Monitoring &bull; Webcams & Interactive 360° Street Views
+    EarthLens &bull; Exact-Angle Street View Photospheres & GitHub Pages Live Monitoring
   </footer>
 
   <script>
     const items = [
       /* ========== LIVE WEBCAMS ========== */
-      { 
-        type: 'youtube', 
-        id: 'RIEBfh0pwQ4', 
-        title: 'Miami Skyline', 
-        location: 'Miami, Florida, USA', 
-        category: 'Americas',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'lww', 
-        widgetId: '18802', 
-        title: 'West End Skyline', 
-        location: 'Boston, Massachusetts, USA', 
-        category: 'Americas',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: '7gBzLGlJnwk', 
-        title: 'Niagara Falls Panoramic', 
-        location: 'Ontario, Canada', 
-        category: 'Americas',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: 'Bl31TjIJAzI', 
-        title: 'Pattaya Beach & Skyline', 
-        location: 'Pattaya, Thailand', 
-        category: 'Asia',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: '5uZa3-RMFos', 
-        title: 'Sydney Harbour & Opera House', 
-        location: 'Sydney, Australia', 
-        category: 'Oceania',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: 'LZtcropXJcc', 
-        title: 'Lensk City', 
-        location: 'Sakha Republic, Russia', 
-        category: 'Europe',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: 'B1r1sD5yKSQ', 
-        title: 'Lena River & Siberia View', 
-        location: 'Lena River, Siberia', 
-        category: 'Europe',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: 'kcQgF5qlSxE', 
-        title: 'Notting Hill Gate', 
-        location: 'West London, United Kingdom', 
-        category: 'Europe',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: 'enYFXf8u7Lc', 
-        title: 'Swiss Alps Panoramic', 
-        location: 'Alps, Switzerland', 
-        category: 'Europe',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: 'mt7uE-n0YPI', 
-        title: 'Venice Skyline', 
-        location: 'Venice, Italy', 
-        category: 'Europe',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: 'r8N6IsoIkTk', 
-        title: 'Venice Grand Canal', 
-        location: 'Venice, Italy', 
-        category: 'Europe',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: 'xlepdTYU6G4', 
-        title: 'Harstad Harbor', 
-        location: 'Harstad, Norway', 
-        category: 'Norway',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: 'faKBmRq0lYg', 
-        title: 'Oslo Cityscape', 
-        location: 'Oslo, Norway', 
-        category: 'Norway',
-        kind: 'LIVE'
-      },
+      { type: 'youtube', id: 'RIEBfh0pwQ4', title: 'Miami Skyline', location: 'Miami, Florida, USA', category: 'Americas', kind: 'LIVE' },
+      { type: 'lww', widgetId: '18802', title: 'West End Skyline', location: 'Boston, Massachusetts, USA', category: 'Americas', kind: 'LIVE' },
+      { type: 'youtube', id: '7gBzLGlJnwk', title: 'Niagara Falls Panoramic', location: 'Ontario, Canada', category: 'Americas', kind: 'LIVE' },
+      { type: 'youtube', id: 'Bl31TjIJAzI', title: 'Pattaya Beach & Skyline', location: 'Pattaya, Thailand', category: 'Asia', kind: 'LIVE' },
+      { type: 'youtube', id: '5uZa3-RMFos', title: 'Sydney Harbour & Opera House', location: 'Sydney, Australia', category: 'Oceania', kind: 'LIVE' },
+      { type: 'youtube', id: 'LZtcropXJcc', title: 'Lensk City', location: 'Sakha Republic, Russia', category: 'Europe', kind: 'LIVE' },
+      { type: 'youtube', id: 'B1r1sD5yKSQ', title: 'Lena River & Siberia View', location: 'Lena River, Siberia', category: 'Europe', kind: 'LIVE' },
+      { type: 'youtube', id: 'kcQgF5qlSxE', title: 'Notting Hill Gate', location: 'West London, United Kingdom', category: 'Europe', kind: 'LIVE' },
+      { type: 'youtube', id: 'enYFXf8u7Lc', title: 'Swiss Alps Panoramic', location: 'Alps, Switzerland', category: 'Europe', kind: 'LIVE' },
+      { type: 'youtube', id: 'mt7uE-n0YPI', title: 'Venice Skyline', location: 'Venice, Italy', category: 'Europe', kind: 'LIVE' },
+      { type: 'youtube', id: 'r8N6IsoIkTk', title: 'Venice Grand Canal', location: 'Venice, Italy', category: 'Europe', kind: 'LIVE' },
+      { type: 'youtube', id: 'xlepdTYU6G4', title: 'Harstad Harbor', location: 'Harstad, Norway', category: 'Norway', kind: 'LIVE' },
+      { type: 'youtube', id: 'faKBmRq0lYg', title: 'Oslo Cityscape', location: 'Oslo, Norway', category: 'Norway', kind: 'LIVE' },
       { 
         type: 'panomax',
         panomaxUrl: 'https://loenskylift.panomax.com/',
         externalUrl: 'https://liveworldwebcams.com/lodalen-loen-live-webcam-norway/',
         title: 'Mt. Hoven & Lodalen Valley', 
         location: 'Loen, Nordfjord, Norway', 
-        category: 'Norway',
-        kind: 'LIVE'
+        category: 'Norway', 
+        kind: 'LIVE' 
       },
-      { 
-        type: 'youtube', 
-        id: '2D8hhRDEzwY', 
-        title: 'Mehamn Arctic Coast', 
-        location: 'Finnmark, Norway', 
-        category: 'Norway',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: 'Gd9d4q6WvUY', 
-        title: 'Amsterdam Canals', 
-        location: 'Amsterdam, Netherlands', 
-        category: 'Europe',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: 'UCgLr29bxO8', 
-        title: 'Rhine Falls', 
-        location: 'Neuhausen, Switzerland', 
-        category: 'Europe',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: 'lsxYH2XQQCg', 
-        title: 'Japan Monkey Center', 
-        location: 'Aichi, Japan', 
-        category: 'Asia',
-        kind: 'LIVE'
-      },
-      { 
-        type: 'youtube', 
-        id: 'SUXPnIEpbn4', 
-        title: 'Chengdu Panda Base', 
-        location: 'Sichuan, China', 
-        category: 'Asia',
-        kind: 'LIVE'
-      },
+      { type: 'youtube', id: '2D8hhRDEzwY', title: 'Mehamn Arctic Coast', location: 'Finnmark, Norway', category: 'Norway', kind: 'LIVE' },
+      { type: 'youtube', id: 'Gd9d4q6WvUY', title: 'Amsterdam Canals', location: 'Amsterdam, Netherlands', category: 'Europe', kind: 'LIVE' },
+      { type: 'youtube', id: 'UCgLr29bxO8', title: 'Rhine Falls', location: 'Neuhausen, Switzerland', category: 'Europe', kind: 'LIVE' },
+      { type: 'youtube', id: 'lsxYH2XQQCg', title: 'Japan Monkey Center', location: 'Aichi, Japan', category: 'Asia', kind: 'LIVE' },
+      { type: 'youtube', id: 'SUXPnIEpbn4', title: 'Chengdu Panda Base', location: 'Sichuan, China', category: 'Asia', kind: 'LIVE' },
 
-      /* ========== 360° STREET VIEWS (PANORAMA EMBEDS) ========== */
+      /* ========== EXACT 360° STREET VIEWS ========== */
       {
         type: 'streetview',
         title: 'Two Mile Ash',
         location: 'Milton Keynes, MK8 8LH, UK',
-        // Street View Photosphere embed
-        embedUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1hT0RndmZZSjhqQkhjVlFzR1gtNmlyTDFtS3ZzMVZBNkptdlI.!2m2!1d52.0398642!2d-0.8143212!3f230!4f0!5f0.7820865974627469',
+        lat: 52.0398642,
+        lng: -0.8143212,
+        heading: 230,
+        pitch: 0,
+        fov: 90,
         mapUrl: 'https://maps.app.goo.gl/ckrXaYSHimcP3v5u5',
         category: 'Europe',
         kind: 'STREET'
@@ -268,7 +143,11 @@
         type: 'streetview',
         title: '12 The Drive',
         location: 'Slough, Berkshire, UK',
-        embedUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE5xRkVtQ244RFBTVGxfZkpxdTZQWmxoM0R1TFZubk8zdjM0SEtC!2m2!1d51.5183375!2d-0.5891398!3f195!4f0!5f0.7820865974627469',
+        lat: 51.5183375,
+        lng: -0.5891398,
+        heading: 195,
+        pitch: 2,
+        fov: 85,
         mapUrl: 'https://maps.app.goo.gl/CK7DJTjVzBinJSg66',
         category: 'Europe',
         kind: 'STREET'
@@ -277,7 +156,11 @@
         type: 'streetview',
         title: '809 Quail Ridge Drive',
         location: 'Plainsboro, NJ 08536, USA',
-        embedUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcFBocVRzX3dtcml0R0Z4VG9tOHFwUHB2bFZ3eEV0ek9QWld3eEE.!2m2!1d40.334187!2d-74.593922!3f170!4f0!5f0.7820865974627469',
+        lat: 40.334187,
+        lng: -74.593922,
+        heading: 168,
+        pitch: -1,
+        fov: 90,
         mapUrl: 'https://maps.app.goo.gl/FJN6XrusxUYTjvFT8',
         category: 'Americas',
         kind: 'STREET'
@@ -285,8 +168,12 @@
       {
         type: 'streetview',
         title: 'Sunbeam Hotel Pattaya',
-        location: 'Beach Rd, Bang Lamung, Pattaya, Thailand',
-        embedUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE96U3YyRk02VFNuNW9pUGxfR0t5dmpqVkQwcFExNlhxUGFpdWk1!2m2!1d12.934814!2d100.884561!3f70!4f0!5f0.7820865974627469',
+        location: 'Pattaya Sai 8, Pattaya, Thailand',
+        lat: 12.934814,
+        lng: 100.884561,
+        heading: 70,
+        pitch: 5,
+        fov: 80,
         mapUrl: 'https://maps.app.goo.gl/G1uPCiswSGkfYqqv9',
         category: 'Asia',
         kind: 'STREET'
@@ -294,8 +181,12 @@
       {
         type: 'streetview',
         title: 'Ramada by Wyndham D MA',
-        location: 'Makkasan, Ratchathewi, Bangkok, Thailand',
-        embedUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE1KRHhTV0Rrc2FjMldyNndwckdFNDd4Y1Nvb252TnpnWWpIbzRV!2m2!1d13.751680!2d100.547140!3f130!4f0!5f0.7820865974627469',
+        location: 'Makkasan, Bangkok, Thailand',
+        lat: 13.751680,
+        lng: 100.547140,
+        heading: 135,
+        pitch: 10,
+        fov: 85,
         mapUrl: 'https://maps.app.goo.gl/R2Eq7XaNu6S7SDg16',
         category: 'Asia',
         kind: 'STREET'
@@ -304,7 +195,11 @@
         type: 'streetview',
         title: 'Thon Hotel Sandvika',
         location: 'Sandvika, Bærum, Norway',
-        embedUrl: 'https://www.google.com/maps/embed?pb=!4v1680000000000!6m8!1m7!1sCAoSLEFGMVFpcE93R3BKVnZhMWZ0U0o2cFV1eFZhS1JfbXlXOU52c0V2Yk41bkE4!2m2!1d59.889721!2d10.525556!3f210!4f0!5f0.7820865974627469',
+        lat: 59.889721,
+        lng: 10.525556,
+        heading: 215,
+        pitch: 4,
+        fov: 85,
         mapUrl: 'https://maps.app.goo.gl/RTm1M2bghs5XJLKh8',
         category: 'Norway',
         kind: 'STREET'
@@ -315,6 +210,10 @@
       const grid = document.getElementById('locationGrid');
       grid.innerHTML = '';
       document.getElementById('camCountLabel').textContent = `${data.length} Locations & Streams`;
+
+      const apiKey = localStorage.getItem('gmaps_api_key') || '';
+      const keyBtn = document.getElementById('apiKeyBtnText');
+      if (keyBtn) keyBtn.textContent = apiKey ? 'Key Active' : 'API Key';
 
       data.forEach(item => {
         const card = document.createElement('div');
@@ -362,34 +261,65 @@
                   <i class="ph-bold ph-arrows-out-cardinal"></i> Panomax 360° Interactive View
                 </span>
                 <a href="${item.externalUrl}" target="_blank" rel="noopener noreferrer" class="hover:text-white flex items-center gap-1">
-                  Source Page <i class="ph ph-arrow-square-out"></i>
+                  Source <i class="ph ph-arrow-square-out"></i>
                 </a>
               </div>
             </div>
           `;
         } else if (item.type === 'streetview') {
-          // Interactive 360-degree Street View Panorama
-          contentMarkup = `
-            <div class="aspect-video bg-black relative flex flex-col">
-              <iframe
-                src="${item.embedUrl}"
-                title="${item.title} 360 Street View"
-                class="w-full h-full border-0"
-                allowfullscreen=""
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade">
-              </iframe>
-              <div class="bg-gray-950/95 px-3 py-1.5 flex items-center justify-between text-[11px] border-t border-gray-800">
-                <span class="text-amber-400 font-medium flex items-center gap-1.5">
-                  <i class="ph-bold ph-eye"></i> 360° Interactive Street Panorama
-                </span>
-                <a href="${item.mapUrl}" target="_blank" rel="noopener noreferrer" 
-                   class="text-blue-400 hover:text-blue-300 font-medium inline-flex items-center gap-1 transition">
-                  Full Google Maps <i class="ph ph-arrow-square-out"></i>
-                </a>
+          if (apiKey) {
+            // Official Street View API: respects exact coordinates and camera heading/pitch
+            const embedUrl = `https://www.google.com/maps/embed/v1/streetview?key=${apiKey}&location=${item.lat},${item.lng}&heading=${item.heading}&pitch=${item.pitch}&fov=${item.fov || 90}`;
+            contentMarkup = `
+              <div class="aspect-video bg-black relative">
+                <iframe
+                  src="${embedUrl}"
+                  title="${item.title} 360 Street View"
+                  class="w-full h-full border-0"
+                  allowfullscreen
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+                <div class="bg-gray-950/95 px-3 py-1.5 flex items-center justify-between text-[11px] border-t border-gray-800">
+                  <span class="text-amber-400 font-medium flex items-center gap-1.5">
+                    <i class="ph-bold ph-compass"></i> Facing ${item.heading}°
+                  </span>
+                  <a href="${item.mapUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 inline-flex items-center gap-1">
+                    Direct Link <i class="ph ph-arrow-square-out"></i>
+                  </a>
+                </div>
               </div>
-            </div>
-          `;
+            `;
+          } else {
+            // Free No-Key Mode: Exact angle card with direct link
+            contentMarkup = `
+              <div class="aspect-video bg-gradient-to-br from-gray-900 to-[#070a13] relative flex flex-col justify-between p-4 border-b border-gray-800">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-amber-400 bg-amber-950/80 border border-amber-800/80 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                    <i class="ph-bold ph-street-view text-sm"></i> Exact 360° Panorama
+                  </span>
+                  <span class="text-[11px] text-gray-400 font-mono">Heading: ${item.heading}°</span>
+                </div>
+
+                <div class="my-auto text-center py-2">
+                  <i class="ph-duotone ph-map-pin text-3xl text-blue-400 mb-1"></i>
+                  <p class="text-sm font-semibold text-gray-100">${item.title}</p>
+                  <p class="text-xs text-gray-400">${item.location}</p>
+                  <p class="text-[11px] text-gray-500 font-mono mt-0.5">${item.lat.toFixed(5)}, ${item.lng.toFixed(5)}</p>
+                </div>
+
+                <div class="flex items-center justify-between gap-2 pt-2 border-t border-gray-800/70">
+                  <button onclick="promptForApiKey()" class="text-[11px] text-gray-400 hover:text-blue-400 underline underline-offset-2">
+                    Enable In-Page Embed
+                  </button>
+                  <a href="${item.mapUrl}" target="_blank" rel="noopener noreferrer" 
+                     class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-semibold inline-flex items-center gap-1.5 transition shadow">
+                    Launch Exact 360° <i class="ph-bold ph-arrow-square-out"></i>
+                  </a>
+                </div>
+              </div>
+            `;
+          }
         }
 
         const badgeColor = item.kind === 'LIVE' ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-amber-950 text-amber-400 border-amber-800';
@@ -400,7 +330,7 @@
               <div class="flex items-center gap-2">
                 <h2 class="text-sm font-semibold text-white tracking-wide truncate">${item.title}</h2>
                 <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border ${badgeColor}">
-                  ${item.kind === 'LIVE' ? 'LIVE' : '360° VIEW'}
+                  ${item.kind === 'LIVE' ? 'LIVE' : 'STREET 360°'}
                 </span>
               </div>
               <p class="text-xs text-gray-400 flex items-center gap-1 truncate mt-0.5">
@@ -418,6 +348,18 @@
 
       if (window.lwwWidgetInit) {
         window.lwwWidgetInit();
+      }
+    }
+
+    function promptForApiKey() {
+      const current = localStorage.getItem('gmaps_api_key') || '';
+      const key = prompt(
+        'To display live 360° Street Views directly inside this page without leaving the tab, enter your Google Maps Embed API Key:\n\n(Leave empty to use 1-click launch mode)',
+        current
+      );
+      if (key !== null) {
+        localStorage.setItem('gmaps_api_key', key.trim());
+        renderLocations(items);
       }
     }
 
@@ -456,7 +398,7 @@
       renderLocations(items);
     }
 
-    // Initial render
+    // Initial load
     renderLocations(items);
   </script>
 </body>
