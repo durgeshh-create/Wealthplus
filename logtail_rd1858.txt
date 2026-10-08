@@ -3,3 +3,15 @@
 2026-10-08 12:36:35 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261008190982832
 2026-10-08 12:36:35 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹222.42
 2026-10-08 12:36:35 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 26 × ₹222.43 = ₹5783 | LIMIT | Available Cash
+2026-10-08 12:37:35 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-98.3), B(W%R=-98.3+drop=1.41%), C(W%R=-98.3+drop=1.41%)]: SILVERBEES | Price=₹206.08 | PrevClose=₹209.02 | AvgBuy=₹213.13 | Slot 1/6
+2026-10-08 12:37:35 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-98.7), B(W%R=-98.7+drop=1.89%), C(W%R=-98.7+drop=1.89%)]: JUNIORBEES | Price=₹737.75 | PrevClose=₹752.00 | AvgBuy=₹773.11 | Slot 1/6
+2026-10-08 12:37:35 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-83.4), B(W%R=-83.4+drop=2.09%), C(W%R=-83.4+drop=2.09%)]: HDFCSML250 | Price=₹176.99 | PrevClose=₹180.77 | AvgBuy=₹180.68 | Slot 1/6
+2026-10-08 12:37:35 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-84.6)]: GOLDBEES | Price=₹120.90 | PrevClose=₹121.08 | AvgBuy=₹122.98 | Slot 1/6
+2026-10-08 12:37:35 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-98.29 | ₹206.08
+2026-10-08 12:37:35 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-98.71 | ₹737.75
+2026-10-08 12:37:35 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-83.39 | ₹176.99
+2026-10-08 12:37:35 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-84.62 | ₹120.90
+2026-10-08 12:37:35 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-10-08 12:37:35 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-10-08 12:37:35 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
+2026-10-08 12:37:35 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
