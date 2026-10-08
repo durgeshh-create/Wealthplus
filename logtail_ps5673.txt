@@ -12,3 +12,6 @@
 2026-10-08 09:20:09 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261008150120055
 2026-10-08 09:20:10 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹225.19
 2026-10-08 09:20:10 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 10 × ₹225.19 = ₹2252 | LIMIT | Available Cash
+2026-10-08 09:46:28 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [B(W%R=-72.6+drop=1.42%)]: HDFCSML250 | Price=₹178.21 | PrevClose=₹180.77 | AvgBuy=₹180.08 | Slot 1/6
+2026-10-08 09:46:28 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-72.61 | ₹178.21
+2026-10-08 09:46:28 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
