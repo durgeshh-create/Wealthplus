@@ -3,3 +3,12 @@
 2026-10-09 09:43:38 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261009190255017
 2026-10-09 09:43:38 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹222.69
 2026-10-09 09:43:39 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 18 × ₹222.69 = ₹4008 | LIMIT | Available Cash
+2026-10-09 09:44:38 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-78.8)]: SILVERBEES | Price=₹209.25 | PrevClose=₹205.87 | AvgBuy=₹213.13 | Slot 1/6
+2026-10-09 09:44:38 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-91.3)]: JUNIORBEES | Price=₹735.23 | PrevClose=₹734.61 | AvgBuy=₹773.11 | Slot 1/6
+2026-10-09 09:44:38 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-86.0)]: HDFCSML250 | Price=₹176.26 | PrevClose=₹176.41 | AvgBuy=₹180.68 | Slot 1/6
+2026-10-09 09:44:38 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-78.82 | ₹209.25
+2026-10-09 09:44:38 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-91.27 | ₹735.23
+2026-10-09 09:44:38 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-86.04 | ₹176.26
+2026-10-09 09:44:38 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-10-09 09:44:38 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-10-09 09:44:38 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
