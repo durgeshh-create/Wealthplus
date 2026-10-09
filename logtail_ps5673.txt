@@ -1,16 +1,5 @@
-2026-10-09 09:43:38 IST | INFO     | backend.orders.manager | smart_buy 18 × MID150BEES @ ₹222.69 (cost ₹4,008.42) | Available cash: ₹56,681.90 (spendable after ₹15000 reserve: ₹41,681.90)
-2026-10-09 09:43:38 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 18 x MID150BEES
-2026-10-09 09:43:38 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261009150301292
-2026-10-09 09:43:39 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹222.69
-2026-10-09 09:43:40 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 18 × ₹222.69 = ₹4008 | LIMIT | Available Cash
-2026-10-09 09:44:38 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-78.8)]: SILVERBEES | Price=₹209.25 | PrevClose=₹205.87 | AvgBuy=₹213.24 | Slot 1/6
-2026-10-09 09:44:38 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-91.3)]: JUNIORBEES | Price=₹735.23 | PrevClose=₹734.61 | AvgBuy=₹775.37 | Slot 1/6
-2026-10-09 09:44:38 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-86.0)]: HDFCSML250 | Price=₹176.26 | PrevClose=₹176.41 | AvgBuy=₹180.08 | Slot 1/6
-2026-10-09 09:44:38 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-78.82 | ₹209.25
-2026-10-09 09:44:38 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-91.27 | ₹735.23
-2026-10-09 09:44:38 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-86.04 | ₹176.26
-2026-10-09 09:44:38 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
-2026-10-09 09:44:38 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
-2026-10-09 09:44:38 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
-2026-10-09 10:44:04 IST | ERROR    | backend.portfolio.tracker | Error fetching holdings: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
-2026-10-09 11:45:28 IST | ERROR    | backend.portfolio.tracker | Error fetching positions: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
+2026-10-09 12:36:33 IST | INFO     | backend.orders.manager | smart_buy 18 × MID150BEES @ ₹222.75 (cost ₹4,009.50) | Available cash: ₹56,681.90 (spendable after ₹15000 reserve: ₹41,681.90)
+2026-10-09 12:36:33 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 18 x MID150BEES
+2026-10-09 12:36:34 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261009150824608
+2026-10-09 12:36:34 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹222.75
+2026-10-09 12:36:35 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 18 × ₹222.75 = ₹4010 | LIMIT | Available Cash
