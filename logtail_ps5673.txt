@@ -6,3 +6,4 @@
 2026-10-12 09:20:13 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261012150110168
 2026-10-12 09:20:13 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹224.525
 2026-10-12 09:20:14 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 8 × ₹224.53 = ₹1796 | LIMIT | Available Cash
+2026-10-12 09:25:59 IST | ERROR    | backend.portfolio.tracker | Error fetching holdings: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
