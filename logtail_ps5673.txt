@@ -3,3 +3,9 @@
 2026-10-13 09:51:17 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261013150367776
 2026-10-13 09:51:17 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹224.55
 2026-10-13 09:51:18 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 9 × ₹224.58 = ₹2021 | LIMIT | Available Cash
+2026-10-13 09:52:17 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-85.0)]: SILVERBEES | Price=₹208.05 | PrevClose=₹208.64 | AvgBuy=₹213.24 | Slot 1/6
+2026-10-13 09:52:17 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-76.4)]: GOLDBEES | Price=₹121.15 | PrevClose=₹121.24 | AvgBuy=₹122.99 | Slot 1/6
+2026-10-13 09:52:17 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-84.95 | ₹208.05
+2026-10-13 09:52:17 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-76.36 | ₹121.15
+2026-10-13 09:52:17 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-10-13 09:52:17 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
