@@ -13,3 +13,6 @@
 2026-10-13 09:52:28 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-75.10 | ₹741.00
 2026-10-13 09:52:28 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
 2026-10-13 10:54:47 IST | ERROR    | backend.portfolio.tracker | Error fetching holdings: HTTPSConnectionPool(host='kite.zerodha.com', port=443): Read timed out. (read timeout=10)
+2026-10-13 11:30:02 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-75.4)]: HDFCSML250 | Price=₹177.51 | PrevClose=₹178.66 | AvgBuy=₹180.08 | Slot 1/6
+2026-10-13 11:30:02 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-75.38 | ₹177.51
+2026-10-13 11:30:02 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
