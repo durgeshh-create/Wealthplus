@@ -313,7 +313,7 @@
 
     function playerMarkup(res, item) {
       const src = res.src;
-      const tag = (txt) => `<div class="absolute top-1 left-1 z-10 bg-black/70 px-1.5 py-0.5 rounded text-[9px] text-emerald-400">${txt}</div>`;
+      const tag = () => '';
       const link = `<div class="absolute bottom-1 right-2 z-10 bg-black/75 px-2 py-0.5 rounded text-[10px] text-gray-400">via <a href="${res.page || LWW_BASE}" target="_blank" rel="noopener" class="text-blue-400 hover:underline">Live World Webcams</a></div>`;
       const perm = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
       if (src && (src.kind === 'youtube' || src.kind === 'ytchannel' || src.kind === 'iframe')) {
@@ -326,7 +326,7 @@
         return `<video data-hls="${src.url}" class="w-full h-full bg-black" autoplay muted playsinline controls></video>${tag('src: hls')}${link}`;
       }
       // nothing embeddable found: fall back to LWW snapshot widget
-      return lwwWidgetMarkup(res.id, res.page).replace('>LWW id ' + res.id, '>LWW id ' + res.id + ' · no direct source found');
+      return lwwWidgetMarkup(res.id, res.page);
     }
 
     function attachHls() {
@@ -346,9 +346,8 @@
     function lwwWidgetMarkup(id, page) {
       return `
         <div data-lww-widget data-mode="specific" data-id="${id}" data-api="${LWW_BASE}/wp-json/lww/v1/widget" data-utm="lww-widget" data-width="420" class="w-full"></div>
-        <div class="absolute top-1 left-1 z-10 bg-black/70 px-1.5 py-0.5 rounded text-[9px] text-emerald-400">LWW id ${id}</div>
         <div class="absolute bottom-1 right-2 z-10 bg-black/75 px-2 py-0.5 rounded text-[10px] text-gray-400">
-          Powered by <a href="${page || LWW_BASE + '/'}" target="_blank" rel="noopener" class="text-blue-400 hover:underline">Live World Webcams</a>
+          Powered by <a href="${page || LWW_BASE + '/'}" target="_blank" rel="noopener" data-newtab="1" class="text-blue-400 hover:underline">Live World Webcams</a>
         </div>`;
     }
 
@@ -375,6 +374,41 @@
       s.src = `${LWW_BASE}/wp-content/plugins/lww-embed-widget/assets/widget.js?cb=${Date.now()}`;
       s.onload = () => { if (window.lwwWidgetInit) { try { window.lwwWidgetInit(); } catch (e) {} } };
       document.head.appendChild(s);
+    }
+
+
+    /* Open a camera's LWW page inside the same card instead of a new tab. */
+    function openInline(slot, href) {
+      if (slot.querySelector('.inline-viewer')) return;
+      const v = document.createElement('div');
+      v.className = 'inline-viewer absolute inset-0 z-20 bg-black flex flex-col';
+      const safe = href.replace(/"/g, '&quot;');
+      v.innerHTML = `
+        <div class="flex items-center justify-between gap-2 px-3 py-1.5 bg-gray-950 border-b border-gray-800 text-[11px]">
+          <button class="iv-back px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700">&larr; Back</button>
+          <span class="text-gray-500 truncate">Blank or not playing? LWW may block embedding &rarr;</span>
+          <a href="${safe}" target="_blank" rel="noopener" data-newtab="1" class="px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white whitespace-nowrap">Open in new tab</a>
+        </div>
+        <iframe src="${safe}" title="Live webcam" class="flex-1 w-full border-0 bg-white"
+          allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen
+          referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+      v.querySelector('.iv-back').onclick = () => v.remove();
+      slot.appendChild(v);
+    }
+
+    function hookInlinePlay(slot) {
+      if (slot.__inlineHooked) return;
+      slot.__inlineHooked = true;
+      slot.addEventListener('click', (e) => {
+        // composedPath reaches into the widget's shadow DOM
+        const a = e.composedPath().find(n => n.tagName === 'A' && n.href);
+        if (!a || a.dataset.newtab) return;
+        let u; try { u = new URL(a.href); } catch (_) { return; }
+        if (u.hostname.indexOf('liveworldwebcams.com') === -1 || u.pathname === '/' ) return; // "More Live Webcams" etc. keep opening normally
+        e.preventDefault();
+        e.stopPropagation();
+        openInline(slot, a.href);
+      }, true);
     }
 
     let renderToken = 0;
@@ -515,7 +549,7 @@
         }
         if (token !== renderToken) return;           // a newer render replaced this one
         const slot = document.getElementById(slotId);
-        if (slot) slot.innerHTML = html;
+        if (slot) { slot.innerHTML = html; hookInlinePlay(slot); }
       }));
       if (token === renderToken && lwwJobs.length) { loadLwwScript(); attachHls(); }
     }
