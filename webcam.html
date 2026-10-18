@@ -401,23 +401,34 @@
        The LWW page is rendered at a fixed desktop width, scaled to fit the card,
        and shifted so only the player shows. Align once with the arrows: the
        setting is saved and applies to every camera. */
-    const CAL_KEY = 'lww_view_cal_v1';
-    const CAL_DEFAULT = { x: 0, y: 320, z: 1 };
+    const CAL_KEY = 'lww_view_cal_v2';
+    // Default crop measured from a real LWW camera page rendered at 1200px wide:
+    // the 16:9 player starts ~16px from the left, ~464px from the top, ~845px wide.
+    const CAL_DEFAULT = { x: 16, y: 464, z: 1.42 };
     const VIEW_W = 1200;
     const getCal = () => { try { return { ...CAL_DEFAULT, ...JSON.parse(localStorage.getItem(CAL_KEY) || '{}') }; } catch (e) { return { ...CAL_DEFAULT }; } };
     const setCal = (c) => { try { localStorage.setItem(CAL_KEY, JSON.stringify(c)); } catch (e) {} };
 
     function openInline(slot, href) {
       if (slot.querySelector('.inline-viewer')) return;
+      const card = slot.parentElement;
       const v = document.createElement('div');
       v.className = 'inline-viewer absolute inset-0 z-20 bg-black flex flex-col';
       const safe = href.replace(/"/g, '&quot;');
       const btn = 'px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700';
       v.innerHTML = `
-        <div class="flex items-center justify-between gap-2 px-3 py-1.5 bg-gray-950 border-b border-gray-800 text-[11px]">
+        <div class="iv-bar flex-none flex items-center justify-between gap-2 px-2 py-1 bg-gray-950 border-b border-gray-800 text-[11px]">
           <button class="iv-back ${btn}">&larr; Back</button>
-          <div class="iv-ctl flex items-center gap-1 text-gray-400">
-            <span class="hidden sm:inline mr-1">Align:</span>
+          <div class="flex items-center gap-1">
+            <button class="iv-toggle ${btn}" title="Fine-tune which part of the page is shown">&#9881; Align</button>
+            <a href="${safe}" target="_blank" rel="noopener" data-newtab="1" class="px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white whitespace-nowrap">New tab &#8599;</a>
+          </div>
+        </div>
+        <div class="iv-stage flex-none relative w-full overflow-hidden bg-black">
+          <iframe src="${safe}" title="Live webcam" scrolling="no"
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen
+            referrerpolicy="strict-origin-when-cross-origin"></iframe>
+          <div class="iv-ctl hidden absolute bottom-2 right-2 z-30 flex items-center gap-1 p-1 rounded bg-black/75 text-[11px] text-gray-300">
             <button data-act="up" title="Show higher part of page" class="${btn}">&uarr;</button>
             <button data-act="down" title="Show lower part of page" class="${btn}">&darr;</button>
             <button data-act="left" title="Move view left" class="${btn}">&larr;</button>
@@ -426,39 +437,42 @@
             <button data-act="zin" title="Zoom in" class="${btn}">+</button>
             <button data-act="reset" title="Reset alignment" class="${btn}">&#8635;</button>
           </div>
-          <a href="${safe}" target="_blank" rel="noopener" data-newtab="1" class="px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white whitespace-nowrap">New tab &#8599;</a>
-        </div>
-        <div class="iv-stage relative w-full overflow-hidden bg-black my-auto">
-          <iframe src="${safe}" title="Live webcam" scrolling="no"
-            allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen
-            referrerpolicy="strict-origin-when-cross-origin"></iframe>
         </div>`;
       slot.appendChild(v);
+      card.style.alignSelf = 'start';          // don't stretch to the tallest card in the row
 
+      const bar = v.querySelector('.iv-bar');
       const stage = v.querySelector('.iv-stage');
       const fr = stage.querySelector('iframe');
       const apply = () => {
         const c = getCal();
-        const w = stage.clientWidth || slot.clientWidth || 600;
-        stage.style.height = Math.round(w * 9 / 16) + 'px';
+        const w = v.clientWidth || slot.clientWidth || 600;
+        const stageH = Math.round(w * 9 / 16);
+        stage.style.height = stageH + 'px';
+        slot.style.minHeight = '0';
+        slot.style.height = (bar.offsetHeight + stageH) + 'px';   // card shrinks to fit the video exactly
         const sc = (w / VIEW_W) * c.z;
         fr.style.cssText = `position:absolute;border:0;background:#fff;width:${VIEW_W}px;height:4000px;` +
           `left:${-c.x * sc}px;top:${-c.y * sc}px;transform:scale(${sc});transform-origin:0 0;`;
       };
       apply();
-      if (window.ResizeObserver) new ResizeObserver(apply).observe(stage);
+      if (window.ResizeObserver) new ResizeObserver(apply).observe(v);
 
-      v.querySelector('.iv-back').onclick = () => v.remove();
+      v.querySelector('.iv-back').onclick = () => {
+        v.remove();
+        slot.style.height = ''; slot.style.minHeight = ''; card.style.alignSelf = '';
+      };
+      v.querySelector('.iv-toggle').onclick = () => v.querySelector('.iv-ctl').classList.toggle('hidden');
       v.querySelector('.iv-ctl').addEventListener('click', (e) => {
         const b = e.target.closest('button[data-act]'); if (!b) return;
-        let c = getCal(); const step = 40 / c.z;
+        let c = getCal(); const step = 30 / c.z;
         switch (b.dataset.act) {
           case 'up': c.y -= step; break;
           case 'down': c.y += step; break;
           case 'left': c.x -= step; break;
           case 'right': c.x += step; break;
-          case 'zin': c.z = Math.min(4, c.z * 1.1); break;
-          case 'zout': c.z = Math.max(0.4, c.z / 1.1); break;
+          case 'zin': c.z = Math.min(4, c.z * 1.05); break;
+          case 'zout': c.z = Math.max(0.4, c.z / 1.05); break;
           case 'reset': c = { ...CAL_DEFAULT }; break;
         }
         c.x = Math.max(0, c.x); c.y = Math.max(0, c.y);
