@@ -212,7 +212,7 @@
        pointed at the camera's current source, so nothing here goes stale.
        Pin a camera manually with { widgetId: '12345' } or { slug: 'page-slug' }. */
     const LWW_BASE = 'https://liveworldwebcams.com';
-    const LWW_CACHE_KEY = 'lww_resolve_v1';
+    const LWW_CACHE_KEY = 'lww_resolve_v2';
     const LWW_TTL = 7 * 24 * 3600 * 1000;
     let lwwCache = {};
     try { lwwCache = JSON.parse(localStorage.getItem(LWW_CACHE_KEY) || '{}'); } catch (e) {}
@@ -244,7 +244,12 @@
     }
 
     async function resolveLww(item) {
-      if (item.widgetId) return { id: String(item.widgetId), page: item.pageUrl || '' };
+      if (item.widgetId) {
+        const k = 'id:' + item.widgetId, c = lwwCache[k];
+        if (c && Date.now() - c.t < LWW_TTL) return c;
+        const out = { id: String(item.widgetId), page: item.pageUrl || '', t: Date.now(), src: await discoverSource(String(item.widgetId), 'post') };
+        lwwCache[k] = out; saveLwwCache(); return out;
+      }
 
       const key = item.slug || item.title;
       const hit = lwwCache[key];
@@ -254,19 +259,89 @@
       let lastErr = null;
       for (const q of queries) {
         try {
-          const results = await fetchJson(`${LWW_BASE}/wp-json/wp/v2/search?search=${encodeURIComponent(q)}&per_page=20&_fields=id,title,url`);
+          const results = await fetchJson(`${LWW_BASE}/wp-json/wp/v2/search?search=${encodeURIComponent(q)}&per_page=20&_fields=id,title,url,subtype`);
           const best = results
             .map(r => ({ r, s: scoreHit(r, q, item.slug) }))
             .filter(x => x.s >= 0)
             .sort((a, b) => b.s - a.s)[0];
           if (best) {
             const out = { id: String(best.r.id), page: best.r.url, t: Date.now() };
+            out.src = await discoverSource(out.id, best.r.subtype);
             lwwCache[key] = out; saveLwwCache();
             return out;
           }
         } catch (e) { lastErr = e; }
       }
       throw lastErr || new Error('No matching webcam found on liveworldwebcams.com');
+    }
+
+
+    /* ---- find the camera's original, embeddable source via LWW's open REST API ---- */
+    function extractSource(blob) {
+      const t = blob.replace(/\\\//g, '/').replace(/\\"/g, '"').replace(/\\u0026/g, '&').replace(/&amp;/g, '&').replace(/&#038;/g, '&');
+      let m;
+      // any third-party iframe in the page content
+      const re = /<iframe[^>]+src=["']([^"']+)["']/gi;
+      while ((m = re.exec(t))) {
+        const u = m[1].startsWith('//') ? 'https:' + m[1] : m[1];
+        if (/^https?:/.test(u) && !/liveworldwebcams\.com/.test(u)) return { kind: 'iframe', url: u };
+      }
+      if ((m = t.match(/https?:\/\/[^"'\s\\<>]+\.m3u8[^"'\s\\<>]*/))) return { kind: 'hls', url: m[0] };
+      if ((m = t.match(/youtube(?:-nocookie)?\.com\/embed\/([\w-]{11})/)) ||
+          (m = t.match(/youtube\.com\/watch\?[^"'\s]*?v=([\w-]{11})/)) ||
+          (m = t.match(/youtube\.com\/live\/([\w-]{11})/)) ||
+          (m = t.match(/youtu\.be\/([\w-]{11})/))) return { kind: 'youtube', id: m[1] };
+      if ((m = t.match(/youtube\.com\/channel\/(UC[\w-]{22})/))) return { kind: 'ytchannel', id: m[1] };
+      return null;
+    }
+
+    async function discoverSource(id, subtype) {
+      const urls = [];
+      const bases = [...new Set([subtype && subtype !== 'post' ? subtype : null, 'posts', 'pages', 'webcams', 'webcam'].filter(Boolean))];
+      bases.forEach(b => urls.push(`${LWW_BASE}/wp-json/wp/v2/${b}/${id}`));
+      urls.push(`${LWW_BASE}/wp-json/lww/v1/widget?mode=specific&id=${id}`);
+      urls.push(`${LWW_BASE}/wp-json/lww/v1/widget?id=${id}`);
+      const blobs = await Promise.allSettled(urls.map(u => fetchJson(u, 8000)));
+      for (const b of blobs) {
+        if (b.status !== 'fulfilled') continue;
+        const text = JSON.stringify(b.value);
+        const src = extractSource(text);
+        if (src) return src;
+      }
+      console.info('[EarthLens] no direct source found for LWW id', id, blobs.map((b, i) => [urls[i], b.status]));
+      return null;
+    }
+
+    function playerMarkup(res, item) {
+      const src = res.src;
+      const tag = (txt) => `<div class="absolute top-1 left-1 z-10 bg-black/70 px-1.5 py-0.5 rounded text-[9px] text-emerald-400">${txt}</div>`;
+      const link = `<div class="absolute bottom-1 right-2 z-10 bg-black/75 px-2 py-0.5 rounded text-[10px] text-gray-400">via <a href="${res.page || LWW_BASE}" target="_blank" rel="noopener" class="text-blue-400 hover:underline">Live World Webcams</a></div>`;
+      const perm = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+      if (src && (src.kind === 'youtube' || src.kind === 'ytchannel' || src.kind === 'iframe')) {
+        const url = src.kind === 'youtube' ? `https://www.youtube-nocookie.com/embed/${src.id}?autoplay=1&mute=1&playsinline=1&rel=0`
+                  : src.kind === 'ytchannel' ? `https://www.youtube-nocookie.com/embed/live_stream?channel=${src.id}&autoplay=1&mute=1&playsinline=1`
+                  : src.url;
+        return `<iframe src="${url}" title="${item.title}" class="w-full h-full border-0" allow="${perm}" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>${tag('src: ' + src.kind)}${link}`;
+      }
+      if (src && src.kind === 'hls') {
+        return `<video data-hls="${src.url}" class="w-full h-full bg-black" autoplay muted playsinline controls></video>${tag('src: hls')}${link}`;
+      }
+      // nothing embeddable found: fall back to LWW snapshot widget
+      return lwwWidgetMarkup(res.id, res.page).replace('>LWW id ' + res.id, '>LWW id ' + res.id + ' · no direct source found');
+    }
+
+    function attachHls() {
+      const vids = document.querySelectorAll('video[data-hls]');
+      if (!vids.length) return;
+      const go = () => vids.forEach(v => {
+        if (v.dataset.ready) return; v.dataset.ready = '1';
+        if (v.canPlayType('application/vnd.apple.mpegurl')) { v.src = v.dataset.hls; return; }
+        if (window.Hls && Hls.isSupported()) { const h = new Hls(); h.loadSource(v.dataset.hls); h.attachMedia(v); }
+      });
+      if (window.Hls) return go();
+      const sc = document.createElement('script');
+      sc.src = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js';
+      sc.onload = go; document.head.appendChild(sc);
     }
 
     function lwwWidgetMarkup(id, page) {
@@ -435,7 +510,7 @@
         let html;
         try {
           const res = await resolveLww(item);
-          html = lwwWidgetMarkup(res.id, res.page);
+          html = playerMarkup(res, item);
         } catch (err) {
           html = lwwFailMarkup(item, err);
         }
@@ -443,7 +518,7 @@
         const slot = document.getElementById(slotId);
         if (slot) slot.innerHTML = html;
       }));
-      if (token === renderToken && lwwJobs.length) loadLwwScript();
+      if (token === renderToken && lwwJobs.length) { loadLwwScript(); attachHls(); }
     }
 
     function promptForApiKey() {
