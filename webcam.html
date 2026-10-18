@@ -366,34 +366,104 @@
         </div>`;
     }
 
+
+    /* Tweak the LWW widget's own styling (it lives in a shadow DOM): hide the
+       "Watch Live" button and keep the play icon always visible on the image. */
+    const LWW_TWEAK_CSS = '.lww-cta{display:none !important} .lww-play{opacity:1 !important} .lww-body{padding-bottom:10px !important}';
+    function tweakLwwWidgets() {
+      let pending = 0;
+      document.querySelectorAll('[data-lww-widget]').forEach(h => {
+        if (!h.shadowRoot) { pending++; return; }
+        if (h.shadowRoot.querySelector('style[data-tweak]')) return;
+        const st = document.createElement('style');
+        st.dataset.tweak = '1';
+        st.textContent = LWW_TWEAK_CSS;
+        h.shadowRoot.appendChild(st);
+      });
+      return pending;
+    }
+    function tweakWithRetry(tries = 20) {
+      if (tweakLwwWidgets() > 0 && tries > 0) setTimeout(() => tweakWithRetry(tries - 1), 250);
+    }
+
     function loadLwwScript() {
       document.querySelectorAll('script[data-lww-loader]').forEach(s => s.remove());
       const s = document.createElement('script');
       s.async = true;
       s.dataset.lwwLoader = '1';
       s.src = `${LWW_BASE}/wp-content/plugins/lww-embed-widget/assets/widget.js?cb=${Date.now()}`;
-      s.onload = () => { if (window.lwwWidgetInit) { try { window.lwwWidgetInit(); } catch (e) {} } };
+      s.onload = () => { if (window.lwwWidgetInit) { try { window.lwwWidgetInit(); } catch (e) {} } tweakWithRetry(); };
       document.head.appendChild(s);
     }
 
 
-    /* Open a camera's LWW page inside the same card instead of a new tab. */
+    /* Open a camera's LWW page inside the same card, cropped to the video area.
+       The LWW page is rendered at a fixed desktop width, scaled to fit the card,
+       and shifted so only the player shows. Align once with the arrows: the
+       setting is saved and applies to every camera. */
+    const CAL_KEY = 'lww_view_cal_v1';
+    const CAL_DEFAULT = { x: 0, y: 320, z: 1 };
+    const VIEW_W = 1200;
+    const getCal = () => { try { return { ...CAL_DEFAULT, ...JSON.parse(localStorage.getItem(CAL_KEY) || '{}') }; } catch (e) { return { ...CAL_DEFAULT }; } };
+    const setCal = (c) => { try { localStorage.setItem(CAL_KEY, JSON.stringify(c)); } catch (e) {} };
+
     function openInline(slot, href) {
       if (slot.querySelector('.inline-viewer')) return;
       const v = document.createElement('div');
       v.className = 'inline-viewer absolute inset-0 z-20 bg-black flex flex-col';
       const safe = href.replace(/"/g, '&quot;');
+      const btn = 'px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700';
       v.innerHTML = `
         <div class="flex items-center justify-between gap-2 px-3 py-1.5 bg-gray-950 border-b border-gray-800 text-[11px]">
-          <button class="iv-back px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700">&larr; Back</button>
-          <span class="text-gray-500 truncate">Blank or not playing? LWW may block embedding &rarr;</span>
-          <a href="${safe}" target="_blank" rel="noopener" data-newtab="1" class="px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white whitespace-nowrap">Open in new tab</a>
+          <button class="iv-back ${btn}">&larr; Back</button>
+          <div class="iv-ctl flex items-center gap-1 text-gray-400">
+            <span class="hidden sm:inline mr-1">Align:</span>
+            <button data-act="up" title="Show higher part of page" class="${btn}">&uarr;</button>
+            <button data-act="down" title="Show lower part of page" class="${btn}">&darr;</button>
+            <button data-act="left" title="Move view left" class="${btn}">&larr;</button>
+            <button data-act="right" title="Move view right" class="${btn}">&rarr;</button>
+            <button data-act="zout" title="Zoom out" class="${btn}">&minus;</button>
+            <button data-act="zin" title="Zoom in" class="${btn}">+</button>
+            <button data-act="reset" title="Reset alignment" class="${btn}">&#8635;</button>
+          </div>
+          <a href="${safe}" target="_blank" rel="noopener" data-newtab="1" class="px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white whitespace-nowrap">New tab &#8599;</a>
         </div>
-        <iframe src="${safe}" title="Live webcam" class="flex-1 w-full border-0 bg-white"
-          allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen
-          referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
-      v.querySelector('.iv-back').onclick = () => v.remove();
+        <div class="iv-stage relative w-full overflow-hidden bg-black my-auto">
+          <iframe src="${safe}" title="Live webcam" scrolling="no"
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen
+            referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        </div>`;
       slot.appendChild(v);
+
+      const stage = v.querySelector('.iv-stage');
+      const fr = stage.querySelector('iframe');
+      const apply = () => {
+        const c = getCal();
+        const w = stage.clientWidth || slot.clientWidth || 600;
+        stage.style.height = Math.round(w * 9 / 16) + 'px';
+        const sc = (w / VIEW_W) * c.z;
+        fr.style.cssText = `position:absolute;border:0;background:#fff;width:${VIEW_W}px;height:4000px;` +
+          `left:${-c.x * sc}px;top:${-c.y * sc}px;transform:scale(${sc});transform-origin:0 0;`;
+      };
+      apply();
+      if (window.ResizeObserver) new ResizeObserver(apply).observe(stage);
+
+      v.querySelector('.iv-back').onclick = () => v.remove();
+      v.querySelector('.iv-ctl').addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-act]'); if (!b) return;
+        let c = getCal(); const step = 40 / c.z;
+        switch (b.dataset.act) {
+          case 'up': c.y -= step; break;
+          case 'down': c.y += step; break;
+          case 'left': c.x -= step; break;
+          case 'right': c.x += step; break;
+          case 'zin': c.z = Math.min(4, c.z * 1.1); break;
+          case 'zout': c.z = Math.max(0.4, c.z / 1.1); break;
+          case 'reset': c = { ...CAL_DEFAULT }; break;
+        }
+        c.x = Math.max(0, c.x); c.y = Math.max(0, c.y);
+        setCal(c); apply();
+      });
     }
 
     function hookInlinePlay(slot) {
