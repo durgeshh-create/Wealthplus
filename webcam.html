@@ -299,8 +299,7 @@
       const urls = [];
       const bases = [...new Set([subtype && subtype !== 'post' ? subtype : null, 'posts', 'pages', 'webcams', 'webcam'].filter(Boolean))];
       bases.forEach(b => urls.push(`${LWW_BASE}/wp-json/wp/v2/${b}/${id}`));
-      urls.push(`${LWW_BASE}/wp-json/lww/v1/widget?mode=specific&id=${id}`);
-      urls.push(`${LWW_BASE}/wp-json/lww/v1/widget?id=${id}`);
+      urls.push(`${LWW_BASE}/wp-json/lww/v1/widget/webcam?id=${id}`);
       const blobs = await Promise.allSettled(urls.map(u => fetchJson(u, 8000)));
       for (const b of blobs) {
         if (b.status !== 'fulfilled') continue;
@@ -346,7 +345,7 @@
 
     function lwwWidgetMarkup(id, page) {
       return `
-        <div data-lww-widget data-mode="specific" data-id="${id}" data-api="${LWW_BASE}/wp-json/lww/v1/widget" data-utm="lww-widget" class="w-full h-full"></div>
+        <div data-lww-widget data-mode="specific" data-id="${id}" data-api="${LWW_BASE}/wp-json/lww/v1/widget" data-utm="lww-widget" data-width="420" class="w-full"></div>
         <div class="absolute top-1 left-1 z-10 bg-black/70 px-1.5 py-0.5 rounded text-[9px] text-emerald-400">LWW id ${id}</div>
         <div class="absolute bottom-1 right-2 z-10 bg-black/75 px-2 py-0.5 rounded text-[10px] text-gray-400">
           Powered by <a href="${page || LWW_BASE + '/'}" target="_blank" rel="noopener" class="text-blue-400 hover:underline">Live World Webcams</a>
@@ -400,7 +399,7 @@
         if (item.type === 'lww') {
           const slotId = `lww-slot-${token}-${lwwJobs.length}`;
           contentMarkup = `
-            <div id="${slotId}" class="aspect-video bg-gray-950 relative flex flex-col justify-center items-center overflow-hidden">
+            <div id="${slotId}" class="min-h-[22rem] bg-gray-950 relative flex flex-col justify-center items-center overflow-hidden py-3">
               <div class="flex items-center gap-2 text-xs text-gray-500"><i class="ph ph-circle-notch animate-spin text-lg"></i> Finding live stream…</div>
             </div>
           `;
