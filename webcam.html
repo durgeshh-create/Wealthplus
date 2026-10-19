@@ -814,21 +814,49 @@
 
     const tempMarkup = (x) => `${esc(x.c)}°C${x.f ? ` <span class="text-xs font-medium text-sky-300/60">${esc(x.f)}°F</span>` : ''}`;
 
+    /* The ranking page doesn't send CORS headers, so a plain fetch is usually
+       blocked. Try, in order: direct, LWW's WordPress REST API (which the grid
+       below already relies on), then public CORS relays. First one that yields
+       a ranking wins. */
+    const COLD_SOURCES = [
+      { name: 'direct', get: () => fetchText(COLD_URL) },
+      { name: 'wp-rest', get: async () => {
+          const j = await fetchJson(`${LWW_BASE}/wp-json/wp/v2/pages?slug=coldest-places&_fields=content`);
+          return (j[0] && j[0].content && j[0].content.rendered) || '';
+        } },
+      { name: 'corsproxy.io', get: () => fetchText('https://corsproxy.io/?url=' + encodeURIComponent(COLD_URL)) },
+      { name: 'allorigins', get: () => fetchText('https://api.allorigins.win/raw?url=' + encodeURIComponent(COLD_URL)) }
+    ];
+    let coldSource = '';
+
+    async function fetchColdestList() {
+      const errs = [];
+      for (const s of COLD_SOURCES) {
+        try {
+          const list = parseColdest(await s.get());
+          if (list.length) { coldSource = s.name; return list; }
+          errs.push(`${s.name}: response had no rankings`);
+        } catch (e) { errs.push(`${s.name}: ${(e && e.message) || e}`); }
+      }
+      throw new Error(errs.join(' | '));
+    }
+
     async function loadColdest() {
       const grid = document.getElementById('coldGrid');
       if (!grid) return;
+      const upd = document.getElementById('coldUpdated');
       let list;
       try {
-        list = parseColdest(await fetchText(COLD_URL));
-        if (!list.length) throw new Error('No rankings found');
+        list = await fetchColdestList();
       } catch (err) {
-        console.warn('[EarthLens] Coldest places unavailable, using embed fallback', err);
+        console.warn('[EarthLens] Coldest places: could not read the ranking, showing LWW embed instead.', err.message);
+        if (upd) upd.textContent = 'Live ranking unavailable here, showing LWW widget';
         if (!grid.dataset.ready) { grid.dataset.ready = 'fallback'; coldFallback(grid); }
         return;
       }
 
-      const upd = document.getElementById('coldUpdated');
       if (upd) upd.textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      console.info('[EarthLens] Coldest places loaded via', coldSource);
 
       const key = list.map(x => x.slug).join('|');
       if (key === coldKey) {                       // same top 3: just refresh the temperatures
