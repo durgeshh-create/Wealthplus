@@ -85,19 +85,24 @@
   <!-- Grid -->
   <main class="flex-1 max-w-[1920px] w-full mx-auto p-4 md:p-6">
     <!-- Live Coldest Places -->
-    <section class="camera-card mb-5">
-      <div class="px-4 py-3 bg-gray-900 border-b border-gray-800 flex items-center justify-between">
+    <section class="mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div class="flex items-center gap-2">
-          <i class="ph-bold ph-snowflake text-sky-400"></i>
-          <h2 class="text-sm font-semibold text-white tracking-wide">Coldest Places Right Now</h2>
+          <i class="ph-bold ph-snowflake text-sky-400 text-lg"></i>
+          <h2 class="text-base font-semibold text-white tracking-wide">Coldest Places Right Now</h2>
           <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border bg-emerald-950 text-emerald-400 border-emerald-800">LIVE</span>
         </div>
-        <a href="https://liveworldwebcams.com/coldest-places/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-blue-400 hover:text-blue-300 inline-flex items-center gap-1">
-          Open full page <i class="ph ph-arrow-square-out"></i>
-        </a>
+        <div class="flex items-center gap-3 text-[11px]">
+          <span id="coldUpdated" class="text-gray-500"></span>
+          <a href="https://liveworldwebcams.com/coldest-places/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 inline-flex items-center gap-1">
+            Full rankings <i class="ph ph-arrow-square-out"></i>
+          </a>
+        </div>
       </div>
-      <div class="p-3 bg-gray-900/40">
-        <iframe src="https://liveworldwebcams.com/coldest-places/?lww_embed=1" width="100%" height="360" frameborder="0" scrolling="no" loading="lazy" title="Coldest Places Right Now | LiveWorldWebcams" style="border-radius:6px;border:1px solid #e5e7eb;box-shadow:0 2px 12px rgba(0,0,0,.06);"></iframe>
+      <div id="coldGrid" class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="lg:col-span-3 camera-card flex items-center justify-center gap-2 py-10 text-xs text-gray-500">
+          <i class="ph ph-circle-notch animate-spin text-lg"></i> Loading the coldest places…
+        </div>
       </div>
     </section>
 
@@ -742,10 +747,145 @@
 
     function reloadAll() {
       renderLocations(items);
+      coldKey = '';            // force the coldest-places cards to rebuild too
+      loadColdest();
+    }
+
+    /* ================= Coldest places: live top-3 cards =================
+       Reads the current ranking from LWW's embed page, then shows each of the
+       three locations as a card with its live camera (same resolver/player as
+       the grid below). If the ranking can't be read (CORS/offline) it falls
+       back to LWW's own embed so the section is never empty. */
+    const COLD_URL = LWW_BASE + '/coldest-places/?lww_embed=1';
+    const COLD_REFRESH = 10 * 60 * 1000;
+    let coldKey = '', coldToken = 0;
+
+    const esc = (s) => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+    async function fetchText(url, ms = 9000) {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), ms);
+      try {
+        const r = await fetch(url, { signal: ctrl.signal });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return await r.text();
+      } finally { clearTimeout(t); }
+    }
+
+    function camPath(a) {
+      let u; try { u = new URL(a.getAttribute('href'), LWW_BASE); } catch (e) { return null; }
+      if (!/(^|\.)liveworldwebcams\.com$/.test(u.hostname)) return null;
+      const p = u.pathname.replace(/\/+$/, '');
+      return (!p || p === '/coldest-places') ? null : p;
+    }
+
+    function parseColdest(html) {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const tempRe = /(-?\d+(?:\.\d+)?)\s*°\s*C/;
+      const countCams = (el) => new Set([...el.querySelectorAll('a[href]')].map(camPath).filter(Boolean)).size;
+      const out = [], seen = new Set();
+      doc.querySelectorAll('a[href]').forEach(a => {
+        if (out.length >= 3) return;
+        const p = camPath(a);
+        const name = a.textContent.replace(/^[^\p{L}\p{N}]+/u, '').trim();
+        if (!p || !name || seen.has(p)) return;
+        // climb to the smallest ancestor that holds this one camera plus its temperature
+        let row = a.parentElement, text = '';
+        while (row && row !== doc.body) {
+          if (tempRe.test(row.textContent) && countCams(row) === 1) { text = row.textContent; break; }
+          row = row.parentElement;
+        }
+        const c = text.match(tempRe), f = text.match(/(-?\d+(?:\.\d+)?)\s*°\s*F/);
+        if (!c) return;
+        seen.add(p);
+        out.push({ name, url: LWW_BASE + p + '/', slug: p.split('/').pop(), c: c[1], f: f ? f[1] : null });
+      });
+      return out;
+    }
+
+    function coldFallback(grid) {
+      grid.innerHTML = `
+        <div class="lg:col-span-3 camera-card p-3">
+          <iframe src="${COLD_URL}" width="100%" height="360" frameborder="0" scrolling="no" loading="lazy"
+            title="Coldest Places Right Now | LiveWorldWebcams"
+            style="border-radius:6px;border:1px solid #e5e7eb;box-shadow:0 2px 12px rgba(0,0,0,.06);"></iframe>
+        </div>`;
+    }
+
+    const tempMarkup = (x) => `${esc(x.c)}°C${x.f ? ` <span class="text-xs font-medium text-sky-300/60">${esc(x.f)}°F</span>` : ''}`;
+
+    async function loadColdest() {
+      const grid = document.getElementById('coldGrid');
+      if (!grid) return;
+      let list;
+      try {
+        list = parseColdest(await fetchText(COLD_URL));
+        if (!list.length) throw new Error('No rankings found');
+      } catch (err) {
+        console.warn('[EarthLens] Coldest places unavailable, using embed fallback', err);
+        if (!grid.dataset.ready) { grid.dataset.ready = 'fallback'; coldFallback(grid); }
+        return;
+      }
+
+      const upd = document.getElementById('coldUpdated');
+      if (upd) upd.textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const key = list.map(x => x.slug).join('|');
+      if (key === coldKey) {                       // same top 3: just refresh the temperatures
+        list.forEach((x, i) => { const el = document.getElementById(`cold-temp-${i}`); if (el) el.innerHTML = tempMarkup(x); });
+        return;
+      }
+
+      coldKey = key;
+      const token = ++coldToken;
+      grid.dataset.ready = '1';
+      grid.innerHTML = '';
+      const medals = ['🥇', '🥈', '🥉'];
+      const jobs = [];
+
+      list.forEach((x, i) => {
+        const [place, ...rest] = x.name.split(',');
+        const slotId = `cold-slot-${token}-${i}`;
+        const card = document.createElement('div');
+        card.className = 'camera-card flex flex-col shadow-lg';
+        card.innerHTML = `
+          <div class="px-4 py-3 bg-gray-900 border-b border-gray-800 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="text-2xl leading-none">${medals[i]}</span>
+              <div class="truncate">
+                <h3 class="text-sm font-semibold text-white tracking-wide truncate">${esc(place.trim())}</h3>
+                <p class="text-xs text-gray-400 flex items-center gap-1 truncate mt-0.5">
+                  <i class="ph-bold ph-map-pin text-blue-400"></i> ${esc(rest.join(',').trim() || x.name)}
+                </p>
+              </div>
+            </div>
+            <div id="cold-temp-${i}" class="text-xl font-bold text-sky-300 whitespace-nowrap">${tempMarkup(x)}</div>
+          </div>
+          <div id="${slotId}" class="min-h-[22rem] bg-gray-950 relative flex flex-col justify-center items-center overflow-hidden py-3">
+            <div class="flex items-center gap-2 text-xs text-gray-500"><i class="ph ph-circle-notch animate-spin text-lg"></i> Finding live stream…</div>
+          </div>`;
+        grid.appendChild(card);
+        jobs.push({ item: { title: place.trim(), slug: x.slug, queries: [x.name] }, slotId });
+      });
+
+      await Promise.allSettled(jobs.map(async ({ item, slotId }) => {
+        let html;
+        try { html = playerMarkup(await resolveLww(item), item); }
+        catch (err) { html = lwwFailMarkup(item, err); }
+        if (token !== coldToken) return;           // a newer ranking replaced these cards
+        const slot = document.getElementById(slotId);
+        if (slot) { slot.innerHTML = html; hookInlinePlay(slot); }
+      }));
+      if (token === coldToken) {
+        if (grid.querySelector('[data-lww-widget]')) loadLwwScript();
+        attachHls();
+      }
     }
 
     // Initial load
     renderLocations(items);
+    loadColdest();
+    setInterval(loadColdest, COLD_REFRESH);
   </script>
 </body>
 </html>
