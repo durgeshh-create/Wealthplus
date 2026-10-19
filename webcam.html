@@ -84,6 +84,23 @@
 
   <!-- Grid -->
   <main class="flex-1 max-w-[1920px] w-full mx-auto p-4 md:p-6">
+    <!-- Live Coldest Places -->
+    <section class="camera-card mb-5">
+      <div class="px-4 py-3 bg-gray-900 border-b border-gray-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="ph-bold ph-snowflake text-sky-400"></i>
+          <h2 class="text-sm font-semibold text-white tracking-wide">Coldest Places Right Now</h2>
+          <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border bg-emerald-950 text-emerald-400 border-emerald-800">LIVE</span>
+        </div>
+        <a href="https://liveworldwebcams.com/coldest-places/" target="_blank" rel="noopener noreferrer" class="text-[11px] text-blue-400 hover:text-blue-300 inline-flex items-center gap-1">
+          Open full page <i class="ph ph-arrow-square-out"></i>
+        </a>
+      </div>
+      <div class="p-3 bg-gray-900/40">
+        <iframe src="https://liveworldwebcams.com/coldest-places/?lww_embed=1" width="100%" height="360" frameborder="0" scrolling="no" loading="lazy" title="Coldest Places Right Now | LiveWorldWebcams" style="border-radius:6px;border:1px solid #e5e7eb;box-shadow:0 2px 12px rgba(0,0,0,.06);"></iframe>
+      </div>
+    </section>
+
     <div id="locationGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
       <!-- Injected by JS -->
     </div>
