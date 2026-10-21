@@ -1,91 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>My Bills Hub</title>
-<style>
-:root{--bg:#f6f7f9;--card:#fff;--tx:#1b1f24;--mut:#6b7280;--bd:#e3e6ea;--ac:#e47911;--ok:#1a7f4b;--bad:#c0392b;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111418;--card:#1b2026;--tx:#eceff3;--mut:#9aa3ae;--bd:#2c333b;--ok:#4cc38a;--bad:#ff7b6b}}
-:root[data-theme="dark"]{--bg:#111418;--card:#1b2026;--tx:#eceff3;--mut:#9aa3ae;--bd:#2c333b;--ok:#4cc38a;--bad:#ff7b6b}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-main{max-width:860px;margin:0 auto;padding:20px 16px 40px}
-h1{font-size:1.5rem;margin:0 0 4px}
-.sub{color:var(--mut);font-size:.9rem;margin:0 0 16px}
-.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
-.sum div{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}
-.sum small{color:var(--mut);display:block}
-.sum b{font-size:1.5rem}
-.note{background:var(--card);border:1px solid var(--bd);border-left:4px solid var(--ac);border-radius:8px;padding:10px 14px;font-size:.85rem;color:var(--mut);margin-bottom:16px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
-.card h2{font-size:1.05rem;margin:0;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.badge{font-size:.72rem;padding:2px 8px;border-radius:99px;border:1px solid var(--bd);color:var(--mut);white-space:nowrap}
-.badge.due{color:var(--bad);border-color:var(--bad)}.badge.paid{color:var(--ok);border-color:var(--ok)}
-label{font-size:.8rem;color:var(--mut);display:block}
-input{width:100%;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
-.row{display:flex;gap:8px}.row>*{flex:1}
-.btn{display:inline-block;text-align:center;padding:10px 12px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
-.btn.pay{background:var(--ac);border-color:var(--ac);color:#fff}
-.top{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Pay - Utility Bills Hub</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --accent: #ff9900;
+      --accent-hover: #e68a00;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding: 2.5rem 1rem;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: 860px;
+      width: 100%;
+    }
+    header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    h1 span {
+      color: var(--accent);
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .badge {
+      font-size: 1.5rem;
+      background: rgba(255, 153, 0, 0.1);
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+    }
+    .title-group h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .title-group span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .card-body {
+      margin: 0.75rem 0 1.25rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .pay-btn {
+      display: inline-block;
+      text-align: center;
+      background: var(--accent);
+      color: #111;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 0.65rem 1rem;
+      border-radius: 6px;
+      transition: background 0.15s ease;
+    }
+    .pay-btn:hover {
+      background: var(--accent-hover);
+    }
+    .notice {
+      margin-top: 2rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed var(--border);
+      padding: 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+  </style>
 </head>
 <body>
-<main>
-<h1>My Bills Hub</h1>
-<p class="sub">All your Amazon Pay bill pages in one place</p>
-<div class="note">Amazon’s bill pages need your login and can’t be read or embedded by other sites, so amounts can’t be fetched automatically. Open each bill once, note the amount due here, and use this page as your tracker. The Pay buttons take you straight to Amazon to complete payment.</div>
-<div class="sum">
-<div><small>Total due</small><b id="total">₹0</b></div>
-<div><small>Bills pending</small><b id="pending">0</b></div>
-<div><small>Next due date</small><b id="next">—</b></div>
-</div>
-<div class="top">
-<button class="btn" id="openAll">Open all bill pages</button>
-<button class="btn" id="reset">Reset</button>
-</div>
-<div class="grid" id="grid"></div>
-</main>
-<script>
-var BILLS=[
-{id:"cc",name:"Credit card",icon:"💳",url:"https://www.amazon.in/apay/onep/credit-card?cardToken=1006-0028039-987254"},
-{id:"landline",name:"Landline",icon:"☎️",url:"https://www.amazon.in/apay/detail/landline?validationToken=15108714128744326&ref_=apay_landing_landline_payui-your-billers-id"},
-{id:"elec",name:"Electricity",icon:"💡",url:"https://www.amazon.in/apay/detail/electricity?validationToken=15044068529120817&ref_=apay_landing_electricity_payui-your-billers-id"},
-{id:"gas",name:"Gas",icon:"🔥",url:"https://www.amazon.in/apay/detail/gas?validationToken=15042123390228728&ref_=apay_landing_gas_payui-your-billers-id"},
-{id:"mobile",name:"Mobile postpaid",icon:"📱",url:"https://www.amazon.in/hfc/bill/mobile_postpaid?ref_=apay_deskhome_MobilePostpaid"}
-];
-var KEY="billshub-v1",S={};
-try{S=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){S={}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-function st(id){return S[id]||(S[id]={amt:"",due:"",paid:false})}
-function inr(n){return "₹"+Number(n).toLocaleString("en-IN")}
-function render(){
-var g=document.getElementById("grid");g.innerHTML="";
-BILLS.forEach(function(b){
-var s=st(b.id),a=parseFloat(s.amt)||0;
-var label=s.paid?"Paid":(a>0?"Due":"Not set");
-var c=document.createElement("div");c.className="card";
-c.innerHTML='<h2><span>'+b.icon+' '+b.name+'</span><span class="badge '+(s.paid?"paid":a>0?"due":"")+'">'+label+'</span></h2>'+
-'<div class="row"><div><label>Amount due (₹)</label><input type="number" min="0" inputmode="decimal" value="'+s.amt+'" data-k="amt"></div>'+
-'<div><label>Due date</label><input type="date" value="'+s.due+'" data-k="due"></div></div>'+
-'<div class="row"><a class="btn pay" target="_blank" rel="noopener noreferrer" href="'+b.url+'">Check &amp; pay</a>'+
-'<button class="btn" data-paid>'+(s.paid?"Mark unpaid":"Mark paid")+'</button></div>';
-c.querySelectorAll("input").forEach(function(i){
-i.addEventListener("change",function(){s[i.dataset.k]=i.value;if(i.dataset.k==="amt")s.paid=false;save();render()})});
-c.querySelector("[data-paid]").addEventListener("click",function(){s.paid=!s.paid;save();render()});
-g.appendChild(c)});
-var t=0,p=0,d=[];
-BILLS.forEach(function(b){var s=st(b.id),a=parseFloat(s.amt)||0;if(!s.paid&&a>0){t+=a;p++;if(s.due)d.push(s.due)}});
-document.getElementById("total").textContent=inr(t);
-document.getElementById("pending").textContent=p;
-d.sort();document.getElementById("next").textContent=d.length?new Date(d[0]+"T00:00").toLocaleDateString("en-IN",{day:"numeric",month:"short"}):"—";
-}
-document.getElementById("openAll").addEventListener("click",function(){BILLS.forEach(function(b){window.open(b.url,"_blank","noopener")})});
-document.getElementById("reset").addEventListener("click",function(){if(confirm("Clear all saved amounts?")){S={};save();render()}});
-render();
-</script>
+  <div class="container">
+    <header>
+      <h1>Amazon Pay <span>Utility Hub</span></h1>
+      <p class="subtitle">Quick access portal for monthly bill settlements</p>
+    </header>
+
+    <div class="grid">
+      <!-- Credit Card -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="badge">💳</div>
+            <div class="title-group">
+              <h2>Credit Card</h2>
+              <span>Token: 1006-***-987254</span>
+            </div>
+          </div>
+          <p class="card-body">Pay outstanding balance & view due date directly via your saved token.</p>
+        </div>
+        <a class="pay-btn" href="https://www.amazon.in/apay/onep/credit-card?cardToken=1006-0028039-987254" target="_blank" rel="noopener noreferrer">Check & Pay Card →</a>
+      </div>
+
+      <!-- Electricity -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="badge">⚡</div>
+            <div class="title-group">
+              <h2>Electricity</h2>
+              <span>Power Utility Account</span>
+            </div>
+          </div>
+          <p class="card-body">Direct link configured with your pre-saved consumer number token.</p>
+        </div>
+        <a class="pay-btn" href="https://www.amazon.in/apay/detail/electricity?validationToken=15044068529120817&ref_=apay_landing_electricity_payui-your-billers-id" target="_blank" rel="noopener noreferrer">Check & Pay Power →</a>
+      </div>
+
+      <!-- Piped Gas -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="badge">🔥</div>
+            <div class="title-group">
+              <h2>Piped Gas</h2>
+              <span>Gas Connection Bill</span>
+            </div>
+          </div>
+          <p class="card-body">Piped natural gas (PNG) billing page mapped to your customer ID.</p>
+        </div>
+        <a class="pay-btn" href="https://www.amazon.in/apay/detail/gas?validationToken=15042123390228728&ref_=apay_landing_gas_payui-your-billers-id" target="_blank" rel="noopener noreferrer">Check & Pay Gas →</a>
+      </div>
+
+      <!-- Landline / Broadband -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="badge">☎️</div>
+            <div class="title-group">
+              <h2>Landline / Net</h2>
+              <span>Broadband Connection</span>
+            </div>
+          </div>
+          <p class="card-body">View monthly fixed-line broadband statement and clear dues.</p>
+        </div>
+        <a class="pay-btn" href="https://www.amazon.in/apay/detail/landline?validationToken=15108714128744326&ref_=apay_landing_landline_payui-your-billers-id" target="_blank" rel="noopener noreferrer">Check & Pay Landline →</a>
+      </div>
+
+      <!-- Mobile Postpaid -->
+      <div class="card">
+        <div>
+          <div class="card-header">
+            <div class="badge">📱</div>
+            <div class="title-group">
+              <h2>Mobile Postpaid</h2>
+              <span>Cellular Dues</span>
+            </div>
+          </div>
+          <p class="card-body">Enter your mobile number or proceed to the saved operator view.</p>
+        </div>
+        <a class="pay-btn" href="https://www.amazon.in/hfc/bill/mobile_postpaid?ref_=apay_deskhome_MobilePostpaid" target="_blank" rel="noopener noreferrer">Pay Postpaid Mobile →</a>
+      </div>
+    </div>
+
+    <div class="notice">
+      <strong>Note:</strong> Due to Amazon's security controls (same-origin policy and multi-factor authentication), amounts cannot be queried programmatically from outside your logged-in browser session. Each button opens your pre-linked biller directly in a tab with session context preserved.
+    </div>
+  </div>
 </body>
 </html>
