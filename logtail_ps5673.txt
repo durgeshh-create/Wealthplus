@@ -3,3 +3,12 @@
 2026-10-21 09:41:10 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261021150270302
 2026-10-21 09:41:10 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹222.46
 2026-10-21 09:41:11 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 12 × ₹222.46 = ₹2670 | LIMIT | Available Cash
+2026-10-21 09:42:10 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-97.0)]: SILVERBEES | Price=₹195.68 | PrevClose=₹197.44 | AvgBuy=₹213.24 | Slot 1/6
+2026-10-21 09:42:10 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-80.1)]: HDFCSML250 | Price=₹174.69 | PrevClose=₹175.04 | AvgBuy=₹180.08 | Slot 1/6
+2026-10-21 09:42:10 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-97.2), B(W%R=-97.2+drop=1.37%), C(W%R=-97.2+drop=1.37%)]: GOLDBEES | Price=₹118.19 | PrevClose=₹119.83 | AvgBuy=₹122.99 | Slot 1/6
+2026-10-21 09:42:10 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-97.03 | ₹195.68
+2026-10-21 09:42:10 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-80.06 | ₹174.69
+2026-10-21 09:42:10 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-97.17 | ₹118.19
+2026-10-21 09:42:10 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-10-21 09:42:10 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
+2026-10-21 09:42:10 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
