@@ -1,7 +1,7 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-10-20 14:32:54 IST",
-  "bot_running": false,
+  "timestamp": "2026-10-21 09:01:36 IST",
+  "bot_running": true,
   "total_value": 6996771.02,
   "today_pnl": 0.0,
   "today_pnl_pct": 0.0,
@@ -434,59 +434,25 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 22888.95,
+      "ltp": 23123.25,
       "prev_close": 22888.95,
-      "change": 0.0,
-      "change_pct": 0.0,
-      "open": 23150.85,
-      "high": 23175.25,
-      "low": 22845.0
+      "change": 234.3,
+      "change_pct": 1.02,
+      "open": null,
+      "high": null,
+      "low": null
     },
     "INDIA VIX": {
       "ltp": 14.77,
       "prev_close": 14.77,
       "change": 0.0,
       "change_pct": 0.0,
-      "open": 14.06,
-      "high": 14.97,
-      "low": 13.32
+      "open": null,
+      "high": null,
+      "low": null
     }
   },
   "mf_holdings": [
-    {
-      "name": "ADITYA BIRLA SUN LIFE ULTRA SHORT TO SHORT TERM FUND - DIRECT PLAN",
-      "folio": "1039199892",
-      "units": 7151.716,
-      "free_units": 0.716,
-      "pledged_units": 7151.0,
-      "avg_nav": 615.68,
-      "ltp": 786.33,
-      "nav_date": "",
-      "invested": 4403168.77,
-      "cur_val": 5623610.99,
-      "pnl": 1220442.22,
-      "pnl_pct": 27.72,
-      "day_chg_abs": 0.0,
-      "day_chg_pct": 0.0,
-      "day_pnl": 0.0
-    },
-    {
-      "name": "ADITYA BIRLA SUN LIFE FLOATING INTEREST RATE FUND - DIRECT PLAN",
-      "folio": "1039199892",
-      "units": 13639.748,
-      "free_units": 3715.748,
-      "pledged_units": 9924.0,
-      "avg_nav": 275.876,
-      "ltp": 386.272,
-      "nav_date": "",
-      "invested": 3762876.87,
-      "cur_val": 5268652.74,
-      "pnl": 1505775.87,
-      "pnl_pct": 40.02,
-      "day_chg_abs": 0.0,
-      "day_chg_pct": 0.0,
-      "day_pnl": 0.0
-    },
     {
       "name": "ADITYA BIRLA SUN LIFE MONEY MARKET FUND - DIRECT PLAN",
       "folio": "1039199892",
@@ -573,6 +539,40 @@
       "day_pnl": 0.0
     },
     {
+      "name": "ADITYA BIRLA SUN LIFE ULTRA SHORT TO SHORT TERM FUND - DIRECT PLAN",
+      "folio": "1039199892",
+      "units": 7151.716,
+      "free_units": 0.716,
+      "pledged_units": 7151.0,
+      "avg_nav": 615.68,
+      "ltp": 786.33,
+      "nav_date": "",
+      "invested": 4403168.77,
+      "cur_val": 5623610.99,
+      "pnl": 1220442.22,
+      "pnl_pct": 27.72,
+      "day_chg_abs": 0.0,
+      "day_chg_pct": 0.0,
+      "day_pnl": 0.0
+    },
+    {
+      "name": "ADITYA BIRLA SUN LIFE FLOATING INTEREST RATE FUND - DIRECT PLAN",
+      "folio": "1039199892",
+      "units": 13639.748,
+      "free_units": 3715.748,
+      "pledged_units": 9924.0,
+      "avg_nav": 275.876,
+      "ltp": 386.272,
+      "nav_date": "",
+      "invested": 3762876.87,
+      "cur_val": 5268652.74,
+      "pnl": 1505775.87,
+      "pnl_pct": 40.02,
+      "day_chg_abs": 0.0,
+      "day_chg_pct": 0.0,
+      "day_pnl": 0.0
+    },
+    {
       "name": "HDFC MONEY MARKET FUND - DIRECT PLAN",
       "folio": "16805426/54",
       "units": 1545.818,
@@ -598,17 +598,17 @@
     "day_pnl": 0.0,
     "day_pnl_pct": 0.0,
     "debug_raw_first": {
-      "tradingsymbol": "INF209K01XU7",
-      "fund": "ADITYA BIRLA SUN LIFE ULTRA SHORT TO SHORT TERM FUND - DIRECT PLAN",
+      "tradingsymbol": "INF209K01UU3",
+      "fund": "ADITYA BIRLA SUN LIFE MONEY MARKET FUND - DIRECT PLAN",
       "folio": "1039199892",
-      "last_price": 786.3303,
+      "last_price": 407.4102,
       "last_price_date": "",
-      "quantity": 7151.716,
+      "quantity": 14034.572,
       "pnl": 0.0,
       "xirr": 0.0,
-      "average_price": 615.680037,
+      "average_price": 298.177311,
       "discrepancy": false,
-      "pledged_quantity": 7151.0,
+      "pledged_quantity": 14034.0,
       "las_quantity": 0.0
     }
   },
