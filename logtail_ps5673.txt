@@ -15,3 +15,6 @@
 2026-10-22 09:20:08 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261022150124061
 2026-10-22 09:20:09 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹216.94
 2026-10-22 09:20:10 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 45 × ₹217.06 = ₹9768 | LIMIT | Available Cash
+2026-10-22 10:51:13 IST | ERROR    | kiteconnect.ticker   | Connection error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+2026-10-22 10:51:13 IST | ERROR    | backend.data.realtime | ❌ WebSocket error: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
+2026-10-22 10:51:13 IST | ERROR    | kiteconnect.ticker   | Connection closed: 1006 - connection was closed uncleanly (peer dropped the TCP connection without previous WebSocket closing handshake)
