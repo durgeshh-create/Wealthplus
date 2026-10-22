@@ -3,3 +3,15 @@
 2026-10-22 12:40:52 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261022151094813
 2026-10-22 12:40:53 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹217.11
 2026-10-22 12:40:53 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 27 × ₹217.12 = ₹5862 | LIMIT | Available Cash
+2026-10-22 12:41:52 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-95.3), B(W%R=-95.3+drop=2.65%), C(W%R=-95.3+drop=2.65%)]: SILVERBEES | Price=₹189.90 | PrevClose=₹195.06 | AvgBuy=₹213.24 | Slot 1/6
+2026-10-22 12:41:52 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-87.5)]: JUNIORBEES | Price=₹727.44 | PrevClose=₹730.68 | AvgBuy=₹775.37 | Slot 1/6
+2026-10-22 12:41:52 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-96.2), B(W%R=-96.2+drop=1.29%), C(W%R=-96.2+drop=1.29%)]: HDFCSML250 | Price=₹169.49 | PrevClose=₹171.70 | AvgBuy=₹180.07 | Slot 1/6
+2026-10-22 12:41:52 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-88.1)]: GOLDBEES | Price=₹117.45 | PrevClose=₹118.13 | AvgBuy=₹122.99 | Slot 1/6
+2026-10-22 12:41:52 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-95.29 | ₹189.90
+2026-10-22 12:41:52 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-87.55 | ₹727.44
+2026-10-22 12:41:52 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-96.20 | ₹169.49
+2026-10-22 12:41:52 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-88.08 | ₹117.45
+2026-10-22 12:41:52 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-10-22 12:41:52 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-10-22 12:41:52 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
+2026-10-22 12:41:52 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
