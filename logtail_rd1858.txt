@@ -1,0 +1,17 @@
+2026-10-22 09:20:00 IST | INFO     | backend.orders.manager | smart_buy 40 × MID150BEES @ ₹217.06 (cost ₹8,682.40) | Available cash: ₹67,002.60 (spendable after ₹15000 reserve: ₹52,002.60)
+2026-10-22 09:20:00 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 40 x MID150BEES
+2026-10-22 09:20:00 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261022190103796
+2026-10-22 09:20:01 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: MID150BEES @ ₹217.02
+2026-10-22 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-98.7), B(W%R=-98.7+drop=2.16%), C(W%R=-98.7+drop=2.16%)]: SILVERBEES | Price=₹190.85 | PrevClose=₹195.06 | AvgBuy=₹213.13 | Slot 1/6
+2026-10-22 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-98.2)]: JUNIORBEES | Price=₹724.00 | PrevClose=₹730.68 | AvgBuy=₹773.11 | Slot 1/6
+2026-10-22 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-93.4)]: HDFCSML250 | Price=₹170.16 | PrevClose=₹171.70 | AvgBuy=₹180.68 | Slot 1/6
+2026-10-22 09:20:01 IST | INFO     | backend.strategy.signal_generator | ✅ BUY SIGNAL [A(W%R=-98.8)]: GOLDBEES | Price=₹117.08 | PrevClose=₹118.13 | AvgBuy=₹122.98 | Slot 1/6
+2026-10-22 09:20:01 IST | INFO     | __main__             |   🟢 BUY: SILVERBEES | W%R=-98.67 | ₹190.85
+2026-10-22 09:20:01 IST | INFO     | __main__             |   🟢 BUY: JUNIORBEES | W%R=-98.16 | ₹724.00
+2026-10-22 09:20:01 IST | INFO     | __main__             |   🟢 BUY: HDFCSML250 | W%R=-93.40 | ₹170.16
+2026-10-22 09:20:01 IST | INFO     | __main__             |   🟢 BUY: GOLDBEES | W%R=-98.83 | ₹117.08
+2026-10-22 09:20:01 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: SILVERBEES                       
+2026-10-22 09:20:01 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: JUNIORBEES                       
+2026-10-22 09:20:01 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED BUY: HDFCSML250                       
+2026-10-22 09:20:01 IST | INFO     | backend.strategy.executor |                        EXECUTING AUTOMATED BUY: GOLDBEES                        
+2026-10-22 09:20:01 IST | INFO     | backend.strategy.intraday_engine | [MID150BEES] ✅ BUY 40 × ₹217.06 = ₹8682 | LIMIT | Available Cash
