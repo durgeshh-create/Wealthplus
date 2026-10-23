@@ -1,6 +1,6 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-10-23 09:09:12 IST",
+  "timestamp": "2026-10-23 09:10:19 IST",
   "bot_running": true,
   "total_value": 6998287.59,
   "today_pnl": -6580.4,
@@ -52,8 +52,8 @@
       "value": 140989.54,
       "pnl": -2060.11,
       "pnl_pct": -1.44,
-      "unrealised_pnl": -6861.58,
-      "unrealised_pnl_pct": -4.58,
+      "unrealised_pnl": -8921.69,
+      "unrealised_pnl_pct": -5.95,
       "strategy": "active",
       "buys_today": 7,
       "max_slots": 6
@@ -122,8 +122,8 @@
       "value": 128993.47,
       "pnl": -4520.29,
       "pnl_pct": -3.39,
-      "unrealised_pnl": -16313.25,
-      "unrealised_pnl_pct": -10.89,
+      "unrealised_pnl": -20833.54,
+      "unrealised_pnl_pct": -13.91,
       "strategy": "active",
       "buys_today": 7,
       "max_slots": 6
@@ -169,13 +169,13 @@
       "quantity": 2329,
       "pledged": 1917,
       "avg": 485.66,
-      "ltp": 491.93,
+      "ltp": 492.0,
       "invested": 1131104.63,
-      "value": 1145704.97,
-      "pnl": 14600.34,
-      "pnl_pct": 1.29,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "value": 1145868.0,
+      "pnl": 14763.37,
+      "pnl_pct": 1.31,
+      "day_pnl": 163.03,
+      "day_pnl_pct": 0.01,
       "tracked": false
     },
     {
@@ -201,13 +201,13 @@
       "quantity": 6705,
       "pledged": 6705,
       "avg": 168.05,
-      "ltp": 159.07,
+      "ltp": 159.4,
       "invested": 1126769.6,
-      "value": 1066564.35,
-      "pnl": -60205.25,
-      "pnl_pct": -5.34,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "value": 1068777.0,
+      "pnl": -57992.6,
+      "pnl_pct": -5.15,
+      "day_pnl": 2212.65,
+      "day_pnl_pct": 0.21,
       "tracked": false
     },
     {
@@ -316,10 +316,10 @@
       "ltp": 115.66,
       "invested": 149911.23,
       "value": 140989.54,
-      "pnl": -6861.58,
-      "pnl_pct": -4.58,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "pnl": -8921.69,
+      "pnl_pct": -5.95,
+      "day_pnl": -2060.11,
+      "day_pnl_pct": -1.44,
       "tracked": true
     },
     {
@@ -332,10 +332,10 @@
       "ltp": 183.49,
       "invested": 149827.01,
       "value": 128993.47,
-      "pnl": -16313.25,
-      "pnl_pct": -10.89,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
+      "pnl": -20833.54,
+      "pnl_pct": -13.91,
+      "day_pnl": -4520.29,
+      "day_pnl_pct": -3.39,
       "tracked": true
     },
     {
@@ -357,11 +357,11 @@
   ],
   "equity_summary": {
     "total_invested": 12070319.18,
-    "total_cur_val": 11849055.05,
-    "total_pnl": -221264.13,
-    "total_pnl_pct": -1.83,
-    "day_pnl": 0.0,
-    "day_pnl_pct": 0.0,
+    "total_cur_val": 11851430.73,
+    "total_pnl": -218888.45,
+    "total_pnl_pct": -1.81,
+    "day_pnl": -4204.72,
+    "day_pnl_pct": -0.03,
     "count": 14
   },
   "positions": [
@@ -393,9 +393,9 @@
   "williams_r": [
     {
       "symbol": "SILVERBEES",
-      "ltp": 183.49,
-      "change_pct": -3.39,
-      "williams_r": -100.0,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -95.2,
       "is_held": true,
       "avg_price": 213.13,
       "strategy": "active"
@@ -438,9 +438,9 @@
     },
     {
       "symbol": "GOLDBEES",
-      "ltp": 115.66,
-      "change_pct": -1.44,
-      "williams_r": -100.0,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -89.67,
       "is_held": true,
       "avg_price": 122.98,
       "strategy": "active"
