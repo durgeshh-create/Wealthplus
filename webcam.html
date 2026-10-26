@@ -234,7 +234,7 @@
        pointed at the camera's current source, so nothing here goes stale.
        Pin a camera manually with { widgetId: '12345' } or { slug: 'page-slug' }. */
     const LWW_BASE = 'https://liveworldwebcams.com';
-    const LWW_CACHE_KEY = 'lww_resolve_v2';
+    const LWW_CACHE_KEY = 'lww_resolve_v3';
     const LWW_TTL = 7 * 24 * 3600 * 1000;
     let lwwCache = {};
     try { lwwCache = JSON.parse(localStorage.getItem(LWW_CACHE_KEY) || '{}'); } catch (e) {}
@@ -339,16 +339,50 @@
       const link = `<div class="absolute bottom-1 right-2 z-10 bg-black/75 px-2 py-0.5 rounded text-[10px] text-gray-400">via <a href="${res.page || LWW_BASE}" target="_blank" rel="noopener" class="text-blue-400 hover:underline">Live World Webcams</a></div>`;
       const perm = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
       if (src && (src.kind === 'youtube' || src.kind === 'ytchannel' || src.kind === 'iframe')) {
-        const url = src.kind === 'youtube' ? `https://www.youtube-nocookie.com/embed/${src.id}?autoplay=1&mute=1&playsinline=1&rel=0`
-                  : src.kind === 'ytchannel' ? `https://www.youtube-nocookie.com/embed/live_stream?channel=${src.id}&autoplay=1&mute=1&playsinline=1`
+        const url = src.kind === 'youtube' ? `https://www.youtube-nocookie.com/embed/${src.id}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`
+                  : src.kind === 'ytchannel' ? `https://www.youtube-nocookie.com/embed/live_stream?channel=${src.id}&autoplay=1&mute=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`
                   : src.url;
-        return `<iframe src="${url}" title="${item.title}" class="w-full h-full border-0" allow="${perm}" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>${tag('src: ' + src.kind)}${link}`;
+        return `<iframe src="${url}" title="${item.title}" class="absolute inset-0 w-full h-full border-0" data-player="1" data-yt="${src.kind === 'iframe' ? '' : '1'}" allow="${perm}" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>${tag('src: ' + src.kind)}${link}`;
       }
       if (src && src.kind === 'hls') {
-        return `<video data-hls="${src.url}" class="w-full h-full bg-black" autoplay muted playsinline controls></video>${tag('src: hls')}${link}`;
+        return `<video data-hls="${src.url}" data-player="1" class="absolute inset-0 w-full h-full bg-black object-contain" autoplay muted playsinline controls></video>${tag('src: hls')}${link}`;
       }
       // nothing embeddable found: fall back to LWW snapshot widget
       return lwwWidgetMarkup(res.id, res.page);
+    }
+
+
+    /* Make a playing stream fill the whole card width (16:9) instead of sitting in a small box,
+       and fall back to the LWW widget if YouTube reports the video as unavailable. */
+    function layoutPlayer(slot, res) {
+      const playing = !!slot.querySelector('[data-player]');
+      slot.classList.toggle('aspect-video', playing);
+      slot.classList.toggle('min-h-[22rem]', !playing);
+      slot.classList.toggle('py-3', !playing);
+      if (!playing) return;
+      const fr = slot.querySelector('iframe[data-yt="1"]');
+      if (!fr) return;
+      let done = false;
+      const fallback = () => {
+        if (done) return; done = true;
+        window.removeEventListener('message', onMsg);
+        res.src = null;
+        Object.keys(lwwCache).forEach(k => { if (lwwCache[k] === res || lwwCache[k].id === res.id) lwwCache[k].src = null; });
+        saveLwwCache();
+        slot.innerHTML = lwwWidgetMarkup(res.id, res.page);
+        layoutPlayer(slot, res);
+        hookInlinePlay(slot);
+        loadLwwScript();
+      };
+      const onMsg = (e) => {
+        if (e.source !== fr.contentWindow) return;
+        let d = e.data; if (typeof d === 'string') { try { d = JSON.parse(d); } catch (x) { return; } }
+        if (d && d.event === 'onError') fallback();
+        
+      };
+      window.addEventListener('message', onMsg);
+      const ping = () => { try { fr.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1 }), '*'); } catch (x) {} };
+      fr.addEventListener('load', () => { ping(); setTimeout(ping, 800); setTimeout(ping, 2000); });
     }
 
     function attachHls() {
@@ -688,16 +722,16 @@
       });
 
       await Promise.allSettled(lwwJobs.map(async ({ item, slotId }) => {
-        let html;
+        let html, res = {};
         try {
-          const res = await resolveLww(item);
+          res = await resolveLww(item);
           html = playerMarkup(res, item);
         } catch (err) {
           html = lwwFailMarkup(item, err);
         }
         if (token !== renderToken) return;           // a newer render replaced this one
         const slot = document.getElementById(slotId);
-        if (slot) { slot.innerHTML = html; hookInlinePlay(slot); }
+        if (slot) { slot.innerHTML = html; layoutPlayer(slot, res); hookInlinePlay(slot); }
       }));
       if (token === renderToken && lwwJobs.length) { loadLwwScript(); attachHls(); }
     }
@@ -901,12 +935,12 @@
       });
 
       await Promise.allSettled(jobs.map(async ({ item, slotId }) => {
-        let html;
-        try { html = playerMarkup(await resolveLww(item), item); }
+        let html, res = {};
+        try { res = await resolveLww(item); html = playerMarkup(res, item); }
         catch (err) { html = lwwFailMarkup(item, err); }
         if (token !== coldToken) return;           // a newer ranking replaced these cards
         const slot = document.getElementById(slotId);
-        if (slot) { slot.innerHTML = html; hookInlinePlay(slot); }
+        if (slot) { slot.innerHTML = html; layoutPlayer(slot, res); hookInlinePlay(slot); }
       }));
       if (token === coldToken) {
         if (grid.querySelector('[data-lww-widget]')) loadLwwScript();
