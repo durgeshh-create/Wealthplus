@@ -359,7 +359,7 @@
       slot.classList.toggle('aspect-video', playing);
       slot.classList.toggle('min-h-[22rem]', !playing);
       slot.classList.toggle('py-3', !playing);
-      if (!playing) return;
+      if (!playing) { autoPlay(slot, res); return; }
       const fr = slot.querySelector('iframe[data-yt="1"]');
       if (!fr) return;
       let done = false;
@@ -383,6 +383,26 @@
       window.addEventListener('message', onMsg);
       const ping = () => { try { fr.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1 }), '*'); } catch (x) {} };
       fr.addEventListener('load', () => { ping(); setTimeout(ping, 800); setTimeout(ping, 2000); });
+    }
+
+
+    /* Snapshot-widget cards: open the live view automatically (no Play click).
+       Loaded lazily as each card nears the viewport so 25 pages don't load at once. */
+    let autoIO = null;
+    function autoPlay(slot, res) {
+      if (!res || !res.page || slot.__autoQueued) return;
+      slot.__autoQueued = true;
+      if (!('IntersectionObserver' in window)) { openInline(slot, res.page); return; }
+      if (!autoIO) autoIO = new IntersectionObserver((entries) => {
+        entries.forEach(en => {
+          if (!en.isIntersecting) return;
+          autoIO.unobserve(en.target);
+          const t = en.target;
+          if (t.isConnected && !t.querySelector('.inline-viewer')) openInline(t, t.__autoUrl);
+        });
+      }, { rootMargin: '400px 0px' });
+      slot.__autoUrl = res.page;
+      autoIO.observe(slot);
     }
 
     function attachHls() {
@@ -780,6 +800,7 @@
     }
 
     function reloadAll() {
+      lwwCache = {}; saveLwwCache();
       renderLocations(items);
       coldKey = '';            // force the coldest-places cards to rebuild too
       loadColdest();
