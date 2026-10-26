@@ -66,8 +66,8 @@
 
         <div class="hidden sm:flex bg-gray-900 border border-gray-800 rounded-lg p-1 space-x-1">
           <button onclick="setGrid(1)" title="1 Column" class="p-1.5 hover:bg-gray-800 rounded text-gray-400 hover:text-white"><i class="ph-bold ph-square"></i></button>
-          <button onclick="setGrid(2)" title="2 Columns" class="p-1.5 hover:bg-gray-800 rounded text-gray-400 hover:text-white"><i class="ph-bold ph-columns"></i></button>
-          <button onclick="setGrid(3)" title="3 Columns" class="p-1.5 bg-gray-800 rounded text-blue-400"><i class="ph-bold ph-grid-four"></i></button>
+          <button onclick="setGrid(2)" title="2 Columns" class="p-1.5 bg-gray-800 rounded text-blue-400"><i class="ph-bold ph-columns"></i></button>
+          <button onclick="setGrid(3)" title="3 Columns" class="p-1.5 hover:bg-gray-800 rounded text-gray-400 hover:text-white"><i class="ph-bold ph-grid-four"></i></button>
           <button onclick="setGrid(4)" title="4 Columns" class="p-1.5 hover:bg-gray-800 rounded text-gray-400 hover:text-white"><i class="ph-bold ph-grid-nine"></i></button>
         </div>
 
@@ -106,7 +106,7 @@
       </div>
     </section>
 
-    <div id="locationGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+    <div id="locationGrid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
       <!-- Injected by JS -->
     </div>
   </main>
@@ -769,6 +769,10 @@
     }
 
     function setGrid(cols) {
+      document.querySelectorAll('button[onclick^="setGrid("]').forEach(b => {
+        const on = b.getAttribute('onclick') === `setGrid(${cols})`;
+        b.className = 'p-1.5 rounded ' + (on ? 'bg-gray-800 text-blue-400' : 'hover:bg-gray-800 text-gray-400 hover:text-white');
+      });
       const grid = document.getElementById('locationGrid');
       grid.className = `grid gap-5 ${
         cols === 1 ? 'grid-cols-1' :
