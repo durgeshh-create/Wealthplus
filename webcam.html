@@ -387,22 +387,10 @@
 
 
     /* Snapshot-widget cards: open the live view automatically (no Play click).
-       Loaded lazily as each card nears the viewport so 25 pages don't load at once. */
-    let autoIO = null;
+       Cards are only mounted while on screen (see lazy loader below), so open right away. */
     function autoPlay(slot, res) {
-      if (!res || !res.page || slot.__autoQueued) return;
-      slot.__autoQueued = true;
-      if (!('IntersectionObserver' in window)) { openInline(slot, res.page); return; }
-      if (!autoIO) autoIO = new IntersectionObserver((entries) => {
-        entries.forEach(en => {
-          if (!en.isIntersecting) return;
-          autoIO.unobserve(en.target);
-          const t = en.target;
-          if (t.isConnected && !t.querySelector('.inline-viewer')) openInline(t, t.__autoUrl);
-        });
-      }, { rootMargin: '400px 0px' });
-      slot.__autoUrl = res.page;
-      autoIO.observe(slot);
+      if (!res || !res.page) return;
+      if (!slot.querySelector('.inline-viewer')) openInline(slot, res.page);
     }
 
     function attachHls() {
@@ -411,7 +399,7 @@
       const go = () => vids.forEach(v => {
         if (v.dataset.ready) return; v.dataset.ready = '1';
         if (v.canPlayType('application/vnd.apple.mpegurl')) { v.src = v.dataset.hls; return; }
-        if (window.Hls && Hls.isSupported()) { const h = new Hls(); h.loadSource(v.dataset.hls); h.attachMedia(v); }
+        if (window.Hls && Hls.isSupported()) { const h = new Hls(); v.__hls = h; h.loadSource(v.dataset.hls); h.attachMedia(v); }
       });
       if (window.Hls) return go();
       const sc = document.createElement('script');
@@ -501,6 +489,7 @@
           </div>
         </div>
         <div class="iv-stage flex-none relative w-full overflow-hidden bg-black">
+          <div class="iv-load absolute inset-0 z-10 flex items-center justify-center gap-2 text-xs text-gray-400 bg-black pointer-events-none"><i class="ph ph-circle-notch animate-spin text-lg"></i> Loading live view…</div>
           <iframe src="${safe}" title="Live webcam" scrolling="no"
             allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen
             referrerpolicy="strict-origin-when-cross-origin"></iframe>
@@ -536,6 +525,10 @@
       };
       apply();
       if (window.ResizeObserver) new ResizeObserver(apply).observe(v);
+      const loadEl = v.querySelector('.iv-load');
+      let loaded = false;
+      fr.addEventListener('load', () => { loaded = true; setTimeout(() => loadEl && loadEl.remove(), 600); });
+      setTimeout(() => { if (!loaded && v.isConnected) fr.src = href; }, 15000);   // one retry
 
       v.querySelector('.iv-back').onclick = () => {
         v.remove();
@@ -613,6 +606,89 @@
       }, true);
     }
 
+    /* ================= Lazy loader =================
+       A card's stream is only resolved/opened while the card is on screen, a few
+       at a time. When it scrolls out of view it is torn down again, so scrolling
+       never piles up dozens of live pages. */
+    const MAX_CONCURRENT = 3;
+    let activeJobs = 0;
+    const jobQueue = [];
+    function pump() {
+      while (activeJobs < MAX_CONCURRENT && jobQueue.length) {
+        const fn = jobQueue.shift();
+        activeJobs++;
+        Promise.resolve().then(fn).catch(() => {}).finally(() => { activeJobs--; pump(); });
+      }
+    }
+    const enqueue = (fn) => { jobQueue.push(fn); pump(); };
+
+    const LAZY_PLACEHOLDER = '<div class="flex items-center gap-2 text-xs text-gray-500"><i class="ph ph-circle-notch animate-spin text-lg"></i> Loading…</div>';
+    let lazyIO = null, lwwScriptTimer = null;
+    const scheduleLwwScript = () => { clearTimeout(lwwScriptTimer); lwwScriptTimer = setTimeout(loadLwwScript, 300); };
+
+    function registerLazy(el, item, isStale, kind) {
+      el.__lazy = { item, isStale, kind: kind || 'lww' };
+      el.__gen = (el.__gen || 0) + 1;
+      if (!('IntersectionObserver' in window)) { el.__visible = true; mountLazy(el); return; }
+      if (!lazyIO) lazyIO = new IntersectionObserver((entries) => {
+        entries.forEach(en => {
+          const el = en.target;
+          if (!el.isConnected) { lazyIO.unobserve(el); return; }
+          el.__visible = en.isIntersecting;
+          clearTimeout(el.__unloadT);
+          if (en.isIntersecting) mountLazy(el);
+          else el.__unloadT = setTimeout(() => { if (!el.__visible) unmountLazy(el); }, 1500);
+        });
+      }, { rootMargin: '80px 0px' });
+      lazyIO.observe(el);
+    }
+
+    function mountLazy(el) {
+      const L = el.__lazy;
+      if (!L || el.__mounted || el.__mounting) return;
+      if (L.kind === 'frame') {
+        const fr = el.querySelector('iframe[data-lazy-src]');
+        if (fr && fr.getAttribute('src') !== fr.dataset.lazySrc) fr.src = fr.dataset.lazySrc;
+        el.__mounted = true;
+        return;
+      }
+      el.__mounting = true;
+      const gen = el.__gen;
+      enqueue(async () => {
+        const abort = () => !el.isConnected || el.__gen !== gen || L.isStale() || !el.__visible;
+        if (abort()) { el.__mounting = false; return; }
+        let html, res = {};
+        try { res = await resolveLww(L.item); html = playerMarkup(res, L.item); }
+        catch (err) { html = lwwFailMarkup(L.item, err); }
+        el.__mounting = false;
+        if (abort()) return;                       // scrolled away / re-rendered meanwhile
+        el.innerHTML = html;
+        el.__mounted = true;
+        layoutPlayer(el, res);
+        hookInlinePlay(el);
+        if (el.querySelector('[data-lww-widget]')) scheduleLwwScript();
+        attachHls();
+      });
+    }
+
+    function unmountLazy(el) {
+      const L = el.__lazy;
+      if (!L || !el.__mounted) return;
+      el.__gen++;
+      el.__mounted = false; el.__mounting = false;
+      if (L.kind === 'frame') {
+        const fr = el.querySelector('iframe[data-lazy-src]');
+        if (fr) fr.src = 'about:blank';
+        return;
+      }
+      el.querySelectorAll('video').forEach(v => { try { if (v.__hls) v.__hls.destroy(); v.removeAttribute('src'); v.load(); } catch (e) {} });
+      el.innerHTML = LAZY_PLACEHOLDER;
+      el.removeAttribute('style');
+      el.classList.remove('aspect-video');
+      el.classList.add('min-h-[22rem]', 'py-3');
+      if (el.parentElement) el.parentElement.style.alignSelf = '';
+    }
+
     let renderToken = 0;
 
     async function renderLocations(data) {
@@ -642,14 +718,14 @@
           lwwJobs.push({ item, slotId });
         } else if (item.type === 'panomax') {
           contentMarkup = `
-            <div class="aspect-video bg-black relative flex flex-col">
+            <div data-lazy-frame class="aspect-video bg-black relative flex flex-col">
               <iframe
-                src="${item.panomaxUrl}"
+                data-lazy-src="${item.panomaxUrl}"
                 title="${item.title}"
                 class="w-full h-full border-0"
                 allow="fullscreen; accelerometer; gyroscope"
                 referrerpolicy="no-referrer-when-downgrade"
-                loading="lazy">
+                >
               </iframe>
               <div class="bg-gray-950/90 px-3 py-1.5 flex items-center justify-between text-[11px] text-gray-400 border-t border-gray-800">
                 <span class="flex items-center gap-1.5 text-blue-400">
@@ -666,13 +742,12 @@
             // Official Street View API: respects exact coordinates and camera heading/pitch
             const embedUrl = `https://www.google.com/maps/embed/v1/streetview?key=${apiKey}&location=${item.lat},${item.lng}&heading=${item.heading}&pitch=${item.pitch}&fov=${item.fov || 90}`;
             contentMarkup = `
-              <div class="aspect-video bg-black relative">
+              <div data-lazy-frame class="aspect-video bg-black relative">
                 <iframe
-                  src="${embedUrl}"
+                  data-lazy-src="${embedUrl}"
                   title="${item.title} 360 Street View"
                   class="w-full h-full border-0"
                   allowfullscreen
-                  loading="lazy"
                   referrerpolicy="no-referrer-when-downgrade">
                 </iframe>
                 <div class="bg-gray-950/95 px-3 py-1.5 flex items-center justify-between text-[11px] border-t border-gray-800">
@@ -741,19 +816,12 @@
         grid.appendChild(card);
       });
 
-      await Promise.allSettled(lwwJobs.map(async ({ item, slotId }) => {
-        let html, res = {};
-        try {
-          res = await resolveLww(item);
-          html = playerMarkup(res, item);
-        } catch (err) {
-          html = lwwFailMarkup(item, err);
-        }
-        if (token !== renderToken) return;           // a newer render replaced this one
+      const stale = () => token !== renderToken;
+      lwwJobs.forEach(({ item, slotId }) => {
         const slot = document.getElementById(slotId);
-        if (slot) { slot.innerHTML = html; layoutPlayer(slot, res); hookInlinePlay(slot); }
-      }));
-      if (token === renderToken && lwwJobs.length) { loadLwwScript(); attachHls(); }
+        if (slot) registerLazy(slot, item, stale);
+      });
+      grid.querySelectorAll('[data-lazy-frame]').forEach(el => registerLazy(el, null, stale, 'frame'));
     }
 
     function promptForApiKey() {
@@ -959,18 +1027,11 @@
         jobs.push({ item: { title: place.trim(), slug: x.slug, queries: [x.name] }, slotId });
       });
 
-      await Promise.allSettled(jobs.map(async ({ item, slotId }) => {
-        let html, res = {};
-        try { res = await resolveLww(item); html = playerMarkup(res, item); }
-        catch (err) { html = lwwFailMarkup(item, err); }
-        if (token !== coldToken) return;           // a newer ranking replaced these cards
+      const stale = () => token !== coldToken;
+      jobs.forEach(({ item, slotId }) => {
         const slot = document.getElementById(slotId);
-        if (slot) { slot.innerHTML = html; layoutPlayer(slot, res); hookInlinePlay(slot); }
-      }));
-      if (token === coldToken) {
-        if (grid.querySelector('[data-lww-widget]')) loadLwwScript();
-        attachHls();
-      }
+        if (slot) registerLazy(slot, item, stale);
+      });
     }
 
     // Initial load
