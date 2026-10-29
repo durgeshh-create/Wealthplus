@@ -456,9 +456,18 @@
       if (!fr) return;
       let done = false;
       const noEmbed = () => {
-        slot.classList.remove('aspect-video');
         const why = { 2: 'bad video id', 5: 'player error', 100: 'video removed or private', 101: 'embedding disabled by the owner', 150: 'embedding disabled by the owner', 153: 'embed blocked (no referrer)' }[res.ytErr];
-        slot.innerHTML = `<div class="p-4 text-center text-sm text-gray-300">This stream isn't available right now.${res.ytErr ? `<br><span class="text-xs text-gray-500">YouTube error ${res.ytErr}${why ? ' &mdash; ' + why : ''}</span>` : ''}<br><a class="text-blue-400 underline" target="_blank" rel="noopener" href="${res.page}">Open on YouTube &#8599;</a></div>`;
+        const note = res.ytErr ? `YouTube error ${res.ytErr}${why ? ' \u2014 ' + why : ''}` : 'not available right now';
+        if (res.ytVideo) {
+          slot.classList.add('aspect-video'); slot.classList.remove('min-h-[22rem]', 'py-3');
+          slot.innerHTML = `<a href="${res.page}" target="_blank" rel="noopener" class="absolute inset-0 block bg-black group">
+              <img src="https://i.ytimg.com/vi/${res.ytVideo}/hqdefault_live.jpg" alt="" class="w-full h-full object-cover opacity-70 group-hover:opacity-90" onerror="this.style.display='none'">
+              <span class="absolute inset-x-0 bottom-0 p-3 bg-black/70 text-center text-xs text-gray-200">${note}<br><span class="text-blue-400 underline">Watch on YouTube &#8599;</span></span>
+            </a>`;
+          return;
+        }
+        slot.classList.remove('aspect-video');
+        slot.innerHTML = `<div class="p-4 text-center text-sm text-gray-300">This stream isn't available right now.<br><span class="text-xs text-gray-500">${note}</span><br><a class="text-blue-400 underline" target="_blank" rel="noopener" href="${res.page}">Open on YouTube &#8599;</a></div>`;
       };
       const fallback = () => {
         if (done) return; done = true;
@@ -765,6 +774,7 @@
         catch (err) { html = lwwFailMarkup(L.item, err); }
         el.__mounting = false;
         if (abort()) return;                       // scrolled away / re-rendered meanwhile
+        console.info('[EarthLens] mounted', L.item.title, '->', res.src ? res.src.kind + ':' + (res.src.id || res.src.url || '') : (res.id ? 'snapshot-widget' : 'failed'));
         el.innerHTML = html;
         el.__mounted = true;
         layoutPlayer(el, res);
@@ -1135,7 +1145,7 @@
       });
     }
 
-    const BUILD = 'r9';
+    const BUILD = 'r10';
     console.info('[EarthLens] build', BUILD);
     // Initial load
     renderLocations(items);
