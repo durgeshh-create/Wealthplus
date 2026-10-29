@@ -329,14 +329,9 @@
       const k = 'yth:' + handle, c = lwwCache[k];
       if (c && c.id) return c.id;
       const url = 'https://www.youtube.com/' + handle;
-      const getters = [
-        () => fetchText(url),
-        () => fetchText('https://corsproxy.io/?url=' + encodeURIComponent(url)),
-        () => fetchText('https://api.allorigins.win/raw?url=' + encodeURIComponent(url))
-      ];
-      for (const g of getters) {
+      for (const g of relayGetters(url, true).filter(x => x.name !== 'jina-html')) {
         try {
-          const t = await g();
+          const t = await g.get();
           const m = t.match(/"(?:channelId|externalId)":"(UC[\w-]{22})"/) || t.match(/youtube\.com\/channel\/(UC[\w-]{22})/);
           if (m) { lwwCache[k] = { id: m[1], t: Date.now() }; saveLwwCache(); return m[1]; }
         } catch (e) {}
@@ -344,19 +339,29 @@
       return null;
     }
 
+    /* Ways to read a page the browser can't fetch directly (no CORS headers).
+       html=true -> raw HTML wanted; otherwise Jina's markdown reader is acceptable too. */
+    function relayGetters(url, html) {
+      const e = encodeURIComponent(url);
+      const g = [
+        { name: 'direct', get: () => fetchText(url, 6000) },
+        { name: 'codetabs', get: () => fetchText('https://api.codetabs.com/v1/proxy/?quest=' + e, 9000) }
+      ];
+      if (html) g.push({ name: 'jina-html', get: () => fetchText('https://r.jina.ai/' + url, 12000, { 'X-Return-Format': 'html' }) });
+      else g.push({ name: 'jina', get: () => fetchText('https://r.jina.ai/' + url, 12000) });
+      g.push({ name: 'allorigins', get: () => fetchText('https://api.allorigins.win/raw?url=' + e, 9000) });
+      return g;
+    }
+
     /* LWW shows "Source: <link>" on each camera page. Read that page (direct, then CORS relays)
        and pull the YouTube / HLS source from it. */
     async function pageSource(page) {
       if (!page) return null;
-      const getters = [
-        () => fetchText(page),
-        () => fetchText('https://corsproxy.io/?url=' + encodeURIComponent(page)),
-        () => fetchText('https://api.allorigins.win/raw?url=' + encodeURIComponent(page))
-      ];
-      for (const g of getters) {
-        let html; try { html = await g(); } catch (e) { continue; }
+      for (const g of relayGetters(page, false)) {
+        let html; try { html = await g.get(); } catch (e) { continue; }
         if (!html || html.length < 2000) continue;
         const cands = [];
+        for (const sm of html.matchAll(/Source:?\**\s*\[[^\]]*\]\(([^)\s]+)/gi)) cands.push(sm[1]);
         for (const sm of html.matchAll(/Source\b[\s\S]{0,300}?<a[^>]+href=["']([^"']+)["']/gi)) cands.push(sm[1].replace(/&amp;/g, '&'));
         cands.push(html);
         for (const c of cands) {
@@ -979,11 +984,11 @@
 
     const esc = (s) => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
-    async function fetchText(url, ms = 9000) {
+    async function fetchText(url, ms = 9000, headers) {
       const ctrl = new AbortController();
       const t = setTimeout(() => ctrl.abort(), ms);
       try {
-        const r = await fetch(url, { signal: ctrl.signal });
+        const r = await fetch(url, headers ? { signal: ctrl.signal, headers } : { signal: ctrl.signal });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         return await r.text();
       } finally { clearTimeout(t); }
@@ -1039,13 +1044,12 @@
        below already relies on), then public CORS relays. First one that yields
        a ranking wins. */
     const COLD_SOURCES = [
-      { name: 'direct', get: () => fetchText(COLD_URL) },
+      ...relayGetters(COLD_URL, true).slice(0, 2),
       { name: 'wp-rest', get: async () => {
           const j = await fetchJson(`${LWW_BASE}/wp-json/wp/v2/pages?slug=coldest-places&_fields=content`);
           return (j[0] && j[0].content && j[0].content.rendered) || '';
         } },
-      { name: 'corsproxy.io', get: () => fetchText('https://corsproxy.io/?url=' + encodeURIComponent(COLD_URL)) },
-      { name: 'allorigins', get: () => fetchText('https://api.allorigins.win/raw?url=' + encodeURIComponent(COLD_URL)) }
+      ...relayGetters(COLD_URL, true).slice(2)
     ];
     let coldSource = '';
 
