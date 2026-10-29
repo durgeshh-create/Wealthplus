@@ -268,7 +268,7 @@
     }
 
     async function resolveLww(item) {
-      if (item.youtube) return { id: '', page: 'https://www.youtube.com/watch?v=' + item.youtube, t: Date.now(), src: { kind: 'youtube', id: item.youtube } };
+      if (item.youtube) return { id: '', page: 'https://www.youtube.com/watch?v=' + item.youtube, t: Date.now(), src: { kind: 'youtube', id: item.youtube }, ytVideo: item.youtube };
       if (item.widgetId) {
         const k = 'id:' + item.widgetId, c = lwwCache[k];
         if (c && Date.now() - c.t < LWW_TTL) return c;
@@ -372,6 +372,19 @@
       return null;
     }
 
+    async function ytChannelFromVideo(vid) {
+      const k = 'ytv:' + vid, c = lwwCache[k];
+      if (c && c.id) return c.id;
+      try {
+        const j = await fetchJson('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + vid));
+        const u = j && j.author_url || '';
+        let m = u.match(/\/channel\/(UC[\w-]{22})/), cid = m && m[1];
+        if (!cid && (m = u.match(/youtube\.com\/(@[\w.\-]+)/))) cid = await resolveYtHandle(m[1]);
+        if (cid) { lwwCache[k] = { id: cid, t: Date.now() }; saveLwwCache(); return cid; }
+      } catch (e) {}
+      return null;
+    }
+
     async function discoverSource(id, subtype, page) {
       const urls = [];
       const bases = [...new Set([subtype && subtype !== 'post' ? subtype : null, 'posts', 'pages', 'webcams', 'webcam'].filter(Boolean))];
@@ -430,17 +443,25 @@
       const fr = slot.querySelector('iframe[data-yt="1"]');
       if (!fr) return;
       let done = false;
+      const noEmbed = () => {
+        slot.classList.remove('aspect-video');
+        slot.innerHTML = `<div class="p-4 text-center text-sm text-gray-300">This stream isn't available right now.<br><a class="text-blue-400 underline" target="_blank" rel="noopener" href="${res.page}">Open on YouTube &#8599;</a></div>`;
+      };
       const fallback = () => {
         if (done) return; done = true;
         window.removeEventListener('message', onMsg);
+        if (res.ytVideo && !res.ytTried) {
+          res.ytTried = true;
+          ytChannelFromVideo(res.ytVideo).then(cid => {
+            if (cid) { res.src = { kind: 'ytchannel', id: cid }; slot.innerHTML = playerMarkup(res, { title: 'Live stream' }); layoutPlayer(slot, res); }
+            else noEmbed();
+          });
+          return;
+        }
         res.src = null;
         Object.keys(lwwCache).forEach(k => { if (lwwCache[k] === res || lwwCache[k].id === res.id) lwwCache[k].src = null; });
         saveLwwCache();
-        if (!res.id) {
-          slot.classList.remove('aspect-video');
-          slot.innerHTML = `<div class="p-4 text-center text-sm text-gray-300">This stream isn't embeddable.<br><a class="text-blue-400 underline" target="_blank" rel="noopener" href="${res.page}">Open on YouTube &#8599;</a></div>`;
-          return;
-        }
+        if (!res.id) { noEmbed(); return; }
         slot.innerHTML = lwwWidgetMarkup(res.id, res.page);
         layoutPlayer(slot, res);
         hookInlinePlay(slot);
