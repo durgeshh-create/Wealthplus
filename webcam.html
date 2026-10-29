@@ -118,6 +118,8 @@
   <script>
     const items = [
       /* ========== LIVE WEBCAMS ========== */
+      { type: 'lww', youtube: 'Iv2VUE_UhRQ', title: 'Kappa Bridge', location: 'Kamikochi, Japan', category: 'Asia', kind: 'LIVE' },
+      { type: 'lww', youtube: '2JyBX4a0-aA', title: 'Markthal', location: 'Rotterdam, Netherlands', category: 'Europe', kind: 'LIVE' },
       { type: 'lww', queries: ['Miami skyline', 'Miami'], title: 'Miami Skyline', location: 'Miami, Florida, USA', category: 'Americas', kind: 'LIVE' },
       { type: 'lww', widgetId: '18802', title: 'West End Skyline', location: 'Boston, Massachusetts, USA', category: 'Americas', kind: 'LIVE' },
       { type: 'lww', queries: ['Niagara Falls'], title: 'Niagara Falls Panoramic', location: 'Ontario, Canada', category: 'Americas', kind: 'LIVE' },
@@ -266,10 +268,12 @@
     }
 
     async function resolveLww(item) {
+      if (item.youtube) return { id: '', page: 'https://www.youtube.com/watch?v=' + item.youtube, t: Date.now(), src: { kind: 'youtube', id: item.youtube } };
       if (item.widgetId) {
         const k = 'id:' + item.widgetId, c = lwwCache[k];
         if (c && Date.now() - c.t < LWW_TTL) return c;
-        const out = { id: String(item.widgetId), page: item.pageUrl || '', t: Date.now(), src: await discoverSource(String(item.widgetId), 'post') };
+        const out = { id: String(item.widgetId), page: item.pageUrl || '', t: Date.now(), src: await discoverSource(String(item.widgetId), 'post', item.pageUrl) };
+        if (!out.src) out.t = Date.now() - LWW_TTL + 10 * 60 * 1000;   // retry a failed lookup in 10 min
         lwwCache[k] = out; saveLwwCache(); return out;
       }
 
@@ -288,7 +292,8 @@
             .sort((a, b) => b.s - a.s)[0];
           if (best) {
             const out = { id: String(best.r.id), page: best.r.url, t: Date.now() };
-            out.src = await discoverSource(out.id, best.r.subtype);
+            out.src = await discoverSource(out.id, best.r.subtype, best.r.url);
+            if (!out.src) out.t = Date.now() - LWW_TTL + 10 * 60 * 1000;
             lwwCache[key] = out; saveLwwCache();
             return out;
           }
@@ -339,12 +344,43 @@
       return null;
     }
 
-    async function discoverSource(id, subtype) {
+    /* LWW shows "Source: <link>" on each camera page. Read that page (direct, then CORS relays)
+       and pull the YouTube / HLS source from it. */
+    async function pageSource(page) {
+      if (!page) return null;
+      const getters = [
+        () => fetchText(page),
+        () => fetchText('https://corsproxy.io/?url=' + encodeURIComponent(page)),
+        () => fetchText('https://api.allorigins.win/raw?url=' + encodeURIComponent(page))
+      ];
+      for (const g of getters) {
+        let html; try { html = await g(); } catch (e) { continue; }
+        if (!html || html.length < 2000) continue;
+        const cands = [];
+        for (const sm of html.matchAll(/Source\b[\s\S]{0,300}?<a[^>]+href=["']([^"']+)["']/gi)) cands.push(sm[1].replace(/&amp;/g, '&'));
+        cands.push(html);
+        for (const c of cands) {
+          const s = extractSource(c);
+          if (!s || (c === html && s.kind === 'iframe')) continue;
+          if (s.kind === 'ythandle') { const cid = await resolveYtHandle(s.handle); if (cid) return { kind: 'ytchannel', id: cid }; continue; }
+          if (s.kind !== 'iframe' || c !== html) return s;
+        }
+        console.info('[EarthLens] page fetched but no embeddable source:', page);
+        return null;
+      }
+      console.info('[EarthLens] could not fetch camera page (blocked/offline):', page);
+      return null;
+    }
+
+    async function discoverSource(id, subtype, page) {
       const urls = [];
       const bases = [...new Set([subtype && subtype !== 'post' ? subtype : null, 'posts', 'pages', 'webcams', 'webcam'].filter(Boolean))];
       bases.forEach(b => urls.push(`${LWW_BASE}/wp-json/wp/v2/${b}/${id}`));
       urls.push(`${LWW_BASE}/wp-json/lww/v1/widget/webcam?id=${id}`);
       const blobs = await Promise.allSettled(urls.map(u => fetchJson(u, 8000)));
+      for (const b of blobs) {
+        if (b.status === 'fulfilled' && b.value && typeof b.value.link === 'string' && !page) page = b.value.link;
+      }
       for (const b of blobs) {
         if (b.status !== 'fulfilled') continue;
         const text = JSON.stringify(b.value);
@@ -357,18 +393,21 @@
         }
         return src;
       }
-      console.info('[EarthLens] no direct source found for LWW id', id, blobs.map((b, i) => [urls[i], b.status]));
+      const ps = await pageSource(page);
+      if (ps) return ps;
+      console.info('[EarthLens] no direct source found for LWW id', id, page, blobs.map((b, i) => [urls[i], b.status]));
       return null;
     }
 
+    const YT_ORIGIN = /^https?:/.test(location.protocol) ? '&origin=' + encodeURIComponent(location.origin) : '';
     function playerMarkup(res, item) {
       const src = res.src;
       const tag = () => '';
-      const link = `<div class="absolute bottom-1 right-2 z-10 bg-black/75 px-2 py-0.5 rounded text-[10px] text-gray-400">via <a href="${res.page || LWW_BASE}" target="_blank" rel="noopener" class="text-blue-400 hover:underline">Live World Webcams</a></div>`;
+      const link = `<div class="absolute bottom-1 right-2 z-10 bg-black/75 px-2 py-0.5 rounded text-[10px] text-gray-400">via <a href="${res.page || LWW_BASE}" target="_blank" rel="noopener" class="text-blue-400 hover:underline">${/youtube\.com/.test(res.page || '') ? 'YouTube' : 'Live World Webcams'}</a></div>`;
       const perm = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
       if (src && (src.kind === 'youtube' || src.kind === 'ytchannel' || src.kind === 'iframe')) {
-        const url = src.kind === 'youtube' ? `https://www.youtube-nocookie.com/embed/${src.id}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`
-                  : src.kind === 'ytchannel' ? `https://www.youtube-nocookie.com/embed/live_stream?channel=${src.id}&autoplay=1&mute=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`
+        const url = src.kind === 'youtube' ? `https://www.youtube-nocookie.com/embed/${src.id}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1${YT_ORIGIN}`
+                  : src.kind === 'ytchannel' ? `https://www.youtube-nocookie.com/embed/live_stream?channel=${src.id}&autoplay=1&mute=1&playsinline=1&enablejsapi=1${YT_ORIGIN}`
                   : src.url;
         return `<iframe src="${url}" title="${item.title}" class="absolute inset-0 w-full h-full border-0" data-player="1" data-yt="${src.kind === 'iframe' ? '' : '1'}" allow="${perm}" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>${tag('src: ' + src.kind)}${link}`;
       }
@@ -397,6 +436,11 @@
         res.src = null;
         Object.keys(lwwCache).forEach(k => { if (lwwCache[k] === res || lwwCache[k].id === res.id) lwwCache[k].src = null; });
         saveLwwCache();
+        if (!res.id) {
+          slot.classList.remove('aspect-video');
+          slot.innerHTML = `<div class="p-4 text-center text-sm text-gray-300">This stream isn't embeddable.<br><a class="text-blue-400 underline" target="_blank" rel="noopener" href="${res.page}">Open on YouTube &#8599;</a></div>`;
+          return;
+        }
         slot.innerHTML = lwwWidgetMarkup(res.id, res.page);
         layoutPlayer(slot, res);
         hookInlinePlay(slot);
@@ -416,10 +460,7 @@
 
     /* Snapshot-widget cards: open the live view automatically (no Play click).
        Cards are only mounted while on screen (see lazy loader below), so open right away. */
-    function autoPlay(slot, res) {
-      if (!res || !res.page) return;
-      if (!slot.querySelector('.inline-viewer')) openInline(slot, res.page);
-    }
+    function autoPlay() { /* LWW pages refuse to be framed (CSP frame-ancestors), so the snapshot widget stays as-is */ }
 
     function attachHls() {
       const vids = document.querySelectorAll('video[data-hls]');
@@ -625,12 +666,12 @@
       slot.addEventListener('click', (e) => {
         // composedPath reaches into the widget's shadow DOM
         const a = e.composedPath().find(n => n.tagName === 'A' && n.href);
-        if (!a || a.dataset.newtab) return;
+        if (!a) return;
         let u; try { u = new URL(a.href); } catch (_) { return; }
-        if (u.hostname.indexOf('liveworldwebcams.com') === -1 || u.pathname === '/' ) return; // "More Live Webcams" etc. keep opening normally
+        if (u.hostname.indexOf('liveworldwebcams.com') === -1 || u.pathname === '/') return;
         e.preventDefault();
         e.stopPropagation();
-        openInline(slot, a.href);
+        window.open(a.href, '_blank', 'noopener');
       }, true);
     }
 
@@ -959,15 +1000,14 @@
     }
 
     function coldFallback(grid) {
-      // Compact view: render LWW's widget at a fixed 700px width, scale it to 62%,
-      // and crop the window to just the header + three ranking rows (~390x177px).
+      // LWW refuses to be framed (CSP frame-ancestors) and the ranking couldn't be read, so link out.
       grid.innerHTML = `
-        <div class="lg:col-span-3">
-          <div class="relative overflow-hidden rounded-lg border border-gray-800 shadow-lg max-w-full" style="width:388px;height:177px;background:#f3f4f6;">
-            <iframe src="${COLD_URL}" scrolling="no" loading="lazy"
-              title="Coldest Places Right Now | LiveWorldWebcams"
-              style="position:absolute;border:0;left:-22px;top:-22px;width:700px;height:460px;transform:scale(.62);transform-origin:0 0;"></iframe>
-          </div>
+        <div class="lg:col-span-3 camera-card flex items-center justify-between gap-3 px-4 py-4 text-sm text-gray-300">
+          <span>Couldn't read the live ranking right now (blocked by the browser or offline).</span>
+          <span class="flex gap-2">
+            <button onclick="loadColdest()" class="px-3 py-1 text-xs bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-md text-gray-200">Retry</button>
+            <a href="${LWW_BASE}/coldest-places/" target="_blank" rel="noopener" class="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-500 rounded-md text-white">Open rankings &#8599;</a>
+          </span>
         </div>`;
     }
 
