@@ -234,7 +234,7 @@
        pointed at the camera's current source, so nothing here goes stale.
        Pin a camera manually with { widgetId: '12345' } or { slug: 'page-slug' }. */
     const LWW_BASE = 'https://liveworldwebcams.com';
-    const LWW_CACHE_KEY = 'lww_resolve_v3';
+    const LWW_CACHE_KEY = 'lww_resolve_v4';
     const LWW_TTL = 7 * 24 * 3600 * 1000;
     let lwwCache = {};
     try { lwwCache = JSON.parse(localStorage.getItem(LWW_CACHE_KEY) || '{}'); } catch (e) {}
@@ -306,7 +306,7 @@
       const re = /<iframe[^>]+src=["']([^"']+)["']/gi;
       while ((m = re.exec(t))) {
         const u = m[1].startsWith('//') ? 'https:' + m[1] : m[1];
-        if (/^https?:/.test(u) && !/liveworldwebcams\.com/.test(u)) return { kind: 'iframe', url: u };
+        if (/^https?:/.test(u) && !/liveworldwebcams\.com|google\.[a-z.]+\/maps|openstreetmap|doubleclick|googletagmanager|googlesyndication|facebook\.com\/plugins/i.test(u)) return { kind: 'iframe', url: u };
       }
       if ((m = t.match(/https?:\/\/[^"'\s\\<>]+\.m3u8[^"'\s\\<>]*/))) return { kind: 'hls', url: m[0] };
       if ((m = t.match(/youtube(?:-nocookie)?\.com\/embed\/([\w-]{11})/)) ||
@@ -314,6 +314,28 @@
           (m = t.match(/youtube\.com\/live\/([\w-]{11})/)) ||
           (m = t.match(/youtu\.be\/([\w-]{11})/))) return { kind: 'youtube', id: m[1] };
       if ((m = t.match(/youtube\.com\/channel\/(UC[\w-]{22})/))) return { kind: 'ytchannel', id: m[1] };
+      if ((m = t.match(/youtube\.com\/(@[\w.\-]+)/))) return { kind: 'ythandle', handle: m[1] };
+      return null;
+    }
+
+    /* LWW lists many sources as a YouTube @handle, but the embeddable live URL needs the
+       channel id (UC...). Look it up once (direct, then CORS relays) and cache it. */
+    async function resolveYtHandle(handle) {
+      const k = 'yth:' + handle, c = lwwCache[k];
+      if (c && c.id) return c.id;
+      const url = 'https://www.youtube.com/' + handle;
+      const getters = [
+        () => fetchText(url),
+        () => fetchText('https://corsproxy.io/?url=' + encodeURIComponent(url)),
+        () => fetchText('https://api.allorigins.win/raw?url=' + encodeURIComponent(url))
+      ];
+      for (const g of getters) {
+        try {
+          const t = await g();
+          const m = t.match(/"(?:channelId|externalId)":"(UC[\w-]{22})"/) || t.match(/youtube\.com\/channel\/(UC[\w-]{22})/);
+          if (m) { lwwCache[k] = { id: m[1], t: Date.now() }; saveLwwCache(); return m[1]; }
+        } catch (e) {}
+      }
       return null;
     }
 
@@ -327,7 +349,13 @@
         if (b.status !== 'fulfilled') continue;
         const text = JSON.stringify(b.value);
         const src = extractSource(text);
-        if (src) return src;
+        if (!src) continue;
+        if (src.kind === 'ythandle') {
+          const cid = await resolveYtHandle(src.handle);
+          if (cid) return { kind: 'ytchannel', id: cid };
+          continue;
+        }
+        return src;
       }
       console.info('[EarthLens] no direct source found for LWW id', id, blobs.map((b, i) => [urls[i], b.status]));
       return null;
