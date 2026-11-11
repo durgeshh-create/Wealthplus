@@ -1,0 +1,22 @@
+2026-11-11 09:20:00 IST | INFO     | backend.strategy.signal_generator | ✅ SELL SIGNAL: NIFTYBEES | LTP=₹288.96 Avg=₹279.25 Profit=3.48% (Target=3.0%)
+2026-11-11 09:20:00 IST | INFO     | __main__             |   🔴 SELL: NIFTYBEES | ₹288.96
+2026-11-11 09:20:00 IST | INFO     | backend.strategy.executor |                       EXECUTING AUTOMATED SELL: NIFTYBEES                       
+2026-11-11 09:20:00 IST | INFO     | backend.strategy.executor | LIQUIDCASE buy limit price: ₹116.85 (top ask (offer) from depth)
+2026-11-11 09:20:01 IST | INFO     | backend.strategy.executor | SWAP: Sell 4137 NIFTYBEES @ ₹288.96 = ₹1195427.52 → Buy 10230 LIQUIDCASE LIMIT @ ₹116.85 (reserve ₹15,000.00 respected)
+2026-11-11 09:20:01 IST | INFO     | backend.strategy.executor | LIMIT SELL: using top_bid ₹288.95 for NIFTYBEES (LTP was ₹288.96, top_bid from depth)
+2026-11-11 09:20:01 IST | INFO     | backend.orders.manager | Executing SWAP: Sell 4137 NIFTYBEES -> Buy 10230 LIQUIDCASE
+2026-11-11 09:20:01 IST | INFO     | backend.orders.manager | [SWAP PRE-FLIGHT] ETF→LIQUIDCASE swap detected
+2026-11-11 09:20:01 IST | INFO     | backend.orders.manager | [SWAP STEP 1/4] Placing LIMIT SELL order: 4137 NIFTYBEES
+2026-11-11 09:20:01 IST | INFO     | backend.orders.manager | Placing LIMIT SELL order: 4137 x NIFTYBEES
+2026-11-11 09:20:02 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261111150136097
+2026-11-11 09:20:02 IST | INFO     | backend.orders.manager | [SWAP STEP 2/4] SELL order placed, ID: 261111150136097. Monitoring...
+2026-11-11 09:20:02 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: NIFTYBEES @ ₹289.03
+2026-11-11 09:20:02 IST | INFO     | backend.orders.manager | ✓ [SWAP STEP 2/4] Sell leg completed: 261111150136097
+2026-11-11 09:20:04 IST | INFO     | backend.orders.manager | [SWAP STEP 3/4] Placing LIMIT BUY order: 10230 LIQUIDCASE
+2026-11-11 09:20:04 IST | INFO     | backend.orders.manager | Placing LIMIT BUY order: 10230 x LIQUIDCASE
+2026-11-11 09:20:05 IST | INFO     | backend.orders.manager | ✓ Order placed. ID: 261111150136924
+2026-11-11 09:20:05 IST | INFO     | backend.orders.manager | [SWAP STEP 4/4] BUY order placed, ID: 261111150136924. Monitoring...
+2026-11-11 09:20:05 IST | INFO     | backend.orders.manager | ✓ Order COMPLETE: LIQUIDCASE @ ₹116.85
+2026-11-11 09:20:05 IST | INFO     | backend.orders.manager | ✓ [SWAP STEP 4/4] Buy leg completed: 261111150136924
+2026-11-11 09:20:05 IST | INFO     | backend.orders.manager | ✓ SWAP COMPLETE: NIFTYBEES -> LIQUIDCASE
+2026-11-11 09:20:05 IST | INFO     | backend.strategy.executor | ✓ SELL SUCCESS: NIFTYBEES
