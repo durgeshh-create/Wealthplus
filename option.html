@@ -722,7 +722,7 @@
             }
         }
 
-        const FETCH_TIMEOUT_MS = 6000;
+        const FETCH_TIMEOUT_MS = 4000;
 
         async function fetchPricesFile() {
             let lastErr = null;
@@ -761,7 +761,12 @@
         async function yfQuote(sym, route) {
             const host = Math.random() < 0.5 ? 'query1' : 'query2';
             const target = `https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1m&range=1d&_=${Date.now()}`;
-            const res = await fetchWithTimeout(YF_ROUTES[route](target), FETCH_TIMEOUT_MS);
+            if (route === 1) return await yfFetchJson('https://api.allorigins.win/raw?disableCache=true&url=' + encodeURIComponent(target));
+            return await yfFetchJson(YF_ROUTES[route](target));
+        }
+
+        async function yfFetchJson(url) {
+            const res = await fetchWithTimeout(url, FETCH_TIMEOUT_MS);
             if (!res.ok) throw new Error('HTTP ' + res.status);
             const j = await res.json();
             const m = j.chart.result[0].meta;
@@ -770,30 +775,42 @@
         }
 
         async function fetchPricesLive() {
-            const order = [yfRoute, ...YF_ROUTES.map((_, i) => i).filter(i => i !== yfRoute)];
-            let lastErr = null;
-            for (const r of order) {
-                try {
-                    const [n, v, m] = await Promise.all([
-                        yfQuote(YF_SYMS.nifty, r), yfQuote(YF_SYMS.vix, r), yfQuote(YF_SYMS.midcp, r)
-                    ]);
-                    yfRoute = r;
-                    return {
-                        nifty: n.price, vix: v.price, midcp: m.price,
-                        updated_at: new Date(Math.max(n.time, v.time, m.time) || Date.now()).toISOString(),
-                        source: 'live'
-                    };
-                } catch (e) { lastErr = e; }
+            const tryRoute = async r => {
+                const [n, v, m] = await Promise.all([
+                    yfQuote(YF_SYMS.nifty, r), yfQuote(YF_SYMS.vix, r), yfQuote(YF_SYMS.midcp, r)
+                ]);
+                return { r, n, v, m };
+            };
+            let got;
+            try {
+                // Fast path: the route that worked last time
+                got = await tryRoute(yfRoute);
+            } catch (e) {
+                // Race every other route in parallel; first full success wins
+                const others = YF_ROUTES.map((_, i) => i).filter(i => i !== yfRoute);
+                got = await Promise.any(others.map(tryRoute));
             }
-            throw lastErr || new Error('all live routes failed');
+            yfRoute = got.r;
+            return {
+                nifty: got.n.price, vix: got.v.price, midcp: got.m.price,
+                updated_at: new Date(Math.max(got.n.time, got.v.time, got.m.time) || Date.now()).toISOString(),
+                source: 'live' + got.r
+            };
         }
 
         async function fetchPricesJson() {
-            let live = null;
-            try { live = await fetchPricesLive(); } catch (e) { console.warn('live fetch failed, using file', e); }
-            let file = null;
-            if (!live) file = await fetchPricesFile();
-            return live || file;
+            // Run live fetch and the (stale) file fetch at the same time so a
+            // failed live attempt doesn't add the file's latency on top.
+            const fileP = fetchPricesFile().catch(() => null);
+            try {
+                return await fetchPricesLive();
+            } catch (e) {
+                console.warn('All live routes failed; using prices.json', e);
+                const f = await fileP;
+                if (!f) throw e;
+                f.source = 'file';
+                return f;
+            }
         }
 
         let fetchInProgress = false;
@@ -830,9 +847,10 @@
                     ageNote = ageMin <= 1 ? ' (just now)' : ` (${ageMin}m old)`;
                 }
                 const stale = data.updated_at && (Date.now() - new Date(data.updated_at).getTime()) > 3 * 60000;
+                const src = data.source === 'file' ? ' [file]' : ' [live]';
                 statusEl.textContent = stale
-                    ? `⚠ Stale data${ageNote} — live sources unreachable`
-                    : `Updated ${timeStr}${ageNote}`;
+                    ? `⚠ Stale data${ageNote}${src} — live sources unreachable`
+                    : `Updated ${timeStr}${ageNote}${src}`;
                 statusEl.style.color = stale ? '#fbbf24' : '#4ade80';
             } catch (e) {
                 console.error('fetchLiveData failed:', e);
@@ -1149,7 +1167,7 @@
         setInterval(() => {
             checkMarketStatus();
             fetchLiveData();
-        }, 10000);
+        }, 15000);
     </script>
 </body>
 </html>
