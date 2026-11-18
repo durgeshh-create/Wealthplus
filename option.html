@@ -724,7 +724,7 @@
 
         const FETCH_TIMEOUT_MS = 6000;
 
-        async function fetchPricesJson() {
+        async function fetchPricesFile() {
             let lastErr = null;
             for (const base of PRICES_JSON_CANDIDATES) {
                 const url = base + (base.includes('?') ? '&' : '?') + '_=' + Date.now();
@@ -741,6 +741,59 @@
                 }
             }
             throw lastErr || new Error('No prices.json source succeeded');
+        }
+
+
+        // ---- Live browser-side fetch (no server needed) ----------------
+        // Tries Yahoo directly, then through several free CORS proxies.
+        // Remembers the route that worked last and tries it first, so a
+        // normal refresh is only 3 requests. Falls back to data/prices.json.
+        const YF_SYMS = { nifty: '^NSEI', vix: '^INDIAVIX', midcp: 'NIFTY_MID_SELECT.NS' };
+        const YF_ROUTES = [
+            u => u,
+            u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+            u => 'https://corsproxy.io/?' + encodeURIComponent(u),
+            u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u),
+            u => 'https://thingproxy.freeboard.io/fetch/' + u
+        ];
+        let yfRoute = 0;
+
+        async function yfQuote(sym, route) {
+            const host = Math.random() < 0.5 ? 'query1' : 'query2';
+            const target = `https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1m&range=1d&_=${Date.now()}`;
+            const res = await fetchWithTimeout(YF_ROUTES[route](target), FETCH_TIMEOUT_MS);
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const j = await res.json();
+            const m = j.chart.result[0].meta;
+            if (typeof m.regularMarketPrice !== 'number') throw new Error('no price');
+            return { price: m.regularMarketPrice, time: (m.regularMarketTime || 0) * 1000 };
+        }
+
+        async function fetchPricesLive() {
+            const order = [yfRoute, ...YF_ROUTES.map((_, i) => i).filter(i => i !== yfRoute)];
+            let lastErr = null;
+            for (const r of order) {
+                try {
+                    const [n, v, m] = await Promise.all([
+                        yfQuote(YF_SYMS.nifty, r), yfQuote(YF_SYMS.vix, r), yfQuote(YF_SYMS.midcp, r)
+                    ]);
+                    yfRoute = r;
+                    return {
+                        nifty: n.price, vix: v.price, midcp: m.price,
+                        updated_at: new Date(Math.max(n.time, v.time, m.time) || Date.now()).toISOString(),
+                        source: 'live'
+                    };
+                } catch (e) { lastErr = e; }
+            }
+            throw lastErr || new Error('all live routes failed');
+        }
+
+        async function fetchPricesJson() {
+            let live = null;
+            try { live = await fetchPricesLive(); } catch (e) { console.warn('live fetch failed, using file', e); }
+            let file = null;
+            if (!live) file = await fetchPricesFile();
+            return live || file;
         }
 
         let fetchInProgress = false;
@@ -776,8 +829,11 @@
                     const ageMin = Math.max(0, Math.round((Date.now() - new Date(data.updated_at).getTime()) / 60000));
                     ageNote = ageMin <= 1 ? ' (just now)' : ` (${ageMin}m old)`;
                 }
-                statusEl.textContent = `Updated ${timeStr}${ageNote}`;
-                statusEl.style.color = '#4ade80';
+                const stale = data.updated_at && (Date.now() - new Date(data.updated_at).getTime()) > 3 * 60000;
+                statusEl.textContent = stale
+                    ? `⚠ Stale data${ageNote} — live sources unreachable`
+                    : `Updated ${timeStr}${ageNote}`;
+                statusEl.style.color = stale ? '#fbbf24' : '#4ade80';
             } catch (e) {
                 console.error('fetchLiveData failed:', e);
                 if (!liveDataLoaded) {
