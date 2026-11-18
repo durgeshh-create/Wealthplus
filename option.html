@@ -210,6 +210,7 @@
                     Fetch Live Data
                 </button>
                 <span id="fetchStatus" style="font-size:0.55rem; color:#94a3b8;"></span>
+                <div id="fetchDiag" style="font-size:0.5rem; color:#64748b; max-width:320px;">build v4</div>
             </div>
         </div>
 
@@ -775,11 +776,18 @@
         }
 
         async function fetchPricesLive() {
+            window.__yfErrors = {};
+            const names = ['direct', 'allorigins', 'corsproxy', 'codetabs', 'thingproxy'];
             const tryRoute = async r => {
-                const [n, v, m] = await Promise.all([
-                    yfQuote(YF_SYMS.nifty, r), yfQuote(YF_SYMS.vix, r), yfQuote(YF_SYMS.midcp, r)
-                ]);
-                return { r, n, v, m };
+                try {
+                    const [n, v, m] = await Promise.all([
+                        yfQuote(YF_SYMS.nifty, r), yfQuote(YF_SYMS.vix, r), yfQuote(YF_SYMS.midcp, r)
+                    ]);
+                    return { r, n, v, m };
+                } catch (e) {
+                    window.__yfErrors[names[r]] = (e && e.name === 'AbortError') ? 'timeout' : String(e && e.message || e);
+                    throw e;
+                }
             };
             let got;
             try {
@@ -848,6 +856,11 @@
                 }
                 const stale = data.updated_at && (Date.now() - new Date(data.updated_at).getTime()) > 3 * 60000;
                 const src = data.source === 'file' ? ' [file]' : ' [live]';
+                const errs = window.__yfErrors || {};
+                const diag = document.getElementById('fetchDiag');
+                if (diag) diag.textContent = 'build v4 | ' + (data.source === 'file'
+                    ? 'live failed: ' + Object.entries(errs).map(([k, v]) => k + '=' + v).join(', ')
+                    : 'live OK via route ' + data.source.replace('live', ''));
                 statusEl.textContent = stale
                     ? `⚠ Stale data${ageNote}${src} — live sources unreachable`
                     : `Updated ${timeStr}${ageNote}${src}`;
