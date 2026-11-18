@@ -210,7 +210,7 @@
                     Fetch Live Data
                 </button>
                 <span id="fetchStatus" style="font-size:0.55rem; color:#94a3b8;"></span>
-                <div id="fetchDiag" style="font-size:0.5rem; color:#64748b; max-width:320px;">build v4</div>
+                <div id="fetchDiag" style="font-size:0.5rem; color:#64748b; max-width:320px;">build v5</div>
             </div>
         </div>
 
@@ -749,6 +749,8 @@
         // Tries Yahoo directly, then through several free CORS proxies.
         // Remembers the route that worked last and tries it first, so a
         // normal refresh is only 3 requests. Falls back to data/prices.json.
+        // Paste your Google Apps Script web-app URL here (see apps_script.gs).
+        const LIVE_API_URL = 'https://script.google.com/macros/s/AKfycbyCN-vfMqg_QLHrnYLiZdFStVmLElOpJM5sgScOX_OtSFnOb33ehs-85e-Qc2Y6jeYhqQ/exec'; // e.g. 'https://script.google.com/macros/s/XXXX/exec'
         const YF_SYMS = { nifty: '^NSEI', vix: '^INDIAVIX', midcp: 'NIFTY_MID_SELECT.NS' };
         const YF_ROUTES = [
             u => u,
@@ -777,6 +779,18 @@
 
         async function fetchPricesLive() {
             window.__yfErrors = {};
+            if (LIVE_API_URL) {
+                try {
+                    const res = await fetchWithTimeout(LIVE_API_URL + '?_=' + Date.now(), 9000);
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const d = await res.json();
+                    if (typeof d.nifty !== 'number' || typeof d.vix !== 'number' || typeof d.midcp !== 'number') throw new Error('bad payload');
+                    d.source = 'live-api';
+                    return d;
+                } catch (e) {
+                    window.__yfErrors['appsScript'] = (e && e.name === 'AbortError') ? 'timeout' : String(e && e.message || e);
+                }
+            }
             const names = ['direct', 'allorigins', 'corsproxy', 'codetabs', 'thingproxy'];
             const tryRoute = async r => {
                 try {
@@ -858,9 +872,9 @@
                 const src = data.source === 'file' ? ' [file]' : ' [live]';
                 const errs = window.__yfErrors || {};
                 const diag = document.getElementById('fetchDiag');
-                if (diag) diag.textContent = 'build v4 | ' + (data.source === 'file'
+                if (diag) diag.textContent = 'build v5 | ' + (data.source === 'file'
                     ? 'live failed: ' + Object.entries(errs).map(([k, v]) => k + '=' + v).join(', ')
-                    : 'live OK via route ' + data.source.replace('live', ''));
+                    : 'live OK via ' + (data.source === 'live-api' ? 'Apps Script' : 'route ' + data.source.replace('live', '')));
                 statusEl.textContent = stale
                     ? `⚠ Stale data${ageNote}${src} — live sources unreachable`
                     : `Updated ${timeStr}${ageNote}${src}`;
