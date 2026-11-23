@@ -21,11 +21,7 @@
       --neutral-bg: rgba(245, 158, 11, 0.12);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
@@ -35,12 +31,8 @@
       padding: 16px;
     }
 
-    .container {
-      max-width: 1280px;
-      margin: 0 auto;
-    }
+    .container { max-width: 1280px; margin: 0 auto; }
 
-    /* Header & Feed Bar */
     header {
       display: flex;
       flex-wrap: wrap;
@@ -52,23 +44,10 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .title-block h1 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
+    .title-block h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+    .title-block p { font-size: 0.85rem; color: var(--text-muted); }
 
-    .title-block p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-
-    .header-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
+    .header-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 
     button, select {
       background: var(--bg-input);
@@ -81,20 +60,10 @@
       transition: border-color 0.2s, background 0.2s;
     }
 
-    button:hover, select:hover {
-      border-color: var(--accent);
-    }
-
-    button.primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-      font-weight: 600;
-    }
-
-    button.primary:hover {
-      background: #2563eb;
-    }
+    button:hover, select:hover { border-color: var(--accent); }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+    button.primary:hover { background: #2563eb; }
+    button:disabled { opacity: 0.6; cursor: wait; }
 
     .feed-bar {
       background: var(--bg-card);
@@ -109,12 +78,7 @@
       margin-bottom: 18px;
     }
 
-    .feed-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.84rem;
-    }
+    .feed-status { display: flex; align-items: center; gap: 8px; font-size: 0.84rem; }
 
     .dot {
       width: 10px;
@@ -127,12 +91,7 @@
     .dot.live { background: var(--bull); box-shadow: 0 0 8px var(--bull); }
     .dot.error { background: var(--bear); box-shadow: 0 0 8px var(--bear); }
 
-    .feed-controls {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-    }
+    .feed-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 
     .feed-controls input[type="text"] {
       background: var(--bg-input);
@@ -141,7 +100,7 @@
       padding: 6px 10px;
       border-radius: 6px;
       font-size: 0.78rem;
-      width: 290px;
+      width: 280px;
     }
 
     .checkbox-label {
@@ -153,7 +112,6 @@
       cursor: pointer;
     }
 
-    /* Top Summary Scoreboard */
     .summary-grid {
       display: grid;
       grid-template-columns: 1.2fr 1fr 1fr;
@@ -161,11 +119,7 @@
       margin-bottom: 20px;
     }
 
-    @media (max-width: 960px) {
-      .summary-grid {
-        grid-template-columns: 1fr;
-      }
-    }
+    @media (max-width: 960px) { .summary-grid { grid-template-columns: 1fr; } }
 
     .card {
       background: var(--bg-card);
@@ -181,11 +135,7 @@
       margin-bottom: 14px;
     }
 
-    .card-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #e5e7eb;
-    }
+    .card-title { font-size: 0.95rem; font-weight: 600; color: #e5e7eb; }
 
     .badge {
       padding: 3px 9px;
@@ -200,7 +150,6 @@
     .badge.bear { background: var(--bear-bg); color: var(--bear); border: 1px solid rgba(239,68,68,0.3); }
     .badge.neutral { background: var(--neutral-bg); color: var(--neutral); border: 1px solid rgba(245,158,11,0.3); }
 
-    /* Gauge */
     .gauge-box {
       display: flex;
       flex-direction: column;
@@ -209,17 +158,8 @@
       text-align: center;
     }
 
-    .verdict-text {
-      font-size: 1.55rem;
-      font-weight: 800;
-      margin-top: 6px;
-    }
-
-    .verdict-sub {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
+    .verdict-text { font-size: 1.55rem; font-weight: 800; margin-top: 6px; }
+    .verdict-sub { font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; }
 
     .meter-track {
       width: 100%;
@@ -250,7 +190,6 @@
       color: var(--text-muted);
     }
 
-    /* Range & Pillar Bars */
     .range-display {
       display: flex;
       justify-content: space-between;
@@ -261,23 +200,11 @@
       font-size: 0.85rem;
     }
 
-    .range-item span {
-      display: block;
-      font-size: 0.72rem;
-      color: var(--text-muted);
-    }
+    .range-item span { display: block; font-size: 0.72rem; color: var(--text-muted); }
+    .range-item strong { font-size: 1.05rem; }
 
-    .range-item strong {
-      font-size: 1.05rem;
-    }
-
-    .pillar-row {
-      margin-bottom: 10px;
-    }
-
-    .pillar-row:last-child {
-      margin-bottom: 0;
-    }
+    .pillar-row { margin-bottom: 10px; }
+    .pillar-row:last-child { margin-bottom: 0; }
 
     .pillar-meta {
       display: flex;
@@ -286,31 +213,16 @@
       margin-bottom: 4px;
     }
 
-    .bar-bg {
-      height: 8px;
-      background: var(--bg-input);
-      border-radius: 999px;
-      overflow: hidden;
-    }
+    .bar-bg { height: 8px; background: var(--bg-input); border-radius: 999px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s ease, background-color 0.3s ease; }
 
-    .bar-fill {
-      height: 100%;
-      border-radius: 999px;
-      transition: width 0.3s ease, background-color 0.3s ease;
-    }
-
-    /* 4 Pillars Grid */
     .pillars-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 16px;
     }
 
-    @media (max-width: 860px) {
-      .pillars-grid {
-        grid-template-columns: 1fr;
-      }
-    }
+    @media (max-width: 860px) { .pillars-grid { grid-template-columns: 1fr; } }
 
     .field-group {
       display: grid;
@@ -319,15 +231,8 @@
       margin-bottom: 12px;
     }
 
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .field.full {
-      grid-column: span 2;
-    }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field.full { grid-column: span 2; }
 
     .field label {
       font-size: 0.78rem;
@@ -336,10 +241,7 @@
       justify-content: space-between;
     }
 
-    .field label span.val {
-      color: var(--text-main);
-      font-weight: 600;
-    }
+    .field label span.val { color: var(--text-main); font-weight: 600; }
 
     input[type="number"], .field select {
       background: var(--bg-input);
@@ -351,11 +253,7 @@
       width: 100%;
     }
 
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
+    input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
 
     .playbook-box {
       margin-top: 16px;
@@ -366,21 +264,9 @@
       font-size: 0.85rem;
     }
 
-    .playbook-box strong {
-      display: block;
-      margin-bottom: 3px;
-      color: #fff;
-    }
-
-    .sheet-link {
-      color: #60a5fa;
-      text-decoration: none;
-      font-size: 0.8rem;
-    }
-
-    .sheet-link:hover {
-      text-decoration: underline;
-    }
+    .playbook-box strong { display: block; margin-bottom: 3px; color: #fff; }
+    .sheet-link { color: #60a5fa; text-decoration: none; font-size: 0.8rem; }
+    .sheet-link:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -521,7 +407,6 @@
 
     <!-- 4 Interactive Input Pillars -->
     <div class="pillars-grid">
-      <!-- Pillar 1 -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">1. Institutional Derivatives & Cash (35%)</span>
@@ -561,7 +446,6 @@
         </div>
       </div>
 
-      <!-- Pillar 2 -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">2. Weekly Option Chain & Volatility (25%)</span>
@@ -597,7 +481,6 @@
         </div>
       </div>
 
-      <!-- Pillar 3 -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">3. Multi-Timeframe Price & Momentum (25%)</span>
@@ -635,7 +518,6 @@
         </div>
       </div>
 
-      <!-- Pillar 4 -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">4. Heavyweight Sector Alignment (15%)</span>
@@ -712,7 +594,6 @@
       relianceTrend: document.getElementById("relianceTrend")
     };
 
-    // Always pre-populate the deployed Apps Script URL
     els.apiUrlInput.value = DEFAULT_EXEC_URL;
 
     function clamp(val, min, max) {
@@ -740,7 +621,6 @@
     }
 
     function calculateBias() {
-      // Update slider labels
       const fiiLong = parseFloat(els.fiiLongPct.value);
       const pcrVal = parseFloat(els.pcr.value);
       const vixVal = parseFloat(els.indiaVix.value);
@@ -753,10 +633,9 @@
       document.getElementById("weeklyRsiLbl").textContent = wRsi.toFixed(1);
       document.getElementById("dailyAdxLbl").textContent = adxVal.toFixed(1);
 
-      // --- PILLAR 1: Institutional Positioning (-100 to +100) ---
       let p1 = 0;
-      if (fiiLong <= 18) p1 += 35; // Extreme oversold contrarian squeeze zone
-      else if (fiiLong >= 78) p1 -= 25; // Overcrowded long unwinding risk
+      if (fiiLong <= 18) p1 += 35;
+      else if (fiiLong >= 78) p1 -= 25;
       else p1 += (fiiLong - 50) * 1.5;
 
       const futMap = {
@@ -775,11 +654,10 @@
       p1 += clamp(netCash / 150, -15, 15);
       p1 = clamp(p1, -100, 100);
 
-      // --- PILLAR 2: Option Chain & Volatility (-100 to +100) ---
       let p2 = 0;
       if (pcrVal >= 1.0 && pcrVal <= 1.35) p2 += 30;
-      else if (pcrVal > 1.45) p2 -= 15; // Overbought mean reversion
-      else if (pcrVal < 0.65) p2 += 20; // Oversold bounce potential
+      else if (pcrVal > 1.45) p2 -= 15;
+      else if (pcrVal < 0.65) p2 += 20;
       else if (pcrVal < 0.90) p2 -= 25;
 
       const oiMap = {
@@ -800,14 +678,10 @@
       if (vixVal > 20) p2 -= 10;
       p2 = clamp(p2, -100, 100);
 
-      // --- PILLAR 3: Multi-Timeframe Price & Momentum (-100 to +100) ---
       let p3 = 0;
       const ema20 = parseFloat(els.ema20.value) || 24400;
       const ema50 = parseFloat(els.ema50.value) || 24200;
 
       if (spot > ema20 && ema20 > ema50) p3 += 35;
       else if (spot > ema20) p3 += 18;
-      else if (spot < ema20 && ema20 < ema50) p3 -= 35;
-      else if (spot < ema20) p3 -= 18;
-
-      if (els.candleStructure.value.includes("Breakout")) p3 += 30;
+      else if (spot < ema20 && ema20 < ema50) p3 -=
