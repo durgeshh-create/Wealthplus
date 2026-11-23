@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nifty 50 Weekly Bias & Market Pulse Dashboard</title>
+  <style>
+    :root {
+      --bg-base: #0b0f19;
+      --bg-card: #111827;
+      --bg-input: #1f2937;
+      --border: #374151;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #3b82f6;
+      --bull: #10b981;
+      --bull-bg: rgba(16, 185, 129, 0.12);
+      --bear: #ef4444;
+      --bear-bg: rgba(239, 68, 68, 0.12);
+      --neutral: #f59e0b;
+      --neutral-bg: rgba(245, 158, 11, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* Header & Feed Bar */
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .title-block h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .title-block p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button, select {
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    button:hover, select:hover {
+      border-color: var(--accent);
+    }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    button.primary:hover {
+      background: #2563eb;
+    }
+
+    .feed-bar {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .feed-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.84rem;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--neutral);
+      display: inline-block;
+    }
+
+    .dot.live { background: var(--bull); box-shadow: 0 0 8px var(--bull); }
+    .dot.error { background: var(--bear); box-shadow: 0 0 8px var(--bear); }
+
+    .feed-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .feed-controls input[type="text"] {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      width: 290px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    /* Top Summary Scoreboard */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 960px) {
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    .badge {
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .badge.bull { background: var(--bull-bg); color: var(--bull); border: 1px solid rgba(16,185,129,0.3); }
+    .badge.bear { background: var(--bear-bg); color: var(--bear); border: 1px solid rgba(239,68,68,0.3); }
+    .badge.neutral { background: var(--neutral-bg); color: var(--neutral); border: 1px solid rgba(245,158,11,0.3); }
+
+    /* Gauge */
+    .gauge-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .verdict-text {
+      font-size: 1.55rem;
+      font-weight: 800;
+      margin-top: 6px;
+    }
+
+    .verdict-sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .meter-track {
+      width: 100%;
+      height: 14px;
+      background: linear-gradient(90deg, var(--bear) 0%, var(--neutral) 50%, var(--bull) 100%);
+      border-radius: 999px;
+      position: relative;
+      margin: 14px 0 8px;
+    }
+
+    .meter-needle {
+      position: absolute;
+      top: -4px;
+      width: 6px;
+      height: 22px;
+      background: #ffffff;
+      border: 2px solid #0b0f19;
+      border-radius: 3px;
+      transform: translateX(-50%);
+      transition: left 0.35s ease;
+    }
+
+    .meter-labels {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* Range & Pillar Bars */
+    .range-display {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+      padding: 10px;
+      background: var(--bg-input);
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+
+    .range-item span {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .range-item strong {
+      font-size: 1.05rem;
+    }
+
+    .pillar-row {
+      margin-bottom: 10px;
+    }
+
+    .pillar-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .pillar-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      margin-bottom: 4px;
+    }
+
+    .bar-bg {
+      height: 8px;
+      background: var(--bg-input);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    /* 4 Pillars Grid */
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 860px) {
+      .pillars-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .field-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field.full {
+      grid-column: span 2;
+    }
+
+    .field label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .field label span.val {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    input[type="number"], .field select {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      width: 100%;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .playbook-box {
+      margin-top: 16px;
+      background: var(--bg-input);
+      border-left: 4px solid var(--accent);
+      padding: 12px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    .playbook-box strong {
+      display: block;
+      margin-bottom: 3px;
+      color: #fff;
+    }
+
+    .sheet-link {
+      color: #60a5fa;
+      text-decoration: none;
+      font-size: 0.8rem;
+    }
+
+    .sheet-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="title-block">
+        <h1>Nifty 50 Weekly Bias Terminal</h1>
+        <p>Multi-factor scoring across Institutional OI, Option Chain, Price Action & Heavyweights</p>
+      </div>
+      <div class="header-actions">
+        <select id="presetSelect" title="Load Scenario Preset">
+          <option value="live">Scenario: Live / Custom Values</option>
+          <option value="bullBreakout">Preset: Strong Bullish Breakout</option>
+          <option value="shortCover">Preset: Crowded Short-Covering Rally</option>
+          <option value="rangeBound">Preset: Sideways / Theta Decay Week</option>
+          <option value="bearBreakdown">Preset: Institutional Bearish Breakdown</option>
+        </select>
+        <button id="copySummaryBtn">Copy Pre-Market Summary</button>
+      </div>
+    </header>
+
+    <!-- Live Google Apps Script Feed Bar -->
+    <div class="feed-bar">
+      <div class="feed-status">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">Initializing live feed...</span>
+        <span id="nseDateBadge" class="badge neutral" style="display:none;"></span>
+        <a id="sheetLink" class="sheet-link" href="#" target="_blank" style="display:none;">Open Google Sheet ↗</a>
+      </div>
+      <div class="feed-controls">
+        <input type="text" id="apiUrlInput" value="https://script.google.com/macros/s/AKfycbzmEwQYv-tXN4R-YWdX96OyxJ5OKvjtNZk6lvBG1XuuKJCRKiq4TaTkgVsAv5qTeMAX/exec" />
+        <button class="primary" id="fetchBtn">Sync Live Data</button>
+        <label class="checkbox-label">
+          <input type="checkbox" id="autoRefreshChk" checked />
+          Auto (5m)
+        </label>
+      </div>
+    </div>
+
+    <!-- Top Scoreboard -->
+    <div class="summary-grid">
+      <div class="card gauge-box">
+        <div class="card-header" style="width:100%; margin-bottom:4px;">
+          <span class="card-title">Composite Weekly Bias</span>
+          <span id="scoreBadge" class="badge neutral">0 / +100</span>
+        </div>
+        <div id="verdictText" class="verdict-text">NEUTRAL / MIXED</div>
+        <div id="verdictSub" class="verdict-sub">Awaiting clear multi-pillar alignment</div>
+
+        <div class="meter-track">
+          <div id="meterNeedle" class="meter-needle" style="left: 50%;"></div>
+        </div>
+        <div class="meter-labels">
+          <span>Strong Bear (-100)</span>
+          <span>Neutral (0)</span>
+          <span>Strong Bull (+100)</span>
+        </div>
+
+        <div class="playbook-box" style="width:100%; text-align:left;">
+          <strong id="strategyTitle">Suggested Weekly Playbook</strong>
+          <span id="strategyDesc">Wait for breakout confirmation above Max Call OI or breakdown below Max Put OI before deploying directional size.</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Implied Weekly Range & OI Walls</span>
+          <span id="vixBadge" class="badge neutral">VIX: 13.5</span>
+        </div>
+        <div class="range-display">
+          <div class="range-item">
+            <span>1σ Lower Bound</span>
+            <strong id="lowerBoundVal" style="color:var(--bear);">24,042</strong>
+          </div>
+          <div class="range-item" style="text-align:center;">
+            <span>Nifty Spot</span>
+            <strong id="spotHeroVal">24,500</strong>
+          </div>
+          <div class="range-item" style="text-align:right;">
+            <span>1σ Upper Bound</span>
+            <strong id="upperBoundVal" style="color:var(--bull);">24,958</strong>
+          </div>
+        </div>
+        <div class="range-display">
+          <div class="range-item">
+            <span>Max Put OI (Support)</span>
+            <strong id="putWallVal" style="color:var(--bull);">24,200</strong>
+          </div>
+          <div class="range-item" style="text-align:center;">
+            <span>Expected Move</span>
+            <strong id="expMovePct">±1.87%</strong>
+          </div>
+          <div class="range-item" style="text-align:right;">
+            <span>Max Call OI (Resistance)</span>
+            <strong id="callWallVal" style="color:var(--bear);">24,800</strong>
+          </div>
+        </div>
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:8px;">
+          Weekly 1σ swing estimated via <code>VIX / √52</code>. Sustained trading beyond an OI wall forces writer short-covering.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Pillar Contribution Breakdown</span>
+          <span class="badge neutral">Weighted</span>
+        </div>
+        <div class="pillar-row">
+          <div class="pillar-meta">
+            <span>1. Institutional Positioning (35%)</span>
+            <strong id="p1ScoreText">0</strong>
+          </div>
+          <div class="bar-bg"><div id="p1Bar" class="bar-fill" style="width:50%; background:var(--neutral);"></div></div>
+        </div>
+        <div class="pillar-row">
+          <div class="pillar-meta">
+            <span>2. Option Chain & VIX (25%)</span>
+            <strong id="p2ScoreText">0</strong>
+          </div>
+          <div class="bar-bg"><div id="p2Bar" class="bar-fill" style="width:50%; background:var(--neutral);"></div></div>
+        </div>
+        <div class="pillar-row">
+          <div class="pillar-meta">
+            <span>3. Price Action & Momentum (25%)</span>
+            <strong id="p3ScoreText">0</strong>
+          </div>
+          <div class="bar-bg"><div id="p3Bar" class="bar-fill" style="width:50%; background:var(--neutral);"></div></div>
+        </div>
+        <div class="pillar-row">
+          <div class="pillar-meta">
+            <span>4. Heavyweight Alignment (15%)</span>
+            <strong id="p4ScoreText">0</strong>
+          </div>
+          <div class="bar-bg"><div id="p4Bar" class="bar-fill" style="width:50%; background:var(--neutral);"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 Interactive Input Pillars -->
+    <div class="pillars-grid">
+      <!-- Pillar 1 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">1. Institutional Derivatives & Cash (35%)</span>
+          <span id="p1Badge" class="badge neutral">Neutral</span>
+        </div>
+        <div class="field-group">
+          <div class="field full">
+            <label>FII Index Futures Long % <span class="val" id="fiiLongPctLbl">50.0%</span></label>
+            <input type="range" id="fiiLongPct" min="5" max="95" step="0.5" value="50" />
+          </div>
+          <div class="field">
+            <label>FII Futures OI Action</label>
+            <select id="fiiFutChange">
+              <option value="Fresh Long Buildup">Fresh Long Buildup</option>
+              <option value="Short Covering">Short Covering</option>
+              <option value="Flat / Mixed" selected>Flat / Mixed</option>
+              <option value="Long Unwinding">Long Unwinding</option>
+              <option value="Fresh Short Buildup">Fresh Short Buildup</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>FII Index Options Tilt</label>
+            <select id="fiiOptionsTilt">
+              <option value="Net Bullish (Long Calls / Short Puts)">Net Bullish (Long Calls / Short Puts)</option>
+              <option value="Neutral" selected>Neutral</option>
+              <option value="Net Bearish (Long Puts / Short Calls)">Net Bearish (Long Puts / Short Calls)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>FII Cash Net (₹ Cr)</label>
+            <input type="number" id="fiiCashNet" value="0" step="100" />
+          </div>
+          <div class="field">
+            <label>DII Cash Net (₹ Cr)</label>
+            <input type="number" id="diiCashNet" value="0" step="100" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Pillar 2 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">2. Weekly Option Chain & Volatility (25%)</span>
+          <span id="p2Badge" class="badge neutral">Neutral</span>
+        </div>
+        <div class="field-group">
+          <div class="field">
+            <label>Max Call OI Strike (Resistance)</label>
+            <input type="number" id="maxCallStrike" value="24800" step="50" />
+          </div>
+          <div class="field">
+            <label>Max Put OI Strike (Support)</label>
+            <input type="number" id="maxPutStrike" value="24200" step="50" />
+          </div>
+          <div class="field">
+            <label>Weekly Put-Call Ratio (PCR) <span class="val" id="pcrLbl">1.00</span></label>
+            <input type="range" id="pcr" min="0.40" max="1.80" step="0.02" value="1.00" />
+          </div>
+          <div class="field">
+            <label>India VIX <span class="val" id="indiaVixLbl">13.5</span></label>
+            <input type="range" id="indiaVix" min="9" max="35" step="0.1" value="13.5" />
+          </div>
+          <div class="field full">
+            <label>Dominant Weekly OI Writing Shift</label>
+            <select id="oiShift">
+              <option value="Fresh Put Writing">Fresh Put Writing (Support Moving Up)</option>
+              <option value="Call Unwinding">Call Unwinding (Writers Trapped)</option>
+              <option value="Balanced Straddle" selected>Balanced Straddle (Range-Bound)</option>
+              <option value="Put Unwinding">Put Unwinding (Support Breaking)</option>
+              <option value="Fresh Call Writing">Fresh Call Writing (Resistance Moving Down)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pillar 3 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">3. Multi-Timeframe Price & Momentum (25%)</span>
+          <span id="p3Badge" class="badge neutral">Neutral</span>
+        </div>
+        <div class="field-group">
+          <div class="field">
+            <label>Nifty 50 Spot</label>
+            <input type="number" id="niftySpot" value="24500" step="10" />
+          </div>
+          <div class="field">
+            <label>Weekly Candle Structure</label>
+            <select id="candleStructure">
+              <option value="Above PWH (Breakout)">Above PWH (Breakout)</option>
+              <option value="Inside Prior Range" selected>Inside Prior Range</option>
+              <option value="Below PWL (Breakdown)">Below PWL (Breakdown)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Daily 20 EMA</label>
+            <input type="number" id="ema20" value="24400" step="10" />
+          </div>
+          <div class="field">
+            <label>Daily 50 EMA</label>
+            <input type="number" id="ema50" value="24200" step="10" />
+          </div>
+          <div class="field">
+            <label>Weekly RSI (14) <span class="val" id="weeklyRsiLbl">55.0</span></label>
+            <input type="range" id="weeklyRsi" min="20" max="85" step="0.5" value="55" />
+          </div>
+          <div class="field">
+            <label>Daily ADX (14) <span class="val" id="dailyAdxLbl">22.0</span></label>
+            <input type="range" id="dailyAdx" min="10" max="55" step="0.5" value="22" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Pillar 4 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">4. Heavyweight Sector Alignment (15%)</span>
+          <span id="p4Badge" class="badge neutral">Neutral</span>
+        </div>
+        <div class="field-group">
+          <div class="field">
+            <label>Bank Nifty (~33% Weight)</label>
+            <select id="bankNiftyTrend">
+              <option value="Bullish">Bullish</option>
+              <option value="Neutral" selected>Neutral</option>
+              <option value="Bearish">Bearish</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Nifty IT (~14% Weight)</label>
+            <select id="niftyItTrend">
+              <option value="Bullish">Bullish</option>
+              <option value="Neutral" selected>Neutral</option>
+              <option value="Bearish">Bearish</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label>Reliance Industries (~9% Weight)</label>
+            <select id="relianceTrend">
+              <option value="Bullish">Bullish</option>
+              <option value="Neutral" selected>Neutral</option>
+              <option value="Bearish">Bearish</option>
+            </select>
+          </div>
+        </div>
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:6px;">
+          Nifty rarely sustains a clean directional week when Bank Nifty and Nifty IT diverge sharply.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_EXEC_URL = "https://script.google.com/macros/s/AKfycbzmEwQYv-tXN4R-YWdX96OyxJ5OKvjtNZk6lvBG1XuuKJCRKiq4TaTkgVsAv5qTeMAX/exec";
+
+    const els = {
+      apiUrlInput: document.getElementById("apiUrlInput"),
+      fetchBtn: document.getElementById("fetchBtn"),
+      autoRefreshChk: document.getElementById("autoRefreshChk"),
+      statusDot: document.getElementById("statusDot"),
+      statusText: document.getElementById("statusText"),
+      nseDateBadge: document.getElementById("nseDateBadge"),
+      sheetLink: document.getElementById("sheetLink"),
+      presetSelect: document.getElementById("presetSelect"),
+      copySummaryBtn: document.getElementById("copySummaryBtn"),
+
+      fiiLongPct: document.getElementById("fiiLongPct"),
+      fiiFutChange: document.getElementById("fiiFutChange"),
+      fiiOptionsTilt: document.getElementById("fiiOptionsTilt"),
+      fiiCashNet: document.getElementById("fiiCashNet"),
+      diiCashNet: document.getElementById("diiCashNet"),
+
+      maxCallStrike: document.getElementById("maxCallStrike"),
+      maxPutStrike: document.getElementById("maxPutStrike"),
+      pcr: document.getElementById("pcr"),
+      indiaVix: document.getElementById("indiaVix"),
+      oiShift: document.getElementById("oiShift"),
+
+      niftySpot: document.getElementById("niftySpot"),
+      candleStructure: document.getElementById("candleStructure"),
+      ema20: document.getElementById("ema20"),
+      ema50: document.getElementById("ema50"),
+      weeklyRsi: document.getElementById("weeklyRsi"),
+      dailyAdx: document.getElementById("dailyAdx"),
+
+      bankNiftyTrend: document.getElementById("bankNiftyTrend"),
+      niftyItTrend: document.getElementById("niftyItTrend"),
+      relianceTrend: document.getElementById("relianceTrend")
+    };
+
+    // Always pre-populate the deployed Apps Script URL
+    els.apiUrlInput.value = DEFAULT_EXEC_URL;
+
+    function clamp(val, min, max) {
+      return Math.max(min, Math.min(max, val));
+    }
+
+    function setBadge(el, score) {
+      if (score >= 25) {
+        el.className = "badge bull";
+        el.textContent = `Bullish (+${Math.round(score)})`;
+      } else if (score <= -25) {
+        el.className = "badge bear";
+        el.textContent = `Bearish (${Math.round(score)})`;
+      } else {
+        el.className = "badge neutral";
+        el.textContent = `Neutral (${score >= 0 ? "+" : ""}${Math.round(score)})`;
+      }
+    }
+
+    function updateBar(barEl, textEl, score) {
+      const pct = ((score + 100) / 200) * 100;
+      barEl.style.width = `${clamp(pct, 4, 96)}%`;
+      barEl.style.backgroundColor = score >= 25 ? "var(--bull)" : score <= -25 ? "var(--bear)" : "var(--neutral)";
+      textEl.textContent = `${score >= 0 ? "+" : ""}${Math.round(score)}`;
+    }
+
+    function calculateBias() {
+      // Update slider labels
+      const fiiLong = parseFloat(els.fiiLongPct.value);
+      const pcrVal = parseFloat(els.pcr.value);
+      const vixVal = parseFloat(els.indiaVix.value);
+      const wRsi = parseFloat(els.weeklyRsi.value);
+      const adxVal = parseFloat(els.dailyAdx.value);
+
+      document.getElementById("fiiLongPctLbl").textContent = `${fiiLong.toFixed(1)}%`;
+      document.getElementById("pcrLbl").textContent = pcrVal.toFixed(2);
+      document.getElementById("indiaVixLbl").textContent = vixVal.toFixed(1);
+      document.getElementById("weeklyRsiLbl").textContent = wRsi.toFixed(1);
+      document.getElementById("dailyAdxLbl").textContent = adxVal.toFixed(1);
+
+      // --- PILLAR 1: Institutional Positioning (-100 to +100) ---
+      let p1 = 0;
+      if (fiiLong <= 18) p1 += 35; // Extreme oversold contrarian squeeze zone
+      else if (fiiLong >= 78) p1 -= 25; // Overcrowded long unwinding risk
+      else p1 += (fiiLong - 50) * 1.5;
+
+      const futMap = {
+        "Fresh Long Buildup": 30,
+        "Short Covering": 18,
+        "Flat / Mixed": 0,
+        "Long Unwinding": -18,
+        "Fresh Short Buildup": -30
+      };
+      p1 += futMap[els.fiiFutChange.value] || 0;
+
+      if (els.fiiOptionsTilt.value.includes("Bullish")) p1 += 20;
+      else if (els.fiiOptionsTilt.value.includes("Bearish")) p1 -= 20;
+
+      const netCash = (parseFloat(els.fiiCashNet.value) || 0) + (parseFloat(els.diiCashNet.value) || 0);
+      p1 += clamp(netCash / 150, -15, 15);
+      p1 = clamp(p1, -100, 100);
+
+      // --- PILLAR 2: Option Chain & Volatility (-100 to +100) ---
+      let p2 = 0;
+      if (pcrVal >= 1.0 && pcrVal <= 1.35) p2 += 30;
+      else if (pcrVal > 1.45) p2 -= 15; // Overbought mean reversion
+      else if (pcrVal < 0.65) p2 += 20; // Oversold bounce potential
+      else if (pcrVal < 0.90) p2 -= 25;
+
+      const oiMap = {
+        "Fresh Put Writing": 35,
+        "Call Unwinding": 30,
+        "Balanced Straddle": 0,
+        "Put Unwinding": -30,
+        "Fresh Call Writing": -35
+      };
+      p2 += oiMap[els.oiShift.value] || 0;
+
+      const spot = parseFloat(els.niftySpot.value) || 24500;
+      const callStrike = parseFloat(els.maxCallStrike.value) || 24800;
+      const putStrike = parseFloat(els.maxPutStrike.value) || 24200;
+      if (spot > callStrike) p2 += 25;
+      else if (spot < putStrike) p2 -= 25;
+
+      if (vixVal > 20) p2 -= 10;
+      p2 = clamp(p2, -100, 100);
+
+      // --- PILLAR 3: Multi-Timeframe Price & Momentum (-100 to +100) ---
+      let p3 = 0;
+      const ema20 = parseFloat(els.ema20.value) || 24400;
+      const ema50 = parseFloat(els.ema50.value) || 24200;
+
+      if (spot > ema20 && ema20 > ema50) p3 += 35;
+      else if (spot > ema20) p3 += 18;
+      else if (spot < ema20 && ema20 < ema50) p3 -= 35;
+      else if (spot < ema20) p3 -= 18;
+
+      if (els.candleStructure.value.includes("Breakout")) p3 += 30;
