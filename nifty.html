@@ -78,7 +78,7 @@
       margin-bottom: 18px;
     }
 
-    .feed-status { display: flex; align-items: center; gap: 8px; font-size: 0.84rem; }
+    .feed-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.84rem; }
 
     .dot {
       width: 10px;
@@ -265,7 +265,7 @@
     }
 
     .playbook-box strong { display: block; margin-bottom: 3px; color: #fff; }
-    .sheet-link { color: #60a5fa; text-decoration: none; font-size: 0.8rem; }
+    .sheet-link { color: #60a5fa; text-decoration: none; font-size: 0.8rem; font-weight: 600; }
     .sheet-link:hover { text-decoration: underline; }
   </style>
 </head>
@@ -292,9 +292,9 @@
     <div class="feed-bar">
       <div class="feed-status">
         <span class="dot" id="statusDot"></span>
-        <span id="statusText">Initializing live feed...</span>
+        <span id="statusText">Syncing with Google Sheet...</span>
         <span id="nseDateBadge" class="badge neutral" style="display:none;"></span>
-        <a id="sheetLink" class="sheet-link" href="#" target="_blank" style="display:none;">Open Google Sheet ↗</a>
+        <a id="sheetLink" class="sheet-link" href="https://docs.google.com/spreadsheets/d/1eQnlzXm9W8aTzFD4sPb9unrfVm3pkxUVwMaaysJ71U8/edit" target="_blank">Open Google Sheet ↗</a>
       </div>
       <div class="feed-controls">
         <input type="text" id="apiUrlInput" value="https://script.google.com/macros/s/AKfycbzmEwQYv-tXN4R-YWdX96OyxJ5OKvjtNZk6lvBG1XuuKJCRKiq4TaTkgVsAv5qTeMAX/exec" />
@@ -677,10 +677,273 @@
 
       if (vixVal > 20) p2 -= 10;
       p2 = clamp(p2, -100, 100);
+
       let p3 = 0;
       const ema20 = parseFloat(els.ema20.value) || 24400;
       const ema50 = parseFloat(els.ema50.value) || 24200;
 
       if (spot > ema20 && ema20 > ema50) p3 += 35;
       else if (spot > ema20) p3 += 18;
-      else if (spot < ema20 && ema20 < ema50) p3 -=
+      else if (spot < ema20 && ema20 < ema50) p3 -= 35;
+      else if (spot < ema20) p3 -= 18;
+
+      if (els.candleStructure.value.includes("Breakout")) p3 += 30;
+      else if (els.candleStructure.value.includes("Breakdown")) p3 -= 30;
+
+      if (wRsi >= 52) p3 += 25;
+      else if (wRsi <= 48) p3 -= 25;
+
+      if (adxVal < 20) p3 *= 0.65;
+      p3 = clamp(p3, -100, 100);
+
+      const trendVal = (t) => (t === "Bullish" ? 1 : t === "Bearish" ? -1 : 0);
+      const bnf = trendVal(els.bankNiftyTrend.value) * 50;
+      const it = trendVal(els.niftyItTrend.value) * 30;
+      const rel = trendVal(els.relianceTrend.value) * 20;
+      const p4 = clamp(bnf + it + rel, -100, 100);
+
+      const composite = Math.round(p1 * 0.35 + p2 * 0.25 + p3 * 0.25 + p4 * 0.15);
+
+      setBadge(document.getElementById("p1Badge"), p1);
+      setBadge(document.getElementById("p2Badge"), p2);
+      setBadge(document.getElementById("p3Badge"), p3);
+      setBadge(document.getElementById("p4Badge"), p4);
+
+      updateBar(document.getElementById("p1Bar"), document.getElementById("p1ScoreText"), p1);
+      updateBar(document.getElementById("p2Bar"), document.getElementById("p2ScoreText"), p2);
+      updateBar(document.getElementById("p3Bar"), document.getElementById("p3ScoreText"), p3);
+      updateBar(document.getElementById("p4Bar"), document.getElementById("p4ScoreText"), p4);
+
+      const needlePct = clamp(((composite + 100) / 200) * 100, 3, 97);
+      document.getElementById("meterNeedle").style.left = `${needlePct}%`;
+
+      const scoreBadge = document.getElementById("scoreBadge");
+      const verdictText = document.getElementById("verdictText");
+      const verdictSub = document.getElementById("verdictSub");
+      const strategyDesc = document.getElementById("strategyDesc");
+
+      scoreBadge.textContent = `${composite >= 0 ? "+" : ""}${composite} / 100`;
+
+      if (composite >= 45) {
+        scoreBadge.className = "badge bull";
+        verdictText.textContent = "STRONG BULLISH BIAS";
+        verdictText.style.color = "var(--bull)";
+        verdictSub.textContent = "Broad institutional & technical tailwinds favor buying dips.";
+        strategyDesc.textContent = "Favor Bull Put Spreads below Max Put OI, buying pullbacks near 20 EMA, or ATM/OTM Bull Call Spreads.";
+      } else if (composite >= 18) {
+        scoreBadge.className = "badge bull";
+        verdictText.textContent = "MILDLY BULLISH BIAS";
+        verdictText.style.color = "var(--bull)";
+        verdictSub.textContent = "Positive undertone; avoid chasing gap-ups into Call OI walls.";
+        strategyDesc.textContent = "Deploy Bull Put Credit Spreads below support or accumulate index ETFs on intraday dips.";
+      } else if (composite <= -45) {
+        scoreBadge.className = "badge bear";
+        verdictText.textContent = "STRONG BEARISH BIAS";
+        verdictText.style.color = "var(--bear)";
+        verdictSub.textContent = "Heavy institutional selling & technical breakdown.";
+        strategyDesc.textContent = "Favor Bear Call Spreads above resistance or Bear Put Spreads on weak bounces into 20 EMA.";
+      } else if (composite <= -18) {
+        scoreBadge.className = "badge bear";
+        verdictText.textContent = "MILDLY BEARISH BIAS";
+        verdictText.style.color = "var(--bear)";
+        verdictSub.textContent = "Supply overhead; rallies likely to stall near Call walls.";
+        strategyDesc.textContent = "Sell OTM Call Credit Spreads above Max Call OI and keep directional longs tightly hedged.";
+      } else {
+        scoreBadge.className = "badge neutral";
+        verdictText.textContent = "SIDEWAYS / RANGE-BOUND";
+        verdictText.style.color = "var(--neutral)";
+        verdictSub.textContent = adxVal < 20 ? "Low ADX confirms non-trending theta decay environment." : "Conflicting signals across FIIs, options, and heavyweights.";
+        strategyDesc.textContent = "Favor Iron Condors or Short Strangles framed outside Max Put OI and Max Call OI walls.";
+      }
+
+      const weeklyMovePct = vixVal / Math.sqrt(52);
+      const pointMove = Math.round(spot * (weeklyMovePct / 100));
+      document.getElementById("vixBadge").textContent = `VIX: ${vixVal.toFixed(1)}`;
+      document.getElementById("spotHeroVal").textContent = spot.toLocaleString("en-IN");
+      document.getElementById("lowerBoundVal").textContent = (spot - pointMove).toLocaleString("en-IN");
+      document.getElementById("upperBoundVal").textContent = (spot + pointMove).toLocaleString("en-IN");
+      document.getElementById("putWallVal").textContent = putStrike.toLocaleString("en-IN");
+      document.getElementById("callWallVal").textContent = callStrike.toLocaleString("en-IN");
+      document.getElementById("expMovePct").textContent = `±${weeklyMovePct.toFixed(2)}% (±${pointMove} pts)`;
+    }
+
+    function applyLivePayload(data) {
+      if (!data || data.error) throw new Error(data?.error || "Empty payload");
+
+      if (data.niftySpot) els.niftySpot.value = Math.round(data.niftySpot);
+      if (data.indiaVix) els.indiaVix.value = Number(data.indiaVix).toFixed(1);
+      if (data.ema20) els.ema20.value = Math.round(data.ema20);
+      if (data.ema50) els.ema50.value = Math.round(data.ema50);
+      if (data.weeklyRsi) els.weeklyRsi.value = data.weeklyRsi;
+      if (data.dailyAdx) els.dailyAdx.value = data.dailyAdx;
+      if (data.candleStructure) els.candleStructure.value = data.candleStructure;
+
+      if (data.maxCallStrike) els.maxCallStrike.value = data.maxCallStrike;
+      if (data.maxPutStrike) els.maxPutStrike.value = data.maxPutStrike;
+      if (data.pcr) els.pcr.value = data.pcr;
+      if (data.oiShift) els.oiShift.value = data.oiShift;
+
+      if (data.bankNiftyTrend) els.bankNiftyTrend.value = data.bankNiftyTrend;
+      if (data.niftyItTrend) els.niftyItTrend.value = data.niftyItTrend;
+      if (data.relianceTrend) els.relianceTrend.value = data.relianceTrend;
+
+      if (data.fiiLongPct !== undefined) els.fiiLongPct.value = data.fiiLongPct;
+      if (data.fiiFutChange) els.fiiFutChange.value = data.fiiFutChange;
+      if (data.fiiOptionsTilt) els.fiiOptionsTilt.value = data.fiiOptionsTilt;
+      if (data.fiiCashNet !== undefined) els.fiiCashNet.value = data.fiiCashNet;
+      if (data.diiCashNet !== undefined) els.diiCashNet.value = data.diiCashNet;
+
+      els.presetSelect.value = "live";
+      calculateBias();
+
+      const nowTime = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+      els.statusDot.className = "dot live";
+      els.statusText.textContent = `Connected • Synced at ${nowTime}`;
+
+      if (data.nseReportDate) {
+        els.nseDateBadge.style.display = "inline-block";
+        els.nseDateBadge.textContent = `NSE FII OI: ${data.nseReportDate}`;
+      }
+
+      if (data.sheetUrl) {
+        els.sheetLink.style.display = "inline";
+        els.sheetLink.href = data.sheetUrl;
+      }
+    }
+
+    // Direct JSONP loader — bypasses browser CORS completely for local file:// HTML files
+    function fetchViaJsonp(url, timeoutMs = 10000) {
+      return new Promise((resolve, reject) => {
+        const cbName = "niftyBiasCb_" + Date.now();
+        const script = document.createElement("script");
+        const sep = url.includes("?") ? "&" : "?";
+        script.src = `${url}${sep}callback=${cbName}&_t=${Date.now()}`;
+
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error("Timed out (10s) — redeploy Code.gs as New Version"));
+        }, timeoutMs);
+
+        function cleanup() {
+          clearTimeout(timer);
+          delete window[cbName];
+          if (script.parentNode) script.parentNode.removeChild(script);
+        }
+
+        window[cbName] = (payload) => {
+          cleanup();
+          resolve(payload);
+        };
+
+        script.onerror = () => {
+          cleanup();
+          reject(new Error("JSONP blocked — ensure Code.gs has callback wrapper & New Version deployed"));
+        };
+
+        document.body.appendChild(script);
+      });
+    }
+
+    async function fetchLiveData() {
+      const url = els.apiUrlInput.value.trim() || DEFAULT_EXEC_URL;
+      els.statusDot.className = "dot";
+      els.statusText.textContent = "Syncing with Google Sheet...";
+      els.fetchBtn.disabled = true;
+
+      try {
+        const data = await fetchViaJsonp(url, 10000);
+        applyLivePayload(data);
+      } catch (err) {
+        // Secondary fallback via standard fetch (if hosted on http/https)
+        try {
+          const resp = await fetch(`${url}?_t=${Date.now()}`, { redirect: "follow" });
+          const data = await resp.json();
+          applyLivePayload(data);
+        } catch (fetchErr) {
+          els.statusDot.className = "dot error";
+          els.statusText.textContent = `Sync failed (${err.message})`;
+          calculateBias();
+        }
+      } finally {
+        els.fetchBtn.disabled = false;
+      }
+    }
+
+    const presets = {
+      bullBreakout: {
+        fiiLongPct: 62, fiiFutChange: "Fresh Long Buildup", fiiOptionsTilt: "Net Bullish (Long Calls / Short Puts)",
+        fiiCashNet: 1850, diiCashNet: 1200, maxCallStrike: 25000, maxPutStrike: 24400, pcr: 1.22,
+        indiaVix: 12.4, oiShift: "Fresh Put Writing", niftySpot: 24650, candleStructure: "Above PWH (Breakout)",
+        ema20: 24380, ema50: 24100, weeklyRsi: 63, dailyAdx: 29,
+        bankNiftyTrend: "Bullish", niftyItTrend: "Bullish", relianceTrend: "Bullish"
+      },
+      shortCover: {
+        fiiLongPct: 16, fiiFutChange: "Short Covering", fiiOptionsTilt: "Net Bullish (Long Calls / Short Puts)",
+        fiiCashNet: -400, diiCashNet: 2100, maxCallStrike: 24700, maxPutStrike: 24200, pcr: 1.15,
+        indiaVix: 15.8, oiShift: "Call Unwinding", niftySpot: 24480, candleStructure: "Inside Prior Range",
+        ema20: 24450, ema50: 24520, weeklyRsi: 49, dailyAdx: 24,
+        bankNiftyTrend: "Bullish", niftyItTrend: "Neutral", relianceTrend: "Bullish"
+      },
+      rangeBound: {
+        fiiLongPct: 49, fiiFutChange: "Flat / Mixed", fiiOptionsTilt: "Neutral",
+        fiiCashNet: 150, diiCashNet: 300, maxCallStrike: 24700, maxPutStrike: 24300, pcr: 0.98,
+        indiaVix: 11.8, oiShift: "Balanced Straddle", niftySpot: 24500, candleStructure: "Inside Prior Range",
+        ema20: 24490, ema50: 24420, weeklyRsi: 52, dailyAdx: 16,
+        bankNiftyTrend: "Neutral", niftyItTrend: "Bullish", relianceTrend: "Bearish"
+      },
+      bearBreakdown: {
+        fiiLongPct: 31, fiiFutChange: "Fresh Short Buildup", fiiOptionsTilt: "Net Bearish (Long Puts / Short Calls)",
+        fiiCashNet: -2600, diiCashNet: 900, maxCallStrike: 24500, maxPutStrike: 23900, pcr: 0.74,
+        indiaVix: 18.6, oiShift: "Fresh Call Writing", niftySpot: 24150, candleStructure: "Below PWL (Breakdown)",
+        ema20: 24450, ema50: 24600, weeklyRsi: 41, dailyAdx: 31,
+        bankNiftyTrend: "Bearish", niftyItTrend: "Bearish", relianceTrend: "Bearish"
+      }
+    };
+
+    els.presetSelect.addEventListener("change", (e) => {
+      const p = presets[e.target.value];
+      if (!p) {
+        fetchLiveData();
+        return;
+      }
+      Object.keys(p).forEach((key) => {
+        if (els[key]) els[key].value = p[key];
+      });
+      calculateBias();
+    });
+
+    document.querySelectorAll("input, select").forEach((el) => {
+      if (el.id !== "presetSelect" && el.id !== "apiUrlInput" && el.id !== "autoRefreshChk") {
+        el.addEventListener("input", calculateBias);
+        el.addEventListener("change", calculateBias);
+      }
+    });
+
+    els.fetchBtn.addEventListener("click", fetchLiveData);
+
+    els.copySummaryBtn.addEventListener("click", () => {
+      const summary = [
+        `📊 NIFTY 50 WEEKLY BIAS: ${document.getElementById("verdictText").textContent} (${document.getElementById("scoreBadge").textContent})`,
+        `• Spot: ${els.niftySpot.value} | 20 EMA: ${els.ema20.value} | 50 EMA: ${els.ema50.value}`,
+        `• Expected Weekly Range (1σ): ${document.getElementById("lowerBoundVal").textContent} – ${document.getElementById("upperBoundVal").textContent} (${document.getElementById("expMovePct").textContent})`,
+        `• Option Chain Walls: Support ${els.maxPutStrike.value} | Resistance ${els.maxCallStrike.value} | PCR: ${els.pcr.value}`,
+        `• FII Index Futures Long %: ${els.fiiLongPct.value}% (${els.fiiFutChange.value})`,
+        `• Playbook: ${document.getElementById("strategyDesc").textContent}`
+      ].join("\n");
+
+      navigator.clipboard.writeText(summary).then(() => {
+        const orig = els.copySummaryBtn.textContent;
+        els.copySummaryBtn.textContent = "Copied!";
+        setTimeout(() => (els.copySummaryBtn.textContent = orig), 1800);
+      });
+    });
+
+    setInterval(() => {
+      if (els.autoRefreshChk.checked) fetchLiveData();
+    }, 5 * 60 * 1000);
+
+    calculateBias();
+    fetchLiveData();
+  </script>
+</body>
+</html>
