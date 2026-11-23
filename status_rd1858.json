@@ -1,10 +1,10 @@
 {
   "account": "RD1858",
-  "timestamp": "2026-11-23 09:08:04 IST",
+  "timestamp": "2026-11-23 09:09:06 IST",
   "bot_running": true,
-  "total_value": 7610229.5,
-  "today_pnl": 0.0,
-  "today_pnl_pct": 0.0,
+  "total_value": 7611021.5,
+  "today_pnl": 792.0,
+  "today_pnl_pct": 0.01,
   "liquidcase": {
     "quantity": 50866,
     "free_quantity": 1626,
@@ -32,10 +32,10 @@
       "symbol": "GOLDBEES",
       "quantity": 2640,
       "avg": 112.89,
-      "ltp": 102.21,
-      "value": 269834.4,
-      "pnl": 0.0,
-      "pnl_pct": 0.0,
+      "ltp": 102.51,
+      "value": 270626.4,
+      "pnl": 792.0,
+      "pnl_pct": 0.29,
       "unrealised_pnl": -28198.54,
       "unrealised_pnl_pct": -9.46,
       "strategy": "active",
@@ -191,9 +191,9 @@
       "quantity": 2640,
       "pledged": 0,
       "avg": 112.89,
-      "ltp": 102.21,
+      "ltp": 102.51,
       "invested": 298032.94,
-      "value": 269834.4,
+      "value": 270626.4,
       "pnl": -28198.54,
       "pnl_pct": -9.46,
       "day_pnl": 0.0,
@@ -219,9 +219,9 @@
   ],
   "equity_summary": {
     "total_invested": 12307744.84,
-    "total_cur_val": 12374384.3,
-    "total_pnl": 66639.46,
-    "total_pnl_pct": 0.54,
+    "total_cur_val": 12375176.3,
+    "total_pnl": 67431.46,
+    "total_pnl_pct": 0.55,
     "day_pnl": 0.0,
     "day_pnl_pct": 0.0,
     "count": 9
@@ -291,9 +291,9 @@
     },
     {
       "symbol": "GOLDBEES",
-      "ltp": 102.21,
-      "change_pct": 0.0,
-      "williams_r": -88.91,
+      "ltp": 102.51,
+      "change_pct": 0.29,
+      "williams_r": -87.33,
       "is_held": true,
       "avg_price": 112.89,
       "strategy": "active"
@@ -312,13 +312,13 @@
   "orders": [],
   "indices": {
     "NIFTY 50": {
-      "ltp": 25931.1,
+      "ltp": 25929.15,
       "prev_close": 25800.6,
-      "change": 130.5,
-      "change_pct": 0.51,
-      "open": null,
-      "high": null,
-      "low": null
+      "change": 128.55,
+      "change_pct": 0.5,
+      "open": 25929.15,
+      "high": 25929.15,
+      "low": 25929.15
     },
     "INDIA VIX": {
       "ltp": 17.32,
@@ -491,6 +491,6 @@
     }
   },
   "available_cash": 65682.1,
-  "available_margin": -23705507.68,
+  "available_margin": -23702089.81,
   "available_margin_note": null
 }
