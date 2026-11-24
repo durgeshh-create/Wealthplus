@@ -93,12 +93,13 @@ $('clr').onclick=()=>{$('form').querySelectorAll('[data-k]').forEach(e=>e.value=
 /* ---------- Live data (same method as your option.html: Apps Script → Yahoo direct → CORS proxies) ---------- */
 const LIVE_API_URL='https://script.google.com/macros/s/AKfycbyCN-vfMqg_QLHrnYLiZdFStVmLElOpJM5sgScOX_OtSFnOb33ehs-85e-Qc2Y6jeYhqQ/exec';
 const ROUTES=[u=>u,u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),u=>'https://corsproxy.io/?'+encodeURIComponent(u),u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u),u=>'https://thingproxy.freeboard.io/fetch/'+u];
-let route=0;
+let route=0;const errs=new Set(),RN=['direct','allorigins','corsproxy','codetabs','thingproxy'];
 const tmo=(u,ms=6000)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(u,{cache:'no-store',signal:c.signal}).finally(()=>clearTimeout(t))};
 async function chart(sym,interval,range){
  const target=`https://query${Math.random()<.5?1:2}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=${interval}&range=${range}&_=${Date.now()}`;
- const go=async r=>{const res=await tmo(ROUTES[r](target));if(!res.ok)throw new Error('HTTP '+res.status);const x=(await res.json()).chart.result[0],q=x.indicators.quote[0];
+ const go0=async r=>{const res=await tmo(ROUTES[r](target));if(!res.ok)throw new Error('HTTP '+res.status);const x=(await res.json()).chart.result[0],q=x.indicators.quote[0];
   return{meta:x.meta,rows:x.timestamp.map((t,i)=>({t:t*1000,o:q.open[i],h:q.high[i],l:q.low[i],c:q.close[i],v:q.volume[i]||0})).filter(r=>r.c!=null)}};
+ const go=r=>go0(r).catch(e=>{errs.add(RN[r]+': '+(e.name==='AbortError'?'timeout':e.message));throw e});
  try{return await go(route)}catch(e){const o=ROUTES.map((_,i)=>i).filter(i=>i!==route);const r=await Promise.any(o.map(async i=>({i,d:await go(i)})));route=r.i;return r.d}}
 const ema=(a,n)=>{const k=2/(n+1);let e=a[0];for(let i=1;i<a.length;i++)e=a[i]*k+e*(1-k);return e};
 const rsiF=(a,n=14)=>{if(a.length<n+1)return NaN;let g=0,l=0;for(let i=1;i<=n;i++){const d=a[i]-a[i-1];d>0?g+=d:l-=d}g/=n;l/=n;
@@ -136,13 +137,14 @@ async function fetchAll(){
  if(hs.length>=3)I.hw=r2(avg(hs)*5);else miss.push('heavyweights');
  if(gl.status==='fulfilled'){const r=gl.value.rows,ch=(gl.value.meta.regularMarketPrice/r[r.length-2].c-1)*100;W.glb=ch>.3?1:ch<-.3?-1:0}
  return{W,I,miss}}
-async function doLive(){const b=$('live'),s=$('st');b.disabled=true;s.textContent='Fetching…';
+async function doLive(){const b=$('live'),s=$('st');b.disabled=true;errs.clear();s.style.color='';s.textContent='Fetching live data…';
  try{const {W,I,miss}=await fetchAll();Object.assign(st.weekly,W);Object.assign(st.intraday,I);
   $('form').querySelectorAll('[data-k]').forEach(e=>{const v=st[mode][e.dataset.k];if(v!==undefined)e.value=v});calc();
   s.textContent='Updated '+new Date().toLocaleTimeString()+(miss.length?' · missing: '+miss.join(', '):'')+' · still manual: PCR, OI shift, FII, A/D'}
- catch(e){s.textContent='Live fetch failed ('+(e&&e.message||e)+'). Open this file locally or from your own host, or enter values manually.'}
+ catch(e){s.style.color='var(--dn)';s.textContent='Live fetch failed. '+[...errs].slice(0,4).join(' · ')+' — if you are viewing this inside a chat preview, download it and open in Chrome/Safari (previews block network calls). You can also enter values manually.'}
  b.disabled=false}
 let tm=null;$('live').onclick=doLive;
 $('auto').onchange=e=>{clearInterval(tm);if(e.target.checked){doLive();tm=setInterval(doLive,60000)}};
 build();
+doLive();
 </script></body></html>
