@@ -871,25 +871,42 @@
             return lower.includes('advisorkhoj') || lower.includes('indicators') || lower.includes('yield to maturity');
         }
 
-        function buildAdvisorkhojCandidates(fund) {
-            const name = (fund.mfQuery || fund.name).trim();
+        function buildAdvisorkhojCandidates(fund, altName) {
+            const names = [];
+            [altName, fund.mfQuery, fund.name].forEach(n => {
+                const t = n && n.trim();
+                if (t && !names.some(x => x.toLowerCase() === t.toLowerCase())) names.push(t);
+            });
+            // Advisorkhoj titles vary by AMC, e.g. "...Fund- Direct Plan-Growth Option",
+            // "...Fund - Growth - Regular Plan", "...Fund - Regular Plan - Growth".
+            // Portfolio YTM is the same across plans of a scheme, so Regular pages are fine too.
             const suffixes = [
                 'Direct Plan-Growth Option',
+                'Regular Plan-Growth Option',
                 'Direct Plan - Growth Option',
+                'Regular Plan - Growth Option',
+                'Growth - Direct Plan',
+                'Growth - Regular Plan',
+                'Direct Plan - Growth',
+                'Regular Plan - Growth',
+                'Direct Plan Growth',
+                'Regular Plan Growth',
+                'Growth Plan - Growth Option',
                 'Direct Growth',
-                '- Growth Option',
                 'Growth Option',
-                'Regular Plan-Growth Option'
+                'Growth'
             ];
             const seen = new Set();
             const urls = [];
-            suffixes.forEach(suffix => {
-                const full = `${name} ${suffix}`.replace(/\s+/g, ' ').trim();
-                const slug = full.replace(/\s+/g, '-');
-                if (!seen.has(slug)) {
-                    seen.add(slug);
-                    urls.push(ADVISORKHOJ_BASE + slug.split('-').map(encodeURIComponent).join('-'));
-                }
+            names.forEach(name => {
+                suffixes.forEach(suffix => {
+                    const full = `${name} ${suffix}`.replace(/\s+/g, ' ').trim();
+                    const slug = full.replace(/\s+/g, '-');
+                    if (!seen.has(slug)) {
+                        seen.add(slug);
+                        urls.push(ADVISORKHOJ_BASE + slug.split('-').map(encodeURIComponent).join('-'));
+                    }
+                });
             });
             return urls;
         }
@@ -906,22 +923,42 @@
             return (!isNaN(val) && val > 0 && val < 20) ? val : null;
         }
 
-        async function fetchYtmFromAdvisorkhoj(fund) {
-            const candidates = buildAdvisorkhojCandidates(fund);
-            for (const url of candidates) {
-                try {
-                    const html = await fetchViaProxies(url, 10000, isValidAdvisorkhojPage);
-                    const ytm = extractYtmFromAdvisorkhoj(html);
-                    if (ytm !== null) return ytm;
-                } catch (err) {
-                    // try the next candidate slug
-                }
+        async function fetchYtmFromAdvisorkhoj(fund, altName) {
+            const candidates = buildAdvisorkhojCandidates(fund, altName);
+            const CHUNK = 3;
+            for (let i = 0; i < candidates.length; i += CHUNK) {
+                const chunk = candidates.slice(i, i + CHUNK);
+                const results = await Promise.all(chunk.map(async url => {
+                    try {
+                        const html = await fetchViaProxies(url, 10000, isValidAdvisorkhojPage);
+                        return extractYtmFromAdvisorkhoj(html);
+                    } catch (err) {
+                        return null;   // dead slug / network error: try the next candidates
+                    }
+                }));
+                const hit = results.find(v => v !== null);
+                if (hit !== undefined) return hit;
             }
             return null;
         }
 
         function extractMetrics(html, fundName) {
-            const result = { ytm: 'na', exp: null, nav: null, ret1y: null, ret3y: null, dayChangePct: null, dayChangeAbs: null };
+            const result = { ytm: 'na', exp: null, nav: null, ret1y: null, ret3y: null, dayChangePct: null, dayChangeAbs: null, schemeName: null };
+
+            // Current official scheme name (AMCs rename schemes, e.g. SEBI recategorisation).
+            // Used as an extra lookup key for MFapi / Advisorkhoj when the saved name no longer matches.
+            try {
+                const og = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)
+                        || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
+                const h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+                const ttl = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+                const candidates = [og && og[1], h1 && h1[1].replace(/<[^>]+>/g, ' '), ttl && ttl[1]].filter(Boolean);
+                for (const raw of candidates) {
+                    const t = raw.replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+                    const m = t.match(/^(.*?\bFund)\b/i);
+                    if (m && m[1].length > 8) { result.schemeName = m[1].trim(); break; }
+                }
+            } catch (e) {}
 
             try {
                 const nextDataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i);
@@ -949,6 +986,10 @@
                             if (summary.nav !== undefined) result.nav = parseFloat(summary.nav);
                             if (summary.latestNav !== undefined) result.nav = parseFloat(summary.latestNav);
 
+                            if (summary.returns?.oneYear !== undefined) result.ret1y = parseFloat(summary.returns.oneYear);
+                            if (summary.returns?.oneY !== undefined) result.ret1y = parseFloat(summary.returns.oneY);
+                            if (summary.return1Y !== undefined) result.ret1y = parseFloat(summary.return1Y);
+                            if (summary.cagr1Y !== undefined) result.ret1y = parseFloat(summary.cagr1Y);
                             if (summary.returns?.threeYear !== undefined) result.ret3y = parseFloat(summary.returns.threeYear);
                             if (summary.returns?.threeY !== undefined) result.ret3y = parseFloat(summary.returns.threeY);
                             if (summary.return3Y !== undefined) result.ret3y = parseFloat(summary.return3Y);
@@ -1091,6 +1132,10 @@
 
                                 if (cells.length >= 3) {
                                     try {
+                                        const val1y = parseFloat(cells[1]);
+                                        if (result.ret1y === null && !isNaN(val1y) && val1y >= -5 && val1y <= 20) {
+                                            result.ret1y = val1y;
+                                        }
                                         const val3y = parseFloat(cells[2]);
                                         if (!isNaN(val3y) && val3y >= 0 && val3y <= 20) {
                                             result.ret3y = val3y;
@@ -1151,23 +1196,28 @@
             return result;
         }
 
-        async function fetchDebtDayChangeViaMFApi(fund) {
-            if (!fund.mfQuery) return null;
-            for (let attempt = 0; attempt < 2; attempt++) {
-                try {
-                    const history = await fetchMFHistory(fund.mfQuery);
-                    const pct = computeDayChange(history);
-                    if (pct === null || isNaN(pct)) return null;
-                    const latest = history[history.length - 1].price;
-                    const prev = history[history.length - 2].price;
-                    return { pct, abs: latest - prev, latestNav: latest, ret1y: computeCAGR(history, 1) };
-                } catch (e) {
-                    if (attempt === 0) {
-                        await new Promise(r => setTimeout(r, 600));
-                        continue;
+        async function fetchDebtDayChangeViaMFApi(fund, altName, targetNav) {
+            const queries = [];
+            [altName, fund.mfQuery].forEach(q => {
+                if (q && !queries.some(x => x.toLowerCase() === q.toLowerCase())) queries.push(q);
+            });
+            if (!queries.length) return null;
+            for (const q of queries) {
+                for (let attempt = 0; attempt < 2; attempt++) {
+                    try {
+                        const history = await fetchMFHistory(q, targetNav);
+                        const pct = computeDayChange(history);
+                        if (pct === null || isNaN(pct)) break;
+                        const latest = history[history.length - 1].price;
+                        const prev = history[history.length - 2].price;
+                        return { pct, abs: latest - prev, latestNav: latest, ret1y: computeCAGR(history, 1) };
+                    } catch (e) {
+                        if (attempt === 0) {
+                            await new Promise(r => setTimeout(r, 600));
+                            continue;
+                        }
+                        console.warn(`MFapi fetch failed for ${fund.name} (query "${q}"):`, e.message);
                     }
-                    console.warn(`MFapi day-change fetch failed for ${fund.name}:`, e.message);
-                    return null;
                 }
             }
             return null;
@@ -1193,6 +1243,16 @@
             console.warn(`Using local NAV-diff fallback for ${fund.name} day-change`);
         }
 
+        async function fetchDebtBundle(fund) {
+            const html = await fetchWithProxy(fund.url);
+            const result = extractMetrics(html, fund.name);
+            const [mfChange, advisorkhojYtm] = await Promise.all([
+                fetchDebtDayChangeViaMFApi(fund, result.schemeName, result.nav),
+                fetchYtmFromAdvisorkhoj(fund, result.schemeName).catch(() => null)
+            ]);
+            return { result, mfChange, advisorkhojYtm };
+        }
+
         async function refreshSingle(index) {
             const fund = funds[index];
             const oldYtm = fund.ytm;
@@ -1201,12 +1261,7 @@
             renderTable();
 
             try {
-                const [html, mfChange, advisorkhojYtm] = await Promise.all([
-                    fetchWithProxy(fund.url),
-                    fetchDebtDayChangeViaMFApi(fund),
-                    fetchYtmFromAdvisorkhoj(fund).catch(() => null)
-                ]);
-                const result = extractMetrics(html, fund.name);
+                const { result, mfChange, advisorkhojYtm } = await fetchDebtBundle(fund);
                 if (advisorkhojYtm !== null) {
                     result.ytm = advisorkhojYtm;
                 }
@@ -1217,6 +1272,8 @@
                 fund.ret3y = result.ret3y ? result.ret3y.toFixed(2) : null;
                 if (mfChange && mfChange.ret1y !== null && mfChange.ret1y !== undefined && !isNaN(mfChange.ret1y) && isMfChangeTrustworthy(mfChange, result.nav)) {
                     fund.ret1y = mfChange.ret1y.toFixed(2);
+                } else if (result.ret1y !== null && result.ret1y !== undefined && !isNaN(result.ret1y)) {
+                    fund.ret1y = result.ret1y.toFixed(2);
                 }
                 fund.dayChangePct = (result.dayChangePct !== null && result.dayChangePct !== undefined) ? result.dayChangePct.toFixed(2) : null;
                 fund.dayChangeAbs = (result.dayChangeAbs !== null && result.dayChangeAbs !== undefined) ? result.dayChangeAbs.toFixed(2) : null;
@@ -1248,12 +1305,7 @@
             progressFill.style.width = `${((index + 1) / total) * 100}%`;
 
             try {
-                const [html, mfChange, advisorkhojYtm] = await Promise.all([
-                    fetchWithProxy(fund.url),
-                    fetchDebtDayChangeViaMFApi(fund),
-                    fetchYtmFromAdvisorkhoj(fund).catch(() => null)
-                ]);
-                const result = extractMetrics(html, fund.name);
+                const { result, mfChange, advisorkhojYtm } = await fetchDebtBundle(fund);
                 if (advisorkhojYtm !== null) {
                     result.ytm = advisorkhojYtm;
                 }
@@ -1264,6 +1316,8 @@
                 fund.ret3y = result.ret3y ? result.ret3y.toFixed(2) : null;
                 if (mfChange && mfChange.ret1y !== null && mfChange.ret1y !== undefined && !isNaN(mfChange.ret1y) && isMfChangeTrustworthy(mfChange, result.nav)) {
                     fund.ret1y = mfChange.ret1y.toFixed(2);
+                } else if (result.ret1y !== null && result.ret1y !== undefined && !isNaN(result.ret1y)) {
+                    fund.ret1y = result.ret1y.toFixed(2);
                 }
                 fund.dayChangePct = (result.dayChangePct !== null && result.dayChangePct !== undefined) ? result.dayChangePct.toFixed(2) : null;
                 fund.dayChangeAbs = (result.dayChangeAbs !== null && result.dayChangeAbs !== undefined) ? result.dayChangeAbs.toFixed(2) : null;
@@ -1649,38 +1703,8 @@
             return [...new Set(variants)];
         }
 
-        async function fetchMFHistory(query) {
-            let results = null;
-            for (const variant of generateQueryVariants(query)) {
-                const searchUrl = `https://api.mfapi.in/mf/search?q=${encodeURIComponent(variant)}`;
-                const attempt = await fetchJSONWithProxies(searchUrl);
-                if (attempt && attempt.length) { results = attempt; break; }
-            }
-            if (!results || !results.length) throw new Error('Scheme not found');
-
-            const stopWords = new Set(['fund', 'direct', 'growth', 'plan', 'regular', 'the', 'of', 'and', 'sun', 'life']);
-            const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
-
-            function scoreResult(r) {
-                const name = r.schemeName.toLowerCase();
-                let score = queryWords.filter(w => name.includes(w)).length;
-                if (/direct/i.test(r.schemeName)) score += 0.5;
-                if (/growth/i.test(r.schemeName)) score += 0.5;
-                return score;
-            }
-
-            let best = results[0];
-            let bestScore = -1;
-            for (const r of results) {
-                const s = scoreResult(r);
-                if (s > bestScore) { bestScore = s; best = r; }
-            }
-
-            if (queryWords.length > 0 && bestScore < queryWords.length * 0.6) {
-                throw new Error('No confident scheme match on MFapi');
-            }
-
-            const histUrl = `https://api.mfapi.in/mf/${best.schemeCode}?_=${Date.now()}`;
+        async function loadMfHistory(schemeCode) {
+            const histUrl = `https://api.mfapi.in/mf/${schemeCode}?_=${Date.now()}`;
             const histJson = await fetchJSONWithProxies(histUrl);
             if (!histJson.data || !histJson.data.length) throw new Error('No NAV history');
 
@@ -1708,6 +1732,51 @@
             }
 
             return deduped;
+        }
+
+        // targetNav (optional): the NAV scraped from another source. When given, the
+        // best few name matches are tried and the one whose latest NAV is closest wins,
+        // which reliably picks the Direct-Growth plan even if names are ambiguous.
+        async function fetchMFHistory(query, targetNav) {
+            let results = null;
+            for (const variant of generateQueryVariants(query)) {
+                const searchUrl = `https://api.mfapi.in/mf/search?q=${encodeURIComponent(variant)}`;
+                const attempt = await fetchJSONWithProxies(searchUrl);
+                if (attempt && attempt.length) { results = attempt; break; }
+            }
+            if (!results || !results.length) throw new Error('Scheme not found');
+
+            const stopWords = new Set(['fund', 'direct', 'growth', 'plan', 'regular', 'the', 'of', 'and', 'sun', 'life']);
+            const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2 && !stopWords.has(w));
+            const badPlan = /idcw|dividend|bonus|payout|reinvest|weekly|monthly|daily|fortnightly|quarterly|annual|retail|institutional|unclaimed|segregated/i;
+
+            function scoreResult(r) {
+                const name = r.schemeName.toLowerCase();
+                let score = queryWords.filter(w => name.includes(w)).length;
+                if (/direct/i.test(r.schemeName)) score += 0.6;
+                if (/growth/i.test(r.schemeName)) score += 0.4;
+                if (badPlan.test(r.schemeName)) score -= 1;
+                return score;
+            }
+
+            const ranked = results.map(r => ({ r, s: scoreResult(r) })).sort((a, b) => b.s - a.s);
+            if (queryWords.length > 0 && ranked[0].s < queryWords.length * 0.6) {
+                throw new Error('No confident scheme match on MFapi');
+            }
+
+            const cands = ranked.filter(x => x.s >= ranked[0].s - 1.0).slice(0, 3);
+            let bestHist = null, bestDiff = Infinity, lastErr = null;
+            for (const c of cands) {
+                try {
+                    const h = await loadMfHistory(c.r.schemeCode);
+                    if (!targetNav || isNaN(targetNav)) return h;
+                    const diff = Math.abs(h[h.length - 1].price - targetNav) / targetNav;
+                    if (diff < bestDiff) { bestDiff = diff; bestHist = h; }
+                    if (diff < 0.003) break;
+                } catch (e) { lastErr = e; }
+            }
+            if (bestHist) return bestHist;
+            throw lastErr || new Error('No NAV history');
         }
 
         const MIN_HISTORY_POINTS = 200;
@@ -1889,7 +1958,7 @@
             const targetDate = new Date(latestPoint.date);
             targetDate.setFullYear(targetDate.getFullYear() - years);
 
-            const toleranceMs = 20 * 24 * 60 * 60 * 1000;
+            const toleranceMs = (years <= 1 ? 45 : 20) * 24 * 60 * 60 * 1000;
             if (data[0].date - targetDate > toleranceMs) return null;
 
             let closest = null, closestDiff = Infinity;
@@ -1963,7 +2032,7 @@
             const targetDate = new Date(latestPoint.date);
             targetDate.setFullYear(targetDate.getFullYear() - years);
 
-            const toleranceMs = 20 * 24 * 60 * 60 * 1000;
+            const toleranceMs = (years <= 1 ? 45 : 20) * 24 * 60 * 60 * 1000;
             if (data[0].date - targetDate > toleranceMs) return null;
 
             let closest = null, closestDiff = Infinity;
