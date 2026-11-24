@@ -29,6 +29,7 @@ input,select{width:100%;padding:8px;margin-top:2px;border:1px solid var(--bd);bo
 .m{height:8px;background:var(--bd);border-radius:4px;position:relative}.m i{position:absolute;top:0;height:8px;border-radius:4px}
 .ms{display:flex;justify-content:space-around;font-size:12px;color:var(--mu);margin-top:6px}
 .n{font-size:12px;color:var(--mu);margin-top:14px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{flex:1;min-width:84px;text-align:center;font-size:12px;line-height:1.35;padding:6px}.chip.on{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac)}table{width:100%;border-collapse:collapse;font-size:12.5px}td,th{padding:4px 6px;border-top:1px solid var(--bd);text-align:left;white-space:nowrap}th{color:var(--mu);font-weight:500}td:nth-child(n+2){text-align:right}
 </style></head><body><div class="w">
 <h1>Nifty 50 Bias Detector</h1>
 <div class="sub">Enter current readings; a weighted multi-factor score gives a bias from −100 (bearish) to +100 (bullish). Blank fields are skipped.</div>
@@ -39,14 +40,15 @@ input,select{width:100%;padding:8px;margin-top:2px;border:1px solid var(--bd);bo
 <div class="c"><h2>Result</h2><div class="big" id="sc">–</div><div class="lab" id="lb">Enter data</div>
 <div class="bar"><div class="nd" id="nd" style="left:50%"></div></div><div class="sc"><span>−100</span><span>0</span><span>+100</span></div>
 <div class="ms" id="ms"></div><div id="rows" style="margin-top:10px"></div></div></div>
-<div class="n">Live fetch pulls Nifty, VIX, NIFTYBEES (for VWAP), heavyweights and S&amp;P 500 from Yahoo Finance via your Apps Script endpoint and CORS proxies. PCR, OI shift, FII flow and A/D are not on Yahoo, so enter those from the NSE. Educational tool only, not investment advice.</div>
+<div class="c" style="margin-top:14px"><h2>Technical summary · Investing.com-style, computed live from Nifty candles</h2><div id="tech"></div></div>
+<div class="n">Technical summary uses the same indicator set as Investing.com (12 indicators + SMA/EMA 5–200) on Yahoo candles, so signals can differ slightly from their page. Live fetch pulls Nifty, VIX, NIFTYBEES (for VWAP), heavyweights and S&amp;P 500 from Yahoo Finance via your Apps Script endpoint and CORS proxies. PCR, OI shift, FII flow and A/D are not on Yahoo, so enter those from the NSE. Educational tool only, not investment advice.</div>
 </div>
 <script>
 const cl=(x,a=-1,b=1)=>Math.max(a,Math.min(b,x)),N=x=>x===''||x==null?NaN:parseFloat(x),has=(v,...k)=>k.every(i=>!isNaN(v[i]));
 const OI=[['','—'],['1','Put writing dominant'],['0','Balanced'],['-1','Call writing dominant']];
 const M={
 weekly:{t:'Weekly inputs (daily/weekly data)',
-F:[['spot','Nifty spot'],['dma20','20 DMA'],['dma50','50 DMA'],['rsi','Daily RSI(14)'],['pwh','Prev week high'],['pwl','Prev week low'],['vix','India VIX'],['vixc','VIX 5-day change %'],['pcr','Weekly PCR (OI)'],['fii','FII net cash, 5-day (₹ cr)'],['adr','Advance/Decline ratio'],['glb','Global cues',[['','—'],['1','Positive'],['0','Mixed'],['-1','Negative']]]],
+F:[['spot','Nifty spot'],['dma20','20 DMA'],['dma50','50 DMA'],['rsi','Daily RSI(14)'],['pwh','Prev week high'],['pwl','Prev week low'],['vix','India VIX'],['vixc','VIX 5-day change %'],['pcr','Weekly PCR (OI)'],['fii','FII net cash, 5-day (₹ cr)'],['adr','Advance/Decline ratio'],['glb','Global cues',[['','—'],['1','Positive'],['0','Mixed'],['-1','Negative']]],['tech','Tech summary D+W (−1…+1, auto)']],
 S:[['Price vs 20 DMA',15,v=>has(v,'spot','dma20')&&(v.spot>v.dma20?1:-1)],
 ['Price vs 50 DMA',10,v=>has(v,'spot','dma50')&&(v.spot>v.dma50?1:-1)],
 ['20 DMA vs 50 DMA',10,v=>has(v,'dma20','dma50')&&(v.dma20>v.dma50?1:-1)],
@@ -56,9 +58,10 @@ S:[['Price vs 20 DMA',15,v=>has(v,'spot','dma20')&&(v.spot>v.dma20?1:-1)],
 ['PCR',10,v=>has(v,'pcr')&&(v.pcr>1.6?.3:cl((v.pcr-1)/.3))],
 ['FII flow',10,v=>has(v,'fii')&&cl(v.fii/5000)],
 ['Breadth (A/D)',5,v=>has(v,'adr')&&cl((v.adr-1)/.8)],
-['Global cues',5,v=>has(v,'glb')&&v.glb]]},
+['Global cues',5,v=>has(v,'glb')&&v.glb],
+['Technical summary (Daily+Weekly)',15,v=>has(v,'tech')&&cl(v.tech)]]},
 intraday:{t:'Intraday inputs (5-min / 15-min chart)',
-F:[['spot','Nifty spot (LTP)'],['vwap','VWAP'],['orh','Opening range high (15m)'],['orl','Opening range low (15m)'],['pdh','Prev day high'],['pdl','Prev day low'],['e9','EMA 9 (5m)'],['e21','EMA 21 (5m)'],['rsi','RSI(14) 5m'],['pcr','Intraday PCR'],['oi','OI shift (near ATM)',OI],['vixc','VIX change today %'],['hw','Heavyweights up (of top 5)'],['adr','Advance/Decline ratio']],
+F:[['spot','Nifty spot (LTP)'],['vwap','VWAP'],['orh','Opening range high (15m)'],['orl','Opening range low (15m)'],['pdh','Prev day high'],['pdl','Prev day low'],['e9','EMA 9 (5m)'],['e21','EMA 21 (5m)'],['rsi','RSI(14) 5m'],['pcr','Intraday PCR'],['oi','OI shift (near ATM)',OI],['vixc','VIX change today %'],['hw','Heavyweights up (of top 5)'],['adr','Advance/Decline ratio'],['tech','Tech summary 30m+1h (−1…+1, auto)']],
 S:[['Price vs VWAP',20,v=>has(v,'spot','vwap')&&(v.spot>v.vwap?1:-1)],
 ['Opening range breakout',15,v=>has(v,'spot','orh','orl')&&(v.spot>v.orh?1:v.spot<v.orl?-1:0)],
 ['EMA 9 vs 21',15,v=>has(v,'e9','e21')&&(v.e9>v.e21?1:-1)],
@@ -68,9 +71,10 @@ S:[['Price vs VWAP',20,v=>has(v,'spot','vwap')&&(v.spot>v.vwap?1:-1)],
 ['PCR',5,v=>has(v,'pcr')&&(v.pcr>1.6?.3:cl((v.pcr-1)/.3))],
 ['VIX change',5,v=>has(v,'vixc')&&cl(-v.vixc/4)],
 ['Heavyweights',10,v=>has(v,'hw')&&cl((v.hw-2.5)/2.5)],
-['Breadth (A/D)',5,v=>has(v,'adr')&&cl((v.adr-1)/.8)]]}};
-const D={weekly:{spot:24850,dma20:24600,dma50:24400,rsi:58,pwh:24900,pwl:24480,vix:13.8,vixc:-6,pcr:1.15,fii:1200,adr:1.4,glb:1},
-intraday:{spot:24870,vwap:24840,orh:24865,orl:24810,pdh:24890,pdl:24760,e9:24862,e21:24850,rsi:61,pcr:1.1,oi:1,vixc:-2,hw:4,adr:1.6}};
+['Breadth (A/D)',5,v=>has(v,'adr')&&cl((v.adr-1)/.8)],
+['Technical summary (30m+1h)',15,v=>has(v,'tech')&&cl(v.tech)]]}};
+const D={weekly:{spot:24850,dma20:24600,dma50:24400,rsi:58,pwh:24900,pwl:24480,vix:13.8,vixc:-6,pcr:1.15,fii:1200,adr:1.4,glb:1,tech:.6},
+intraday:{spot:24870,vwap:24840,orh:24865,orl:24810,pdh:24890,pdl:24760,e9:24862,e21:24850,rsi:61,pcr:1.1,oi:1,vixc:-2,hw:4,adr:1.6,tech:.4}};
 let mode='weekly';const $=i=>document.getElementById(i);
 function build(){const m=M[mode];$('ft').textContent=m.t;$('form').innerHTML=m.F.map(([k,l,o])=>`<div><label>${l}${o?`<select data-k="${k}">${o.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('')}</select>`:`<input data-k="${k}" type="number" step="any" inputmode="decimal">`}</label></div>`).join('');
 $('form').querySelectorAll('input,select').forEach(e=>e.oninput=calc);$('form').querySelectorAll('[data-k]').forEach(e=>{if(st[mode][e.dataset.k]!==undefined)e.value=st[mode][e.dataset.k]});calc()}
@@ -108,6 +112,50 @@ const avg=a=>a.reduce((x,y)=>x+y,0)/a.length,r2=x=>Math.round(x*100)/100;
 const ist=t=>new Date(t+19800000),dkey=t=>ist(t).toISOString().slice(0,10);
 const wkey=t=>{const d=ist(t);d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));return d.toISOString().slice(0,10)};
 async function quickSpot(){try{const r=await tmo(LIVE_API_URL+'?_='+Date.now(),9000);const d=await r.json();return typeof d.nifty==='number'?d:null}catch(e){return null}}
+/* ---------- Investing.com-style technical summary, computed from Yahoo candles ---------- */
+const mx=(a,k)=>Math.max(...a.slice(-k)),mn=(a,k)=>Math.min(...a.slice(-k));
+function rsiS(a,n=14){const o=[];if(a.length<n+1)return o;let g=0,l=0;for(let i=1;i<=n;i++){const d=a[i]-a[i-1];d>0?g+=d:l-=d}g/=n;l/=n;o.push(l===0?100:100-100/(1+g/l));
+ for(let i=n+1;i<a.length;i++){const d=a[i]-a[i-1];g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n;o.push(l===0?100:100-100/(1+g/l))}return o}
+function adxF(h,l,c,p=14){const n=c.length;if(n<2*p+2)return{a:NaN};let tr=0,pd=0,md=0,adx=NaN;const dx=[];
+ for(let i=1;i<n;i++){const up=h[i]-h[i-1],dn=l[i-1]-l[i],t=Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])),pm=up>dn&&up>0?up:0,mm=dn>up&&dn>0?dn:0;
+  if(i<=p){tr+=t;pd+=pm;md+=mm}else{tr=tr-tr/p+t;pd=pd-pd/p+pm;md=md-md/p+mm}
+  if(i>=p){const pi=100*pd/tr,mi=100*md/tr,d=100*Math.abs(pi-mi)/((pi+mi)||1);dx.push([d,pi,mi]);if(dx.length===p)adx=avg(dx.map(x=>x[0]));else if(dx.length>p)adx=(adx*(p-1)+d)/p}}
+ const L=dx[dx.length-1];return{a:adx,pi:L[1],mi:L[2]}}
+const verdict=(b,s,n)=>{const t=b+s+n;if(!t)return['Neutral',0];const x=(b-s)/t;return[x>=.6?'Strong Buy':x>=.2?'Buy':x>-.2?'Neutral':x>-.6?'Sell':'Strong Sell',x]};
+function tech(R){const c=R.map(r=>r.c),h=R.map(r=>r.h??r.c),l=R.map(r=>r.l??r.c),n=c.length;if(n<40)return null;const P=c[n-1];
+ const mas=[5,10,20,50,100,200].map(k=>{const s=n>=k?avg(c.slice(-k)):NaN,e=n>=k?ema(c,k):NaN;return{n:'MA'+k,s,sa:isNaN(s)?'–':P>s?'Buy':'Sell',e,ea:isNaN(e)?'–':P>e?'Buy':'Sell'}});
+ const I=[],add=(nm,val,act)=>I.push({nm,val,act});
+ const rs=rsiS(c),r=rs[rs.length-1];add('RSI(14)',r,r>=70?'Overbought':r<=30?'Oversold':r>60?'Buy':r<40?'Sell':'Neutral');
+ const kr=[];for(let i=8;i<n;i++){const hh=mx(h.slice(0,i+1),9),ll=mn(l.slice(0,i+1),9);kr.push(hh===ll?50:(c[i]-ll)/(hh-ll)*100)}
+ const K=[];for(let i=5;i<kr.length;i++)K.push(avg(kr.slice(i-5,i+1)));const k=K[K.length-1],d=avg(K.slice(-3));
+ add('STOCH(9,6)',k,k>80?'Overbought':k<20?'Oversold':k>d?'Buy':'Sell');
+ const r14=rs.slice(-14),sr=(r14[13]-Math.min(...r14))/((Math.max(...r14)-Math.min(...r14))||1)*100;add('STOCHRSI(14)',sr,sr>80?'Overbought':sr<20?'Oversold':sr>50?'Buy':'Sell');
+ const m=ema(c,12)-ema(c,26);add('MACD(12,26)',m,m>0?'Buy':m<0?'Sell':'Neutral');
+ const ax=adxF(h,l,c);add('ADX(14)',ax.a,ax.a>25?(ax.pi>ax.mi?'Buy':'Sell'):'Neutral');
+ const hh=mx(h,14),ll=mn(l,14),w=(hh-P)/((hh-ll)||1)*-100;add('Williams %R',w,w>-20?'Overbought':w<-80?'Oversold':w>-50?'Buy':'Sell');
+ const tp=c.map((x,i)=>(x+h[i]+l[i])/3),t14=tp.slice(-14),tm=avg(t14),md=avg(t14.map(x=>Math.abs(x-tm))),cci=(tp[n-1]-tm)/(0.015*md||1);add('CCI(14)',cci,cci>100?'Buy':cci<-100?'Sell':'Neutral');
+ const trs=c.map((x,i)=>i?Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])):h[i]-l[i]),atr=avg(trs.slice(-14));add('ATR(14)',atr,atr>avg(trs.slice(-50))?'More Volatility':'Less Volatility');
+ const hl=P-(hh+ll)/2;add('Highs/Lows(14)',hl,hl>0?'Buy':'Sell');
+ const bp=c.map((x,i)=>i?x-Math.min(l[i],c[i-1]):0),tr2=c.map((x,i)=>i?Math.max(h[i],c[i-1])-Math.min(l[i],c[i-1]):0),sm=(a,k)=>a.slice(-k).reduce((x,y)=>x+y,0),av=k=>sm(bp,k)/(sm(tr2,k)||1),uo=100*(4*av(7)+2*av(14)+av(28))/7;add('Ultimate Oscillator',uo,uo>70?'Overbought':uo<30?'Oversold':uo>50?'Buy':'Sell');
+ const roc=(P/c[n-13]-1)*100;add('ROC(12)',roc,roc>0?'Buy':roc<0?'Sell':'Neutral');
+ const e13=ema(c,13),bb=(h[n-1]-e13)+(l[n-1]-e13);add('Bull/Bear Power(13)',bb,bb>0?'Buy':'Sell');
+ const cnt=(arr,key)=>{let b=0,s=0,z=0;arr.forEach(x=>{const a=key?x[key]:x.act;if(a==='Buy')b++;else if(a==='Sell')s++;else if(a==='Neutral')z++});return[b,s,z]};
+ const [mb,ms]=[cnt(mas,'sa'),cnt(mas,'ea')].reduce((a,x)=>[a[0]+x[0],a[1]+x[1]],[0,0]),[ib,is,iz]=cnt(I);
+ const [mv]=verdict(mb,ms,0),[iv]=verdict(ib,is,iz),[v,x]=verdict(mb+ib,ms+is,iz);
+ return{v,x,mv,iv,mc:`Buy ${mb} · Sell ${ms}`,ic:`Buy ${ib} · Neutral ${iz} · Sell ${is}`,mas,I}}
+let TECH={},tsel='Daily';
+const vc=a=>a.includes('Buy')?'var(--up)':a.includes('Sell')?'var(--dn)':'var(--nu)',f2=x=>isNaN(x)?'–':x.toLocaleString('en-IN',{maximumFractionDigits:2});
+function renderTech(){const el=$('tech'),ks=Object.keys(TECH);if(!ks.length){el.innerHTML='<div class="sub">Click “Fetch live data” to compute.</div>';return}
+ if(!TECH[tsel])tsel=ks.includes('Daily')?'Daily':ks[0];const t=TECH[tsel];
+ el.innerHTML=`<div class="chips">${ks.map(k=>`<button class="b chip${k===tsel?' on':''}" data-t="${k}"><b>${k}</b><br><span style="color:${vc(TECH[k].v)}">${TECH[k].v}</span></button>`).join('')}</div>
+ <div class="lab" style="color:${vc(t.v)};margin:12px 0 2px;font-size:20px">${t.v}</div>
+ <div class="ms"><span>Moving averages: <b style="color:${vc(t.mv)}">${t.mv}</b> (${t.mc})</span><span>Indicators: <b style="color:${vc(t.iv)}">${t.iv}</b> (${t.ic})</span></div>
+ <div class="g" style="margin-top:12px"><div style="overflow-x:auto"><table><tr><th>Indicator</th><th>Value</th><th>Action</th></tr>${t.I.map(x=>`<tr><td>${x.nm}</td><td>${f2(x.val)}</td><td style="color:${vc(x.act)}">${x.act}</td></tr>`).join('')}</table></div>
+ <div style="overflow-x:auto"><table><tr><th>MA</th><th>Simple</th><th></th><th>Exponential</th><th></th></tr>${t.mas.map(x=>`<tr><td>${x.n}</td><td>${f2(x.s)}</td><td style="color:${vc(x.sa)}">${x.sa}</td><td>${f2(x.e)}</td><td style="color:${vc(x.ea)}">${x.ea}</td></tr>`).join('')}</table></div></div>`}
+$('tech').onclick=e=>{const b=e.target.closest('[data-t]');if(b){tsel=b.dataset.t;renderTech()}};
+async function fetchTech(){const TF=[['30 Min','30m','1mo'],['Hourly','60m','3mo'],['Daily','1d','2y'],['Weekly','1wk','10y'],['Monthly','1mo','20y']];
+ const rs=await Promise.allSettled(TF.map(t=>chart('^NSEI',t[1],t[2]))),o={};
+ rs.forEach((x,i)=>{if(x.status==='fulfilled'){try{const t=tech(x.value.rows);if(t)o[TF[i][0]]=t}catch(e){}}});return o}
 async function fetchAll(){
  const miss=[],W={},I={};
  const [daily,i5,vixD,bees,gl]=await Promise.allSettled([chart('^NSEI','1d','6mo'),chart('^NSEI','5m','1d'),chart('^INDIAVIX','1d','1mo'),chart('NIFTYBEES.NS','5m','1d'),chart('^GSPC','1d','5d')]);
@@ -136,15 +184,17 @@ async function fetchAll(){
  const hs=(await Promise.allSettled(HW.map(s=>chart(s,'1d','5d')))).filter(x=>x.status==='fulfilled').map(x=>{const r=x.value.rows,p=r[r.length-2].c;return x.value.meta.regularMarketPrice>p?1:0});
  if(hs.length>=3)I.hw=r2(avg(hs)*5);else miss.push('heavyweights');
  if(gl.status==='fulfilled'){const r=gl.value.rows,ch=(gl.value.meta.regularMarketPrice/r[r.length-2].c-1)*100;W.glb=ch>.3?1:ch<-.3?-1:0}
+ TECH=await fetchTech();const tv=k=>TECH[k]?TECH[k].x:NaN,av=(a,b)=>[a,b].filter(x=>!isNaN(x));
+ let q=av(tv('Daily'),tv('Weekly'));if(q.length)W.tech=r2(avg(q));q=av(tv('30 Min'),tv('Hourly'));if(q.length)I.tech=r2(avg(q));
  return{W,I,miss}}
 async function doLive(){const b=$('live'),s=$('st');b.disabled=true;errs.clear();s.style.color='';s.textContent='Fetching live data…';
  try{const {W,I,miss}=await fetchAll();Object.assign(st.weekly,W);Object.assign(st.intraday,I);
-  $('form').querySelectorAll('[data-k]').forEach(e=>{const v=st[mode][e.dataset.k];if(v!==undefined)e.value=v});calc();
+  $('form').querySelectorAll('[data-k]').forEach(e=>{const v=st[mode][e.dataset.k];if(v!==undefined)e.value=v});calc();renderTech();
   s.textContent='Updated '+new Date().toLocaleTimeString()+(miss.length?' · missing: '+miss.join(', '):'')+' · still manual: PCR, OI shift, FII, A/D'}
  catch(e){s.style.color='var(--dn)';s.textContent='Live fetch failed. '+[...errs].slice(0,4).join(' · ')+' — if you are viewing this inside a chat preview, download it and open in Chrome/Safari (previews block network calls). You can also enter values manually.'}
  b.disabled=false}
 let tm=null;$('live').onclick=doLive;
 $('auto').onchange=e=>{clearInterval(tm);if(e.target.checked){doLive();tm=setInterval(doLive,60000)}};
-build();
+build();renderTech();
 doLive();
 </script></body></html>
