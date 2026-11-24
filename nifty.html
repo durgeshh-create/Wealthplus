@@ -98,7 +98,7 @@ $('clr').onclick=()=>{$('form').querySelectorAll('[data-k]').forEach(e=>e.value=
 const LIVE_API_URL='https://script.google.com/macros/s/AKfycbyCN-vfMqg_QLHrnYLiZdFStVmLElOpJM5sgScOX_OtSFnOb33ehs-85e-Qc2Y6jeYhqQ/exec';
 const ROUTES=[u=>u,u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),u=>'https://corsproxy.io/?'+encodeURIComponent(u),u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u),u=>'https://thingproxy.freeboard.io/fetch/'+u];
 let route=0;const errs=new Set(),RN=['direct','allorigins','corsproxy','codetabs','thingproxy'];
-const tmo=(u,ms=6000)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(u,{cache:'no-store',signal:c.signal}).finally(()=>clearTimeout(t))};
+const tmo=(u,ms=5000)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(u,{cache:'no-store',signal:c.signal}).finally(()=>clearTimeout(t))};
 async function chart(sym,interval,range){
  const target=`https://query${Math.random()<.5?1:2}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=${interval}&range=${range}&_=${Date.now()}`;
  const go0=async r=>{const res=await tmo(ROUTES[r](target));if(!res.ok)throw new Error('HTTP '+res.status);const x=(await res.json()).chart.result[0],q=x.indicators.quote[0];
@@ -156,42 +156,30 @@ $('tech').onclick=e=>{const b=e.target.closest('[data-t]');if(b){tsel=b.dataset.
 async function fetchTech(){const TF=[['30 Min','30m','1mo'],['Hourly','60m','3mo'],['Daily','1d','2y'],['Weekly','1wk','10y'],['Monthly','1mo','20y']];
  const rs=await Promise.allSettled(TF.map(t=>chart('^NSEI',t[1],t[2]))),o={};
  rs.forEach((x,i)=>{if(x.status==='fulfilled'){try{const t=tech(x.value.rows);if(t)o[TF[i][0]]=t}catch(e){}}});return o}
-async function fetchAll(){
- const miss=[],W={},I={};
- const [daily,i5,vixD,bees,gl]=await Promise.allSettled([chart('^NSEI','1d','6mo'),chart('^NSEI','5m','1d'),chart('^INDIAVIX','1d','1mo'),chart('NIFTYBEES.NS','5m','1d'),chart('^GSPC','1d','5d')]);
- const qs=await quickSpot();
- if(daily.status!=='fulfilled'&&!qs)throw new Error('Could not reach any data source');
- let spot=qs?qs.nifty:NaN;
- if(daily.status==='fulfilled'){const d=daily.value,cl=d.rows.map(r=>r.c);spot=isNaN(spot)?d.meta.regularMarketPrice:spot;
-  W.dma20=r2(avg(cl.slice(-20)));W.dma50=r2(avg(cl.slice(-50)));W.rsi=r2(rsiF(cl));
+function apply(w,i){const cl=o=>Object.fromEntries(Object.entries(o||{}).filter(([k,v])=>v!==undefined&&!isNaN(v)));Object.assign(st.weekly,cl(w));Object.assign(st.intraday,cl(i));
+ $('form').querySelectorAll('[data-k]').forEach(e=>{const v=st[mode][e.dataset.k];if(v!==undefined)e.value=v});calc()}
+async function fetchAll(tick){
+ const miss=[],dailyP=chart('^NSEI','1d','6mo');dailyP.catch(()=>0);
+ const jobs=[
+ ['quick quote',async()=>{const q=await quickSpot();if(!q)throw 0;apply({spot:r2(q.nifty),vix:typeof q.vix==='number'?r2(q.vix):undefined},{spot:r2(q.nifty)})}],
+ ['daily candles',async()=>{const d=await dailyP,cl=d.rows.map(r=>r.c),W={dma20:r2(avg(cl.slice(-20))),dma50:r2(avg(cl.slice(-50))),rsi:r2(rsiF(cl)),spot:r2(d.meta.regularMarketPrice)};
   const wk={};d.rows.forEach(r=>{(wk[wkey(r.t)]=wk[wkey(r.t)]||[]).push(r)});const ks=Object.keys(wk).sort(),pw=wk[ks[ks.length-2]];
-  if(pw){W.pwh=r2(Math.max(...pw.map(r=>r.h)));W.pwl=r2(Math.min(...pw.map(r=>r.l)))}
-  var lastD=d.rows;}
- W.spot=I.spot=r2(spot);
- if(vixD.status==='fulfilled'){const c=vixD.value.rows.map(r=>r.c),v=qs&&typeof qs.vix==='number'?qs.vix:vixD.value.meta.regularMarketPrice;
-  W.vix=r2(v);W.vixc=r2((v/c[Math.max(0,c.length-6)]-1)*100);I.vixc=r2((v/c[c.length-2]-1)*100)}else if(qs&&typeof qs.vix==='number')W.vix=r2(qs.vix);
- if(i5.status==='fulfilled'){const R=i5.value.rows,cl=R.map(r=>r.c);I.spot=r2(spot||cl[cl.length-1]);
-  const o=R.slice(0,3);I.orh=r2(Math.max(...o.map(r=>r.h)));I.orl=r2(Math.min(...o.map(r=>r.l)));
-  I.e9=r2(ema(cl,9));I.e21=r2(ema(cl,21));I.rsi=r2(rsiF(cl));
-  if(lastD){const today=dkey(R[R.length-1].t),n=lastD.length,p=dkey(lastD[n-1].t)===today?lastD[n-2]:lastD[n-1];if(p){I.pdh=r2(p.h);I.pdl=r2(p.l)}}
-  let vw=NaN,note='VWAP';
-  if(bees.status==='fulfilled'&&bees.value.rows.length){const B=bees.value.rows,sv=B.reduce((a,r)=>a+r.v,0);
-   if(sv>0){const bv=B.reduce((a,r)=>a+(r.h+r.l+r.c)/3*r.v,0)/sv;vw=bv*cl[cl.length-1]/B[B.length-1].c}}
-  if(isNaN(vw)){vw=avg(R.map(r=>(r.h+r.l+r.c)/3));note='VWAP (price-average proxy)'}
-  I.vwap=r2(vw);
- }else miss.push('intraday candles');
- const HW=['HDFCBANK.NS','RELIANCE.NS','ICICIBANK.NS','INFY.NS','TCS.NS'];
- const hs=(await Promise.allSettled(HW.map(s=>chart(s,'1d','5d')))).filter(x=>x.status==='fulfilled').map(x=>{const r=x.value.rows,p=r[r.length-2].c;return x.value.meta.regularMarketPrice>p?1:0});
- if(hs.length>=3)I.hw=r2(avg(hs)*5);else miss.push('heavyweights');
- if(gl.status==='fulfilled'){const r=gl.value.rows,ch=(gl.value.meta.regularMarketPrice/r[r.length-2].c-1)*100;W.glb=ch>.3?1:ch<-.3?-1:0}
- TECH=await fetchTech();const tv=k=>TECH[k]?TECH[k].x:NaN,av=(a,b)=>[a,b].filter(x=>!isNaN(x));
- let q=av(tv('Daily'),tv('Weekly'));if(q.length)W.tech=r2(avg(q));q=av(tv('30 Min'),tv('Hourly'));if(q.length)I.tech=r2(avg(q));
- return{W,I,miss}}
-async function doLive(){const b=$('live'),s=$('st');b.disabled=true;errs.clear();s.style.color='';s.textContent='Fetching live data…';
- try{const {W,I,miss}=await fetchAll();Object.assign(st.weekly,W);Object.assign(st.intraday,I);
-  $('form').querySelectorAll('[data-k]').forEach(e=>{const v=st[mode][e.dataset.k];if(v!==undefined)e.value=v});calc();renderTech();
-  s.textContent='Updated '+new Date().toLocaleTimeString()+(miss.length?' · missing: '+miss.join(', '):'')+' · still manual: PCR, OI shift, FII, A/D'}
- catch(e){s.style.color='var(--dn)';s.textContent='Live fetch failed. '+[...errs].slice(0,4).join(' · ')+' — if you are viewing this inside a chat preview, download it and open in Chrome/Safari (previews block network calls). You can also enter values manually.'}
+  if(pw){W.pwh=r2(Math.max(...pw.map(r=>r.h)));W.pwl=r2(Math.min(...pw.map(r=>r.l)))}apply(W,{spot:W.spot})}],
+ ['intraday candles',async()=>{const [i5,bees,dd]=await Promise.allSettled([chart('^NSEI','5m','1d'),chart('NIFTYBEES.NS','5m','1d'),dailyP]);if(i5.status!=='fulfilled')throw 0;
+  const R=i5.value.rows,cl=R.map(r=>r.c),o=R.slice(0,3),I={spot:r2(cl[cl.length-1]),orh:r2(Math.max(...o.map(r=>r.h))),orl:r2(Math.min(...o.map(r=>r.l))),e9:r2(ema(cl,9)),e21:r2(ema(cl,21)),rsi:r2(rsiF(cl))};
+  if(dd.status==='fulfilled'){const L=dd.value.rows,n=L.length,p=dkey(L[n-1].t)===dkey(R[R.length-1].t)?L[n-2]:L[n-1];if(p){I.pdh=r2(p.h);I.pdl=r2(p.l)}}
+  let vw=NaN;if(bees.status==='fulfilled'&&bees.value.rows.length){const B=bees.value.rows,sv=B.reduce((a,r)=>a+r.v,0);if(sv>0)vw=B.reduce((a,r)=>a+(r.h+r.l+r.c)/3*r.v,0)/sv*cl[cl.length-1]/B[B.length-1].c}
+  if(isNaN(vw))vw=avg(R.map(r=>(r.h+r.l+r.c)/3));I.vwap=r2(vw);apply({},I)}],
+ ['India VIX',async()=>{const v=await chart('^INDIAVIX','1d','1mo'),c=v.rows.map(r=>r.c),x=v.meta.regularMarketPrice;apply({vix:r2(x),vixc:r2((x/c[Math.max(0,c.length-6)]-1)*100)},{vixc:r2((x/c[c.length-2]-1)*100)})}],
+ ['heavyweights',async()=>{const hs=(await Promise.allSettled(['HDFCBANK.NS','RELIANCE.NS','ICICIBANK.NS','INFY.NS','TCS.NS'].map(s=>chart(s,'1d','5d')))).filter(x=>x.status==='fulfilled').map(x=>{const r=x.value.rows;return x.value.meta.regularMarketPrice>r[r.length-2].c?1:0});if(hs.length<3)throw 0;apply({},{hw:r2(avg(hs)*5)})}],
+ ['global cues',async()=>{const g=await chart('^GSPC','1d','5d'),r=g.rows,ch=(g.meta.regularMarketPrice/r[r.length-2].c-1)*100;apply({glb:ch>.3?1:ch<-.3?-1:0},{})}],
+ ['technical summary',async()=>{TECH=await fetchTech();const ks=Object.keys(TECH);if(!ks.length)throw 0;renderTech();const t=k=>TECH[k]?TECH[k].x:NaN,m=(a,b)=>{const q=[t(a),t(b)].filter(x=>!isNaN(x));return q.length?r2(avg(q)):undefined};apply({tech:m('Daily','Weekly')},{tech:m('30 Min','Hourly')})}]];
+ let done=0;await Promise.allSettled(jobs.map(([n,f])=>f().catch(()=>{miss.push(n)}).finally(()=>tick(++done,jobs.length))));return{miss,total:jobs.length}}
+async function doLive(){const b=$('live'),s=$('st');if(b.disabled)return;b.disabled=true;errs.clear();s.style.color='';s.textContent='Fetching… 0/7';
+ try{const {miss,total}=await fetchAll((d,n)=>{if(d<n)s.textContent=`Fetching… ${d}/${n} done (fields fill in as each arrives)`});
+  if(miss.length>=total){s.style.color='var(--dn)';s.textContent='Live fetch failed. '+[...errs].slice(0,4).join(' · ')+' — if you are viewing this inside a chat preview, download it and open in Chrome/Safari (previews block network calls). You can also enter values manually.'}
+  else s.textContent='Updated '+new Date().toLocaleTimeString()+(miss.length?' · unavailable: '+miss.join(', '):'')+' · still manual: PCR, OI shift, FII, A/D'}
+ catch(e){s.style.color='var(--dn)';s.textContent='Live fetch error: '+(e&&e.message||e)}
  b.disabled=false}
 let tm=null;$('live').onclick=doLive;
 $('auto').onchange=e=>{clearInterval(tm);if(e.target.checked){doLive();tm=setInterval(doLive,60000)}};
