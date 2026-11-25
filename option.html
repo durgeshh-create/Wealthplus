@@ -49,11 +49,6 @@
         }
         .tab-btn:hover { color: #e2e8f0; }
         .tab-btn.active { background: rgba(59,130,246,0.18); color: #60a5fa; border-bottom-color: #60a5fa; }
-        .analyzer-btn {
-            padding: 5px 12px; background: transparent; color: #60a5fa; border: 1px solid #3b82f6;
-            border-radius: 6px; font-size: 0.65rem; font-weight: 600; cursor: pointer; white-space: nowrap;
-        }
-        .analyzer-btn:hover, .analyzer-btn.active { background: rgba(59,130,246,0.2); }
         /* ---- option chain analyzer (scoped) ---- */
         #tab-analyzer { --put:#f87171; --call:#4ade80; --acc:#60a5fa; --mute:#94a3b8; --ink:#e2e8f0; --line:rgba(148,163,184,0.2); --card:rgba(30,41,59,0.8); font-size: 0.8rem; }
         #tab-analyzer h2 { font-size: 0.85rem; margin: 0 0 6px; color: #e2e8f0; }
@@ -252,19 +247,16 @@
                 <div id="marketStatus" class="market-status market-closed">Market Closed</div>
             </div>
             <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
-                <div style="display:flex; gap:6px; align-items:center;">
                 <button class="fetch-btn" id="refreshBtn" onclick="fetchLiveData()">
                     Fetch Live Data
                 </button>
-                    <button class="analyzer-btn" id="analyzerBtn" type="button">Option chain Analyzer</button>
-                </div>
                 <span id="fetchStatus" style="font-size:0.55rem; color:#94a3b8;"></span>
                 <div id="fetchDiag" style="font-size:0.5rem; color:#64748b; max-width:320px;">build v5</div>
             </div>
         </div>
 
         <div class="tabs" role="tablist">
-            <button class="tab-btn active" id="tabBtnDotm" type="button" role="tab">DOTM Screen</button>
+            <button class="tab-btn active" id="tabBtnDotm" type="button" role="tab">DOTM</button>
             <button class="tab-btn" id="tabBtnAnalyzer" type="button" role="tab">Option Chain Analyzer</button>
         </div>
 
@@ -1268,11 +1260,9 @@
                 document.getElementById(tabs[k][0]).hidden=(k!==name);
                 document.getElementById(tabs[k][1]).classList.toggle('active',k===name);
             }
-            document.getElementById('analyzerBtn').classList.toggle('active',name==='analyzer');
         }
         document.getElementById('tabBtnDotm').addEventListener('click',()=>show('dotm'));
         document.getElementById('tabBtnAnalyzer').addEventListener('click',()=>show('analyzer'));
-        document.getElementById('analyzerBtn').addEventListener('click',()=>show('analyzer'));
     })();
     </script>
     <script>
