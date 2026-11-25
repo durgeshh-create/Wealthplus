@@ -1,188 +1,120 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8">
+<html lang="en">
+<head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Nifty Bias Detector</title>
+<title>NIFTY weekly option chain analyzer</title>
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--tx:#14181f;--mu:#667085;--bd:#e3e6eb;--up:#0f9d58;--dn:#d93025;--nu:#d99a00;--ac:#2556d9;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1218;--card:#181c25;--tx:#e8ebf0;--mu:#8b93a3;--bd:#2a3040;--up:#3ddc84;--dn:#ff6b60;--nu:#f5b942;--ac:#6b8cff}}
-:root[data-theme="dark"]{--bg:#0f1218;--card:#181c25;--tx:#e8ebf0;--mu:#8b93a3;--bd:#2a3040;--up:#3ddc84;--dn:#ff6b60;--nu:#f5b942;--ac:#6b8cff}
+:root{--bg:#f6f7f4;--card:#fff;--ink:#16221f;--mute:#66756f;--line:#dde3de;--put:#b3412f;--call:#1f6b57;--acc:#2a4f9c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1715;--card:#17211e;--ink:#e8efec;--mute:#93a39c;--line:#2a3833;--put:#e07a68;--call:#58c0a0;--acc:#7fa2f0}}
+:root[data-theme="dark"]{--bg:#0f1715;--card:#17211e;--ink:#e8efec;--mute:#93a39c;--line:#2a3833;--put:#e07a68;--call:#58c0a0;--acc:#7fa2f0}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.w{max-width:960px;margin:0 auto;padding:18px 14px 40px}
-h1{font-size:21px;margin:0 0 2px}.sub{color:var(--mu);font-size:13px;margin-bottom:14px}
-.tabs{display:flex;gap:6px;margin-bottom:14px}
-.tab{flex:1;padding:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;font:inherit;font-weight:600;cursor:pointer}
-.tab.on{background:var(--ac);color:#fff;border-color:var(--ac)}
-.g{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:720px){.g{grid-template-columns:1fr}}
-.c{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px}
-.c h2{font-size:14px;margin:0 0 10px;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
-.f{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-label{font-size:12px;color:var(--mu);display:block}
-input,select{width:100%;padding:8px;margin-top:2px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
-.btns{display:flex;gap:8px;margin-top:12px}
-.b{padding:8px 12px;border:1px solid var(--bd);background:transparent;color:var(--tx);border-radius:8px;font:inherit;cursor:pointer}
-.big{font-size:34px;font-weight:700;text-align:center}.lab{text-align:center;font-weight:600;margin-bottom:10px}
-.bar{position:relative;height:12px;border-radius:6px;background:linear-gradient(90deg,var(--dn),var(--nu),var(--up));margin:12px 4px 4px}
-.nd{position:absolute;top:-5px;width:4px;height:22px;background:var(--tx);border-radius:2px;transform:translateX(-2px);transition:left .3s}
-.sc{display:flex;justify-content:space-between;font-size:11px;color:var(--mu);padding:0 4px}
-.r{display:grid;grid-template-columns:1fr 90px 44px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--bd);font-size:13px}
-.m{height:8px;background:var(--bd);border-radius:4px;position:relative}.m i{position:absolute;top:0;height:8px;border-radius:4px}
-.ms{display:flex;justify-content:space-around;font-size:12px;color:var(--mu);margin-top:6px}
-.n{font-size:12px;color:var(--mu);margin-top:14px}
-.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{flex:1;min-width:84px;text-align:center;font-size:12px;line-height:1.35;padding:6px}.chip.on{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac)}table{width:100%;border-collapse:collapse;font-size:12.5px}td,th{padding:4px 6px;border-top:1px solid var(--bd);text-align:left;white-space:nowrap}th{color:var(--mu);font-weight:500}td:nth-child(n+2){text-align:right}
-</style></head><body><div class="w">
-<h1>Nifty 50 Bias Detector</h1>
-<div class="sub">Enter current readings; a weighted multi-factor score gives a bias from −100 (bearish) to +100 (bullish). Blank fields are skipped.</div>
-<div class="tabs"><button class="tab on" data-m="weekly">Weekly bias</button><button class="tab" data-m="intraday">Intraday bias</button></div>
-<div class="btns" style="margin:0 0 14px;align-items:center;flex-wrap:wrap"><button class="b" id="live">⟳ Fetch live data</button><label style="display:flex;align-items:center;gap:6px;width:auto"><input type="checkbox" id="auto" style="width:auto;margin:0"> Auto-refresh 60s</label><span id="st" class="sub" style="margin:0"></span></div>
-<div class="g"><div class="c"><h2 id="ft">Inputs</h2><div class="f" id="form"></div>
-<div class="btns"><button class="b" id="demo">Fill sample</button><button class="b" id="clr">Clear</button></div></div>
-<div class="c"><h2>Result</h2><div class="big" id="sc">–</div><div class="lab" id="lb">Enter data</div>
-<div class="bar"><div class="nd" id="nd" style="left:50%"></div></div><div class="sc"><span>−100</span><span>0</span><span>+100</span></div>
-<div class="ms" id="ms"></div><div id="rows" style="margin-top:10px"></div></div></div>
-<div class="c" style="margin-top:14px"><h2>Technical summary · Investing.com-style, computed live from Nifty candles</h2><div id="tech"></div></div>
-<div class="n">Technical summary uses the same indicator set as Investing.com (12 indicators + SMA/EMA 5–200) on Yahoo candles, so signals can differ slightly from their page. Live fetch pulls Nifty, VIX, NIFTYBEES (for VWAP), heavyweights and S&amp;P 500 from Yahoo Finance via your Apps Script endpoint and CORS proxies. PCR, OI shift, FII flow and A/D are not on Yahoo, so enter those from the NSE. Educational tool only, not investment advice.</div>
-</div>
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Georgia,'Times New Roman',serif}
+main{max-width:860px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:1.7rem;margin:0 0 4px}h2{font-size:1.1rem;margin:0 0 8px}
+p.sub{color:var(--mute);margin:0 0 20px;font-family:system-ui,sans-serif;font-size:.92rem}
+.drop{display:block;border:2px dashed var(--line);border-radius:10px;padding:26px;text-align:center;cursor:pointer;background:var(--card);font-family:system-ui,sans-serif}
+.drop:hover,.drop.on{border-color:var(--acc)}.drop input{display:none}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+.big{font-size:2.3rem;font-weight:700;line-height:1.1}
+.put .big{color:var(--put)}.call .big{color:var(--call)}
+.meta{font:.85rem/1.5 system-ui,sans-serif;color:var(--mute);margin-top:6px}
+.pred{border-left:5px solid var(--acc)}.pred .big{color:var(--acc)}
+.bar{position:relative;height:34px;margin:16px 6px 8px;border-radius:6px;background:linear-gradient(90deg,var(--put),var(--line) 50%,var(--call));opacity:.9}
+.tick{position:absolute;top:-6px;width:3px;height:46px;background:var(--ink)}
+.tick span{position:absolute;top:48px;left:50%;transform:translateX(-50%);font:.72rem system-ui,sans-serif;white-space:nowrap}
+.tbl{overflow-x:auto}table{border-collapse:collapse;width:100%;font:.85rem system-ui,sans-serif}
+td,th{padding:5px 8px;text-align:right;border-bottom:1px solid var(--line)}th{color:var(--mute);font-weight:600}
+td:first-child,th:first-child{text-align:left}tr.hl td{font-weight:700;background:rgba(42,79,156,.12)}
+.err{color:var(--put);font-family:system-ui,sans-serif;margin-top:10px}
+small{color:var(--mute);font-family:system-ui,sans-serif;display:block;margin-top:18px}
+</style>
+</head>
+<body>
+<main>
+<h1>NIFTY weekly option chain analyzer</h1>
+<p class="sub">Upload the option chain CSV to find the far-tail strikes with the heaviest open interest and an approximate expiry-day spot.</p>
+<label class="drop" id="drop"><input type="file" id="f" accept=".csv,text/csv"><b>Choose or drop the option chain CSV</b><br><span style="color:var(--mute)">Parsed in your browser; nothing is uploaded.</span></label>
+<div class="err" id="err"></div>
+<div id="out"></div>
+<small>Estimates come from open-interest positioning and option pricing, not a guarantee of where Nifty will close. This is not investment advice.</small>
+</main>
 <script>
-const cl=(x,a=-1,b=1)=>Math.max(a,Math.min(b,x)),N=x=>x===''||x==null?NaN:parseFloat(x),has=(v,...k)=>k.every(i=>!isNaN(v[i]));
-const OI=[['','—'],['1','Put writing dominant'],['0','Balanced'],['-1','Call writing dominant']];
-const M={
-weekly:{t:'Weekly inputs (daily/weekly data)',
-F:[['spot','Nifty spot'],['dma20','20 DMA'],['dma50','50 DMA'],['rsi','Daily RSI(14)'],['pwh','Prev week high'],['pwl','Prev week low'],['vix','India VIX'],['vixc','VIX 5-day change %'],['pcr','Weekly PCR (OI)'],['fii','FII net cash, 5-day (₹ cr)'],['adr','Advance/Decline ratio'],['glb','Global cues',[['','—'],['1','Positive'],['0','Mixed'],['-1','Negative']]],['tech','Tech summary D+W (−1…+1, auto)']],
-S:[['Price vs 20 DMA',15,v=>has(v,'spot','dma20')&&(v.spot>v.dma20?1:-1)],
-['Price vs 50 DMA',10,v=>has(v,'spot','dma50')&&(v.spot>v.dma50?1:-1)],
-['20 DMA vs 50 DMA',10,v=>has(v,'dma20','dma50')&&(v.dma20>v.dma50?1:-1)],
-['Daily RSI',15,v=>has(v,'rsi')&&(v.rsi>75?.3:v.rsi<25?-.3:cl((v.rsi-50)/15))],
-['Vs prev week range',15,v=>has(v,'spot','pwh','pwl')&&(v.spot>v.pwh?1:v.spot<v.pwl?-1:cl((v.spot-(v.pwh+v.pwl)/2)/((v.pwh-v.pwl)/2||1)))],
-['India VIX',10,v=>has(v,'vixc')?cl(-v.vixc/8)-(v.vix>20?.3:0):has(v,'vix')&&(v.vix>20?-.5:v.vix<13?.3:0)],
-['PCR',10,v=>has(v,'pcr')&&(v.pcr>1.6?.3:cl((v.pcr-1)/.3))],
-['FII flow',10,v=>has(v,'fii')&&cl(v.fii/5000)],
-['Breadth (A/D)',5,v=>has(v,'adr')&&cl((v.adr-1)/.8)],
-['Global cues',5,v=>has(v,'glb')&&v.glb],
-['Technical summary (Daily+Weekly)',15,v=>has(v,'tech')&&cl(v.tech)]]},
-intraday:{t:'Intraday inputs (5-min / 15-min chart)',
-F:[['spot','Nifty spot (LTP)'],['vwap','VWAP'],['orh','Opening range high (15m)'],['orl','Opening range low (15m)'],['pdh','Prev day high'],['pdl','Prev day low'],['e9','EMA 9 (5m)'],['e21','EMA 21 (5m)'],['rsi','RSI(14) 5m'],['pcr','Intraday PCR'],['oi','OI shift (near ATM)',OI],['vixc','VIX change today %'],['hw','Heavyweights up (of top 5)'],['adr','Advance/Decline ratio'],['tech','Tech summary 30m+1h (−1…+1, auto)']],
-S:[['Price vs VWAP',20,v=>has(v,'spot','vwap')&&(v.spot>v.vwap?1:-1)],
-['Opening range breakout',15,v=>has(v,'spot','orh','orl')&&(v.spot>v.orh?1:v.spot<v.orl?-1:0)],
-['EMA 9 vs 21',15,v=>has(v,'e9','e21')&&(v.e9>v.e21?1:-1)],
-['RSI 5m',10,v=>has(v,'rsi')&&(v.rsi>78?.3:v.rsi<22?-.3:cl((v.rsi-50)/12))],
-['Vs prev day levels',10,v=>has(v,'spot','pdh','pdl')&&(v.spot>v.pdh?1:v.spot<v.pdl?-1:cl((v.spot-(v.pdh+v.pdl)/2)/((v.pdh-v.pdl)/2||1))*.5)],
-['OI shift',15,v=>has(v,'oi')&&v.oi],
-['PCR',5,v=>has(v,'pcr')&&(v.pcr>1.6?.3:cl((v.pcr-1)/.3))],
-['VIX change',5,v=>has(v,'vixc')&&cl(-v.vixc/4)],
-['Heavyweights',10,v=>has(v,'hw')&&cl((v.hw-2.5)/2.5)],
-['Breadth (A/D)',5,v=>has(v,'adr')&&cl((v.adr-1)/.8)],
-['Technical summary (30m+1h)',15,v=>has(v,'tech')&&cl(v.tech)]]}};
-const D={weekly:{spot:24850,dma20:24600,dma50:24400,rsi:58,pwh:24900,pwl:24480,vix:13.8,vixc:-6,pcr:1.15,fii:1200,adr:1.4,glb:1,tech:.6},
-intraday:{spot:24870,vwap:24840,orh:24865,orl:24810,pdh:24890,pdl:24760,e9:24862,e21:24850,rsi:61,pcr:1.1,oi:1,vixc:-2,hw:4,adr:1.6,tech:.4}};
-let mode='weekly';const $=i=>document.getElementById(i);
-function build(){const m=M[mode];$('ft').textContent=m.t;$('form').innerHTML=m.F.map(([k,l,o])=>`<div><label>${l}${o?`<select data-k="${k}">${o.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('')}</select>`:`<input data-k="${k}" type="number" step="any" inputmode="decimal">`}</label></div>`).join('');
-$('form').querySelectorAll('input,select').forEach(e=>e.oninput=calc);$('form').querySelectorAll('[data-k]').forEach(e=>{if(st[mode][e.dataset.k]!==undefined)e.value=st[mode][e.dataset.k]});calc()}
-function vals(){const v={};$('form').querySelectorAll('[data-k]').forEach(e=>v[e.dataset.k]=N(e.value));return v}
-const st={weekly:{},intraday:{}};
-function sync(){$('form').querySelectorAll('[data-k]').forEach(e=>st[mode][e.dataset.k]=e.value)}
-function calc(){sync();const v=vals();let sw=0,sum=0,bull=0,bear=0;const rows=[];
-M[mode].S.forEach(([n,w,f])=>{const s=f(v);if(s===false||s===undefined||isNaN(s))return;sw+=w;sum+=w*s;if(s>.15)bull++;else if(s<-.15)bear++;rows.push([n,w,s])});
-const tot=M[mode].S.reduce((a,x)=>a+x[1],0);
-if(!sw){$('sc').textContent='–';$('sc').style.color='';$('lb').textContent='Enter data';$('nd').style.left='50%';$('rows').innerHTML='';$('ms').innerHTML='';return}
-const sc=Math.round(sum/sw*100),col=sc>=10?'var(--up)':sc<=-10?'var(--dn)':'var(--nu)';
-const lab=sc>=60?'Strong bullish':sc>=25?'Bullish':sc>=10?'Mildly bullish':sc>-10?'Neutral / range-bound':sc>-25?'Mildly bearish':sc>-60?'Bearish':'Strong bearish';
-$('sc').textContent=(sc>0?'+':'')+sc;$('sc').style.color=col;$('lb').textContent=lab;$('lb').style.color=col;$('nd').style.left=(50+sc/2)+'%';
-const agree=Math.max(bull,bear),cov=Math.round(sw/tot*100);
-$('ms').innerHTML=`<span>Agreement: ${agree}/${rows.length} factors</span><span>Data coverage: ${cov}%</span>`;
-$('rows').innerHTML=rows.map(([n,w,s])=>{const p=Math.abs(s)*50;return`<div class="r"><span>${n} <small style="color:var(--mu)">(w${w})</small></span><div class="m"><i style="${s>=0?'left:50%':'right:50%'};width:${p}%;background:${s>=0?'var(--up)':'var(--dn)'}"></i></div><b style="text-align:right">${s>0?'+':''}${Math.round(s*100)}</b></div>`}).join('')}
-document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));t.classList.add('on');mode=t.dataset.m;build()});
-$('demo').onclick=()=>{$('form').querySelectorAll('[data-k]').forEach(e=>e.value=D[mode][e.dataset.k]??'');calc()};
-$('clr').onclick=()=>{$('form').querySelectorAll('[data-k]').forEach(e=>e.value='');calc()};
-/* ---------- Live data (same method as your option.html: Apps Script → Yahoo direct → CORS proxies) ---------- */
-const LIVE_API_URL='https://script.google.com/macros/s/AKfycbyCN-vfMqg_QLHrnYLiZdFStVmLElOpJM5sgScOX_OtSFnOb33ehs-85e-Qc2Y6jeYhqQ/exec';
-const ROUTES=[u=>u,u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),u=>'https://corsproxy.io/?'+encodeURIComponent(u),u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u),u=>'https://thingproxy.freeboard.io/fetch/'+u];
-let route=0;const errs=new Set(),RN=['direct','allorigins','corsproxy','codetabs','thingproxy'];
-const tmo=(u,ms=5000)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(u,{cache:'no-store',signal:c.signal}).finally(()=>clearTimeout(t))};
-async function chart(sym,interval,range){
- const target=`https://query${Math.random()<.5?1:2}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=${interval}&range=${range}&_=${Date.now()}`;
- const go0=async r=>{const res=await tmo(ROUTES[r](target));if(!res.ok)throw new Error('HTTP '+res.status);const x=(await res.json()).chart.result[0],q=x.indicators.quote[0];
-  return{meta:x.meta,rows:x.timestamp.map((t,i)=>({t:t*1000,o:q.open[i],h:q.high[i],l:q.low[i],c:q.close[i],v:q.volume[i]||0})).filter(r=>r.c!=null)}};
- const go=r=>go0(r).catch(e=>{errs.add(RN[r]+': '+(e.name==='AbortError'?'timeout':e.message));throw e});
- try{return await go(route)}catch(e){const o=ROUTES.map((_,i)=>i).filter(i=>i!==route);const r=await Promise.any(o.map(async i=>({i,d:await go(i)})));route=r.i;return r.d}}
-const ema=(a,n)=>{const k=2/(n+1);let e=a[0];for(let i=1;i<a.length;i++)e=a[i]*k+e*(1-k);return e};
-const rsiF=(a,n=14)=>{if(a.length<n+1)return NaN;let g=0,l=0;for(let i=1;i<=n;i++){const d=a[i]-a[i-1];d>0?g+=d:l-=d}g/=n;l/=n;
- for(let i=n+1;i<a.length;i++){const d=a[i]-a[i-1];g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n}return l===0?100:100-100/(1+g/l)};
-const avg=a=>a.reduce((x,y)=>x+y,0)/a.length,r2=x=>Math.round(x*100)/100;
-const ist=t=>new Date(t+19800000),dkey=t=>ist(t).toISOString().slice(0,10);
-const wkey=t=>{const d=ist(t);d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));return d.toISOString().slice(0,10)};
-async function quickSpot(){try{const r=await tmo(LIVE_API_URL+'?_='+Date.now(),9000);const d=await r.json();return typeof d.nifty==='number'?d:null}catch(e){return null}}
-/* ---------- Investing.com-style technical summary, computed from Yahoo candles ---------- */
-const mx=(a,k)=>Math.max(...a.slice(-k)),mn=(a,k)=>Math.min(...a.slice(-k));
-function rsiS(a,n=14){const o=[];if(a.length<n+1)return o;let g=0,l=0;for(let i=1;i<=n;i++){const d=a[i]-a[i-1];d>0?g+=d:l-=d}g/=n;l/=n;o.push(l===0?100:100-100/(1+g/l));
- for(let i=n+1;i<a.length;i++){const d=a[i]-a[i-1];g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n;o.push(l===0?100:100-100/(1+g/l))}return o}
-function adxF(h,l,c,p=14){const n=c.length;if(n<2*p+2)return{a:NaN};let tr=0,pd=0,md=0,adx=NaN;const dx=[];
- for(let i=1;i<n;i++){const up=h[i]-h[i-1],dn=l[i-1]-l[i],t=Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])),pm=up>dn&&up>0?up:0,mm=dn>up&&dn>0?dn:0;
-  if(i<=p){tr+=t;pd+=pm;md+=mm}else{tr=tr-tr/p+t;pd=pd-pd/p+pm;md=md-md/p+mm}
-  if(i>=p){const pi=100*pd/tr,mi=100*md/tr,d=100*Math.abs(pi-mi)/((pi+mi)||1);dx.push([d,pi,mi]);if(dx.length===p)adx=avg(dx.map(x=>x[0]));else if(dx.length>p)adx=(adx*(p-1)+d)/p}}
- const L=dx[dx.length-1];return{a:adx,pi:L[1],mi:L[2]}}
-const verdict=(b,s,n)=>{const t=b+s+n;if(!t)return['Neutral',0];const x=(b-s)/t;return[x>=.6?'Strong Buy':x>=.2?'Buy':x>-.2?'Neutral':x>-.6?'Sell':'Strong Sell',x]};
-function tech(R){const c=R.map(r=>r.c),h=R.map(r=>r.h??r.c),l=R.map(r=>r.l??r.c),n=c.length;if(n<40)return null;const P=c[n-1];
- const mas=[5,10,20,50,100,200].map(k=>{const s=n>=k?avg(c.slice(-k)):NaN,e=n>=k?ema(c,k):NaN;return{n:'MA'+k,s,sa:isNaN(s)?'–':P>s?'Buy':'Sell',e,ea:isNaN(e)?'–':P>e?'Buy':'Sell'}});
- const I=[],add=(nm,val,act)=>I.push({nm,val,act});
- const rs=rsiS(c),r=rs[rs.length-1];add('RSI(14)',r,r>=70?'Overbought':r<=30?'Oversold':r>60?'Buy':r<40?'Sell':'Neutral');
- const kr=[];for(let i=8;i<n;i++){const hh=mx(h.slice(0,i+1),9),ll=mn(l.slice(0,i+1),9);kr.push(hh===ll?50:(c[i]-ll)/(hh-ll)*100)}
- const K=[];for(let i=5;i<kr.length;i++)K.push(avg(kr.slice(i-5,i+1)));const k=K[K.length-1],d=avg(K.slice(-3));
- add('STOCH(9,6)',k,k>80?'Overbought':k<20?'Oversold':k>d?'Buy':'Sell');
- const r14=rs.slice(-14),sr=(r14[13]-Math.min(...r14))/((Math.max(...r14)-Math.min(...r14))||1)*100;add('STOCHRSI(14)',sr,sr>80?'Overbought':sr<20?'Oversold':sr>50?'Buy':'Sell');
- const m=ema(c,12)-ema(c,26);add('MACD(12,26)',m,m>0?'Buy':m<0?'Sell':'Neutral');
- const ax=adxF(h,l,c);add('ADX(14)',ax.a,ax.a>25?(ax.pi>ax.mi?'Buy':'Sell'):'Neutral');
- const hh=mx(h,14),ll=mn(l,14),w=(hh-P)/((hh-ll)||1)*-100;add('Williams %R',w,w>-20?'Overbought':w<-80?'Oversold':w>-50?'Buy':'Sell');
- const tp=c.map((x,i)=>(x+h[i]+l[i])/3),t14=tp.slice(-14),tm=avg(t14),md=avg(t14.map(x=>Math.abs(x-tm))),cci=(tp[n-1]-tm)/(0.015*md||1);add('CCI(14)',cci,cci>100?'Buy':cci<-100?'Sell':'Neutral');
- const trs=c.map((x,i)=>i?Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])):h[i]-l[i]),atr=avg(trs.slice(-14));add('ATR(14)',atr,atr>avg(trs.slice(-50))?'More Volatility':'Less Volatility');
- const hl=P-(hh+ll)/2;add('Highs/Lows(14)',hl,hl>0?'Buy':'Sell');
- const bp=c.map((x,i)=>i?x-Math.min(l[i],c[i-1]):0),tr2=c.map((x,i)=>i?Math.max(h[i],c[i-1])-Math.min(l[i],c[i-1]):0),sm=(a,k)=>a.slice(-k).reduce((x,y)=>x+y,0),av=k=>sm(bp,k)/(sm(tr2,k)||1),uo=100*(4*av(7)+2*av(14)+av(28))/7;add('Ultimate Oscillator',uo,uo>70?'Overbought':uo<30?'Oversold':uo>50?'Buy':'Sell');
- const roc=(P/c[n-13]-1)*100;add('ROC(12)',roc,roc>0?'Buy':roc<0?'Sell':'Neutral');
- const e13=ema(c,13),bb=(h[n-1]-e13)+(l[n-1]-e13);add('Bull/Bear Power(13)',bb,bb>0?'Buy':'Sell');
- const cnt=(arr,key)=>{let b=0,s=0,z=0;arr.forEach(x=>{const a=key?x[key]:x.act;if(a==='Buy')b++;else if(a==='Sell')s++;else if(a==='Neutral')z++});return[b,s,z]};
- const [mb,ms]=[cnt(mas,'sa'),cnt(mas,'ea')].reduce((a,x)=>[a[0]+x[0],a[1]+x[1]],[0,0]),[ib,is,iz]=cnt(I);
- const [mv]=verdict(mb,ms,0),[iv]=verdict(ib,is,iz),[v,x]=verdict(mb+ib,ms+is,iz);
- return{v,x,mv,iv,mc:`Buy ${mb} · Sell ${ms}`,ic:`Buy ${ib} · Neutral ${iz} · Sell ${is}`,mas,I}}
-let TECH={},tsel='Daily';
-const vc=a=>a.includes('Buy')?'var(--up)':a.includes('Sell')?'var(--dn)':'var(--nu)',f2=x=>isNaN(x)?'–':x.toLocaleString('en-IN',{maximumFractionDigits:2});
-function renderTech(){const el=$('tech'),ks=Object.keys(TECH);if(!ks.length){el.innerHTML='<div class="sub">Click “Fetch live data” to compute.</div>';return}
- if(!TECH[tsel])tsel=ks.includes('Daily')?'Daily':ks[0];const t=TECH[tsel];
- el.innerHTML=`<div class="chips">${ks.map(k=>`<button class="b chip${k===tsel?' on':''}" data-t="${k}"><b>${k}</b><br><span style="color:${vc(TECH[k].v)}">${TECH[k].v}</span></button>`).join('')}</div>
- <div class="lab" style="color:${vc(t.v)};margin:12px 0 2px;font-size:20px">${t.v}</div>
- <div class="ms"><span>Moving averages: <b style="color:${vc(t.mv)}">${t.mv}</b> (${t.mc})</span><span>Indicators: <b style="color:${vc(t.iv)}">${t.iv}</b> (${t.ic})</span></div>
- <div class="g" style="margin-top:12px"><div style="overflow-x:auto"><table><tr><th>Indicator</th><th>Value</th><th>Action</th></tr>${t.I.map(x=>`<tr><td>${x.nm}</td><td>${f2(x.val)}</td><td style="color:${vc(x.act)}">${x.act}</td></tr>`).join('')}</table></div>
- <div style="overflow-x:auto"><table><tr><th>MA</th><th>Simple</th><th></th><th>Exponential</th><th></th></tr>${t.mas.map(x=>`<tr><td>${x.n}</td><td>${f2(x.s)}</td><td style="color:${vc(x.sa)}">${x.sa}</td><td>${f2(x.e)}</td><td style="color:${vc(x.ea)}">${x.ea}</td></tr>`).join('')}</table></div></div>`}
-$('tech').onclick=e=>{const b=e.target.closest('[data-t]');if(b){tsel=b.dataset.t;renderTech()}};
-async function fetchTech(){const TF=[['30 Min','30m','1mo'],['Hourly','60m','3mo'],['Daily','1d','2y'],['Weekly','1wk','10y'],['Monthly','1mo','20y']];
- const rs=await Promise.allSettled(TF.map(t=>chart('^NSEI',t[1],t[2]))),o={};
- rs.forEach((x,i)=>{if(x.status==='fulfilled'){try{const t=tech(x.value.rows);if(t)o[TF[i][0]]=t}catch(e){}}});return o}
-function apply(w,i){const cl=o=>Object.fromEntries(Object.entries(o||{}).filter(([k,v])=>v!==undefined&&!isNaN(v)));Object.assign(st.weekly,cl(w));Object.assign(st.intraday,cl(i));
- $('form').querySelectorAll('[data-k]').forEach(e=>{const v=st[mode][e.dataset.k];if(v!==undefined)e.value=v});calc()}
-async function fetchAll(tick){
- const miss=[],dailyP=chart('^NSEI','1d','6mo');dailyP.catch(()=>0);
- const jobs=[
- ['quick quote',async()=>{const q=await quickSpot();if(!q)throw 0;apply({spot:r2(q.nifty),vix:typeof q.vix==='number'?r2(q.vix):undefined},{spot:r2(q.nifty)})}],
- ['daily candles',async()=>{const d=await dailyP,cl=d.rows.map(r=>r.c),W={dma20:r2(avg(cl.slice(-20))),dma50:r2(avg(cl.slice(-50))),rsi:r2(rsiF(cl)),spot:r2(d.meta.regularMarketPrice)};
-  const wk={};d.rows.forEach(r=>{(wk[wkey(r.t)]=wk[wkey(r.t)]||[]).push(r)});const ks=Object.keys(wk).sort(),pw=wk[ks[ks.length-2]];
-  if(pw){W.pwh=r2(Math.max(...pw.map(r=>r.h)));W.pwl=r2(Math.min(...pw.map(r=>r.l)))}apply(W,{spot:W.spot})}],
- ['intraday candles',async()=>{const [i5,bees,dd]=await Promise.allSettled([chart('^NSEI','5m','1d'),chart('NIFTYBEES.NS','5m','1d'),dailyP]);if(i5.status!=='fulfilled')throw 0;
-  const R=i5.value.rows,cl=R.map(r=>r.c),o=R.slice(0,3),I={spot:r2(cl[cl.length-1]),orh:r2(Math.max(...o.map(r=>r.h))),orl:r2(Math.min(...o.map(r=>r.l))),e9:r2(ema(cl,9)),e21:r2(ema(cl,21)),rsi:r2(rsiF(cl))};
-  if(dd.status==='fulfilled'){const L=dd.value.rows,n=L.length,p=dkey(L[n-1].t)===dkey(R[R.length-1].t)?L[n-2]:L[n-1];if(p){I.pdh=r2(p.h);I.pdl=r2(p.l)}}
-  let vw=NaN;if(bees.status==='fulfilled'&&bees.value.rows.length){const B=bees.value.rows,sv=B.reduce((a,r)=>a+r.v,0);if(sv>0)vw=B.reduce((a,r)=>a+(r.h+r.l+r.c)/3*r.v,0)/sv*cl[cl.length-1]/B[B.length-1].c}
-  if(isNaN(vw))vw=avg(R.map(r=>(r.h+r.l+r.c)/3));I.vwap=r2(vw);apply({},I)}],
- ['India VIX',async()=>{const v=await chart('^INDIAVIX','1d','1mo'),c=v.rows.map(r=>r.c),x=v.meta.regularMarketPrice;apply({vix:r2(x),vixc:r2((x/c[Math.max(0,c.length-6)]-1)*100)},{vixc:r2((x/c[c.length-2]-1)*100)})}],
- ['heavyweights',async()=>{const hs=(await Promise.allSettled(['HDFCBANK.NS','RELIANCE.NS','ICICIBANK.NS','INFY.NS','TCS.NS'].map(s=>chart(s,'1d','5d')))).filter(x=>x.status==='fulfilled').map(x=>{const r=x.value.rows;return x.value.meta.regularMarketPrice>r[r.length-2].c?1:0});if(hs.length<3)throw 0;apply({},{hw:r2(avg(hs)*5)})}],
- ['global cues',async()=>{const g=await chart('^GSPC','1d','5d'),r=g.rows,ch=(g.meta.regularMarketPrice/r[r.length-2].c-1)*100;apply({glb:ch>.3?1:ch<-.3?-1:0},{})}],
- ['technical summary',async()=>{TECH=await fetchTech();const ks=Object.keys(TECH);if(!ks.length)throw 0;renderTech();const t=k=>TECH[k]?TECH[k].x:NaN,m=(a,b)=>{const q=[t(a),t(b)].filter(x=>!isNaN(x));return q.length?r2(avg(q)):undefined};apply({tech:m('Daily','Weekly')},{tech:m('30 Min','Hourly')})}]];
- let done=0;await Promise.allSettled(jobs.map(([n,f])=>f().catch(()=>{miss.push(n)}).finally(()=>tick(++done,jobs.length))));return{miss,total:jobs.length}}
-async function doLive(){const b=$('live'),s=$('st');if(b.disabled)return;b.disabled=true;errs.clear();s.style.color='';s.textContent='Fetching… 0/7';
- try{const {miss,total}=await fetchAll((d,n)=>{if(d<n)s.textContent=`Fetching… ${d}/${n} done (fields fill in as each arrives)`});
-  if(miss.length>=total){s.style.color='var(--dn)';s.textContent='Live fetch failed. '+[...errs].slice(0,4).join(' · ')+' — if you are viewing this inside a chat preview, download it and open in Chrome/Safari (previews block network calls). You can also enter values manually.'}
-  else s.textContent='Updated '+new Date().toLocaleTimeString()+(miss.length?' · unavailable: '+miss.join(', '):'')+' · still manual: PCR, OI shift, FII, A/D'}
- catch(e){s.style.color='var(--dn)';s.textContent='Live fetch error: '+(e&&e.message||e)}
- b.disabled=false}
-let tm=null;$('live').onclick=doLive;
-$('auto').onchange=e=>{clearInterval(tm);if(e.target.checked){doLive();tm=setInterval(doLive,60000)}};
-build();renderTech();
-doLive();
-</script></body></html>
+const $=id=>document.getElementById(id);
+const num=v=>{if(v==null)return NaN;v=String(v).replace(/[,"\s]/g,'');return v===''||v==='--'?NaN:parseFloat(v)};
+const fmt=(n,d=0)=>isNaN(n)?'–':n.toLocaleString('en-IN',{maximumFractionDigits:d,minimumFractionDigits:d});
+function parse(t){
+  const L=t.trim().split(/\r?\n/);if(L.length<2)throw Error('The file has no data rows.');
+  const H=L[0].split(',').map(s=>s.replace(/"/g,'').trim());
+  const R=L.slice(1).map(l=>{const c=l.split(',');const o={};H.forEach((h,i)=>o[h]=c[i]);return o});
+  for(const k of ['Strike','Put OI','Put Delta','Call OI','Call Delta'])if(!H.includes(k))throw Error('Missing column: '+k+'. Use the standard option chain export.');
+  return R.map(r=>({k:num(r['Strike']),pOI:num(r['Put OI'])||0,cOI:num(r['Call OI'])||0,pD:num(r['Put Delta']),cD:num(r['Call Delta']),iv:num(r['IV']),
+    pLTP:num(r['Put LTP']),cLTP:num(r['Call LTP']),cIS:num(r['Call Intrinsic Value(Spot)']),pIS:num(r['Put Intrinsic Value(Spot)']),cIF:num(r['Call Intrinsic Value(Fut)']),pIF:num(r['Put Intrinsic Value(Fut)'])})).filter(r=>!isNaN(r.k)).sort((a,b)=>a.k-b.k);
+}
+function analyze(rows,name){
+  // tail strikes
+  const pt=rows.filter(r=>!isNaN(r.pD)&&r.pD<=0&&r.pD>=-0.01);
+  const ct=rows.filter(r=>!isNaN(r.cD)&&r.cD>=0&&r.cD<=0.01);
+  const best=(a,key)=>a.reduce((m,r)=>!m||r[key]>m[key]?r:m,null);
+  const P=best(pt,'pOI'),C=best(ct,'cOI');
+  // spot & futures from intrinsic values
+  let spot=NaN,fut=NaN;
+  for(const r of rows){if(isNaN(spot)){if(!isNaN(r.cIS))spot=r.k+r.cIS;else if(!isNaN(r.pIS))spot=r.k-r.pIS}
+    if(isNaN(fut)){if(!isNaN(r.cIF))fut=r.k+r.cIF;else if(!isNaN(r.pIF))fut=r.k-r.pIF}}
+  if(isNaN(spot)){const a=rows.reduce((m,r)=>Math.abs(r.pD+r.cD-0)<1e9&&Math.abs(Math.abs(r.pD)-.5)<Math.abs(Math.abs(m.pD)-.5)?r:m,rows[0]);spot=a.k+a.cLTP-a.pLTP}
+  if(isNaN(fut))fut=spot;
+  // max pain
+  let mp=null,mpv=Infinity;
+  for(const r of rows){let s=0;for(const q of rows)s+=Math.max(r.k-q.k,0)*q.cOI+Math.max(q.k-r.k,0)*q.pOI;if(s<mpv){mpv=s;mp=r.k}}
+  // OI-weighted centre within +/-6% of spot
+  const nb=rows.filter(r=>Math.abs(r.k-spot)/spot<=0.06);
+  const w=nb.reduce((s,r)=>s+r.pOI+r.cOI,0),oiw=nb.reduce((s,r)=>s+r.k*(r.pOI+r.cOI),0)/w;
+  const pw=best(rows.filter(r=>r.k<spot),'pOI'),cw=best(rows.filter(r=>r.k>spot),'cOI');
+  // days to expiry
+  const m=name.match(/(\d{4}-\d{2}-\d{2})[^]*?(\d{4}-\d{2}-\d{2})/);
+  let days=NaN,exp=m?m[1]:null,snap=m?m[2]:null;
+  if(m)days=Math.max((new Date(exp+'T15:30:00+05:30')-new Date(snap+'T09:15:00+05:30'))/864e5,0.25);
+  const atm=rows.reduce((a,r)=>Math.abs(r.k-spot)<Math.abs(a.k-spot)?r:a,rows[0]);
+  const sigma=!isNaN(days)&&!isNaN(atm.iv)?spot*atm.iv/100*Math.sqrt(days/365):spot*0.02;
+  const pred=0.4*mp+0.3*fut+0.3*oiw;
+  return{P,C,spot,fut,mp,oiw,pw,cw,days,exp,snap,atm,sigma,pred};
+}
+function render(a,rows){
+  const lo=Math.min(a.pw.k,a.pred-a.sigma),hi=Math.max(a.cw.k,a.pred+a.sigma),span=hi-lo||1,pos=v=>(100*(v-lo)/span).toFixed(1)+'%';
+  const card=(cls,t,r,key,dk,na)=>r?`<div class="card ${cls}"><h2>${t}</h2><div class="big">${fmt(r.k)}</div><div class="meta">${key} OI: ${fmt(r[key==='Put'?'pOI':'cOI'])}<br>Delta ${r[dk]} · LTP ${fmt(r[key==='Put'?'pLTP':'cLTP'],2)}</div></div>`:`<div class="card ${cls}"><h2>${t}</h2><div class="meta">${na}</div></div>`;
+  const lowP=a.P&&a.P.k;
+  const tr=rows.filter(r=>Math.abs(r.k-a.spot)<=700).map(r=>`<tr class="${r.k===a.atm.k?'hl':''}"><td>${r.k}</td><td>${fmt(r.pOI)}</td><td>${r.pD}</td><td>${fmt(r.cOI)}</td><td>${r.cD}</td></tr>`).join('');
+  $('out').innerHTML=`
+  <div class="grid">
+    ${card('put','Put strike, max OI at delta −0.01 or 0',a.P,'Put','pD','No strike with put delta between −0.01 and 0 in this file.')}
+    ${card('call','Call strike, max OI at delta 0.01 or 0',a.C,'Call','cD','No strike with call delta between 0 and 0.01 in this file.')}
+  </div>
+  <div class="card pred"><h2>Approximate Nifty spot at expiry${a.exp?' ('+a.exp+')':''}</h2>
+    <div class="big">${fmt(Math.round(a.pred/5)*5)}</div>
+    <div class="meta">Likely range ${fmt(a.pred-a.sigma)} to ${fmt(a.pred+a.sigma)} (about 68% odds from ATM IV ${fmt(a.atm.iv,1)}%${isNaN(a.days)?'':', '+fmt(a.days,1)+' days left'}).</div>
+    <div class="bar">
+      <div class="tick" style="left:${pos(a.pw.k)}"><span>Put wall ${a.pw.k}</span></div>
+      <div class="tick" style="left:${pos(a.spot)};background:var(--mute)"><span>Spot ${fmt(a.spot)}</span></div>
+      <div class="tick" style="left:${pos(a.pred)};background:var(--acc)"><span>Estimate</span></div>
+      <div class="tick" style="left:${pos(a.cw.k)}"><span>Call wall ${a.cw.k}</span></div>
+    </div><div style="height:30px"></div>
+    <div class="meta">Blend: 40% max pain (${fmt(a.mp)}), 30% futures (${fmt(a.fut)}), 30% OI-weighted strike within 6% of spot (${fmt(a.oiw)}).<br>
+    Highest OI below spot: ${a.pw.k} puts (${fmt(a.pw.pOI)}). Highest OI above spot: ${a.cw.k} calls (${fmt(a.cw.cOI)}). Spot is read from the intrinsic value columns.</div>
+  </div>
+  <div class="card tbl" style="margin-top:12px"><h2>Strikes near spot</h2><table><tr><th>Strike</th><th>Put OI</th><th>Put delta</th><th>Call OI</th><th>Call delta</th></tr>${tr}</table></div>`;
+}
+function load(file){
+  $('err').textContent='';
+  const rd=new FileReader();
+  rd.onload=()=>{try{const rows=parse(rd.result);render(analyze(rows,file.name),rows)}catch(e){$('out').innerHTML='';$('err').textContent=e.message}};
+  rd.readAsText(file);
+}
+$('f').onchange=e=>e.target.files[0]&&load(e.target.files[0]);
+const d=$('drop');
+d.ondragover=e=>{e.preventDefault();d.classList.add('on')};d.ondragleave=()=>d.classList.remove('on');
+d.ondrop=e=>{e.preventDefault();d.classList.remove('on');e.dataTransfer.files[0]&&load(e.dataTransfer.files[0])};
+</script>
+</body>
+</html>
