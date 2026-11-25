@@ -78,6 +78,7 @@
         #tab-analyzer .sg td, #tab-analyzer .sg th { text-align: left; }
         #tab-analyzer .sg td:first-child { min-width: 200px; }
         #tab-analyzer .err { color: var(--put); margin-top: 8px; }
+        #tab-analyzer .a-status { font-size: 0.72rem; color: var(--mute); margin: 2px 0 8px; }
         #tab-analyzer .a-note { color: var(--mute); display: block; margin-top: 12px; font-size: 0.65rem; }
         .loading {
             display: inline-block; width: 10px; height: 10px;
@@ -455,11 +456,15 @@
         </div><!-- /tab-dotm -->
 
         <div id="tab-analyzer" hidden>
-            <div class="sub">Upload the weekly option chain CSV to see far-tail strikes with the heaviest OI, the weekly bias and an approximate expiry-day spot.</div>
-            <label class="drop" id="drop"><input type="file" id="f" accept=".csv,text/csv"><b>Choose or drop the option chain CSV</b><br><span style="color:var(--mute)">Parsed in your browser; nothing is uploaded.</span></label>
+            <div class="sub">Latest weekly option chain published by the admin. It refreshes each time a new CSV is published.</div>
+            <div class="a-status" id="aStatus">Loading latest option chain…</div>
+            <div id="adminBox" hidden>
+                <label class="drop" id="drop"><input type="file" id="f" accept=".csv,text/csv"><b>Admin: choose or drop a new option chain CSV</b><br><span style="color:var(--mute)">It is shown here and saved to GitHub for everyone.</span></label>
+                <div class="meta" id="pubStatus"></div>
+            </div>
             <div class="err" id="err"></div>
             <div id="out"></div>
-            <span class="a-note">Estimates come from open-interest positioning and option pricing, not a guarantee of where Nifty will close. This is not investment advice.</span>
+            <span class="a-note">Estimates come from open-interest positioning and option pricing, not a guarantee of where Nifty will close. This is not investment advice. <a href="#" id="adminLink" style="color:inherit">Admin</a></span>
         </div>
     </div>
 
@@ -1358,16 +1363,68 @@ function initBias(a,rows){
   <div class="tbl"><table class="sg"><tr><th>Signal</th><th>Reading</th><th>Lean</th></tr>${S.map(r=>'<tr><td>'+r[0]+'<br><span style="color:var(--mute);font-size:.76rem">'+r[3]+'</span></td><td>'+r[1]+'</td>'+lean(r[2])+'</tr>').join('')}</table></div>
   <div class="meta">Support to watch: ${pw?pw.k:'–'}${then(pw,a.pw)}. Resistance to watch: ${cw?cw.k:'–'}${then(cw,a.cw)}. Trading beyond the put wall would weaken this bias, and beyond the call wall would strengthen it. The expiry estimate of ${fmt(Math.round(a.pred/5)*5)} is ${fmt(Math.abs(a.pred-a.spot))} points ${a.pred>=a.spot?'above':'below'} spot.</div>`;
 }
+let admin=false;
+function showChain(text,name){
+  try{const rows=parse(text);render(analyze(rows,name),rows);$('err').textContent='';return true}
+  catch(e){$('out').innerHTML='';$('err').textContent=e.message;return false}
+}
+const setStatus=t=>{$('aStatus').textContent=t};
+const host=location.hostname,parts=location.pathname.split('/').filter(Boolean),onGh=host.endsWith('.github.io');
+const OWNER=onGh?host.split('.')[0]:'durgeshh-create',REPO=onGh&&parts.length?parts[0]:'Wealthplus';
+const dir=(onGh?parts.slice(1):parts).filter((p,k,arr)=>!(k===arr.length-1&&p.includes('.'))).join('/');
+const DATA=(dir?dir+'/':'')+'data/latest.json',TK='wp_gh_token';
+async function loadSaved(){
+  try{
+    const r=await fetch('data/latest.json?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)throw new Error('none');
+    const j=await r.json();
+    if(showChain(j.csv,j.name))setStatus('Showing '+j.name+' (published '+new Date(j.uploaded).toLocaleString('en-IN')+')');
+  }catch(e){setStatus('No published option chain yet.')}
+}
+const store={get:()=>{try{return localStorage.getItem(TK)}catch(e){return null}},set:v=>{try{localStorage.setItem(TK,v);return true}catch(e){return false}},del:()=>{try{localStorage.removeItem(TK)}catch(e){}}};
+const gh=(path,opt={})=>fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+path,Object.assign({},opt,{headers:Object.assign({'Authorization':'Bearer '+store.get(),'Accept':'application/vnd.github+json'},opt.headers||{})}));
+async function enableAdmin(silent){
+  let t=store.get();
+  if(!t){
+    if(silent)return;
+    t=prompt('Paste your GitHub fine-grained token with Contents read and write access to '+OWNER+'/'+REPO+'. It is kept only in this browser.');
+    if(!t)return;
+    if(!store.set(t.trim())){alert('This browser blocked saving the token.');return}
+  }
+  try{
+    const r=await gh(''),j=r.ok?await r.json():null;
+    if(!j||!j.permissions||!j.permissions.push)throw new Error('no push');
+    admin=true;$('adminBox').hidden=false;$('adminLink').textContent='Sign out';
+  }catch(e){store.del();if(!silent)alert('That token cannot write to '+OWNER+'/'+REPO+', so admin mode stays off.')}
+}
+function signOut(){store.del();admin=false;$('adminBox').hidden=true;$('adminLink').textContent='Admin'}
+const b64=str=>btoa(unescape(encodeURIComponent(str)));
+async function publish(text,name){
+  const ps=$('pubStatus');ps.textContent='Saving to GitHub…';
+  try{
+    const path='/contents/'+DATA.split('/').map(encodeURIComponent).join('/');
+    const g=await gh(path);let sha;
+    if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error('GitHub returned '+g.status+' while checking the saved copy.');
+    const body={message:'Update option chain: '+name,content:b64(JSON.stringify({name:name,uploaded:new Date().toISOString(),csv:text}))};
+    if(sha)body.sha=sha;
+    const p=await gh(path,{method:'PUT',body:JSON.stringify(body)});
+    if(!p.ok)throw new Error('GitHub rejected the upload ('+p.status+'). Check that the token has Contents write access.');
+    ps.textContent='Saved to GitHub. Other users see it once GitHub Pages rebuilds, usually within a minute or two.';
+    setStatus('Showing '+name+' (just published)');
+  }catch(e){ps.textContent=e.message}
+}
 function load(file){
-  $('err').textContent='';
+  if(!admin)return;
   const rd=new FileReader();
-  rd.onload=()=>{try{const rows=parse(rd.result);render(analyze(rows,file.name),rows)}catch(e){$('out').innerHTML='';$('err').textContent=e.message}};
+  rd.onload=()=>{if(showChain(rd.result,file.name))publish(rd.result,file.name)};
   rd.readAsText(file);
 }
 $('f').onchange=e=>e.target.files[0]&&load(e.target.files[0]);
 const d=$('drop');
 d.ondragover=e=>{e.preventDefault();d.classList.add('on')};d.ondragleave=()=>d.classList.remove('on');
 d.ondrop=e=>{e.preventDefault();d.classList.remove('on');e.dataTransfer.files[0]&&load(e.dataTransfer.files[0])};
+$('adminLink').onclick=e=>{e.preventDefault();admin?signOut():enableAdmin(false)};
+loadSaved();enableAdmin(true);
     })();
     </script>
 </body>
