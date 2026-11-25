@@ -1390,7 +1390,7 @@ async function loadSaved(){
 }
 const store={get:()=>{try{return localStorage.getItem(TK)}catch(e){return null}},set:v=>{try{localStorage.setItem(TK,v)}catch(e){}},del:()=>{try{localStorage.removeItem(TK)}catch(e){}}};
 let tok=store.get();
-const gh=(path,opt)=>fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+path,Object.assign({cache:'no-store'},opt||{},{headers:{'Authorization':'Bearer '+tok,'Accept':'application/vnd.github+json'}}));
+const gh=(path,opt)=>fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+path,Object.assign({cache:'no-store'},opt||{},{headers:{'Authorization':'Bearer '+tok,'Accept':'application/vnd.github+json','Content-Type':'application/json'}}));
 function setAdmin(on){admin=on;$('adminBox').hidden=!on;$('adminLogin').hidden=true;$('adminLink').textContent=on?'Admin signed in · Sign out':'Admin sign in'}
 async function signIn(t,silent){
   const m=$('loginMsg');if(!silent)m.textContent='Checking token…';
@@ -1405,21 +1405,22 @@ async function signIn(t,silent){
 }
 function signOut(){store.del();tok=null;setAdmin(false)}
 const b64=str=>btoa(unescape(encodeURIComponent(str)));
+async function why(r){try{return (await r.json()).message||'no details'}catch(e){return 'no details'}}
 async function putFile(text,name,tries){
   const path='/contents/'+DATA.split('/').map(encodeURIComponent).join('/');
   const g=await gh(path+'?t='+Date.now());let sha;
-  if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error('GitHub returned '+g.status+' while checking the saved copy.');
+  if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error('GitHub returned '+g.status+' while checking the saved copy: '+await why(g));
   const body={message:'Update option chain: '+name,content:b64(JSON.stringify({name:name,uploaded:new Date().toISOString(),csv:text}))};
   if(sha)body.sha=sha;
   const p=await gh(path,{method:'PUT',body:JSON.stringify(body)});
   if((p.status===409||p.status===422)&&tries>0){await new Promise(r=>setTimeout(r,1500));return putFile(text,name,tries-1)}
-  if(!p.ok)throw new Error('GitHub rejected the upload ('+p.status+').'+([401,403,404].indexOf(p.status)>=0?' Check the token has Contents write access to this repo.':''));
+  if(!p.ok)throw new Error('GitHub rejected the upload ('+p.status+'): '+await why(p)+([401,403,404].indexOf(p.status)>=0?' Check the token has Contents write access to this repo.':''));
 }
 let q=Promise.resolve();
 async function doPublish(text,name){
   const ps=$('pubStatus');ps.textContent='Saving '+name+' to GitHub…';
   try{await putFile(text,name,2);ps.textContent='Saved '+name+' to GitHub. Others see it once GitHub Pages rebuilds, usually within a minute or two.';setStatus('Showing '+name+' (just published)')}
-  catch(e){ps.textContent=e.message}
+  catch(e){ps.textContent='Not saved. '+(/^Failed|NetworkError|Load failed/.test(e.message)?'Could not reach GitHub (network, ad-blocker or browser setting blocked api.github.com).':e.message)}
 }
 const publish=(text,name)=>{q=q.then(()=>doPublish(text,name));return q};
 function load(file){
