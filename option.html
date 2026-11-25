@@ -79,6 +79,8 @@
         #tab-analyzer .sg td:first-child { min-width: 200px; }
         #tab-analyzer .err { color: var(--put); margin-top: 8px; }
         #tab-analyzer .a-status { font-size: 0.72rem; color: var(--mute); margin: 2px 0 8px; }
+        #tab-analyzer .alogin { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 6px 0 10px; }
+        #tab-analyzer .alogin input { flex: 1; min-width: 220px; padding: 5px 8px; background: rgba(15,23,42,0.8); border: 1px solid var(--line); border-radius: 6px; color: var(--ink); font-size: 0.75rem; }
         #tab-analyzer .a-note { color: var(--mute); display: block; margin-top: 12px; font-size: 0.65rem; }
         .loading {
             display: inline-block; width: 10px; height: 10px;
@@ -457,14 +459,19 @@
 
         <div id="tab-analyzer" hidden>
             <div class="sub">Latest weekly option chain published by the admin. It refreshes each time a new CSV is published.</div>
-            <div class="a-status" id="aStatus">Loading latest option chain…</div>
+            <div class="a-status"><span id="aStatus">Loading latest option chain…</span> · <a href="#" id="adminLink" style="color:#60a5fa">Admin sign in</a></div>
+            <div class="alogin" id="adminLogin" hidden>
+                <input type="password" id="tokenIn" placeholder="GitHub token (Contents: read and write)" autocomplete="off">
+                <button type="button" class="fetch-btn" id="tokenBtn">Sign in</button>
+                <span class="meta" id="loginMsg"></span>
+            </div>
             <div id="adminBox" hidden>
-                <label class="drop" id="drop"><input type="file" id="f" accept=".csv,text/csv"><b>Admin: choose or drop a new option chain CSV</b><br><span style="color:var(--mute)">It is shown here and saved to GitHub for everyone.</span></label>
+                <label class="drop" id="drop"><input type="file" id="f" accept=".csv,text/csv"><b>Admin: choose or drop a new option chain CSV</b><br><span style="color:var(--mute)">Upload as many times as you like. Each one is shown here and saved to GitHub for everyone.</span></label>
                 <div class="meta" id="pubStatus"></div>
             </div>
             <div class="err" id="err"></div>
             <div id="out"></div>
-            <span class="a-note">Estimates come from open-interest positioning and option pricing, not a guarantee of where Nifty will close. This is not investment advice. <a href="#" id="adminLink" style="color:inherit">Admin</a></span>
+            <span class="a-note">Estimates come from open-interest positioning and option pricing, not a guarantee of where Nifty will close. This is not investment advice.</span>
         </div>
     </div>
 
@@ -1381,50 +1388,54 @@ async function loadSaved(){
     if(showChain(j.csv,j.name))setStatus('Showing '+j.name+' (published '+new Date(j.uploaded).toLocaleString('en-IN')+')');
   }catch(e){setStatus('No published option chain yet.')}
 }
-const store={get:()=>{try{return localStorage.getItem(TK)}catch(e){return null}},set:v=>{try{localStorage.setItem(TK,v);return true}catch(e){return false}},del:()=>{try{localStorage.removeItem(TK)}catch(e){}}};
-const gh=(path,opt={})=>fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+path,Object.assign({},opt,{headers:Object.assign({'Authorization':'Bearer '+store.get(),'Accept':'application/vnd.github+json'},opt.headers||{})}));
-async function enableAdmin(silent){
-  let t=store.get();
-  if(!t){
-    if(silent)return;
-    t=prompt('Paste your GitHub fine-grained token with Contents read and write access to '+OWNER+'/'+REPO+'. It is kept only in this browser.');
-    if(!t)return;
-    if(!store.set(t.trim())){alert('This browser blocked saving the token.');return}
-  }
+const store={get:()=>{try{return localStorage.getItem(TK)}catch(e){return null}},set:v=>{try{localStorage.setItem(TK,v)}catch(e){}},del:()=>{try{localStorage.removeItem(TK)}catch(e){}}};
+let tok=store.get();
+const gh=(path,opt)=>fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+path,Object.assign({cache:'no-store'},opt||{},{headers:{'Authorization':'Bearer '+tok,'Accept':'application/vnd.github+json'}}));
+function setAdmin(on){admin=on;$('adminBox').hidden=!on;$('adminLogin').hidden=true;$('adminLink').textContent=on?'Admin signed in · Sign out':'Admin sign in'}
+async function signIn(t,silent){
+  const m=$('loginMsg');if(!silent)m.textContent='Checking token…';
+  tok=t;
   try{
-    const r=await gh(''),j=r.ok?await r.json():null;
-    if(!j||!j.permissions||!j.permissions.push)throw new Error('no push');
-    admin=true;$('adminBox').hidden=false;$('adminLink').textContent='Sign out';
-  }catch(e){store.del();if(!silent)alert('That token cannot write to '+OWNER+'/'+REPO+', so admin mode stays off.')}
+    const r=await gh('');
+    if(r.status===401)throw Object.assign(new Error('GitHub rejected this token. Check it was copied in full and has not expired.'),{bad:1});
+    if(r.status===403||r.status===404)throw Object.assign(new Error('This token cannot access '+OWNER+'/'+REPO+'. Give it access to that repository with Contents read and write.'),{bad:1});
+    if(!r.ok)throw new Error('GitHub returned '+r.status+'. Try again.');
+    store.set(t);setAdmin(true);m.textContent='';$('pubStatus').textContent='Signed in. Upload as many CSVs as you like.';
+  }catch(e){if(e.bad){store.del();tok=null}if(!silent)m.textContent=e.message.indexOf('Failed')===0?'Could not reach GitHub. Check your connection.':e.message}
 }
-function signOut(){store.del();admin=false;$('adminBox').hidden=true;$('adminLink').textContent='Admin'}
+function signOut(){store.del();tok=null;setAdmin(false)}
 const b64=str=>btoa(unescape(encodeURIComponent(str)));
-async function publish(text,name){
-  const ps=$('pubStatus');ps.textContent='Saving to GitHub…';
-  try{
-    const path='/contents/'+DATA.split('/').map(encodeURIComponent).join('/');
-    const g=await gh(path);let sha;
-    if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error('GitHub returned '+g.status+' while checking the saved copy.');
-    const body={message:'Update option chain: '+name,content:b64(JSON.stringify({name:name,uploaded:new Date().toISOString(),csv:text}))};
-    if(sha)body.sha=sha;
-    const p=await gh(path,{method:'PUT',body:JSON.stringify(body)});
-    if(!p.ok)throw new Error('GitHub rejected the upload ('+p.status+'). Check that the token has Contents write access.');
-    ps.textContent='Saved to GitHub. Other users see it once GitHub Pages rebuilds, usually within a minute or two.';
-    setStatus('Showing '+name+' (just published)');
-  }catch(e){ps.textContent=e.message}
+async function putFile(text,name,tries){
+  const path='/contents/'+DATA.split('/').map(encodeURIComponent).join('/');
+  const g=await gh(path+'?t='+Date.now());let sha;
+  if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error('GitHub returned '+g.status+' while checking the saved copy.');
+  const body={message:'Update option chain: '+name,content:b64(JSON.stringify({name:name,uploaded:new Date().toISOString(),csv:text}))};
+  if(sha)body.sha=sha;
+  const p=await gh(path,{method:'PUT',body:JSON.stringify(body)});
+  if((p.status===409||p.status===422)&&tries>0){await new Promise(r=>setTimeout(r,1500));return putFile(text,name,tries-1)}
+  if(!p.ok)throw new Error('GitHub rejected the upload ('+p.status+').'+([401,403,404].indexOf(p.status)>=0?' Check the token has Contents write access to this repo.':''));
 }
+let q=Promise.resolve();
+async function doPublish(text,name){
+  const ps=$('pubStatus');ps.textContent='Saving '+name+' to GitHub…';
+  try{await putFile(text,name,2);ps.textContent='Saved '+name+' to GitHub. Others see it once GitHub Pages rebuilds, usually within a minute or two.';setStatus('Showing '+name+' (just published)')}
+  catch(e){ps.textContent=e.message}
+}
+const publish=(text,name)=>{q=q.then(()=>doPublish(text,name));return q};
 function load(file){
   if(!admin)return;
   const rd=new FileReader();
   rd.onload=()=>{if(showChain(rd.result,file.name))publish(rd.result,file.name)};
   rd.readAsText(file);
 }
-$('f').onchange=e=>e.target.files[0]&&load(e.target.files[0]);
+$('f').onchange=e=>{const f=e.target.files[0];e.target.value='';f&&load(f)};
 const d=$('drop');
 d.ondragover=e=>{e.preventDefault();d.classList.add('on')};d.ondragleave=()=>d.classList.remove('on');
 d.ondrop=e=>{e.preventDefault();d.classList.remove('on');e.dataTransfer.files[0]&&load(e.dataTransfer.files[0])};
-$('adminLink').onclick=e=>{e.preventDefault();admin?signOut():enableAdmin(false)};
-loadSaved();enableAdmin(true);
+$('adminLink').onclick=e=>{e.preventDefault();if(admin)signOut();else{const b=$('adminLogin');b.hidden=!b.hidden;if(!b.hidden)$('tokenIn').focus()}};
+$('tokenBtn').onclick=()=>{const t=$('tokenIn').value.trim();if(t)signIn(t,false)};
+$('tokenIn').onkeydown=e=>{if(e.key==='Enter')$('tokenBtn').onclick()};
+loadSaved();if(tok)signIn(tok,true);
     })();
     </script>
 </body>
