@@ -28,6 +28,7 @@ p.sub{color:var(--mute);margin:0 0 20px;font-family:system-ui,sans-serif;font-si
 .tbl{overflow-x:auto}table{border-collapse:collapse;width:100%;font:.85rem system-ui,sans-serif}
 td,th{padding:5px 8px;text-align:right;border-bottom:1px solid var(--line)}th{color:var(--mute);font-weight:600}
 td:first-child,th:first-child{text-align:left}tr.hl td{font-weight:700;background:rgba(42,79,156,.12)}
+.ctl{display:flex;gap:20px;flex-wrap:wrap;align-items:center;font:.9rem system-ui,sans-serif;margin-bottom:10px}.ctl input[type=number]{width:72px}ul.mr{margin:0;padding-left:18px;font:.9rem/1.6 system-ui,sans-serif}.cs td:first-child{white-space:nowrap}
 .err{color:var(--put);font-family:system-ui,sans-serif;margin-top:10px}
 small{color:var(--mute);font-family:system-ui,sans-serif;display:block;margin-top:18px}
 </style>
@@ -51,7 +52,7 @@ function parse(t){
   const R=L.slice(1).map(l=>{const c=l.split(',');const o={};H.forEach((h,i)=>o[h]=c[i]);return o});
   for(const k of ['Strike','Put OI','Put Delta','Call OI','Call Delta'])if(!H.includes(k))throw Error('Missing column: '+k+'. Use the standard option chain export.');
   return R.map(r=>({k:num(r['Strike']),pOI:num(r['Put OI'])||0,cOI:num(r['Call OI'])||0,pD:num(r['Put Delta']),cD:num(r['Call Delta']),iv:num(r['IV']),
-    pLTP:num(r['Put LTP']),cLTP:num(r['Call LTP']),cIS:num(r['Call Intrinsic Value(Spot)']),pIS:num(r['Put Intrinsic Value(Spot)']),cIF:num(r['Call Intrinsic Value(Fut)']),pIF:num(r['Put Intrinsic Value(Fut)'])})).filter(r=>!isNaN(r.k)).sort((a,b)=>a.k-b.k);
+    pLTP:num(r['Put LTP']),cLTP:num(r['Call LTP']),pTh:num(r['Put Theta']),cTh:num(r['Call Theta']),pV:num(r['Put Vega']),cV:num(r['Call Vega']),cIS:num(r['Call Intrinsic Value(Spot)']),pIS:num(r['Put Intrinsic Value(Spot)']),cIF:num(r['Call Intrinsic Value(Fut)']),pIF:num(r['Put Intrinsic Value(Fut)'])})).filter(r=>!isNaN(r.k)).sort((a,b)=>a.k-b.k);
 }
 function analyze(rows,name){
   // tail strikes
@@ -103,7 +104,43 @@ function render(a,rows){
     <div class="meta">Blend: 40% max pain (${fmt(a.mp)}), 30% futures (${fmt(a.fut)}), 30% OI-weighted strike within 6% of spot (${fmt(a.oiw)}).<br>
     Highest OI below spot: ${a.pw.k} puts (${fmt(a.pw.pOI)}). Highest OI above spot: ${a.cw.k} calls (${fmt(a.cw.cOI)}). Spot is read from the intrinsic value columns.</div>
   </div>
-  <div class="card tbl" style="margin-top:12px"><h2>Strikes near spot</h2><table><tr><th>Strike</th><th>Put OI</th><th>Put delta</th><th>Call OI</th><th>Call delta</th></tr>${tr}</table></div>`;
+  ${sellerHTML()}<div class="card tbl" style="margin-top:12px"><h2>Strikes near spot</h2><table><tr><th>Strike</th><th>Put OI</th><th>Put delta</th><th>Call OI</th><th>Call delta</th></tr>${tr}</table></div>`;initSeller(a,rows);
+}
+const LOT0=65,rs=n=>(n<0?'-':'')+'₹'+fmt(Math.abs(n));
+const cdf=x=>{const t=1/(1+.2316419*Math.abs(x)),d=.3989423*Math.exp(-x*x/2),p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return x>0?1-p:p};
+const near=(arr,key,t)=>arr.reduce((m,r)=>Math.abs(Math.abs(r[key])-t)<Math.abs(Math.abs(m[key])-t)?r:m,arr[0]);
+function sellerHTML(){return `<div class="card" style="margin-top:12px"><h2>Short strangle builder</h2><div class="ctl"><label>Delta per leg <input type="range" id="dl" min="0.05" max="0.35" step="0.01" value="0.15"> <b id="dv">0.15</b></label><label>Lot size <input type="number" id="lot" value="${LOT0}" min="1"></label></div><div class="tbl" id="sg"></div></div><div class="card" style="margin-top:12px"><h2>Market read for sellers</h2><ul class="mr" id="mr"></ul></div><div class="card tbl" style="margin-top:12px"><h2>Strike ladder by delta (out-of-the-money)</h2><div id="ld"></div></div>`}
+function initSeller(a,rows){
+  const oP=rows.filter(r=>r.k<a.spot&&r.pD<0&&r.pLTP>0),oC=rows.filter(r=>r.k>a.spot&&r.cD>0&&r.cLTP>0);
+  if(!oP.length||!oC.length){$('sg').textContent='Not enough priced out-of-the-money strikes in this file.';return}
+  const days=isNaN(a.days)?6:a.days,s=(a.atm.iv||17)/100*Math.sqrt(days/365);
+  const th=(r,side)=>Math.abs(side==='P'?r.pTh:r.cTh)||0,vg=(r,side)=>(side==='P'?r.pV:r.cV)||0;
+  const N=x=>cdf((Math.log(x/a.spot)+s*s/2)/s);
+  function upd(){
+    const t=+$('dl').value,lot=+$('lot').value||LOT0;$('dv').textContent=t.toFixed(2);
+    const p=near(oP,'pD',t),c=near(oC,'cD',t),prem=p.pLTP+c.cLTP,lo=p.k-prem,hi=c.k+prem,pop=N(hi)-N(lo);
+    const tday=th(p,'P')+th(c,'C'),vega=vg(p,'P')+vg(c,'C');
+    const shocks=[-2,-1,0,1,2].map(m=>{const S=a.spot+m*a.sigma;return `<tr><td>${m===0?'Spot unchanged':(m>0?'+':'−')+Math.abs(m)+'σ'} (${fmt(S)})</td><td>${rs((prem-Math.max(S-c.k,0)-Math.max(p.k-S,0))*lot)}</td></tr>`}).join('');
+    $('sg').innerHTML=`<table class="cs"><tr><th>Leg</th><th>Strike</th><th>Delta</th><th>LTP</th><th>OI</th><th>vs OI wall</th></tr><tr><td>Sell put</td><td>${p.k}</td><td>${p.pD}</td><td>${fmt(p.pLTP,2)}</td><td>${fmt(p.pOI)}</td><td>${p.k<=a.pw.k?'at/below put wall':'above put wall'}</td></tr><tr><td>Sell call</td><td>${c.k}</td><td>${c.cD}</td><td>${fmt(c.cLTP,2)}</td><td>${fmt(c.cOI)}</td><td>${c.k>=a.cw.k?'at/above call wall':'below call wall'}</td></tr></table><div class="meta">Credit ${fmt(prem,2)} pts = <b>${rs(prem*lot)}</b> per lot (max profit). Breakevens ${fmt(lo)} (−${fmt((a.spot-lo)/a.spot*100,1)}%) and ${fmt(hi)} (+${fmt((hi-a.spot)/a.spot*100,1)}%).<br>Approx. chance of profit at expiry: <b>${fmt(pop*100)}%</b> (flat ATM IV model).<br>Theta earned about ${fmt(tday,1)} pts/day (${rs(tday*lot)} per lot). A 1-point IV rise costs about ${rs(vega*lot)} per lot.</div><table class="cs" style="margin-top:10px"><tr><th>Nifty at expiry</th><th>P&amp;L per lot</th></tr>${shocks}</table>`;
+    let h='<table><tr><th>Side</th><th>Delta</th><th>Strike</th><th>Away</th><th>LTP</th><th>Theta/day</th><th>Per lot</th><th>OI</th></tr>';
+    for(const d of [.05,.1,.15,.2,.25,.3])for(const [side,arr,key] of [['Put',oP,'pD'],['Call',oC,'cD']]){const r=near(arr,key,d),P=side==='Put',ltp=P?r.pLTP:r.cLTP;h+=`<tr><td style="color:var(--${P?'put':'call'})">${side}</td><td>${r[key]}</td><td>${r.k}</td><td>${fmt(Math.abs(r.k-a.spot)/a.spot*100,1)}% / ${fmt(Math.abs(r.k-a.spot)/a.sigma,1)}σ</td><td>${fmt(ltp,2)}</td><td>${fmt(th(r,side[0]),2)}</td><td>${rs(ltp*lot)}</td><td>${fmt(P?r.pOI:r.cOI)}</td></tr>`}
+    $('ld').innerHTML=h+'</table>';
+  }
+  $('dl').oninput=upd;$('lot').oninput=upd;upd();
+  // market read
+  const sum=(f,k)=>f.reduce((x,r)=>x+r[k],0),nb=rows.filter(r=>Math.abs(r.k-a.spot)/a.spot<=.06);
+  const pcr=sum(rows,'pOI')/sum(rows,'cOI'),pcrN=sum(nb,'pOI')/sum(nb,'cOI');
+  const lean=x=>x>1.2?'put writers dominate (heavier support)':x<.8?'call writers dominate (heavier resistance)':'balanced';
+  const stg=a.atm.pLTP+a.atm.cLTP,sp=near(oP,'pD',.25),sc=near(oC,'cD',.25),skew=sp.iv-sc.iv;
+  const top=(arr,key)=>[...arr].sort((x,y)=>y[key]-x[key]).slice(0,3).map(r=>r.k+' ('+fmt(r[key]/1e5,1)+'L)').join(', ');
+  const L=[];
+  L.push(`<b>PCR by OI:</b> ${fmt(pcr,2)} overall, ${fmt(pcrN,2)} within 6% of spot, so ${lean(pcrN)}.`);
+  if(!isNaN(stg))L.push(`<b>ATM straddle:</b> ${fmt(stg,1)} pts (${fmt(stg/a.spot*100,1)}% of spot), so the market prices a move to about ${fmt(a.atm.k-stg)}–${fmt(a.atm.k+stg)}. IV-based 1σ is ±${fmt(a.sigma)}. Short strikes outside these bands have the edge on paper.`);
+  L.push(`<b>IV skew:</b> 0.25-delta put IV ${fmt(sp.iv,1)}% vs call IV ${fmt(sc.iv,1)}%, a difference of ${fmt(skew,1)} points. ${skew>0.5?'Puts are richer, so downside premium pays more.':skew<-0.5?'Calls are richer than puts, so upside premium pays more.':'Skew is flat, so neither side is notably richer.'}`);
+  L.push(`<b>Theta decay:</b> ATM theta is about ${fmt(th(a.atm,'C'),1)} pts/day, roughly ${fmt(th(a.atm,'C')/(stg/2)*100,1)}% of one ATM option's price daily. Decay speeds up into expiry, and so does gamma risk, so short strikes need more care in the last two days.`);
+  L.push(`<b>Put OI walls below spot:</b> ${top(rows.filter(r=>r.k<a.spot),'pOI')}. <b>Call OI walls above spot:</b> ${top(rows.filter(r=>r.k>a.spot),'cOI')}. Walls can be crowded trades, so a break through one tends to move fast.`);
+  L.push(`<b>Data check:</b> OI change, volume and gamma are blank in this file, and far-from-the-money LTPs can be stale. Re-export after the market opens for fresher numbers.`);
+  $('mr').innerHTML=L.map(x=>'<li>'+x+'</li>').join('');
 }
 function load(file){
   $('err').textContent='';
