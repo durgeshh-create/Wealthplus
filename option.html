@@ -38,6 +38,12 @@
             font-weight: 600; cursor: pointer; white-space: nowrap;
         }
         .fetch-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .analyzer-btn {
+            display: inline-block; padding: 5px 12px; text-decoration: none;
+            background: transparent; color: #60a5fa; border: 1px solid #3b82f6;
+            border-radius: 6px; font-size: 0.65rem; font-weight: 600; white-space: nowrap;
+        }
+        .analyzer-btn:hover { background: rgba(59,130,246,0.15); }
         .loading {
             display: inline-block; width: 10px; height: 10px;
             border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
@@ -206,6 +212,7 @@
                 <div id="marketStatus" class="market-status market-closed">Market Closed</div>
             </div>
             <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+                <a class="analyzer-btn" href="https://durgeshh-create.github.io/Wealthplus/nifty.html" target="_blank" rel="noopener">Option chain Analyzer</a>
                 <button class="fetch-btn" id="refreshBtn" onclick="fetchLiveData()">
                     Fetch Live Data
                 </button>
