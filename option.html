@@ -1468,7 +1468,7 @@ async function handleFile(f){
     setStatus('Showing '+f.name+' · ⚠ not saved to GitHub.');
     $('err').textContent='Save failed: '+res.msg+'. Check that the token has write access to '+OWNER+'/'+REPO+'.';
   }
-}
+} 
 const drop=$('aDrop'),fileIn=$('aFile');
 fileIn.addEventListener('change',()=>{handleFile(fileIn.files[0]);fileIn.value=''});
 ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('on')}));
