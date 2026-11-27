@@ -1,6 +1,6 @@
 {
   "account": "PS5673",
-  "timestamp": "2026-11-27 09:10:28 IST",
+  "timestamp": "2026-11-27 09:11:32 IST",
   "bot_running": true,
   "total_value": 7646492.69,
   "today_pnl": 5228.84,
@@ -105,6 +105,22 @@
       "tracked": true
     },
     {
+      "symbol": "MINDSPACE-RR",
+      "exchange": "NSE",
+      "isin": "INE0CCU25019",
+      "quantity": 2371,
+      "pledged": 1783,
+      "avg": 490.11,
+      "ltp": 498.44,
+      "invested": 1162048.97,
+      "value": 1181801.24,
+      "pnl": 19752.27,
+      "pnl_pct": 1.7,
+      "day_pnl": 3935.86,
+      "day_pnl_pct": 0.33,
+      "tracked": false
+    },
+    {
       "symbol": "NXST-RR",
       "exchange": "NSE",
       "isin": "INE0NDH25011",
@@ -118,22 +134,6 @@
       "pnl_pct": -3.44,
       "day_pnl": 4509.26,
       "day_pnl_pct": 0.38,
-      "tracked": false
-    },
-    {
-      "symbol": "MINDSPACE-RR",
-      "exchange": "NSE",
-      "isin": "INE0CCU25019",
-      "quantity": 2371,
-      "pledged": 1783,
-      "avg": 490.11,
-      "ltp": 496.78,
-      "invested": 1162048.97,
-      "value": 1177865.38,
-      "pnl": 15816.41,
-      "pnl_pct": 1.36,
-      "day_pnl": 0.0,
-      "day_pnl_pct": 0.0,
       "tracked": false
     },
     {
@@ -219,11 +219,11 @@
   ],
   "equity_summary": {
     "total_invested": 12463566.31,
-    "total_cur_val": 12495886.64,
-    "total_pnl": 32320.33,
-    "total_pnl_pct": 0.26,
-    "day_pnl": 11947.01,
-    "day_pnl_pct": 0.1,
+    "total_cur_val": 12499822.5,
+    "total_pnl": 36256.19,
+    "total_pnl_pct": 0.29,
+    "day_pnl": 15882.87,
+    "day_pnl_pct": 0.13,
     "count": 9
   },
   "positions": [
@@ -303,9 +303,9 @@
     },
     {
       "symbol": "GOLDBEES",
-      "ltp": 102.44,
-      "change_pct": 1.47,
-      "williams_r": -85.71,
+      "ltp": null,
+      "change_pct": null,
+      "williams_r": -93.97,
       "is_held": true,
       "avg_price": 111.21,
       "strategy": "active"
