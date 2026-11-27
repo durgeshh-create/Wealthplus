@@ -458,7 +458,12 @@
         </div><!-- /tab-dotm -->
 
         <div id="tab-analyzer" hidden>
-            <div class="sub">Latest weekly option chain published by the admin. It updates whenever a new CSV is added to the repo.</div>
+            <div class="sub">Upload your own option chain CSV any time, or use the latest one published by the admin (loaded automatically from the repo).</div>
+            <label class="drop" id="aDrop">
+                <input type="file" id="aFile" accept=".csv,text/csv">
+                <strong>Upload an option chain CSV</strong><br>
+                <span style="color:var(--mute);font-size:0.7rem">Click to choose a file, or drag and drop it here. Works any time, no repo update needed.</span>
+            </label>
             <div class="a-status"><span id="aStatus">Loading latest option chain…</span> · <a href="#" id="refreshLink" style="color:#60a5fa">Refresh</a></div>
             <div class="err" id="err"></div>
             <div id="out"></div>
@@ -1400,6 +1405,19 @@ async function loadLatest(){
   setStatus('No option chain found ('+why+'). Admin: add the CSV to the "data" folder of the '+REPO+' repo on GitHub.');
 }
 $('refreshLink').onclick=e=>{e.preventDefault();loadLatest()};
+async function handleFile(f){
+  if(!f)return;
+  if(!/\.csv$/i.test(f.name)&&!/csv|text/i.test(f.type)){$('err').textContent='Please choose a .csv file.';return}
+  try{
+    const t=await f.text();
+    if(showChain(t,f.name))setStatus('Showing '+f.name+' (uploaded by you) · click Refresh to go back to the repo version');
+  }catch(e){$('err').textContent='Could not read the file: '+e.message}
+}
+const drop=$('aDrop'),fileIn=$('aFile');
+fileIn.addEventListener('change',()=>{handleFile(fileIn.files[0]);fileIn.value=''});
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('on')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('on')}));
+drop.addEventListener('drop',e=>handleFile(e.dataTransfer.files[0]));
 loadLatest();
     })();
     </script>
