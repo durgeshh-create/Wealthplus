@@ -329,6 +329,7 @@
                 <label>India VIX</label>
                 <div class="value-display" id="vixDisplay">13.61</div>
             </div>
+            <!-- HIDDEN (restore by removing this comment wrapper): MIDCPNIFTY Spot + Range cards
             <div class="input-card">
                 <label>MIDCPNIFTY Spot</label>
                 <div class="value-display" id="midcpDisplay">14,367</div>
@@ -338,10 +339,12 @@
                 <div class="value-display" id="rangeDisplay">1,755.08</div>
                 <div class="formula-box" id="rangeFormula">23945.00 x sqrt(13.61 x 200% / 3800) = 1755.08</div>
             </div>
+            -->
         </div>
 
         <!-- Main NIFTY Option Strikes -->
-        <div class="results-row" id="regularResults">
+        <div class="results-row single-col" id="regularResults"> <!-- single-col because the PUT card is hidden; restore to class="results-row" with the PUT card -->
+            <!-- HIDDEN (restore by removing this comment wrapper): NIFTY DOTM PUT card
             <div class="result-card" id="dotmPutCard"> 
                 <div class="result-header put">
                     <h2>NIFTY DOTM PUT <span id="putTypeBadge" class="option-type-badge weekly-badge">W</span></h2>
@@ -354,6 +357,7 @@
                     </div>
                 </div>
             </div>
+            -->
 
             <div class="result-card" id="dotmCallCard">
                 <div class="result-header call">
@@ -412,6 +416,7 @@
              LAST Tuesday of the month (monthly expiry) — earlier weekly
              Tuesdays' MIDCPNIFTY expiry-day strikes see too little volume
              to be worth surfacing by default. -->
+        <!-- HIDDEN (restore by removing this comment wrapper): MIDCPNIFTY EXPIRY DAY INTRADAY section
         <div id="midcpExpirySection">
         <div class="section-divider">
             <span>MIDCPNIFTY EXPIRY DAY INTRADAY (Div: 17,000)</span>
@@ -450,6 +455,7 @@
         </div>
         <div class="midcp-caveat">Do MIDCPNIFTY only on last Tue of month if these strikes have good volume</div>
         </div>
+        -->
         </div>
 
         <div class="note">
@@ -622,8 +628,9 @@
             });
             document.getElementById('niftyDisplay').textContent = '···';
             document.getElementById('vixDisplay').textContent = '···';
-            document.getElementById('midcpDisplay').textContent = '···';
-            ['niftyDisplay', 'vixDisplay', 'midcpDisplay'].forEach(id =>
+            // HIDDEN: midcpDisplay card
+            // document.getElementById('midcpDisplay').textContent = '···';
+            ['niftyDisplay', 'vixDisplay' /*, 'midcpDisplay' */].forEach(id =>
                 document.getElementById(id).classList.add('pending'));
 
             document.querySelectorAll('.copy-btn').forEach(btn => btn.disabled = true);
@@ -672,37 +679,42 @@
 
             document.getElementById('niftyDisplay').textContent = nifty.toLocaleString('en-IN', {maximumFractionDigits: 2});
             document.getElementById('vixDisplay').textContent = vix.toFixed(2);
-            document.getElementById('midcpDisplay').textContent = midcp.toLocaleString('en-IN', {maximumFractionDigits: 2});
-            document.getElementById('rangeDisplay').textContent = currentRange.toFixed(2);
+            // HIDDEN: MIDCPNIFTY Spot + Range cards
+            // document.getElementById('midcpDisplay').textContent = midcp.toLocaleString('en-IN', {maximumFractionDigits: 2});
+            // document.getElementById('rangeDisplay').textContent = currentRange.toFixed(2);
             document.getElementById('niftyDivisorValue').textContent = divisor.toLocaleString();
             document.getElementById('rangeValue').textContent = currentRange.toFixed(2);
 
             const dayName = WEEKDAY_NAMES[dayOfWeek];
             document.getElementById('currentDate').textContent = `${dayName} (${formatDDMMYYYY(today)})`;
             document.getElementById('expiryDate').textContent = formatDDMMYYYY(expiryDate) + (isMonthlyExpiry ? ' M' : ' W');
-            document.getElementById('rangeFormula').textContent = `${nifty.toFixed(2)} x sqrt(${vix.toFixed(2)} x 200% / ${divisor}) = ${currentRange.toFixed(2)}`;
+            // HIDDEN: Range card
+            // document.getElementById('rangeFormula').textContent = `${nifty.toFixed(2)} x sqrt(${vix.toFixed(2)} x 200% / ${divisor}) = ${currentRange.toFixed(2)}`;
 
             // Main NIFTY symbols
             let putSym, callSym;
             if (isMonthlyExpiry) {
                 putSym = formatMonthlySymbol('NIFTY', expiryDate, putStrike, 'PE');
                 callSym = formatMonthlySymbol('NIFTY', expiryDate, callStrike, 'CE');
-                document.getElementById('putTypeBadge').textContent = 'M';
-                document.getElementById('putTypeBadge').className = 'option-type-badge monthly-badge';
+                // HIDDEN: NIFTY DOTM PUT card
+                // document.getElementById('putTypeBadge').textContent = 'M';
+                // document.getElementById('putTypeBadge').className = 'option-type-badge monthly-badge';
                 document.getElementById('callTypeBadge').textContent = 'M';
                 document.getElementById('callTypeBadge').className = 'option-type-badge monthly-badge';
             } else {
                 putSym = formatWeeklySymbol('NIFTY', expiryDate, putStrike, 'PE');
                 callSym = formatWeeklySymbol('NIFTY', expiryDate, callStrike, 'CE');
-                document.getElementById('putTypeBadge').textContent = 'W';
-                document.getElementById('putTypeBadge').className = 'option-type-badge weekly-badge';
+                // HIDDEN: NIFTY DOTM PUT card
+                // document.getElementById('putTypeBadge').textContent = 'W';
+                // document.getElementById('putTypeBadge').className = 'option-type-badge weekly-badge';
                 document.getElementById('callTypeBadge').textContent = 'W';
                 document.getElementById('callTypeBadge').className = 'option-type-badge weekly-badge';
             }
 
-            document.getElementById('putSymbolText').textContent = putSym;
+            // HIDDEN: NIFTY DOTM PUT card
+            // document.getElementById('putSymbolText').textContent = putSym;
             document.getElementById('callSymbolText').textContent = callSym;
-            document.getElementById('putStrike').textContent = String(putStrike);
+            // document.getElementById('putStrike').textContent = String(putStrike);
             document.getElementById('callStrike').textContent = String(callStrike);
 
             // NIFTY Expiry Day Intraday
@@ -742,10 +754,11 @@
             const midcpPutSym = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryPutStrike}PE`;
             const midcpCallSym = `MIDCPNIFTY${midcpYY}${midcpMonthName}${midcpExpiryCallStrike}CE`;
 
-            document.getElementById('midcpPutSymbolText').textContent = midcpPutSym;
-            document.getElementById('midcpCallSymbolText').textContent = midcpCallSym;
-            document.getElementById('midcpPutStrike').textContent = midcpExpiryPutStrike.toLocaleString();
-            document.getElementById('midcpCallStrike').textContent = midcpExpiryCallStrike.toLocaleString();
+            // HIDDEN: MIDCPNIFTY EXPIRY DAY INTRADAY section
+            // document.getElementById('midcpPutSymbolText').textContent = midcpPutSym;
+            // document.getElementById('midcpCallSymbolText').textContent = midcpCallSym;
+            // document.getElementById('midcpPutStrike').textContent = midcpExpiryPutStrike.toLocaleString();
+            // document.getElementById('midcpCallStrike').textContent = midcpExpiryCallStrike.toLocaleString();
         }
 
         // Free public CORS proxies (allorigins/codetabs/corsproxy.io) turned
@@ -1131,15 +1144,16 @@
         // other symbol cluttering the view. Purely a display filter; doesn't
         // touch any of the underlying strike calculations.
         function applyDOTMFilter(mode) {
-            const putCard  = document.getElementById('dotmPutCard');
+            // HIDDEN: NIFTY DOTM PUT card
+            // const putCard  = document.getElementById('dotmPutCard');
             const callCard = document.getElementById('dotmCallCard');
             const row      = document.getElementById('regularResults');
 
-            const showPut  = mode === 'both' || mode === 'put';
+            // const showPut  = mode === 'both' || mode === 'put';
             const showCall = mode === 'both' || mode === 'call';
-            putCard.style.display  = showPut  ? '' : 'none';
+            // putCard.style.display  = showPut  ? '' : 'none';
             callCard.style.display = showCall ? '' : 'none';
-            row.classList.toggle('single-col', mode !== 'both');
+            // row.classList.toggle('single-col', mode !== 'both');   // HIDDEN PUT: row is always single-col now
 
             const radio = document.querySelector(`input[name="dotmFilter"][value="${mode}"]`);
             if (radio) radio.checked = true;
